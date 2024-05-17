@@ -204,12 +204,12 @@ function loadData() {
     const cont = d3.select(".container")
     const div = cont.append("div").attr("class", "quadrant")
     const svg = div.append("svg")
-                 .attr("id", county)
+      .attr("id", county)
   });
 
   countyPOPCsvMapping.forEach(({ county }) => {
-    
-    d3.csv("/DMA-PRIME-dashboard/dashboardOverview/Counties daily cases/"+county+"_case_daily.csv").then(function (data) {
+
+    d3.csv("/DMA-PRIME-dashboard/dashboardOverview/Counties daily cases/" + county + "_case_daily.csv").then(function (data) {
       const chosenColumn = 0; // Change this to the column you want to display on the y-axis
 
       var margin = { top: 25, right: 0, bottom: 1, left: 0 },
@@ -276,10 +276,10 @@ function loadData() {
       svgElement = "#" + county;
       countyName = county.toUpperCase();
 
-      const svg = d3.select("#"+county)
-                     .attr("width", width + margin.left + margin.right)
-                    .attr("height", height + margin.top + margin.bottom)
-      
+      const svg = d3.select("#" + county)
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+
       svg
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -313,7 +313,7 @@ function loadData() {
 
       svg
         .append("a")
-        .attr("xlink:href", "./county-vis.html?county="+county)
+        .attr("xlink:href", "./county-vis.html?county=" + county)
         .append("text")
         .attr("x", width / 2 - 55)
         .attr("y", 18)
@@ -361,22 +361,22 @@ function loadData() {
   });
 }
 
-function uploadAbsolute(){
+function uploadAbsolute() {
 
   const colors = ["#2E1E30", "#331427", "#A20D32", "#FF073A"];
   const quartiles = [0, 4000, 40000, 180000];
   var colorMap = d3.scaleLinear().domain(quartiles).range(colors)
 
   var margin = { top: 25, right: 0, bottom: 1, left: 0 },
-  width = 205 - margin.left - margin.right,
-  height = 120 - margin.top - margin.bottom;
+    width = 205 - margin.left - margin.right,
+    height = 120 - margin.top - margin.bottom;
 
   console.log("Here")
 
   countyPOPCsvMapping.forEach(({ county }) => {
-    d3.csv("/DMA-PRIME-dashboard/dashboardOverview/Counties daily cases/"+county+"_case_daily.csv").then(function (data) {
-    
-      const chosenColumn = 0; 
+    d3.csv("/DMA-PRIME-dashboard/dashboardOverview/Counties daily cases/" + county + "_case_daily.csv").then(function (data) {
+
+      const chosenColumn = 0;
       // Parse the date
       var parseDate = d3.timeParse("%Y-%m-%d");
       data.forEach(function (d) {
@@ -386,164 +386,164 @@ function uploadAbsolute(){
 
       const aggregate = Math.round(
         data.reduce((total, d) => total + d[chosenColumn], 0)
-              );
+      );
 
-        d3.select("#"+county)
-          .select("rect") 
-          .transition()
-          .duration(2000) 
-          .style("fill", colorMap(aggregate));
+      d3.select("#" + county)
+        .select("rect")
+        .transition()
+        .duration(2000)
+        .style("fill", colorMap(aggregate));
 
-        const maxYValue = d3.max(data, (d) => d[chosenColumn]);
+      const maxYValue = d3.max(data, (d) => d[chosenColumn]);
 
-        /////data point corresponding to the maximum value
-        const maxDataPoint = data.find((d) => d[chosenColumn] === maxYValue);
-        // console.log("Max Data Point:", maxDataPoint);
+      /////data point corresponding to the maximum value
+      const maxDataPoint = data.find((d) => d[chosenColumn] === maxYValue);
+      // console.log("Max Data Point:", maxDataPoint);
 
-        const x = d3
-          .scaleTime()
-          .domain(d3.extent(data, (d) => d.date))
-          .range([0, width]);
+      const x = d3
+        .scaleTime()
+        .domain(d3.extent(data, (d) => d.date))
+        .range([0, width]);
 
-        const fixedMaxYValue = 2500;
-        const y = d3
-          .scaleLinear()
-          .domain([0, fixedMaxYValue])
-          .nice()
-          .range([height, 0]);
+      const fixedMaxYValue = 2500;
+      const y = d3
+        .scaleLinear()
+        .domain([0, fixedMaxYValue])
+        .nice()
+        .range([height, 0]);
 
-        const line = d3.line()
-                    .defined((d) => !isNaN(d[chosenColumn]))
-                    .x((d) => x(d.date))
-                    .y((d) => y(d[chosenColumn]));
+      const line = d3.line()
+        .defined((d) => !isNaN(d[chosenColumn]))
+        .x((d) => x(d.date))
+        .y((d) => y(d[chosenColumn]));
 
-        d3.select("#"+county)
-          .select("path")
-          .transition()
-          .duration(2000)
-          .attr("d", line)
+      d3.select("#" + county)
+        .select("path")
+        .transition()
+        .duration(2000)
+        .attr("d", line)
 
-        d3.select("#"+county)
-          .select("circle")
-          .transition()
-          .duration(2000)
-          .attr("cy", y(maxYValue)) // y-coordinate
+      d3.select("#" + county)
+        .select("circle")
+        .transition()
+        .duration(2000)
+        .attr("cy", y(maxYValue)) // y-coordinate
 
-        d3.select("#"+county)
-          .select(".pointlabel")
-          .transition()
-          .duration(2000)
-          .attr("y", y(maxYValue) - 4) // Adjust the position to be above the circle
-          .text(Math.round(maxYValue))
+      d3.select("#" + county)
+        .select(".pointlabel")
+        .transition()
+        .duration(2000)
+        .attr("y", y(maxYValue) - 4) // Adjust the position to be above the circle
+        .text(Math.round(maxYValue))
 
 
-        d3.select("#"+county)
-          .select(".totnumb")
-          .attr("x", width / 2 - 60)
-          .attr("y", 35) // Adjust the y-coordinate to position it below the existing text
-          .attr("text-anchor", "middle")
-          .style("font-size", "12px")
-          .style("fill", "white")
-          .style("font-family", "Josefin Sans")
-          .text(`(${aggregate})`)
-          .attr("title", "Total cases");
+      d3.select("#" + county)
+        .select(".totnumb")
+        .attr("x", width / 2 - 60)
+        .attr("y", 35) // Adjust the y-coordinate to position it below the existing text
+        .attr("text-anchor", "middle")
+        .style("font-size", "12px")
+        .style("fill", "white")
+        .style("font-family", "Josefin Sans")
+        .text(`(${aggregate})`)
+        .attr("title", "Total cases");
 
-      })
+    })
   })
 }
 
-function uploadAveraged(){
-      const colors = ["#2E1E30", "#331427", "#A20D32", "#FF073A"];
-      const quartiles = [0.0, 0.03, 0.2, 0.5];
-      var colorMap = d3.scaleLinear().domain(quartiles).range(colors);
+function uploadAveraged() {
+  const colors = ["#2E1E30", "#331427", "#A20D32", "#FF073A"];
+  const quartiles = [0.0, 0.03, 0.2, 0.5];
+  var colorMap = d3.scaleLinear().domain(quartiles).range(colors);
 
-      var margin = { top: 25, right: 0, bottom: 1, left: 0 },
-      width = 205 - margin.left - margin.right,
-      height = 120 - margin.top - margin.bottom;
+  var margin = { top: 25, right: 0, bottom: 1, left: 0 },
+    width = 205 - margin.left - margin.right,
+    height = 120 - margin.top - margin.bottom;
 
-      // console.log("Here")
+  // console.log("Here")
 
-      countyPOPCsvMapping.forEach(({ county, countyPop }) => {
-        d3.csv("/DMA-PRIME-dashboard/dashboardOverview/Counties daily cases/"+county+"_case_daily.csv").then(function (data) {
-          
-          const chosenColumn = 0; // Change this to the column you want to display on the y-axis
+  countyPOPCsvMapping.forEach(({ county, countyPop }) => {
+    d3.csv("/DMA-PRIME-dashboard/dashboardOverview/Counties daily cases/" + county + "_case_daily.csv").then(function (data) {
 
-          // Parse the date
-          var parseDate = d3.timeParse("%Y-%m-%d");
-          data.forEach(function (d) {
-            d.date = parseDate(d.date);
-            d[chosenColumn] = +d[chosenColumn];
-          });
-          
-          const aggregate = Math.round(
-          data.reduce((total, d) => total + d[chosenColumn], 0));
-      
-          const ratio = aggregate / countyPop;
- 
-          d3.select("#"+county)
-            .select("rect")
-            .transition()
-            .duration(2000)   
-            .style("fill", colorMap(ratio));
+      const chosenColumn = 0; // Change this to the column you want to display on the y-axis
 
-          const maxYValue = d3.max(data, (d) => d[chosenColumn]/ countyPop);
-          console.log(maxYValue, countyPop);
+      // Parse the date
+      var parseDate = d3.timeParse("%Y-%m-%d");
+      data.forEach(function (d) {
+        d.date = parseDate(d.date);
+        d[chosenColumn] = +d[chosenColumn];
+      });
 
-          /////data point corresponding to the maximum value
-          const maxDataPoint = data.find((d) => d[chosenColumn] === maxYValue);
-          // console.log("Max Data Point:", maxDataPoint);
+      const aggregate = Math.round(
+        data.reduce((total, d) => total + d[chosenColumn], 0));
 
-          const x = d3
-            .scaleTime()
-            .domain(d3.extent(data, (d) => d.date))
-            .range([0, width]);
+      const ratio = aggregate / countyPop;
 
-          const fixedMaxYValue = 0.006;
-          const y = d3
-            .scaleLinear()
-            .domain([0, fixedMaxYValue])
-            .nice()
-            .range([height, 0]);
+      d3.select("#" + county)
+        .select("rect")
+        .transition()
+        .duration(2000)
+        .style("fill", colorMap(ratio));
 
-          const line = d3.line()
-                      .defined((d) => !isNaN(d[chosenColumn]))
-                      .x((d) => x(d.date))
-                      .y((d) => y(d[chosenColumn] / countyPop));
+      const maxYValue = d3.max(data, (d) => d[chosenColumn] / countyPop);
+      console.log(maxYValue, countyPop);
 
-          d3.select("#"+county)
-            .select("path")
-            .transition()
-            .duration(2000)
-            .attr("d", line)
+      /////data point corresponding to the maximum value
+      const maxDataPoint = data.find((d) => d[chosenColumn] === maxYValue);
+      // console.log("Max Data Point:", maxDataPoint);
 
-          d3.select("#"+county)
-            .select("circle")
-            .transition()
-            .duration(2000)
-            .attr("cy", y(maxYValue)) // y-coordinate
+      const x = d3
+        .scaleTime()
+        .domain(d3.extent(data, (d) => d.date))
+        .range([0, width]);
 
-          d3.select("#"+county)
-            .select(".pointlabel")
-            .transition()
-            .duration(2000)
-            .attr("y", y(maxYValue) - 4) // Adjust the position to be above the circle
-            .text(maxYValue.toFixed(3))
+      const fixedMaxYValue = 0.006;
+      const y = d3
+        .scaleLinear()
+        .domain([0, fixedMaxYValue])
+        .nice()
+        .range([height, 0]);
+
+      const line = d3.line()
+        .defined((d) => !isNaN(d[chosenColumn]))
+        .x((d) => x(d.date))
+        .y((d) => y(d[chosenColumn] / countyPop));
+
+      d3.select("#" + county)
+        .select("path")
+        .transition()
+        .duration(2000)
+        .attr("d", line)
+
+      d3.select("#" + county)
+        .select("circle")
+        .transition()
+        .duration(2000)
+        .attr("cy", y(maxYValue)) // y-coordinate
+
+      d3.select("#" + county)
+        .select(".pointlabel")
+        .transition()
+        .duration(2000)
+        .attr("y", y(maxYValue) - 4) // Adjust the position to be above the circle
+        .text(maxYValue.toFixed(3))
 
 
-          d3.select("#"+county)
-            .select(".totnumb")
-            .attr("x", width / 2 - 60)
-            .attr("y", 35) // Adjust the y-coordinate to position it below the existing text
-            .attr("text-anchor", "middle")
-            .style("font-size", "12px")
-            .style("fill", "white")
-            .style("font-family", "Josefin Sans")
-            .text(`(${ratio.toFixed(3)})`)
-            .attr("title", "Total cases");
+      d3.select("#" + county)
+        .select(".totnumb")
+        .attr("x", width / 2 - 60)
+        .attr("y", 35) // Adjust the y-coordinate to position it below the existing text
+        .attr("text-anchor", "middle")
+        .style("font-size", "12px")
+        .style("fill", "white")
+        .style("font-family", "Josefin Sans")
+        .text(`(${ratio.toFixed(3)})`)
+        .attr("title", "Total cases");
 
-        })
-        
+    })
 
-      })
+
+  })
 
 }

@@ -151,7 +151,7 @@ function createBaseObjects() {
         // link to county-vis w/ text
         svg
             .append("a")
-            .attr("xlink:href", "./county-vis.html?county="+county)            
+            .attr("xlink:href", "./county-vis.html?county=" + county)
             .append("text")
             .attr("x", width / 2 - 55)
             .attr("y", 18)
@@ -198,10 +198,10 @@ function initialVisualisation() {
     countyPOPCsvMapping.forEach(({ county }) => {
 
         d3.select("#" + county)
-                .select("path")
-                .transition()
-                .duration(2000)
-                .style("opacity", 1);
+            .select("path")
+            .transition()
+            .duration(2000)
+            .style("opacity", 1);
 
         d3.select("#" + county)
             .select("circle")
@@ -224,7 +224,7 @@ function uploadAveraged() {
 function updateCountyGraphs(type) {
     countyPOPCsvMapping.forEach(({ county, countyPop }) => {
         d3.csv("/DMA-PRIME-dashboard/dashboardOverview/Counties daily cases/" + county + "_case_daily.csv").then(function (data) {
-            
+
             // Parse the date
             var parseDate = d3.timeParse("%Y-%m-%d");
             data.forEach(function (d) {
@@ -243,16 +243,16 @@ function updateCountyGraphs(type) {
             const maxDataPoint = data.find((d) => d[chosenColumn] === maxYValue);
             let pointLabel = Math.round(maxYValue);
             let countyValue = aggregate;
-            let lineFunc = function(val) { return val; };
+            let lineFunc = function (val) { return val; };
             let countyTitle = "Total Cases";
 
             switch (type) {
                 case "popAdjusted":
                     fixedMaxYValue = 0.006;
-                    maxYValue = d3.max(data, (d) => d[chosenColumn]/ countyPop);
+                    maxYValue = d3.max(data, (d) => d[chosenColumn] / countyPop);
                     pointLabel = maxYValue.toFixed(3);
-                    countyValue = (aggregate/countyPop).toFixed(3);
-                    lineFunc = function(val) { return val/countyPop; };
+                    countyValue = (aggregate / countyPop).toFixed(3);
+                    lineFunc = function (val) { return val / countyPop; };
                     countyTitle = "Pop Adjusted Cases";
                     break;
                 // in the event we have many different things, I'm using a switch statement the default is total, see above
