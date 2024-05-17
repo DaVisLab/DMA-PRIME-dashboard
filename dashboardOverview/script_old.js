@@ -183,7 +183,7 @@ population = [
 // ];
 const countyPOPCsvMapping = [];
 
-for (let i = 0; i < Math.min(counties.length); i++) {
+for (let i = 0; i < counties.length; i++) {
   const mapping = {
     county: counties[i],
     countyPop: population[i],
