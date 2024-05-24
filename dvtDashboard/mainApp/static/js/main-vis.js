@@ -1,43 +1,15 @@
 // I want the svg to exist in the html file
 
-var svg = d3.select("#main-vis"),
-    width = +svg.attr("width"),
-    height = +svg.attr("height");
+var svg = d3.select("#main-vis");
+var js_svg = document.getElementById("main-vis")
 
-// var projection = d3.geoMercator()
-//     // .scale(width / 1.3 / Math.PI)
-//     .translate([width / 2, height / 2])
+d3.json("static/data/tl_2022_sc_county.json").then(function(mapdata){
+    var width = js_svg.width.baseVal.value
+    var height = js_svg.height.baseVal.value
 
-// // var projection = d3.geoOrthographic() //other types geoOrthographic() //geoMercator()
-
-// // .fitWidth(size, {type: "Sphere"}) //sphere to flat surface using geo equal earth
-
-// var pathGenerator = d3.geoPath(projection) //does all the magic (aka math) to go from coords to 2d website
-
-// d3.json("../../../sandbox/d3 maps/map.json").then(function(mapdata){
-// // d3.json("static/data/county_sub.json").then(function(mapdata){
-//     console.log(mapdata)
-//     console.log(mapdata.features)
-//     svg.append("g")
-//         .selectAll("path")
-//         .data(mapdata.features)
-//         .join("path")
-//         // .enter().append("path")
-//                 .attr("fill", "#69b3a2")
-//                 .attr("d", pathGenerator)
-//                 .style("stroke", "#fff")
-// })
-
-d3.json("static/data/county_sub.json").then(function(mapdata){
-
-    console.log(d3.geoBounds(mapdata))
-
-    //starting by creating an easier way to access my data by country
-
-    var size = 400
     var dimensions = ({
-        width: size, 
-        height: size/2,
+        width: width, 
+        height: height,
         margin: {
          top: 10,
          right: 10,
@@ -46,12 +18,12 @@ d3.json("static/data/county_sub.json").then(function(mapdata){
         }
        })
 
-
     // var svg = d3.select("svg").attr("width", dimensions.width)
                             // .attr("height", dimensions.height)
 
     var projection = d3.geoAlbers() //geoOrthographic() //geoMercator()
-                        .fitExtent([[0,0],[400,300]], mapdata)
+                        // .fitExtent([[100,100],[width-100,height-100]], mapdata)
+                        .fitExtent([[dimensions.margin.left,dimensions.margin.top],[width-dimensions.margin.right,height-dimensions.margin.bottom]], mapdata)
 
     var pathGenerator = d3.geoPath(projection)
 
