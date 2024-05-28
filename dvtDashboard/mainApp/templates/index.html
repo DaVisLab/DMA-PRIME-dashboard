@@ -47,10 +47,11 @@ Need to find a spot for the line/bar graph -->
         </div>
     </sl-split-panel>
 
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main-vis.js') }}"></script>
     <script src="{{ url_for('static', filename='js/interactions.js') }}"></script>
     <script>
-      displayMap("{{ url_for('static', filename='data/tl_2023_sc_county.json') }}");
+      displayMap(mapType);
     </script>
 
   </body>

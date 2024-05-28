@@ -3,43 +3,85 @@
 var svg = d3.select("#mainVis");
 var js_svg = document.getElementById("mainVis")
 
-function displayMap(mapJSON) {
+function displayMap(mapType) {
+    mapJSON = determineMap(mapType)
     js_svg.innerHTML = ""
     d3.json(mapJSON).then(function(mapdata){
-        // d3.json("static/data/tl_2023_sc_zcta.json").then(function(mapdata){
             
-            var dimensions = ({
-                width: width, 
-                height: height,
-                margin: {
-                 top: 10,
-                 right: 10,
-                 bottom: 10,
-                 left: 10
-                }
-               })
-        
-            var width = js_svg.width.baseVal.value
-            var height = js_svg.height.baseVal.value
-        
-            var projection = d3.geoAlbers() //geoOrthographic() //geoMercator()
-                                // .scale(14490.050394227457)
-                                // .translate([-2541.520291685157, -655.8449762125149 ])
-                                // .scale(8763.186773434889)
-                                // .translate([ -1632.8583228988787, -238.08720204069493 ])
-                                .fitExtent([[dimensions.margin.left,dimensions.margin.top],[width-dimensions.margin.right,height-dimensions.margin.bottom]], mapdata)
-        
-            var pathGenerator = d3.geoPath(projection)
-        
-            var countries = svg.append("g")
-                            .selectAll("path")
-                            .data(mapdata.features)
-                            .enter()
-                            .append("path")
-                            .attr("class", "mapItems")
-                            .attr("id", (d) => d.properties.NAME.toLowerCase())
-                            .attr("d", d => pathGenerator(d))
-                            .style("fill", "#999")            
+        var dimensions = ({
+            width: width, 
+            height: height,
+            margin: {
+                top: 10,
+                right: 10,
+                bottom: 10,
+                left: 10
+            }
+            })
+    
+        var width = js_svg.width.baseVal.value
+        var height = js_svg.height.baseVal.value
+    
+        var projection = d3.geoAlbers() //geoOrthographic() //geoMercator()
+                            // .scale(14490.050394227457)
+                            // .translate([-2541.520291685157, -655.8449762125149 ])
+                            // .scale(8763.186773434889)
+                            // .translate([ -1632.8583228988787, -238.08720204069493 ])
+                            .fitExtent([[dimensions.margin.left,dimensions.margin.top],[width-dimensions.margin.right,height-dimensions.margin.bottom]], mapdata)
+    
+        var pathGenerator = d3.geoPath(projection)
+    
+        var area = svg.append("g")
+                        .selectAll("path")
+                        .data(mapdata.features)
+                        .enter()
+                        .append("path")
+                        .attr("class", "mapItems")
+                        .attr("id", (d) => getSignifier(d))
+                        .attr("d", d => pathGenerator(d))
+                        .style("fill", "#999")            
+    })
+}
+
+function resizeMap(mapType) {
+    mapJSON = determineMap(mapType)
+    d3.json(mapJSON).then(function(mapdata){
+        console.log(mapdata)
+        var dimensions = ({
+            width: width, 
+            height: height,
+            margin: {
+                top: 10,
+                right: 10,
+                bottom: 10,
+                left: 10
+            }
+            })
+
+        var width = js_svg.width.baseVal.value
+        var height = js_svg.height.baseVal.value
+
+        var projection = d3.geoAlbers() 
+                            .fitExtent([[dimensions.margin.left,dimensions.margin.top],[width-dimensions.margin.right,height-dimensions.margin.bottom]], mapdata)
+
+        var pathGenerator = d3.geoPath(projection)
+
+        mapdata.features.forEach((areaData) => {
+            d3.select("#" + getSignifier(areaData))
+                .attr("d", pathGenerator(areaData))
+                // .style("fill", colorMap(areaData))
+        })
+        // var area = svg.selectAll("path")
+
+        // counties.each((county) => 
+        //     d3.select(this)
+        // )
+        //                 // .data(mapdata.features)
+                        // .enter()
+                        // .attr("class", "mapItems")
+                        // .attr("id", (d) => d.properties.NAME.toLowerCase())
+                        // .attr("d", d => pathGenerator(d))
+                        // // .style("fill", "#999")            
     })
 }
 

@@ -11,7 +11,7 @@ var mapType = "county"
 
 navBar.addEventListener("sl-tab-show", (tabName) => {
     mapType = tabName.detail.name 
-    determineMap(mapType)
+    displayMap(mapType)
 })
 
 // options interaction functionality
@@ -43,6 +43,7 @@ optionsHider.addEventListener("click", () => {
         mainContent.position = 0
         optionsHider.name = "chevron-compact-right"
     }
+    resizeMap(mapType)
 });
 
 mainContent.addEventListener("sl-reposition", () => {
@@ -53,26 +54,23 @@ mainContent.addEventListener("sl-reposition", () => {
         options_open = false;
         optionsHider.name = "chevron-compact-right"
     }
-    determineMap(mapType)
+    resizeMap(mapType)
 });
 }
 
 // main visualization visual functionality
 window.addEventListener("resize", () => {
-    determineMap(mapType)
+    resizeMap(mapType)
 })
 
 function determineMap(mapType) {
     switch (mapType) {
         case "zip": 
-            displayMap("../static/data/tl_2023_sc_zcta.json");
-            break;
+            return "../static/data/tl_2023_sc_zcta.json";
         case "block":
-        displayMap("../static/data/tl_2023_sc_block.json");
-            break;
+            return "../static/data/tl_2023_sc_block.json";
         default: 
         case "county":
-            displayMap("../static/data/tl_2023_sc_county.json");
-            break;
+            return "../static/data/tl_2023_sc_county.json";
     }
 }
