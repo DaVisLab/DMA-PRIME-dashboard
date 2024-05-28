@@ -16,4 +16,4 @@ which zip codes belong to sc: https://www.irs.gov/pub/irs-utl/zip_code_and_state
 
 To fill page with content: https://dev.to/lennythedev/css-gotcha-how-to-fill-page-with-a-div-270j
 
-To automatically reload flask applications on changes, run it with the --debugger flag :)
+To automatically reload flask applications on changes, run it with the --debug flag :) (p.s. don't put it at the end, I put it before --app)

@@ -33,8 +33,15 @@ Need to find a spot for the line/bar graph -->
     </sl-tab-group>
     <!-- Main content -->
     <sl-split-panel position="20" id="mainContent">
-        <div slot="divider" id="mainContentDivider"><sl-icon-button name="chevron-compact-left" id="hideMenuButton"></sl-icon-button></div>
-        <div slot="start" id="options" >Visualization options here...</div>
+        <div slot="divider" id="mainContentDivider"><sl-icon-button name="chevron-compact-left" id="hideOptionsButton"></sl-icon-button></div>
+        <div slot="start" id="options" >
+          <sl-radio-group id="visSelector" name="visSelector" value="none">
+            <label>Select a visualization</label>
+            <sl-radio value="none">None</sl-radio>
+            <sl-radio value="aggregated" >Aggregated</sl-radio>
+            <sl-radio value="3" disabled>Option 3</sl-radio>
+          </sl-radio-group>
+        </div>
         <div slot="end" id="mainVisDiv" >
             <svg id="mainVis" ></svg>
         </div>
@@ -44,7 +51,7 @@ Need to find a spot for the line/bar graph -->
     <script src="{{ url_for('static', filename='js/interactions.js') }}"></script>
     <script>
       displayMap("{{ url_for('static', filename='data/tl_2023_sc_county.json') }}");
-    </script>    
+    </script>
 
   </body>
 </html>
