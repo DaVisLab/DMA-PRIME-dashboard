@@ -91,17 +91,6 @@ function lineVis(tab, signifier) {
                 "#FFA500",
             ];
 
-            // const svg = d3
-            //     .select("#detailedGraph")
-            //     .append("svg")
-            //     .attr("width", width + margin.left + margin.right)
-            //     .attr("height", height + margin.top + margin.bottom)
-            //     .append("g")
-            //     .attr(
-            //         "transform",
-            //         "translate(" + margin.left + "," + margin.top + ")"
-            //     );
-
             const lines = [];
             for (let i = 0; i < 7; i++) {
                 lines.push(

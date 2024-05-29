@@ -15,7 +15,13 @@ var mainSVG = d3.select("#mainVis");
 var jsSVG = document.getElementById("mainVis")
 var mapItemsD3 = mainSVG.selectAll(".mapItems")
 
+// variables
+var mapType = "county"
+var visType = "none"
+var optionsPosition = mainContent.position
+var options_open = true;
 var numMinorVis = 0
+
 
 // Takes a feature object and gets county/zip code, can be extended later if need be
 function getSignifier(d){

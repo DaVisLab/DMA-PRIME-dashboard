@@ -2,8 +2,6 @@
 
 // nav bar interaction functionality
 {
-var mapType = "county"
-
 navBar.addEventListener("sl-tab-show", (tabName) => {
     mapType = tabName.detail.name 
     displayMap(mapType)
@@ -27,9 +25,6 @@ selector.addEventListener("sl-change", () => {
 
 // options visual functionality
 {
-var optionsPosition = mainContent.position
-let options_open = true;
-
 optionsHider.addEventListener("click", () => {
     options_open = !options_open;
 
