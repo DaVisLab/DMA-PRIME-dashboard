@@ -1,11 +1,8 @@
 // I want the svg to exist in the html file
 
-var svg = d3.select("#mainVis");
-var js_svg = document.getElementById("mainVis")
-
 function displayMap(mapType) {
     mapJSON = determineMap(mapType)
-    js_svg.innerHTML = ""
+    jsSVG.innerHTML = ""
     d3.json(mapJSON).then(function(mapdata){
             
         var dimensions = ({
@@ -19,8 +16,8 @@ function displayMap(mapType) {
             }
             })
     
-        var width = js_svg.width.baseVal.value
-        var height = js_svg.height.baseVal.value
+        var width = jsSVG.width.baseVal.value
+        var height = jsSVG.height.baseVal.value
     
         var projection = d3.geoAlbers() //geoOrthographic() //geoMercator()
                             // .scale(14490.050394227457)
@@ -31,7 +28,7 @@ function displayMap(mapType) {
     
         var pathGenerator = d3.geoPath(projection)
     
-        var area = svg.append("g")
+        var area = mainSVG.append("g")
                         .selectAll("path")
                         .data(mapdata.features)
                         .enter()
@@ -39,14 +36,24 @@ function displayMap(mapType) {
                         .attr("class", "mapItems")
                         .attr("id", (d) => getSignifier(d))
                         .attr("d", d => pathGenerator(d))
-                        .style("fill", "#999")            
+                        .style("fill", "#999")
+                        .on("click", (d) => {
+                            tab = document.createElement("sl-tab")
+                            tab.setAttribute("slot", "nav")
+                            tab.setAttribute("closable", "")
+                            tab.setAttribute("id", "minor_vis_tab:"+d.target.id)
+                            // newVis = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+                            // newVis.setAttribute("id", "minor_"+d.target.id)
+                            // tab.append(newVis)
+                            minorVisResizer.append(tab)
+                            newMinorVis(tab, d.target.id, "line")
+                        })            
     })
 }
 
 function resizeMap(mapType) {
     mapJSON = determineMap(mapType)
     d3.json(mapJSON).then(function(mapdata){
-        console.log(mapdata)
         var dimensions = ({
             width: width, 
             height: height,
@@ -58,8 +65,8 @@ function resizeMap(mapType) {
             }
             })
 
-        var width = js_svg.width.baseVal.value
-        var height = js_svg.height.baseVal.value
+        var width = jsSVG.width.baseVal.value
+        var height = jsSVG.height.baseVal.value
 
         var projection = d3.geoAlbers() 
                             .fitExtent([[dimensions.margin.left,dimensions.margin.top],[width-dimensions.margin.right,height-dimensions.margin.bottom]], mapdata)
@@ -69,31 +76,19 @@ function resizeMap(mapType) {
         mapdata.features.forEach((areaData) => {
             d3.select("#" + getSignifier(areaData))
                 .attr("d", pathGenerator(areaData))
-                // .style("fill", colorMap(areaData))
-        })
-        // var area = svg.selectAll("path")
-
-        // counties.each((county) => 
-        //     d3.select(this)
-        // )
-        //                 // .data(mapdata.features)
-                        // .enter()
-                        // .attr("class", "mapItems")
-                        // .attr("id", (d) => d.properties.NAME.toLowerCase())
-                        // .attr("d", d => pathGenerator(d))
-                        // // .style("fill", "#999")            
+        })           
     })
 }
 
 function clearVisualization() {
-    svg.selectAll("path")
+    mainSVG.selectAll("path")
         .transition()
         .duration(2000)    
         .style("fill", "#999")
 }
 
 function aggregatedVisualization() {
-    let counties = svg.selectAll(".mapItems")
+    let counties = mainSVG.selectAll(".mapItems")
     counties.each(d => calculateValue(d.properties.NAME.toLowerCase(), d))
 }
 

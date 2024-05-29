@@ -1,21 +1,17 @@
 
-// list of objects
-var optionsHider = document.getElementById("hideOptionsButton")
-var mainContentDivider = document.getElementById("mainContentDivider")
-var mainContent = document.getElementById("mainContent")
-var navBar = document.getElementById("navBar")
-var selector = document.getElementById("visSelector")
-var mainVisResizer = document.getElementById("mainVisResizer")
 
 // nav bar interaction functionality
+{
 var mapType = "county"
 
 navBar.addEventListener("sl-tab-show", (tabName) => {
     mapType = tabName.detail.name 
     displayMap(mapType)
 })
+}
 
 // options interaction functionality
+{
 selector.addEventListener("sl-change", () => {
     console.log(selector.value)
     switch(selector.value) {
@@ -27,6 +23,7 @@ selector.addEventListener("sl-change", () => {
             break;
     }
 })
+}
 
 // options visual functionality
 {
@@ -58,6 +55,7 @@ mainContent.addEventListener("sl-reposition", () => {
 }
 
 // main visualization visual functionality
+{
 mainVisResizer.addEventListener("sl-resize", () => {
     resizeMap(mapType)
 })
@@ -72,4 +70,5 @@ function determineMap(mapType) {
         case "county":
             return "../static/data/tl_2023_sc_county.json";
     }
+}
 }

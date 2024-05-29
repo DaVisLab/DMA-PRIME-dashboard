@@ -6,83 +6,90 @@ Need to find a spot for the line/bar graph -->
 
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DMA-PRIME</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/light.css" />
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/shoelace-autoloader.js"></script>
 
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}" />
-    <!-- <script src="https://d3js.org/d3-collection.v1.min.js"></script> -->
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/d3-geo@3"></script><!-- <link rel="preconnect" href="https://fonts.googleapis.com" /> -->
-    <!-- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin /> -->
-    <!-- <link
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DMA-PRIME</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/light.css" />
+  <script type="module"
+    src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/shoelace-autoloader.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}" />
+  <!-- <script src="https://d3js.org/d3-collection.v1.min.js"></script> -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-geo@3"></script>
+  <!-- <link rel="preconnect" href="https://fonts.googleapis.com" /> -->
+  <!-- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin /> -->
+  <!-- <link
       href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap"
       rel="stylesheet"
     /> -->
-  </head>
-  <body>
-    <!-- Top nav bar -->
-    <sl-tab-group id="navBar">
-        <sl-tab slot="nav" panel="county">County</sl-tab>
-        <sl-tab slot="nav" panel="zip">Zip Code</sl-tab>
-        <!-- <sl-tab slot="nav" panel="block">Census Block</sl-tab> -->
-        <!-- <sl-tab slot="nav" panel="disabled" disabled>Disabled</sl-tab> -->
-    </sl-tab-group>
-    <!-- Main content -->
-    <sl-split-panel position="20" id="mainContent" class="fillHeight"> 
+</head>
 
-      <!-- Line w/ button to resize the options panel and open/close it -->
-      <div slot="divider" id="mainContentDivider">
-        <sl-icon-button name="chevron-compact-left" id="hideOptionsButton"></sl-icon-button>
-      </div>
+<body>
+  <!-- Top nav bar -->
+  <sl-tab-group id="navBar">
+    <sl-tab slot="nav" panel="county">County</sl-tab>
+    <sl-tab slot="nav" panel="zip">Zip Code</sl-tab>
+    <!-- <sl-tab slot="nav" panel="block">Census Block</sl-tab> -->
+    <!-- <sl-tab slot="nav" panel="disabled" disabled>Disabled</sl-tab> -->
+  </sl-tab-group>
+  <!-- Main content -->
+  <sl-split-panel position="20" id="mainContent" class="fillHeight">
 
-      <!-- Visualization options panel -->
-      <div slot="start" id="options" class="fillHeight"> <!-- This is the -->
-        <sl-radio-group id="visSelector" name="visSelector" value="none">
-          <label>Select a visualization</label>
-          <sl-radio value="none">None</sl-radio>
-          <sl-radio value="aggregated" >Aggregated</sl-radio>
-          <sl-radio value="3" disabled>Option 3</sl-radio>
-        </sl-radio-group>
-      </div>
+    <!-- Line w/ button to resize the options panel and open/close it -->
+    <div slot="divider" id="mainContentDivider">
+      <sl-icon-button name="chevron-compact-left" id="hideOptionsButton"></sl-icon-button>
+    </div>
 
-      <!-- This is where the extra options for a visualization and the visualizations will reside -->
-      <div slot="end" class="hideOverflow">
+    <!-- Visualization options panel -->
+    <div slot="start" id="options" class="fillHeight"> <!-- This is the -->
+      <sl-radio-group id="visSelector" name="visSelector" value="none">
+        <label>Select a visualization</label>
+        <sl-radio value="none">None</sl-radio>
+        <sl-radio value="aggregated">Aggregated</sl-radio>
+        <sl-radio value="3" disabled>Option 3</sl-radio>
+      </sl-radio-group>
+    </div>
 
-        <!-- Splits into visualization/extra options panel -->
-        <sl-split-panel vertical disabled position="100" id="visContainer" class="fillHeight">
-          
-          <!-- This is where the visualizations will sit -->
-          <div slot="start">
-            <sl-split-panel position="100" class="fillHeight">
-              <div slot="start">
-                <sl-resize-observer id="mainVisResizer">
-                  <svg id="mainVis" class="fillHeight"></svg>
-                </sl-resize-observer>
-              </div>
-              <div slot="end"></div>
-            </sl-split-panel>
-          </div>
+    <!-- This is where the visualizatin and extra options for a visualization will reside -->
+    <sl-split-panel slot="end" vertical disabled position="100" id="visContainer" class="fillHeight hideOverflow">
+      <!-- This is where the visualizations will sit -->
+      <sl-split-panel slot="start" position="100" class="fillHeight">
+        <div slot="start">
+          <sl-resize-observer id="mainVisResizer">
+            <svg id="mainVis" class="fillHeight"></svg>
+          </sl-resize-observer>
+        </div>
+        <div slot="end" id="minorVisDiv">
+          <sl-resize-observer >
+            <sl-tab-group placement="end" id="minorVisResizer">
+              <!-- stuff will go in here eventually -->
+            </sl-tab-group>
+          </sl-resize-observer>
+        </div>
+      </sl-split-panel>
 
-          <!-- Extra options here -->
-          <div slot="end" id="extrasDiv">
-            <label>Date</label>
-            <sl-range min="0" max="10" step="1" id="timeSlider"></sl-range>
-          </div>
-        </sl-split-panel>
+      <!-- Extra options here -->
+      <div slot="end" id="extrasDiv">
+        <label>Date</label>
+        <sl-range min="0" max="10" step="1" id="timeSlider"></sl-range>
       </div>
     </sl-split-panel>
+  </sl-split-panel>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script> <!-- Contains helper functions/data/constants -->
-    <script src="{{ url_for('static', filename='js/main-vis.js') }}"></script> <!-- Functions to get the main (left) vis working -->
-    <script src="{{ url_for('static', filename='js/interactions.js') }}"></script> <!-- All the magic for panel resizing/vis options -->
-    <script>
-      displayMap(mapType);
-    </script>
+  <!-- Contains helper functions/data/constants -->
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  <!-- Functions to get the main (left) vis working -->
+  <script src="{{ url_for('static', filename='js/minor-vis.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/main-vis.js') }}"></script>
+  <!-- All the magic for panel resizing/vis options -->
+  <script src="{{ url_for('static', filename='js/interactions.js') }}"></script>
+  <script>
+    displayMap(mapType);
+  </script>
 
-  </body>
+</body>
+
 </html>
-
