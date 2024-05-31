@@ -15,7 +15,7 @@ function newMinorVis(tab, signifier, type){
 function lineVis(tab, signifier) {
     console.log("creating")
     newVis = document.createElementNS("http://www.w3.org/2000/svg", "svg")
-    newVis.setAttribute("id", "minor_" + signifier)
+    newVis.setAttribute("id", "minorvis-" + signifier)
     newVis.setAttribute("width", 300)
     newVis.setAttribute("height", 300)
     tab.append(newVis)
@@ -24,7 +24,7 @@ function lineVis(tab, signifier) {
     console.log(signifier)
     console.log(newVis)
     
-    svg = d3.select("#minor_" + signifier)
+    svg = d3.select("#minorvis-" + signifier)
     d3.csv("static/data/county/Counties daily cases/" + signifier + "_case_daily.csv").then( (data) => {
         d3.csv("static/data/county/RealDataCounties/" + signifier + "covid19.csv").then((real_data) => {
             var parseDate = d3.timeParse("%Y-%m-%d");

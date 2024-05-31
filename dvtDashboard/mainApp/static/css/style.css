@@ -1,17 +1,17 @@
 /*  */
-.fillHeight {
+.fill-height {
   height: 100%;
 }
 
-.hideOverflow {
+.hide-overflow {
   overflow:hidden
 }
 
-#mainContent {
+#main-content {
   height: 100%;
 }
 
-#mainContentDivider {
+#main-content-divider {
   font-size: 2rem; 
   background-color: lightgray;
 }
@@ -22,7 +22,7 @@
   overflow-wrap: normal;
 }
 
-#mainVis {
+#main-vis {
   height: 100%;
   width: 100%;
 }

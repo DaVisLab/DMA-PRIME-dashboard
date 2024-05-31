@@ -24,44 +24,52 @@ Need to find a spot for the line/bar graph -->
 
 <body>
   <!-- Top nav bar -->
-  <sl-tab-group id="navBar">
+  <sl-tab-group id="nav-bar">
     <sl-tab slot="nav" panel="county">County</sl-tab>
     <sl-tab slot="nav" panel="zip">Zip Code</sl-tab>
     <!-- <sl-tab slot="nav" panel="block">Census Block</sl-tab> -->
     <!-- <sl-tab slot="nav" panel="disabled" disabled>Disabled</sl-tab> -->
   </sl-tab-group>
   <!-- Main content -->
-  <sl-split-panel position="20" id="mainContent" class="fillHeight">
+  <sl-split-panel position="20" id="main-content" class="fill-height">
 
     <!-- Line w/ button to resize the options panel and open/close it -->
-    <div slot="divider" id="mainContentDivider">
-      <sl-icon-button name="chevron-compact-left" id="hideOptionsButton"></sl-icon-button>
+    <div slot="divider" id="main-content-divider">
+      <sl-icon-button name="chevron-compact-left" id="hide-options-button"></sl-icon-button>
     </div>
 
     <!-- Visualization options panel -->
-    <div slot="start" id="options" class="fillHeight"> <!-- This is the -->
-      <sl-switch id="normalizePopSwitch">Normalize by Population</sl-switch>
-      <sl-radio-group id="visSelector" name="visSelector" value="none">
+    <div slot="start" id="options" class="fill-height"> <!-- This is the -->
+      <sl-switch id="normalize-pop-switch">Normalize by Population</sl-switch>
+      <sl-divider></sl-divider>
+      <sl-radio-group id="vis-selector" name="vis-selector" value="none">
         <label>Select a visualization</label>
         <sl-radio value="none">None</sl-radio>
         <sl-radio value="aggregated">Aggregated</sl-radio>
         <sl-radio value="daily" >Daily</sl-radio>
         <sl-radio value="3" disabled>Option 3</sl-radio>
       </sl-radio-group>
+      <sl-divider></sl-divider>
+      <sl-select value="day-1">
+        <p slot="label">Forecast Length</p>
+        <sl-option value="day-1">1 Day</sl-option>
+        <sl-option value="day-3">3 Day</sl-option>
+        <sl-option value="day-7">Week</sl-option>
+      </sl-select>
     </div>
 
     <!-- This is where the visualizatin and extra options for a visualization will reside -->
-    <sl-split-panel slot="end" vertical disabled position="90" id="visContainer" class="fillHeight hideOverflow">
+    <sl-split-panel slot="end" vertical disabled position="90" id="vis-container" class="fill-height hide-overflow">
       <!-- This is where the visualizations will sit -->
-      <sl-split-panel slot="start" position="100" class="fillHeight">
+      <sl-split-panel slot="start" position="100" class="fill-height">
         <div slot="start">
-          <sl-resize-observer id="mainVisResizer">
-            <svg id="mainVis" class="fillHeight"></svg>
+          <sl-resize-observer id="main-vis-resizer">
+            <svg id="main-vis" class="fill-height"></svg>
           </sl-resize-observer>
         </div>
-        <div slot="end" id="minorVisDiv">
+        <div slot="end" id="minor-vis-div">
           <sl-resize-observer >
-            <sl-tab-group placement="end" id="minorVisResizer">
+            <sl-tab-group placement="end" id="minor-vis-resizer">
               <!-- stuff will go in here from main vis interaction -->
             </sl-tab-group>
           </sl-resize-observer>
@@ -69,9 +77,9 @@ Need to find a spot for the line/bar graph -->
       </sl-split-panel>
 
       <!-- Extra options here -->
-      <div slot="end" id="extrasDiv">
+      <div slot="end" id="extras-div">
         <label>Date</label>
-        <sl-range min="1585008000" max="1680134400" step="86400" id="timeSlider"></sl-range>
+        <sl-range min="1585008000" max="1680134400" step="86400" id="time-slider"></sl-range>
       </div>
     </sl-split-panel>
   </sl-split-panel>

@@ -1,21 +1,21 @@
 
 // list of objects (organization is hard...)
     // containing divs
-var mainContent = document.getElementById("mainContent")
-var navBar = document.getElementById("navBar")
-var mainVisResizer = document.getElementById("mainVisResizer")
-var minorVisResizer = document.getElementById("minorVisResizer")
+var mainContent = document.getElementById("main-content")
+var navBar = document.getElementById("nav-bar")
+var mainVisResizer = document.getElementById("main-vis-resizer")
+var minorVisResizer = document.getElementById("minor-vis-resizer")
     // options
-var optionsHider = document.getElementById("hideOptionsButton")
-var selector = document.getElementById("visSelector")
-var normalizePopSwitch = document.getElementById("normalizePopSwitch")
-var timeSlider = document.getElementById("timeSlider")
+var optionsHider = document.getElementById("hide-options-button")
+var selector = document.getElementById("vis-selector")
+var normalizePopSwitch = document.getElementById("normalize-pop-switch")
+var timeSlider = document.getElementById("time-slider")
     // resizing
-var mainContentDivider = document.getElementById("mainContentDivider")
+var mainContentDivider = document.getElementById("main-content-divider")
     // visualization
-var mainSVG = d3.select("#mainVis");
-var jsSVG = document.getElementById("mainVis")
-var mapItemsD3 = mainSVG.selectAll(".mapItems")
+var mainSVG = d3.select("#main-vis");
+var jsSVG = document.getElementById("main-vis")
+var mapItemsD3 = mainSVG.selectAll(".map-items")
 
 // variables
 var mapType = "county"
