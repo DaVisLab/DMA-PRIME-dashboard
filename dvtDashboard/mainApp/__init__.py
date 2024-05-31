@@ -4,6 +4,12 @@ from flask import Flask, jsonify, render_template
 import os
 import pandas as pd
 import numpy as np
+import pandas as pd
+import glob
+
+from .definitions import counties
+
+county_dict = {}
 
 def create_app(test_config=None):
     # create and configure the app
@@ -28,9 +34,23 @@ def create_app(test_config=None):
     except OSError:
         pass
 
+
     # a simple page that says hello
     @app.route('/')
     def index():
         return render_template("index.html")
+    
+    loadData()
+    # print(county_dict)
 
     return app
+
+def loadData():
+    for county in counties:
+        temp = {}
+        daily_path = glob.glob("**/static/data/county/Counties daily cases/" + county +"_case_daily.csv", recursive=True)[0]
+        real_path = glob.glob("**/static/data/county/Counties daily cases/" + county +"_case_daily.csv", recursive=True)[0]
+
+        temp["daily"] = pd.read_csv(daily_path)
+        temp["real"] = pd.read_csv(real_path)
+        county_dict["county"] = temp
