@@ -59,14 +59,13 @@ function displayMap(mapType) {
             boundingBox = item.getBBox()
             predictionItems
                 .append("svg")
-                .attr("class", "predvis")
+                .attr("class", "pred-vis")
                 .attr("id", "predvis-" + item.id)
                 .html(iconNeutal)
                 .attr("width", predLength)
                 .attr("height", predLength)
                 .attr("x", boundingBox.x + (boundingBox.width - predLength)/2)
                 .attr("y", boundingBox.y + (boundingBox.height - predLength)/2)
-                .style("fill", "#000")
         }
    })
     
@@ -228,10 +227,10 @@ function dailyValue(county) {
 
 function changePrediction() {
     // TODO
+    console.log("changing")
     items = []
-    d3.selectAll(".map-item").each((item) => items.push(getSignifier(item)))
-    console.log(items)
-    console.log(document.getElementsByClassName("predvis"))
+    mapItemsD3 = mainSVG.selectAll(".map-item")
+    mapItemsD3.each((item) => items.push(getSignifier(item)))
     url = "/get-prediction/" + mapType + "/all"
         
     d3.json(url, {
@@ -239,7 +238,21 @@ function changePrediction() {
         "headers": {"Content-Type": "application/json"},
         "body": JSON.stringify(items)
     }).then((data) => {
-        console.log(data)
+        quantiles = [data.min, data.q20, data.q40, data.q60, data.q80, data.max]
+        console.log(d3.interpolatePiYG)
+        colorMap = d3.scaleLinear().domain(quantiles).range(d3.schemePiYG[5])
+        iconMap = d3.scaleOrdinal().domain(quantiles).range([iconDoubleDown, iconDown, iconNeutal, iconUp, iconDoubleUp])
+        // colorMap.clamp(true)
+        console.log(iconMap(0))
+        console.log("blerp")
+        predItemsD3 = mainSVG.selectAll(".pred-vis")
+            .data(data.values, function(d) {
+                return d ? "predvis-"+d.item : this.id;
+            })
+            .style("color", d => colorMap(d.value))
+            .html(d => iconMap(d.value))
     })
+
+
     
 }

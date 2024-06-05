@@ -46,14 +46,18 @@ def create_app(test_config=None):
             if mapType == "county":
                 items = request.get_json()
                 values = (np.random.rand(len(items)) - .5) * 20
-                print(np.ptp(values))
+                values_list = []
+                for pair in zip(items, values):
+                    values_list.append({"item":pair[0], "value":pair[1]})
+
                 response = jsonify({
-                    "values": dict(zip(items, values)),
+                    "values": values_list,
                     "min": min(values),
                     "max": max(values),
-                    "q1": np.quantile(values, .25),
-                    "q2": np.quantile(values, .50),
-                    "q3": np.quantile(values, .75),
+                    "q20": np.quantile(values, .20),
+                    "q40": np.quantile(values, .40),
+                    "q60": np.quantile(values, .60),
+                    "q80": np.quantile(values, .80),
                 })
                 return response
             if mapType == "zip":
