@@ -27,47 +27,50 @@
     <!-- <sl-tab slot="nav" panel="disabled" disabled>Disabled</sl-tab> -->
   </sl-tab-group>
   <!-- Main content -->
-  <sl-split-panel position="20" id="main-content" class="fill-height">
-
-    <!-- Line w/ button to resize the options panel and open/close it -->
-    <div slot="divider" id="main-content-divider">
-      <sl-icon-button name="chevron-compact-left" id="hide-options-button"></sl-icon-button>
-    </div>
+  <sl-split-panel position="20" disabled id="main-content" class="fill-height">
 
     <!-- Visualization options panel -->
     <div slot="start" id="options" class="fill-height"> <!-- This is the -->
-      <sl-switch id="show-hospitals">Show Hospitals</sl-switch>
-      <sl-divider id="options-divider-1"></sl-divider>
-      <p id="disease-header">Diseases</p>
-      <sl-checkbox>COVID-19</sl-checkbox>
+      <div class="centering-container options-div">
+        <sl-button pill id="reset-button">Reset Map</sl-button>
+      </div>
+      <sl-divider class="options-divider"></sl-divider>
+      <div class="options-div">
+        <sl-switch id="show-hospitals">Show Hospitals</sl-switch>
+      </div>
+      <sl-divider class="options-divider"></sl-divider>
+      <div class="options-div">
+        <p id="disease-header">Diseases</p>
+        <sl-checkbox>COVID-19</sl-checkbox>
+      </div>
     </div>
     <!-- This is where the visualizations will sit -->
-    <sl-split-panel slot="end" position="100" class="fill-height hide-overflow">
-    <div slot="start" class="fill-height scroll">
-        <sl-resize-observer id="main-vis-resizer">
-        <svg id="main-vis" class="fill-height"></svg>
-        </sl-resize-observer>
-    </div>
-    <div slot="end" id="minor-vis-div">
-        <sl-resize-observer >
-        <sl-tab-group placement="end" id="minor-vis-resizer">
-            <!-- stuff will go in here from main vis interaction -->
-        </sl-tab-group>
-        </sl-resize-observer>
-    </div>
+    <sl-split-panel slot="end" position="100" class="fill-height fill-width hide-overflow">
+      <div slot="start" class="fill-width ">
+          <sl-resize-observer id="map-resizer" class="">
+          <svg id="map-svg" class="scroll"></svg>
+          </sl-resize-observer>
+      </div>
+      <div slot="end" id="details-div">
+          <sl-resize-observer >
+          <sl-tab-group placement="end" id="minor-vis-resizer">
+              <!-- stuff will go in here from main vis interaction -->
+          </sl-tab-group>
+          </sl-resize-observer>
+      </div>
     </sl-spit-panel>
 
   </sl-split-panel>
 
   <!-- Contains helper functions/data/constants -->
-  <!-- <script src="{{ url_for('static', filename='js/main-vis/script.js') }}"></script> -->
+  <script src="{{ url_for('static', filename='js/landing-page/script.js') }}"></script>
   <!-- Functions to get the main (left) vis working -->
   <!-- <script src="{{ url_for('static', filename='js/main-vis/minor-vis.js') }}"></script> -->
-  <!-- <script src="{{ url_for('static', filename='js/main-vis/main-vis.js') }}"></script> -->
+  <script src="{{ url_for('static', filename='js/landing-page/map.js') }}"></script>
   <!-- All the magic for panel resizing/vis options -->
-  <!-- <script src="{{ url_for('static', filename='js/main-vis/interactions.js') }}"></script> -->
+  <script src="{{ url_for('static', filename='js/landing-page/interactions.js') }}"></script>
   <script>
-    // displayMap(mapType);
+    displayMap();
   </script>
 
 </body>

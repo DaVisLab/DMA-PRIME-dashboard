@@ -2,13 +2,32 @@
 height: 100%;
 }
 
+.fill-width {
+width: 100%;
+}
+
 .hide-overflow {
 overflow:hidden
 }
 
 .scroll {
 overflow:scroll;
+overflow-x: scroll;
+overflow-y: scroll;
 }
+
+.centering-container {
+    display: flex;
+    justify-content: center;
+}
+
+.options-div {
+    padding: var(--sl-spacing-x-small)
+}
+
+.options-divider {
+    --spacing: 0;
+    }
 
 #main-content {
 height: 100%;
@@ -23,19 +42,20 @@ background-color: lightgray;
 height: 100%;
 overflow: hidden; 
 overflow-wrap: normal;
-padding: var(--sl-spacing-2x-small);
-padding-bottom: 0;
-}
-#options-divider-1 {
---spacing: var(--sl-spacing-2x-small);
+/* padding: var(--sl-spacing-2x-small); */
 }
 
 #disease-header {
 font-family: var(--sl-font-sans);
 font-size: var(--sl-font-size-large);
+margin-top: 0;
+margin-bottom: .5rem;
 }
 
-
+#map-svg {
+    height: 100%;
+    width: 100%;
+  }
 
 
 /* The following is from  https://dev.to/lennythedev/css-gotcha-how-to-fill-page-with-a-div-270j*/
