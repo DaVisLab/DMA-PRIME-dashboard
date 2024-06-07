@@ -4,6 +4,7 @@ function displayMap() {
     var height = jsmapSVG.height.baseVal.value
     
     d3.json("../../static/data/tl_2023_sc_county.json").then(function(mapdata) {d3.json("../../static/data/Hospitals.geojson").then(function(hospdata){
+        mapData = mapdata
         mapProjection = d3.geoAlbers().fitExtent(
             [[margins.left, margins.top], [width-margins.right,height-margins.bottom]],
             mapdata)
@@ -38,26 +39,20 @@ function displayMap() {
 function resizeMap() {
     var width = jsmapSVG.width.baseVal.value
     var height = jsmapSVG.height.baseVal.value
-    d3.json("../../static/data/tl_2023_sc_county.json").then(function(mapdata) {
-        mapProjection = d3.geoAlbers().fitExtent(
-            [[margins.left, margins.top], [width-margins.right,height-margins.bottom]],
-            mapdata)
-        var pathGenerator = d3.geoPath(mapProjection)
+    mapProjection = d3.geoAlbers().fitExtent(
+        [[margins.left, margins.top], [width-margins.right,height-margins.bottom]],
+        mapData)
+    var pathGenerator = d3.geoPath(mapProjection)
 
-        // mapdata.features.forEach((areaData) => {
-        //     d3.select("#" + areaData.properties.NAME.toLowerCase())
-        //         .attr("d", pathGenerator(areaData))
-        // })
-        d3.selectAll(".county").each(function(item) {
-            d3.select(this)
-            .attr("d", (d) => pathGenerator(d))
-        })
+    d3.selectAll(".county").each(function(item) {
+        d3.select(this)
+        .attr("d", (d) => pathGenerator(d))
+    })
 
-        d3.selectAll(".hospital").each(function(item) {
-            d3.select(this)
-              .attr("cx", (d) => mapProjection(d.geometry.coordinates)[0])
-              .attr("cy", (d) => mapProjection(d.geometry.coordinates)[1])
-              .attr("r", Math.min(width, height) * 0.005)
-        })
+    d3.selectAll(".hospital").each(function(item) {
+        d3.select(this)
+            .attr("cx", (d) => mapProjection(d.geometry.coordinates)[0])
+            .attr("cy", (d) => mapProjection(d.geometry.coordinates)[1])
+            .attr("r", Math.min(width, height) * 0.005)
     })
 }
