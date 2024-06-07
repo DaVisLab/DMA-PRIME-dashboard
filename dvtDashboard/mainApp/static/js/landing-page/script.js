@@ -18,3 +18,11 @@ margins = {
     left: 10
 }
 
+var mapProjection = null
+
+function fixHospitalName(name) {
+    newName = name.toLowerCase().split(" ").join('-')
+    newName = newName.replace(/\//g, '')
+    newName = newName.replace(/'/g, '')
+    return newName
+}

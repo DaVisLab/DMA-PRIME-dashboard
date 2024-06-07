@@ -14,6 +14,8 @@ gdal command: ogr2ogr -f GeoJSON [path to dest file] [path to .shp file]
 
 which zip codes belong to sc: https://www.irs.gov/pub/irs-utl/zip_code_and_state_abbreviations.pdf
 
+hospital data: https://sc-department-of-health-and-environmental-control-gis-sc-dhec.hub.arcgis.com/datasets/c6ffe3d1ca2947d3a935f797d2f0d6ec
+
 To fill page with content: https://dev.to/lennythedev/css-gotcha-how-to-fill-page-with-a-div-270j
 
 Prediction icons from boostrap:
