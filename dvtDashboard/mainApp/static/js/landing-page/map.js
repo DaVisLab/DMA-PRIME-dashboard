@@ -26,7 +26,8 @@ function displayMap() {
 
         hospitals = mapSVG.append("g")
               .attr("id", "hospitals")
-    }).then(() => d3.json("../../static/data/Hospitals.geojson").then(function(hospdata){
+    }).then(() => {
+        d3.json("../../static/data/Hospitals.geojson").then(function(hospdata){
               hospitals.selectAll("svg")
               .data(hospdata.features)
               .enter()
@@ -52,7 +53,24 @@ function displayMap() {
                         console.log(err);
                     });
               })
-    }))
+        })
+        
+        d3.json("/get-real-disease-data", {
+            "method": "POST",
+            "headers": {"Content-Type": "application/json"},
+            "body": JSON.stringify({
+                'region-size': 'county',
+                'region-name': 'all',
+                'disease': 'all',
+                'date': 'max',
+                'data-type': 'cases 7-day averange',
+            })}).then((data) => {
+                console.log(data)
+            }).catch((err) => {console.log(err)})
+        covidData = mapSVG.append("g")
+              .attr("id", "covid-data")
+        
+    })
 }
 
 function resizeMap() {

@@ -75,7 +75,9 @@
   <script src="{{ url_for('static', filename='js/landing-page/interactions.js') }}"></script>
   <script>
     displayMap();
-    addEventListener("load", resizeMap());
+    addEventListener("load", () => {
+      resizeMap();
+    });
   </script>
 
 </body>

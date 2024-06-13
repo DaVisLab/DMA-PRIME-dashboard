@@ -83,6 +83,20 @@ def create_app(test_config=None):
             if mapType == "zip":
                 return "0"
 
+    @app.route('/get-real-disease-data', methods=['POST'])
+    def getRealDiseaseData():
+        variables = request.get_json()
+        print(variables)
+        base_data = real_dict[variables['region-size']]['data']
+        base_stats = real_dict[variables['region-size']]['stats']
+        # cases 7-day averange,deaths 7-day averange
+        region = slice(None) if variables['region-name'] == 'all' else variables['region-name'] 
+        disease = slice(None) if variables['disease'] == 'all' else variables['disease'] 
+        date = max(base_data.index.levels[2]) if variables['date'] == 'max' else variables['date']
+        return_data = base_data.loc[(region, disease, date), variables['data-type']].to_json()
+        return_stats = base_stats.loc[(date, variables['data-type'])].to_json()
+        print({'data': return_data, 'stats': return_stats})
+        return jsonify({'data': return_data, 'stats': return_stats})
     
     loadData()
 
