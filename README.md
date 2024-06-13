@@ -23,4 +23,6 @@ Note: To automatically reload flask applications on changes, run it with the --d
 - Shoelace: https://shoelace.style/
 - Flask: https://flask.palletsprojects.com/en/2.3.x/
 - Jinja: https://jinja.palletsprojects.com/en/3.0.x/api/
+- Pandas: https://pandas.pydata.org/docs/index.html
+- Numpy: https://numpy.org/doc/stable/index.html
 

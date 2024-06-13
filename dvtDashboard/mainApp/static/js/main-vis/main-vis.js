@@ -227,11 +227,11 @@ function dailyValue(county) {
 
 function changePrediction() {
     // TODO
-    console.log("changing")
+    predictionIcons = [iconDoubleDown, iconDown, iconNeutal, iconUp, iconDoubleUp]
     items = []
     mapItemsD3 = mainSVG.selectAll(".map-item")
     mapItemsD3.each((item) => items.push(getSignifier(item)))
-    url = "/get-prediction/" + mapType + "/all"
+    url = "/get-prediction/" + mapType + "/all" + predictionIcons.length
         
     d3.json(url, {
         "method": "POST",
@@ -240,11 +240,9 @@ function changePrediction() {
     }).then((data) => {
         quantiles = data.quantiles
         console.log(d3.interpolatePiYG)
-        colorMap = d3.scaleLinear().domain(quantiles).range(d3.schemePiYG[5])
-        iconMap = d3.scaleOrdinal().domain(quantiles).range([iconDoubleDown, iconDown, iconNeutal, iconUp, iconDoubleUp])
-        // colorMap.clamp(true)
-        console.log(iconMap(0))
-        console.log("blerp")
+        colorMap = d3.scaleLinear().domain(quantiles).range(d3.schemePiYG[predictionIcons.length])
+        iconMap = d3.scaleOrdinal().domain(quantiles).range(predictionIcons)
+        colorMap.clamp(true)
         predItemsD3 = mainSVG.selectAll(".pred-vis")
             .data(data.values, function(d) {
                 return d ? "predvis-"+d.item : this.id;

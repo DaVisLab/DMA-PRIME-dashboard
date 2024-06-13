@@ -14,7 +14,15 @@ from .definitions import counties
 #        past, current, prediction
 #            prediction history vs actual
 
-county_dict = {}
+
+# cases and deaths should be MultiIndexes 
+# stats and usage can be normal dataframes
+real_dict = {
+    'city': {'coordinates': {}, 'stats': None, 'data': None}, # city level data
+    'zcta': {'shape': {}, 'stats': None, 'data': None}, # zip code level data
+    'county': {'shape': {}, 'stats': None, 'data': None}, # county level data
+    'hospital': {'coordinates':{}, 'stats': None, 'usage': None}, # from individual hospitals
+}
 
 def create_app(test_config=None):
     # create and configure the app
@@ -53,8 +61,8 @@ def create_app(test_config=None):
     def getTooltipHTML(type=None):
         return render_template("subtemplates/tooltip.html", type=type)
     
-    @app.route('/get-prediction/<mapType>/<region>', methods=['POST', 'GET'])
-    def getPrediction(mapType="county", region="all"):
+    @app.route('/get-prediction/<mapType>/<region>/<numberQuantiles>', methods=['POST', 'GET'])
+    def getPrediction(mapType="county", region="all", numberQuantiles=1):
         # if we're showing all, get max day
         # if we're showing one specific region, show all values until max predicted day
         if region == "all":
@@ -64,8 +72,7 @@ def create_app(test_config=None):
                 values_list = []
                 for pair in zip(items, values):
                     values_list.append({"item":pair[0], "value":pair[1]})
-                quantiles = [min(values), np.quantile(values, .20), np.quantile(values, .40), 
-                             np.quantile(values, .60), np.quantile(values, .80), max(values)]
+                quantiles = getQuantiles(numberQuantiles, values)
                 response = jsonify({
                     "values": values_list,
                     "min": min(values),
@@ -78,16 +85,36 @@ def create_app(test_config=None):
 
     
     loadData()
-    # print(county_dict)
 
     return app
 
 def loadData():
-    for county in counties:
-        temp = {}
-        daily_path = glob.glob("**/static/data/county/Counties daily cases/" + county +"_case_daily.csv", recursive=True)[0]
-        real_path = glob.glob("**/static/data/county/Counties daily cases/" + county +"_case_daily.csv", recursive=True)[0]
+    # county
+    index = ['county', 'disease', 'date']
 
-        temp["daily"] = pd.read_csv(daily_path)
-        temp["real"] = pd.read_csv(real_path)
-        county_dict["county"] = temp
+    df = pd.read_csv("C:/Users/***REMOVED***/Box/BoxPHI-PHMR Projects/Toolkit/Cleaned_Data/SC/Covid19/Case_Death_Counts.csv")
+    df['disease'] = 'covid-19'
+    value_columns = df.columns.difference(index)
+    df_multi = pd.pivot_table(df, values=value_columns, index=index)
+
+    # county stats
+    columns=['min', 'q20', 'q25', 'q40', 'q50', 'q60', 'q75', 'q80', 'max']
+    quantiles = [0, .2, .25, .4, .5, .6, .75, .8, 1]
+    dates = df_multi.index.levels[2]
+    data_type = df_multi.columns
+
+    stats_index = pd.MultiIndex.from_product([dates, data_type], names=['date', 'data_type'])
+    stats_df = pd.DataFrame(columns=columns, index=stats_index)
+    stats_df.sort_index(inplace=True)
+    for idx in stats_index:
+        stats_df.loc[idx] = np.nanquantile(df_multi.loc[(slice(None), slice(None), idx[0]), idx[1]], quantiles)
+
+    # saving to dict
+    real_dict['county']['data'] = df_multi
+    real_dict['county']['stats'] = stats_df
+
+def getQuantiles(num_quantiles, data):
+    quantiles = []
+    for q in range(num_quantiles+1):
+        quantiles.append(np.quantile(data, q/num_quantiles))
+    return quantiles
