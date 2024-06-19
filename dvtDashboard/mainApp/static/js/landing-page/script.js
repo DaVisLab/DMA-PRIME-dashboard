@@ -42,13 +42,12 @@ function formatTuple(string) {
     return string.replace(/[(' )]/g, "").split(",")
 }
 
-function getCenterPos(id) {
+function getGeoCenterPos(id) {
     temp = document.getElementById(id)
     if (temp) {
-        tempbbox = temp.getBBox()
-        x = tempbbox.x + (tempbbox.height)/2
-        y = tempbbox.y + (tempbbox.height)/2
-        return {'x': x, 'y': y}
+        properties = temp.__data__.properties
+        mapCoords = mapProjection([+properties.INTPTLON, +properties.INTPTLAT])
+        return {'x': mapCoords[0], 'y': mapCoords[1]}
     } else {
         return {'x': 0, 'y': 0}
     }
@@ -95,6 +94,22 @@ function skew(orig, radius, idx, total) {
 
 // make items
 
+function createDiseaseCheck(disease) {
+    checkbranch = document.createElement("sl-tree-item")
+    check = document.createElement("sl-checkbox")
+    check.id = disease
+    check.classList.add("disease-check")
+    check.setAttribute("checked", "")
+    check.innerHTML = disease
+    check.addEventListener("sl-change", (e) => {
+        checker = e.target
+        if(checker.checked) { d3.select("#"+checker.id+"-data").raise().style("opacity", 1) } 
+        else { d3.select("#"+checker.id+"-data").lower().style("opacity", 0) }
+    })
+    checkbranch.append(check)
+    diseaseSwitchBranch.append(checkbranch)
+}
+
 function toolTipCreator(element, event) {
     fetch("/tooltip/duck").then((response) => {
         if(!response.ok) {
@@ -137,4 +152,8 @@ function makeHospital(id) {
         <path d='M5 1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1a1 1 0 0 1 1 1v4h3a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h3V3a1 1 0 0 1 1-1zm2 14h2v-3H7zm3 0h1V3H5v12h1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1zm0-14H6v1h4zm2 7v7h3V8zm-8 7V8H1v7z'/>
     </g>`
     return stringy
+}
+
+function makeDiseaseBubble(disease) {
+
 }
