@@ -20,8 +20,8 @@ function displayMap() {
               .attr("id", d => fixName(d.properties.NAME))
               .attr("d", d => pathGenerator(d))
               .style("fill", "var(--sl-color-gray-400)")
-                .on("mouseenter", function(e) {
-                    toolTipCreator(this, e)
+                .each(function(element) {
+                    toolTipCreator(this)
                 })
 
         hospitals = mapSVG.append("g")
@@ -80,7 +80,7 @@ function displayMap() {
                     diseaseGroups[disease] = diseaseData.append("g").attr("id", disease + "-data").attr("class", "disease-data-group")
                     diseaseIndexing[disease] = Object.keys(diseaseGroups).length
                     // create checkbox
-                    createDiseaseCheck(disease, diseaseSwitchBranch)
+                    createDiseaseCheck(disease, diseaseColorMap(disease))
                 })
                 data.forEach(element => {
                     temp = diseaseGroups[element[0][1]].selectAll(".disease-bubble." + element[0].join("."))
@@ -125,7 +125,6 @@ function displayMap() {
                     hospitalMetadata = JSON.parse(result.metadata)
 
                     maxRadius = Math.min(height, width) * 0.05
-                    console.log(hospitalStats.min, hospitalStats.max)
                     radiusMap = d3.scaleLinear([hospitalStats.min, hospitalStats.max], [0, maxRadius])
                     diseaseColorMap = d3.scaleOrdinal().domain(hospitalMetadata.disease).range(d3.schemeSet1)
 
@@ -134,7 +133,7 @@ function displayMap() {
                         diseaseGroups[disease] = hospitalData.append("g").attr("id", disease + "-hospital-data").attr("class", "hospital-data-group")
                         diseaseIndexing[disease] = Object.keys(diseaseGroups).length
                         // create checkbox
-                        createHospitalCheck(disease, hospitalSwitchBranch)
+                        createHospitalCheck(disease, diseaseColorMap(disease))
                     })
                     
                     data.forEach(element => {
@@ -157,7 +156,8 @@ function displayMap() {
                 })
     }).then(() => {
         console.log('resizepls')
-        resizeMap()})
+        resizeMap()
+    })
 }
 
 function resizeMap() {
@@ -199,7 +199,6 @@ function resizeMap() {
         mapCoords = mapProjection([d[1].INTPTLON20, d[1].INTPTLAT20])
         ogPos = {'x': mapCoords[0], 'y': mapCoords[1]}
         newPos = stack.checked ? ogPos : skew(ogPos, maxRadius/5, diseaseIndexing[d[0][1]], numDiseases)
-        console.log(maxRadius, [hospitalStats.min, hospitalStats.max], d[1].count)
         d3.select(this)
             .attr("cx", newPos.x)
             .attr("cy", newPos.y)

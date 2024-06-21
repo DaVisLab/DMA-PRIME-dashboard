@@ -7,6 +7,8 @@ mapZoom = d3.zoom().scaleExtent([1, 10]).on("zoom", function(e) {
 
     d3.select("#counties").attr('transform', e.transform)
     d3.select("#disease-data").attr('transform', e.transform)
+
+// trying to get the hospitals to semantically zoom... works on firefox
     // d3.select("#hospitals").attr('transform', e.transform)
     // d3.selectAll(".hospital")
     //     .attr("transform", function(d) {
@@ -15,15 +17,15 @@ mapZoom = d3.zoom().scaleExtent([1, 10]).on("zoom", function(e) {
     //         return d3.zoomIdentity.translate((zoom-1) * (this.x.baseVal.value - this.width.baseVal.value), (zoom-1) * this.y.baseVal.value).scale(1/zoom)
     //     })
 
-    d3.selectAll(".hospital").attr('transform', function(d){
-        function blerp(zoom, dimension, location, skew) {
-            // if you don't want to scale after translation and only move via translation, use the formula:
-            // (scale - 1) * ({x or y} position + {width or height}*.5) + {x or y translation}
-            // return location.baseVal.value * zoom + skew
-            return ((zoom-1) * (location.baseVal.value + (dimension.baseVal.value * .5))) + skew
-        }
-        return d3.zoomIdentity.translate(blerp(zoom, this.width, this.x, xSkew), blerp(zoom, this.height, this.y, ySkew))
-    })
+    // d3.selectAll(".hospital").attr('transform', function(d){
+    //     function blerp(zoom, dimension, location, skew) {
+    //         // if you don't want to scale after translation and only move via translation, use the formula:
+    //         // (scale - 1) * ({x or y} position + {width or height}*.5) + {x or y translation}
+    //         // return location.baseVal.value * zoom + skew
+    //         return ((zoom-1) * (location.baseVal.value + (dimension.baseVal.value * .5))) + skew
+    //     }
+    //     return d3.zoomIdentity.translate(blerp(zoom, this.width, this.x, xSkew), blerp(zoom, this.height, this.y, ySkew))
+    // })
 })
 mapSVG.call(mapZoom)
 
@@ -42,6 +44,9 @@ stack.addEventListener("sl-change", () => {
 diseaseToggle.addEventListener("sl-change", () => {
     if(diseaseToggle.checked) {
         d3.select("#disease-data").raise().style("opacity", 1)
+        if(hospitalToggle.checked) {
+            hospitalToggle.click()
+        }
     } else {
         d3.select("#disease-data").lower().style("opacity", 0)
     }
@@ -50,6 +55,9 @@ diseaseToggle.addEventListener("sl-change", () => {
 hospitalToggle.addEventListener("sl-change", () => {
     if(hospitalToggle.checked) {
         d3.selectAll("#hospitals,#hospital-data").raise().style("opacity", 1)
+        if(diseaseToggle.checked) {
+            diseaseToggle.click()
+        }
     } else {
         d3.selectAll("#hospitals, #hospital-data").lower().style("opacity", 0)
     }

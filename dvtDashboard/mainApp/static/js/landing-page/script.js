@@ -38,6 +38,9 @@ var diseaseMetadata = null
 var hospitalStats = null
 var hospitalMetadata = null
 
+var styleSheet = new CSSStyleSheet()
+document.adoptedStyleSheets = [styleSheet]
+
 // helper functions
 function fixName(name) {
     newName = name.toLowerCase().split(" ").join('-')
@@ -101,42 +104,56 @@ function skew(orig, radius, idx, total) {
 
 // make items
 
-function createDiseaseCheck(disease, branch) {
-    checkbranch = document.createElement("sl-tree-item")
-    check = document.createElement("sl-checkbox")
-    check.id = disease
-    check.classList.add("disease-check")
-    check.setAttribute("checked", "")
-    check.innerHTML = disease
-    check.addEventListener("sl-change", (e) => {
+function createDiseaseCheck(disease, color) {
+    check = d3.select(diseaseSwitchBranch)
+    .append("sl-tree-item")
+    .append("sl-checkbox")
+    .attr("id", disease + "-check")
+    .attr("class", "disease-check ")
+    .attr("disease", disease)
+    .attr("checked", "")
+    .html(disease)
+
+    check.node().addEventListener("sl-change", (e) => {
         checker = e.target
-        if(checker.checked) { d3.select("#"+checker.id+"-data").raise().style("opacity", 1) } 
-        else { d3.select("#"+checker.id+"-data").lower().style("opacity", 0) }
+        if(checker.checked) { d3.select("#"+checker.getAttribute("disease")+"-data").raise().style("opacity", 1) } 
+        else { d3.select("#"+checker.getAttribute("disease")+"-data").lower().style("opacity", 0) }
     })
-    checkbranch.append(check)
-    branch.append(checkbranch)
+    styleSheet.insertRule(
+        "#" + disease + `-check::part(control--checked)  {
+            border-color: `+color+`;
+            background-color: `+color+`;
+        }
+      `)
 }
 
-function createHospitalCheck(disease, branch) {
-    checkbranch = document.createElement("sl-tree-item")
-    check = document.createElement("sl-checkbox")
-    check.id = disease
-    check.classList.add("disease-check")
-    check.setAttribute("checked", "")
-    check.innerHTML = disease
-    check.addEventListener("sl-change", (e) => {
+function createHospitalCheck(disease, color) {
+    check = d3.select(hospitalSwitchBranch)
+    .append("sl-tree-item")
+    .append("sl-checkbox")
+    .attr("id", "hospital-" + disease + "-check")
+    .attr("class", "hospital-check ")
+    .attr("disease", disease)
+    .attr("checked", "")
+    .html(disease)
+
+    check.node().addEventListener("sl-change", (e) => {
         checker = e.target
-        if(checker.checked) { d3.select("#"+checker.id+"-hospital-data").raise().style("opacity", 1) } 
-        else { d3.select("#"+checker.id+"-hospital-data").lower().style("opacity", 0) }
+        if(checker.checked) { d3.select("#"+checker.getAttribute("disease")+"-hospital-data").raise().style("opacity", 1) } 
+        else { d3.select("#"+checker.getAttribute("disease")+"-hospital-data").lower().style("opacity", 0) }
     })
-    checkbranch.append(check)
-    branch.append(checkbranch)
+    styleSheet.insertRule(
+        "#hospital-" + disease + `-check::part(control--checked)  {
+            border-color: `+color+`;
+            background-color: `+color+`;
+        }
+      `)
 }
 
 function toolTipCreator(element) {
     tooltip = document.getElementById("tooltip")
-    tooltip.innerHTML = element.id
     element.addEventListener("mouseenter", function(e) {
+        tooltip.innerHTML = element.id
         d3.select("#tooltip")
             .style("opacity", 1)})
     element.addEventListener("mousemove", function(e) {
