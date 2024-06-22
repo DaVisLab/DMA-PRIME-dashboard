@@ -8,7 +8,6 @@ var tooltip = document.getElementById("tooltip")
 var resetButton = document.getElementById("reset-button")
 var diseaseToggle = document.getElementById("show-diseases")
 var hospitalToggle = document.getElementById("show-hospitals")
-var stack = document.getElementById("stack")
 var showHospitalIcons = document.getElementById("show-hospital-icons")
 var diseaseSwitchBranch = document.getElementById("disease-switch-branch")
 var hospitalSwitchBranch = document.getElementById("hospital-switch-branch")
@@ -57,9 +56,9 @@ function getGeoCenterPos(id) {
     if (temp) {
         properties = temp.__data__.properties
         mapCoords = mapProjection([+properties.INTPTLON, +properties.INTPTLAT])
-        return {'x': mapCoords[0], 'y': mapCoords[1]}
+        return mapCoords
     } else {
-        return {'x': 0, 'y': 0}
+        return [0, 0]
     }
 }
 
@@ -95,10 +94,10 @@ function fakeCos(angle) {
 function skew(orig, radius, idx, total) {
     if(total == 1)
         return orig
-
+    
     angle = (idx/total) * 360
-    orig.x += radius * fakeSin(angle)
-    orig.y += radius * fakeCos(angle)
+    orig[0] += radius * fakeSin(angle)
+    orig[1] += radius * fakeCos(angle)
     return orig
 }
 

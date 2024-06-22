@@ -7,6 +7,9 @@ mapZoom = d3.zoom().scaleExtent([1, 10]).on("zoom", function(e) {
 
     d3.select("#counties").attr('transform', e.transform)
     d3.select("#disease-data").attr('transform', e.transform)
+    d3.select("#hospital-data").attr('transform', e.transform)
+    d3.select("#hospitals").attr('transform', e.transform)
+    d3.selectAll(".legend").attr('transform', d3.zoomIdentity.scale(zoom))
 
 // trying to get the hospitals to semantically zoom... works on firefox
     // d3.select("#hospitals").attr('transform', e.transform)
@@ -30,6 +33,7 @@ mapZoom = d3.zoom().scaleExtent([1, 10]).on("zoom", function(e) {
 mapSVG.call(mapZoom)
 
 mapResizer.addEventListener("sl-resize", () => {
+    console.log("ss")
     resizeMap()
 })
 
@@ -37,36 +41,38 @@ resetButton.addEventListener("click", () => {
     mapSVG.call(mapZoom.transform, d3.zoomIdentity.translate(0, 0).scale(1))
 })
 
-stack.addEventListener("sl-change", () => {
-    resizeMap()
-})
-
 diseaseToggle.addEventListener("sl-change", () => {
     if(diseaseToggle.checked) {
+        d3.selectAll(".legend.disease").raise().style("opacity", 1)
         d3.select("#disease-data").raise().style("opacity", 1)
         if(hospitalToggle.checked) {
             hospitalToggle.click()
         }
     } else {
+        d3.selectAll(".legend.disease").lower().style("opacity", 0)
         d3.select("#disease-data").lower().style("opacity", 0)
     }
 })
 
 hospitalToggle.addEventListener("sl-change", () => {
     if(hospitalToggle.checked) {
-        d3.selectAll("#hospitals,#hospital-data").raise().style("opacity", 1)
+        d3.selectAll(".legend.hospital").raise().style("opacity", 1)
+        d3.selectAll("#hospital-data").raise().style("opacity", 1)
         if(diseaseToggle.checked) {
             diseaseToggle.click()
         }
     } else {
-        d3.selectAll("#hospitals, #hospital-data").lower().style("opacity", 0)
+        d3.selectAll(".legend.hospital").lower().style("opacity", 0)
+        d3.selectAll("#hospital-data").lower().style("opacity", 0)
     }
 })
 
 showHospitalIcons.addEventListener("sl-change", () => {
     if(showHospitalIcons.checked) {
         d3.select("#hospitals").raise().style("opacity", 1)
+        d3.selectAll("#disease-data").raise()
+        d3.selectAll("#hospital-data").raise()
     } else {
-        d3.select("#hospitals").lower().style("opacity", -10)
+        d3.select("#hospitals").lower().style("opacity", 0)
     }
 })

@@ -38,19 +38,14 @@
       <sl-tree class="options-div">
         <sl-tree-item id="disease-switch-branch">
           <sl-switch id="show-diseases" checked><p class="options-header">Diseases</p></sl-switch>
-          <sl-tree-item>
-            <sl-switch checked id="stack">
-              <p class="options-header">Stacked</p>
-            </sl-switch>
-          </sl-tree-item>
           <!-- Tree items with check boxes here -->
         </sl-tree-item>
       <sl-divider class="options-divider"></sl-divider>
       <sl-tree-item id="hospital-switch-branch">
-        <sl-switch id="show-hospitals" checked><p class="options-header">Hospitals</p></sl-switch>
+        <sl-switch id="show-hospitals"><p class="options-header">Hospitals</p></sl-switch>
         <sl-tree-item>Some Hospital Options here...</sl-tree-item>
-        <sl-tree-item><sl-checkbox id="show-hospital-icons" checked>Hospital Icons</sl-checkbox></sl-tree-item>
       </sl-tree-item>        
+      <sl-tree-item><sl-checkbox id="show-hospital-icons" checked>Hospital Icons</sl-checkbox></sl-tree-item>
       </sl-tree>
     </div>
     <!-- This is where the visualizations will sit -->
@@ -61,7 +56,7 @@
           </sl-resize-observer>
           <div id="tooltip" style="position:absolute;">
 
-          </div>
+          </div>          
       </div>
       <div slot="end" id="details-div">
           <sl-resize-observer >
