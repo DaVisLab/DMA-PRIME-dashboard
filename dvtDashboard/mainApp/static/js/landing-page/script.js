@@ -33,8 +33,11 @@ var height = jsmapSVG.height.baseVal.value
 
 var mapProjection = null
 var mapData = null
-var numDiseases = 0
-var diseaseIndexing = {}
+
+var numDiseases = 3
+var diseaseIndexing = {'covid-19': 1, 'flu': 2, 'opioid': 3}
+var diseaseColorMap = d3.scaleOrdinal().domain(Object.keys(diseaseIndexing)).range(d3.schemeSet1)
+
 var diseaseStats = null
 var diseaseMetadata = null
 var hospitalStats = null
@@ -61,17 +64,6 @@ function opacify(color, opacity) {
     d3color = d3.color(color)
     d3color.opacity = opacity
     return d3color.rgb().toString()
-}
-
-function getGeoCenterPos(id) {
-    temp = document.getElementById(id)
-    if (temp) {
-        properties = temp.__data__.properties
-        mapCoords = mapProjection([+properties.INTPTLON, +properties.INTPTLAT])
-        return mapCoords
-    } else {
-        return [0, 0]
-    }
 }
 
 function fakeSin(angle) {

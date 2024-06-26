@@ -66,16 +66,12 @@ function displayMap() {
                 diseaseStats = JSON.parse(result.stats)
                 diseaseMetadata = JSON.parse(result.metadata)
 
-                numDiseases = diseaseMetadata.disease.length
-
                 maxRadius = Math.min(height, width) * 0.05
                 radiusMap = d3.scaleLinear([0, diseaseStats.max], [0, maxRadius])
-                diseaseColorMap = d3.scaleOrdinal().domain(diseaseMetadata.disease).range(d3.schemeSet1)
 
                 diseaseGroups = {}
                 diseaseMetadata.disease.forEach(disease => {
                     diseaseGroups[disease] = diseaseData.append("g").attr("id", disease + "-data").attr("class", "disease-data-group").raise()
-                    diseaseIndexing[disease] = Object.keys(diseaseGroups).length
                     // create checkbox
                     createDiseaseCheck(disease, diseaseColorMap(disease))
                 })
@@ -85,7 +81,6 @@ function displayMap() {
 
                 // setup bubbles
                 data.forEach(element => {
-                    position = skew(getGeoCenterPos(element.region), maxRadius/5, diseaseIndexing[element.disease], numDiseases)
                     temp = diseaseGroups[element.disease].selectAll(`.disease-bubble .${element.disease} .${element.date} .${element.region}`)
                     temp
                         .data([element])
@@ -123,12 +118,10 @@ function displayMap() {
 
                 maxRadius = Math.min(height, width) * 0.05
                 radiusMap = d3.scaleLinear([0, hospitalStats.max], [0, maxRadius])
-                diseaseColorMap = d3.scaleOrdinal().domain(hospitalMetadata.disease).range(d3.schemeSet1)
 
                 diseaseGroups = {}
                 hospitalMetadata.disease.forEach(disease => {
                     diseaseGroups[disease] = hospitalData.append("g").attr("id", disease + "-hospital-data").attr("class", "hospital-data-group").raise()
-                    diseaseIndexing[disease] = Object.keys(diseaseGroups).length
                     // create checkbox
                     createHospitalCheck(disease, diseaseColorMap(disease))
                 })
@@ -190,7 +183,7 @@ function resizeMap() {
         d3.selectAll(".disease-bubble").each(function(d) {
             maxRadius = Math.min(height, width) * 0.05
             radiusMap = d3.scaleLinear([0, diseaseStats.max], [0, maxRadius])
-            mapCoords = getGeoCenterPos(d.region)
+            mapCoords = mapProjection([d.INTPTLON, d.INTPTLAT])
             newPos = skew(mapCoords, maxRadius/5, diseaseIndexing[d.disease], numDiseases)
             d3.select(this)
                 .attr("cx", newPos[0])
@@ -284,7 +277,6 @@ function drawDiseaseBubbles(dataType) {
 
             maxRadius = Math.min(height, width) * 0.05
             radiusMap = d3.scaleLinear([0, diseaseStats.max], [0, maxRadius])
-            diseaseColorMap = d3.scaleOrdinal().domain(diseaseMetadata.disease).range(d3.schemeSet1)
             
             d3.selectAll(".disease-bubble").data(data)
             d3.select("#legends")

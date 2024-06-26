@@ -94,11 +94,12 @@ def create_app(test_config=None):
         region = slice(None) if variables['region-name'] == 'all' else variables['region-name'] 
         disease = slice(None) if variables['disease'] == 'all' else variables['disease'] 
         date = max(base_data.index.levels[2]) if variables['date'] == 'max' else variables['date']
-        return_data = base_data.rename({variables['data-type']: 'count'}, axis=1).loc[(region, disease, date), 'count'] 
+        return_data = base_data.rename({variables['data-type']: 'count'}, axis=1).loc[(region, disease, date), ('count', 'INTPTLON', 'INTPTLAT')] 
         return_stats = base_stats.loc[(date, variables['data-type'])]
         returned_index = return_data.index.remove_unused_levels().set_names('region', level=0)
         return_data.index = returned_index
         metadata = {name: vals.to_list() for (name, vals) in zip(returned_index.names, returned_index.levels)}
+        print(return_data)
         return jsonify({'data': json.loads(return_data.to_json(orient="table", index=True))['data'], 'stats': return_stats.to_json(), 'metadata': json.dumps(metadata)})
     
     @app.route('/get-hospital-zcta-data', methods=['POST'])
@@ -155,7 +156,7 @@ def loadCountyData():
     columns=['min', 'q20', 'q25', 'q40', 'q50', 'q60', 'q75', 'q80', 'max']
     quantiles = [0, .2, .25, .4, .5, .6, .75, .8, 1]
     dates = df_multi.index.levels[2]
-    data_type = df_multi.columns
+    data_type = ['cases 7-day average', 'deaths 7-day average']
 
     stats_index = pd.MultiIndex.from_product([dates, data_type], names=['date', 'data_type'])
     stats_df = pd.DataFrame(columns=columns, index=stats_index)
