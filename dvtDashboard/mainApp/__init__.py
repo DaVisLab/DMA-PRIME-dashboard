@@ -86,7 +86,7 @@ def create_app(test_config=None):
                 return "0"
 
     @app.route('/get-county-disease-data', methods=['POST'])
-    def getCountyDiseaseData():
+    def returnCountyDiseaseData():
         variables = request.get_json()
         region = slice(None) if variables['region-name'] == 'all' else variables['region-name'].split(',')
         disease = slice(None) if variables['disease'] == 'all' else variables['disease'].split(',')
@@ -116,26 +116,37 @@ def create_app(test_config=None):
 
         return_stats_dict = {'min': return_data.min(axis=None), 'max': return_data.max(axis=None)}
 
-        # return_data_dict = json.loads(return_data.to_json(orient="table", index=True))['data']
-        # return_stats_dict = return_stats
-        # return_stats_dict = json.loads(return_stats.to_json(orient="table", index=True))['data'] if isinstance(return_stats, pd.DataFrame) else return_stats.to_dict()
         return jsonify({'data': return_data_dict, 'stats': return_stats_dict, 'metadata': result['metadata']})
 
     @app.route('/get-hospital-zcta-data', methods=['POST'])
-    def getZCTAHospitalData():
+    def returnZCTAHospitalData():
         variables = request.get_json()
-        base_data = real_dict['hospital-zcta']['data']
-        base_stats = real_dict['hospital-zcta']['stats']
-        # cases 7-day average,deaths 7-day average
-        region = slice(None) if variables['region-name'] == 'all' else variables['region-name'] 
-        disease = slice(None) if variables['disease'] == 'all' else variables['disease'] 
-        date = max(base_data.index.levels[2]) if variables['date'] == 'max' else variables['date']
-        return_data = base_data.loc[(region, disease, date), ('count', 'INTPTLON', 'INTPTLAT')]
-        return_stats = base_stats.loc[date, :]
-        returned_index = return_data.index.remove_unused_levels().set_names('date', level=2).set_names('region', level=0)
-        return_data.index = returned_index
-        metadata = {name: vals.to_list() for (name, vals) in zip(returned_index.names, returned_index.levels)}
-        return jsonify({'data': json.loads(return_data.to_json(orient="table", index=True))['data'], 'stats': return_stats.to_dict(), 'metadata': metadata})
+        region = slice(None) if variables['region-name'] == 'all' else variables['region-name'].split('-')
+        disease = slice(None) if variables['disease'] == 'all' else variables['disease'].split('-') 
+        date = max(real_dict['hospital-zcta']['data'].index.levels[2]) if variables['date'] == 'max' else variables['date'].split('-')
+        
+        result =  getZCTAHospitalData(region, disease, date)
+
+        return jsonify({'data': json.loads(result['data'].to_json(orient="table", index=True))['data'], 'stats': result['stats'].to_dict(), 'metadata': result['metadata']})
+
+    @app.route('/get-hospital-zcta-tooltip', methods=['POST'])
+    def getHospitalZCTATooltip():
+        variables = request.get_json()
+
+        date = max(real_dict['hospital-zcta']['data'].index.levels[2]) if variables['date'] == 'max' else variables['date'].split(',')[0]
+        dates = pd.date_range(end=date, periods=8, freq='7D').strftime("%Y-%m").to_list()
+
+        result =  getZCTAHospitalData(variables['region-name'].split(','), slice(None), dates)
+
+        return_data = result['data']['count']
+        return_data.index = return_data.index.droplevel(0)
+        return_data_dict = {}
+        for disease in return_data.index.levels[0]:
+            return_data_dict[disease] = return_data.xs(disease).to_dict()
+
+        return_stats_dict = {'min': return_data.min(axis=None), 'max': return_data.max(axis=None)}
+
+        return jsonify({'data': return_data_dict, 'stats': return_stats_dict, 'metadata': result['metadata']})
 
 
     loadData()
@@ -150,6 +161,19 @@ def getCountyDiseaseData(region, disease, date, data_type):
     return_data = base_data.loc[(region, disease, date), [data_type, 'INTPTLON', 'INTPTLAT']] 
     return_stats = base_stats.loc[(date, data_type), :]
     returned_index = return_data.index.remove_unused_levels().set_names('region', level=0)
+    return_data.index = returned_index
+    metadata = {name: vals.to_list() for (name, vals) in zip(returned_index.names, returned_index.levels)}
+    return {'data': return_data, 'stats': return_stats, 'metadata': metadata}
+
+def getZCTAHospitalData(region, disease, date): 
+    base_data = real_dict['hospital-zcta']['data']
+    base_stats = real_dict['hospital-zcta']['stats']
+    if not isinstance(region, slice):
+        for i in range(len(region)):
+            region[i] = int(region[i])
+    return_data = base_data.loc[(region, disease, date), ['count', 'INTPTLON', 'INTPTLAT']] 
+    return_stats = base_stats.loc[date, :]
+    returned_index = return_data.index.remove_unused_levels().set_names('date', level=2).set_names('region', level=0)
     return_data.index = returned_index
     metadata = {name: vals.to_list() for (name, vals) in zip(returned_index.names, returned_index.levels)}
     return {'data': return_data, 'stats': return_stats, 'metadata': metadata}

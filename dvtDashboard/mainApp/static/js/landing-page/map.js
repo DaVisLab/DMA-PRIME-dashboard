@@ -140,7 +140,7 @@ function displayMap() {
                         .attr("bubble-type", "hospital")
                         .style("fill", diseaseColorMap(element.disease))
                         .style("stroke", diseaseColorMap(element.disease))
-                        .each(function(d) {generalTooltip(d3.select(this))})
+                        .each(function(d) {hospitalToolTip(d3.select(this))})
                     });
         })
     }).then(() => {

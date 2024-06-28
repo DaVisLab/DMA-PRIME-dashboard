@@ -121,8 +121,6 @@ function bubbleToolTip(element) {
             .attr('width', tooltipWidth)
 
         data = element.data()[0]
-        console.log(data)
-        console.log(data.date.substring(1))
 
         d3.json("/get-county-disease-tooltip", { // covid county data
             "method": "POST",
@@ -165,6 +163,116 @@ function bubbleToolTip(element) {
                     data = []
                     Object.entries(values).forEach(function([date, count]) {
                         date = dayjs.tz(date, "America/New_York").toDate()
+                        data.push({'date': date, 'count': count})
+                    })
+                        diseaseGroup = graphSVG.append('g')
+                        diseaseGroup.append('path')
+                            .attr('d', line(data))
+                            .attr("stroke", diseaseColorMap(disease))
+                            .attr("fill", "none")
+        
+                        diseaseGroup.selectAll('circle').data(data)
+                        .enter()
+                        .append('circle')
+                        .attr('r', 3)
+                        .attr('cx', (d) => xScale(d.date))
+                        .attr('cy', (d) => yScale(d.count))
+                        .attr("fill", diseaseColorMap(disease))
+                    })
+
+                ttpSVG.append("g")
+                .attr("transform", `translate(0,${tooltipHeight - margins.bottom})`)
+                .call(d3.axisBottom(xScale).tickValues(timeDomain).tickSize(4).tickFormat(d3.timeFormat("%b %d")))
+                .selectAll("text")  
+                .style("text-anchor", "end")
+                // .attr("dx", "-.5em")
+                .attr("transform", "rotate(-30)");
+    
+                ttpSVG.append("g")
+                .attr("transform", `translate(${margins.left},0)`)
+                .call(d3.axisLeft(yScale).ticks(5).tickSize(4));
+            })
+    })
+}
+
+
+function hospitalToolTip(element) {
+    var tooltipWidth = 200
+    var tooltipHeight = 130
+
+    element.on("pointermove", function(e) {
+        if((e.layerY + tooltipHeight + 25) < mapDiv.clientHeight) {
+            tooltip.style.top = (e.layerY + 25) + "px"
+        } else {
+            tooltip.style.top = (e.layerY - tooltipHeight - 20) + "px"
+        }
+        if ((e.layerX + tooltipWidth) < mapDiv.clientWidth) {
+            tooltip.style.left = e.layerX +"px"
+        } else {
+            tooltip.style.left = mapDiv.clientWidth - tooltipWidth + "px"
+        }
+    })
+    element.on("pointerleave", function(e) {
+        d3.select(tooltip)
+            .style("opacity", 0)
+            .style("z-index", -1)
+    })
+
+    element.on("pointerenter", function(e) {
+        
+        tooltipWidth = Math.max(200, width * .1)
+        tooltipHeight = tooltipWidth * .65
+
+        tooltip.innerHTML = ''
+        ttp = d3.select(tooltip)
+        ttp.style("opacity", 1).style("z-index", 1)
+        ttpSVG = ttp.append('svg')
+            .attr('id', 'tooltip-svg')        
+            .attr('height', tooltipHeight)
+            .attr('width', tooltipWidth)
+
+        data = element.data()[0]
+
+        d3.json("/get-hospital-zcta-tooltip", { // covid county data
+            "method": "POST",
+            "headers": {"Content-Type": "application/json"},
+            "body": JSON.stringify({
+                'region-name': data.region.substring(1),
+                'date': data.date.substring(1),
+            })}).then((result) => { 
+                
+                timeDomain = []
+                result.metadata.date.forEach(function(date) {
+                    timeDomain.push(dayjs.tz(date, "America/New_York").toDate())
+                })
+                yScale = d3.scaleLinear()
+                            .domain([result.stats.min, result.stats.max])        
+                            .nice()
+
+                temp = ttpSVG.append('text').text(yScale.domain()[1]).attr('x', 0).attr('y', 0)
+                margins = {
+                    'top': Math.max(em, tooltipHeight * .05),
+                    'bottom': Math.max(2.5*em, tooltipHeight * .2),
+                    'left': temp.node().getBBox().width + em,
+                    'right': em,
+                }
+                temp.remove()
+
+                yScale.range([tooltipHeight - margins.bottom, margins.top])
+                xScale = d3.scaleUtc([timeDomain[0], timeDomain[timeDomain.length - 1]], [margins.left, tooltipWidth - margins.right]) 
+                line = d3.line()
+                    .x((d) => xScale(d.date))
+                    .y((d) => yScale(d.count))
+
+                graphSVG = ttpSVG.append('svg')
+                    .attr('id', 'graph-svg')
+                    .attr('height', tooltipHeight)
+                    .attr('width', tooltipWidth)
+
+                Object.entries(result.data).forEach(function([disease, values]) {
+                    data = []
+                    Object.entries(values).forEach(function([date, count]) {
+                        date = dayjs.tz(date, "YYYY-MM", "America/New_York").toDate()
                         data.push({'date': date, 'count': count})
                     })
                         diseaseGroup = graphSVG.append('g')
