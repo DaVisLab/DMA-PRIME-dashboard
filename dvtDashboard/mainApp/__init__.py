@@ -85,8 +85,8 @@ def create_app(test_config=None):
             if mapType == "zip":
                 return "0"
 
-    @app.route('/get-real-disease-data', methods=['POST'])
-    def getRealDiseaseData():
+    @app.route('/get-county-disease-data', methods=['POST'])
+    def getCountyDiseaseData():
         variables = request.get_json()
         region = slice(None) if variables['region-name'] == 'all' else variables['region-name'].split(',')
         disease = slice(None) if variables['disease'] == 'all' else variables['disease'].split(',')
