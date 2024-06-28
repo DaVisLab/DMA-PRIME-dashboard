@@ -1,6 +1,10 @@
 # DMA-PRIME-dashboard
 
+
 dvtDashboard contains the code for the DMA-PRIME dashboard. The flask app is found in mainApp directory. To run this flask app, navigate to the dvtDashboard directory and run `flask --app mainApp run` in the command line. Then, open the link localhost:5000 in any browser. This will bring you to the always on current data visualization. 
+
+If you don't have Flask downloaded, you can use an anaconda environment: conda create --name test pandas numpy flask. Activate the environment before running the app as specified above.
+
 
 Web components courtesy of [Shoelace](https://shoelace.style/) 
 
