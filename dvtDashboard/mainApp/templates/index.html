@@ -11,12 +11,13 @@
     src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/shoelace-autoloader.js"></script>
 
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/landing-style.css') }}" />
-  <!-- <script src="https://d3js.org/d3-collection.v1.min.js"></script> -->
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/map-style.css') }}" />
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/grid-style.css') }}" />
+
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3-geo@3"></script>
 
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
-  <script>dayjs().format()</script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
@@ -30,14 +31,14 @@
 
 <body>
   <!-- Top nav bar -->
-  <sl-tab-group id="nav-bar">
-    <sl-tab slot="nav" >DMA-PRIME</sl-tab>
-    <!-- <sl-tab slot="nav" panel="county">County</sl-tab>
-    <sl-tab slot="nav" panel="zip">Zip Code</sl-tab> -->
-    <!-- <sl-tab slot="nav" panel="block">Census Block</sl-tab> -->
-    <!-- <sl-tab slot="nav" panel="disabled" disabled>Disabled</sl-tab> -->
-  </sl-tab-group>
-  <!-- Main content -->
+  <sl-tab-group id="nav-bar" >
+    <sl-tab slot="nav" panel="county-grid">County</sl-tab>
+    <sl-tab slot="nav" panel="map">DMA-PRIME</sl-tab>
+    <sl-tab slot="nav" panel="map">Map</sl-tab>
+
+    <sl-tab-panel name="map" id="map-panel" >
+
+<!-- Main content -->
   <sl-split-panel position="20" disabled id="main-content" class="fill-height">
 
     <!-- Visualization options panel -->
@@ -74,9 +75,9 @@
           </sl-resize-observer>
           <div id="tooltip">
             <p class="tooltip"></p>
-             <svg id="tooltip-svg">
+            <svg id="tooltip-svg">
             <!-- set via interactions -->
-             </svg>
+            </svg>
           </div>          
       </div>
       <div slot="end" id="details-div">
@@ -102,6 +103,24 @@
       resizeMap();
     });
   </script>
+    </sl-tab-panel>
+
+    <sl-tab-panel name="county-grid">
+      <!-- <div id="grid-container" >
+        <div id="grid-explanation" class="grid-item"></div>
+        <div id="grid-legend" class="grid-item"></div>
+      </div> -->
+      <div class="container"></div>
+      <button class="toggle-button" id="toggleButton">TOT
+      </button>
+        
+      <div id="legend">
+        <!-- <script src="script.js"></script> -->
+      </div>
+
+      <script src="{{ url_for('static', filename='js/landing-page/script_new.js') }}"></script>
+    </sl-tab-panel>
+  </sl-tab-group>
 
 </body>
 

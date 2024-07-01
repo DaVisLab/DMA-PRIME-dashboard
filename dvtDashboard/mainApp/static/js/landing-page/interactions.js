@@ -5,22 +5,22 @@ mapZoom = d3.zoom().scaleExtent([1, 10]).on("zoom", function(e) {
     xSkew = e.transform.x
     ySkew = e.transform.y
 
-    d3.select("#counties").attr("transform", e.transform)
-    d3.select("#disease-data").attr("transform", e.transform)
-    d3.select("#hospital-data").attr("transform", e.transform)
-    d3.select("#hospitals").attr("transform", e.transform)
-    d3.selectAll(".legend").attr("transform", d3.zoomIdentity.scale(zoom))
+    mapSVG.select("#counties").attr("transform", e.transform)
+    mapSVG.select("#disease-data").attr("transform", e.transform)
+    mapSVG.select("#hospital-data").attr("transform", e.transform)
+    mapSVG.select("#hospitals").attr("transform", e.transform)
+    mapSVG.selectAll(".legend").attr("transform", d3.zoomIdentity.scale(zoom))
 
 // trying to get the hospitals to semantically zoom... works on firefox (the bottom function)
-    // d3.select("#hospitals").attr("transform", e.transform)
-    // d3.selectAll(".hospital")
+    // mapSVG.select("#hospitals").attr("transform", e.transform)
+    // mapSVG.selectAll(".hospital")
     //     .attr("transform", function(d) {
     //         console.log(xSkew)
     //         console.log(ySkew)
     //         return d3.zoomIdentity.translate((zoom-1) * (this.x.baseVal.value - this.width.baseVal.value), (zoom-1) * this.y.baseVal.value).scale(1/zoom)
     //     })
 
-    // d3.selectAll(".hospital").attr("transform", function(d){
+    // mapSVG.selectAll(".hospital").attr("transform", function(d){
     //     function blerp(zoom, dimension, location, skew) {
     //         // if you don"t want to scale after translation and only move via translation, use the formula:
     //         // (scale - 1) * ({x or y} position + {width or height}*.5) + {x or y translation}
@@ -47,37 +47,37 @@ resetButton.addEventListener("click", () => {
 
 diseaseToggle.addEventListener("sl-change", () => {
     if(diseaseToggle.checked) {
-        d3.selectAll(".legend.disease").raise().style("opacity", 1)
-        d3.select("#disease-data").raise().style("opacity", 1)
+        mapSVG.selectAll(".legend.disease").raise().style("opacity", 1)
+        mapSVG.select("#disease-data").raise().style("opacity", 1)
         if(hospitalToggle.checked) {
             hospitalToggle.click()
         }
     } else {
-        d3.selectAll(".legend.disease").lower().style("opacity", 0)
-        d3.select("#disease-data").lower().style("opacity", 0)
+        mapSVG.selectAll(".legend.disease").lower().style("opacity", 0)
+        mapSVG.select("#disease-data").lower().style("opacity", 0)
     }
 })
 
 hospitalToggle.addEventListener("sl-change", () => {
     if(hospitalToggle.checked) {
-        d3.selectAll(".legend.hospital").raise().style("opacity", 1)
-        d3.selectAll("#hospital-data").raise().style("opacity", 1)
+        mapSVG.selectAll(".legend.hospital").raise().style("opacity", 1)
+        mapSVG.selectAll("#hospital-data").raise().style("opacity", 1)
         if(diseaseToggle.checked) {
             diseaseToggle.click()
         }
     } else {
-        d3.selectAll(".legend.hospital").lower().style("opacity", 0)
-        d3.selectAll("#hospital-data").lower().style("opacity", 0)
+        mapSVG.selectAll(".legend.hospital").lower().style("opacity", 0)
+        mapSVG.selectAll("#hospital-data").lower().style("opacity", 0)
     }
 })
 
 showHospitalIcons.addEventListener("sl-change", () => {
     if(showHospitalIcons.checked) {
-        d3.select("#hospitals").raise().style("opacity", 1)
-        d3.selectAll("#disease-data").raise()
-        d3.selectAll("#hospital-data").raise()
+        mapSVG.select("#hospitals").raise().style("opacity", 1)
+        mapSVG.selectAll("#disease-data").raise()
+        mapSVG.selectAll("#hospital-data").raise()
     } else {
-        d3.select("#hospitals").lower().style("opacity", 0)
+        mapSVG.select("#hospitals").lower().style("opacity", 0)
     }
 })
 
@@ -297,7 +297,6 @@ function hospitalToolTip(element) {
                 .call(d3.axisBottom(xScale).tickValues(timeDomain).tickSize(4).tickFormat(d3.timeFormat("%b %d")))
                 .selectAll("text")  
                 .style("text-anchor", "end")
-                // .attr("dx", "-.5em")
                 .attr("transform", "rotate(-30)");
     
                 ttpSVG.append("g")

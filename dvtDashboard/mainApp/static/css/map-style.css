@@ -1,0 +1,80 @@
+.options-div {
+    padding: var(--sl-spacing-x-small)
+}
+
+.options-header {
+    font-size: var(--sl-font-size-large);
+    margin-top: 0;
+    margin-bottom: .5rem;
+}
+
+.options-divider {
+    --spacing: 0;
+}
+
+
+    
+#main-content-divider {
+font-size: 2rem; 
+background-color: var(--sl-color-neutral-300);
+}
+
+#options {
+height: 100%;
+overflow: hidden; 
+overflow-wrap: normal;
+}
+
+#show-hospital-icons::part(control--checked)  {
+    border-color: var(--sl-color-neutral-400);
+    background-color: var(--sl-color-neutral-400);
+}
+
+#map-div {
+    position: relative;
+}
+
+path.county {
+    fill: var(--sl-color-gray-400);
+
+}
+
+.legend>circle {
+    fill: var(--sl-color-neutral-500);
+    stroke: var(--sl-color-neutral-600);
+}
+
+.legend>text {
+    text-anchor: middle;
+    transform: scaleY(-1);
+    fill: currentColor;
+}
+
+.disease-bubble, .hospital-bubble, .legend>circle {
+    fill-opacity: .25;
+    stroke-width: 3;
+    stroke-opacity: .3;
+}
+
+#tooltip {
+    position:absolute;
+    /* padding: .25em; */
+    border-width: var(--sl-border-radius-small);    
+    border-style: solid;
+    border-radius: .25em;
+}
+
+p.tooltip {
+    margin: 0;
+    padding-top: var(--sl-spacing-x-small);
+    text-align: center;
+    font-size: var(--sl-font-size-small);
+}
+
+.tooltip.text {
+    margin: 0;
+    padding: 0;
+    /* font-family: var(--sl-font-sans); */
+    font-size: var(--sl-font-size-x-small);
+    white-space: nowrap;
+}

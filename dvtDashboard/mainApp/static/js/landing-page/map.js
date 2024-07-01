@@ -52,7 +52,6 @@ function displayMap() {
             "method": "POST",
             "headers": {"Content-Type": "application/json"},
             "body": JSON.stringify({
-                "region-size": "county",
                 "region-name": "all",
                 "disease": "all",
                 "date": "max",
@@ -166,12 +165,12 @@ function resizeMap() {
     }
 
     function updateMap(value) {
-        d3.selectAll(".county").each(function(item) {
+        mapSVG.selectAll(".county").each(function(item) {
             d3.select(this)
             .attr("d", (d) => pathGenerator(d))
         })
     
-        d3.select("#hospitals").selectAll(".hospital").each(function(item) {
+        mapSVG.select("#hospitals").selectAll(".hospital").each(function(item) {
             hospSize = Math.max(16, Math.min(width, height) * 0.015)
             d3.select(this)
                 .attr("x", (d) => mapProjection(d.geometry.coordinates)[0] - hospSize/2)
@@ -180,7 +179,7 @@ function resizeMap() {
                 .attr("height", hospSize)
         })
     
-        d3.selectAll(".disease-bubble").each(function(d) {
+        mapSVG.selectAll(".disease-bubble").each(function(d) {
             maxRadius = Math.min(height, width) * 0.05
             radiusMap = d3.scaleLinear([0, diseaseStats.max], [0, maxRadius])
             mapCoords = mapProjection([d.INTPTLON, d.INTPTLAT])
@@ -192,20 +191,20 @@ function resizeMap() {
 
             // updating legend stuff
             em = parseFloat(getComputedStyle(this).fontSize)
-            d3.select("#legends")
+            mapSVG.select("#legends")
             .attr("transform", `translate(0 ${height}) scale(1 -1)`)
 
-            d3.selectAll(".legend.disease").select("circle")
+            mapSVG.selectAll(".legend.disease").select("circle")
                 .attr("cx", (d) => (radiusMap(diseaseStats.max) * 2 + 10) * d[1] + radiusMap(d[0]) + Math.max(width/50, 30))
                 .attr("cy", (d) => radiusMap(d[0]) + 2.5*em)
                 .attr("r", (d) => radiusMap(d[0]))
 
-            d3.selectAll(".legend.disease").select("text")
+            mapSVG.selectAll(".legend.disease").select("text")
                 .attr("x", (d) => (radiusMap(diseaseStats.max) * 2 + 10) * d[1] + radiusMap(d[0]) + Math.max(width/50, 30))
                 .attr("y", -em)
         })
     
-        d3.selectAll(".hospital-bubble").each(function(d) {
+        mapSVG.selectAll(".hospital-bubble").each(function(d) {
             maxRadius = Math.min(height, width) * 0.025
             radiusMap = d3.scaleLinear([0, hospitalStats.max], [0, maxRadius])
             mapCoords = mapProjection([d.INTPTLON, d.INTPTLAT])
@@ -217,15 +216,15 @@ function resizeMap() {
 
             // updating legend stuff
             em = parseFloat(getComputedStyle(this).fontSize)
-            d3.select("#legends")
+            mapSVG.select("#legends")
             .attr("transform", `translate(0 ${height}) scale(1 -1)`)
 
-            d3.selectAll(".legend.hospital").select("circle")
+            mapSVG.selectAll(".legend.hospital").select("circle")
                 .attr("cx", (d) => (radiusMap(hospitalStats.max) * 2 + 10) * d[1] + radiusMap(d[0]) + Math.max(width/50, 30))
                 .attr("cy", (d) => radiusMap(d[0]) + 2.5*em)
                 .attr("r", (d) => radiusMap(d[0]))
 
-            d3.selectAll(".legend.hospital").select("text")
+            mapSVG.selectAll(".legend.hospital").select("text")
                 .attr("x", (d) => (radiusMap(hospitalStats.max) * 2 + 10) * d[1] + radiusMap(d[0]) + Math.max(width/50, 30))
                 .attr("y", -em)
         })
@@ -238,7 +237,7 @@ function resizeMap() {
 
 
 function drawLegend(stats, type, show) {
-    d3.select("#legends")
+    mapSVG.select("#legends")
     .selectAll(`.legend.${type}`)
     .data([[stats.max / 3, 0], [stats.max * 2/3, 1], [stats.max, 2]])
     .enter()
@@ -261,7 +260,6 @@ function drawDiseaseBubbles(dataType) {
         "method": "POST",
         "headers": {"Content-Type": "application/json"},
         "body": JSON.stringify({
-            "region-size": "county",
             "region-name": "all",
             "disease": "all",
             "date": "max",
@@ -278,11 +276,11 @@ function drawDiseaseBubbles(dataType) {
             maxRadius = Math.min(height, width) * 0.05
             radiusMap = d3.scaleLinear([0, diseaseStats.max], [0, maxRadius])
             
-            d3.selectAll(".disease-bubble")
+            mapSVG.selectAll(".disease-bubble")
                 .data(data)
                 .style("fill", (d) => diseaseColorMap(d.disease))
                 .style("stroke", (d) => diseaseColorMap(d.disease))
-            d3.select("#legends")
+            mapSVG.select("#legends")
                 .selectAll(`.legend.disease`)
                 .data([[diseaseStats.max / 3, 0], [diseaseStats.max * 2/3, 1], [diseaseStats.max, 2]])
                 .each(function(d) {
