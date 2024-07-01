@@ -53,37 +53,37 @@ def create_app(test_config=None):
     # a simple page that says hello
     @app.route('/')
     def index():
-        return render_template("index.html")
+        return render_template('index.html')
     
     @app.route('/hospital/<id>')
     def getHospitalHTML(id):
-        return render_template("subtemplates/hospital.html", id=id)
+        return render_template('subtemplates/hospital.html', id=id)
     
     @app.route('/tooltip/<type>')
     def getTooltipHTML(type=None):
-        return render_template("subtemplates/tooltip.html", type=type)
+        return render_template('subtemplates/tooltip.html', type=type)
     
     @app.route('/get-prediction/<mapType>/<region>/<numberQuantiles>', methods=['POST', 'GET'])
-    def getPrediction(mapType="county", region="all", numberQuantiles=1):
+    def getPrediction(mapType='county', region='all', numberQuantiles=1):
         # if we're showing all, get max day
         # if we're showing one specific region, show all values until max predicted day
-        if region == "all":
-            if mapType == "county":
+        if region == 'all':
+            if mapType == 'county':
                 items = request.get_json()
                 values = (np.random.rand(len(items)) - .5) * 20
                 values_list = []
                 for pair in zip(items, values):
-                    values_list.append({"item":pair[0], "value":pair[1]})
+                    values_list.append({'item':pair[0], 'value':pair[1]})
                 quantiles = getQuantiles(numberQuantiles, values)
                 response = jsonify({
-                    "values": values_list,
-                    "min": min(values),
-                    "max": max(values),
-                    "quantiles": quantiles,
+                    'values': values_list,
+                    'min': min(values),
+                    'max': max(values),
+                    'quantiles': quantiles,
                 })
                 return response
-            if mapType == "zip":
-                return "0"
+            if mapType == 'zip':
+                return '0'
 
     @app.route('/get-county-disease-data', methods=['POST'])
     def returnCountyDiseaseData():
@@ -95,8 +95,8 @@ def create_app(test_config=None):
         result =  getCountyDiseaseData(region, disease, date, variables['data-type'])
 
         return_data = result['data'].rename({variables['data-type']: 'count'}, axis=1)
-        return_data_dict = json.loads(return_data.to_json(orient="table", index=True))['data']
-        return_stats_dict = json.loads(result['stats'].to_json(orient="table", index=True))['data'] if isinstance(result['stats'], pd.DataFrame) else result['stats'].to_dict()
+        return_data_dict = json.loads(return_data.to_json(orient='table', index=True))['data']
+        return_stats_dict = json.loads(result['stats'].to_json(orient='table', index=True))['data'] if isinstance(result['stats'], pd.DataFrame) else result['stats'].to_dict()
         return jsonify({'data': return_data_dict, 'stats': return_stats_dict, 'metadata': result['metadata']})
 
     @app.route('/get-county-disease-tooltip', methods=['POST'])
@@ -104,7 +104,7 @@ def create_app(test_config=None):
         variables = request.get_json()
 
         date = max(real_dict['county']['data'].index.levels[2]) if variables['date'] == 'max' else variables['date'].split(',')[0]
-        dates = pd.date_range(end=date, periods=8, freq='7D').strftime("%Y-%m-%d").to_list()
+        dates = pd.date_range(end=date, periods=8, freq='7D').strftime('%Y-%m-%d').to_list()
 
         result =  getCountyDiseaseData(variables['county'].split(','), slice(None), dates, variables['data-type'])
 
@@ -127,14 +127,14 @@ def create_app(test_config=None):
         
         result =  getZCTAHospitalData(region, disease, date)
 
-        return jsonify({'data': json.loads(result['data'].to_json(orient="table", index=True))['data'], 'stats': result['stats'].to_dict(), 'metadata': result['metadata']})
+        return jsonify({'data': json.loads(result['data'].to_json(orient='table', index=True))['data'], 'stats': result['stats'].to_dict(), 'metadata': result['metadata']})
 
     @app.route('/get-hospital-zcta-tooltip', methods=['POST'])
     def getHospitalZCTATooltip():
         variables = request.get_json()
 
         date = max(real_dict['hospital-zcta']['data'].index.levels[2]) if variables['date'] == 'max' else variables['date'].split(',')[0]
-        dates = pd.date_range(end=date, periods=8, freq='7D').strftime("%Y-%m").to_list()
+        dates = pd.date_range(end=date, periods=8, freq='7D').strftime('%Y-%m').to_list()
 
         result =  getZCTAHospitalData(variables['region-name'].split(','), slice(None), dates)
 
@@ -197,10 +197,10 @@ def loadCountyData():
     df_multi = pd.DataFrame()
 
     files = [
-    # "C:/Users/***REMOVED***/Box/BoxPHI-PHMR Projects/Toolkit/Cleaned_Data/SC/Covid19/Case_Death_Counts.csv",
-    "mainApp/static/data/covid_case_death_counts.csv",
-    "mainApp/static/data/dummy_flu.csv",
-    "mainApp/static/data/dummy_opioid.csv",
+    # 'C:/Users/***REMOVED***/Box/BoxPHI-PHMR Projects/Toolkit/Cleaned_Data/SC/Covid19/Case_Death_Counts.csv',
+    'mainApp/static/data/covid_case_death_counts.csv',
+    'mainApp/static/data/dummy_flu.csv',
+    'mainApp/static/data/dummy_opioid.csv',
     ]
 
     for f_path in files:
@@ -233,8 +233,8 @@ def loadZCTAData():
     df_multi = pd.DataFrame()
 
     files = [
-    "mainApp/static/data/covid_hospital_zcta.csv",
-    "mainApp/static/data/flu_hospital_zcta.csv",
+    'mainApp/static/data/covid_hospital_zcta.csv',
+    'mainApp/static/data/flu_hospital_zcta.csv',
     ]
 
     for f_path in files:

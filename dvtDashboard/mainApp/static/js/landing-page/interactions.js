@@ -5,14 +5,14 @@ mapZoom = d3.zoom().scaleExtent([1, 10]).on("zoom", function(e) {
     xSkew = e.transform.x
     ySkew = e.transform.y
 
-    d3.select("#counties").attr('transform', e.transform)
-    d3.select("#disease-data").attr('transform', e.transform)
-    d3.select("#hospital-data").attr('transform', e.transform)
-    d3.select("#hospitals").attr('transform', e.transform)
-    d3.selectAll(".legend").attr('transform', d3.zoomIdentity.scale(zoom))
+    d3.select("#counties").attr("transform", e.transform)
+    d3.select("#disease-data").attr("transform", e.transform)
+    d3.select("#hospital-data").attr("transform", e.transform)
+    d3.select("#hospitals").attr("transform", e.transform)
+    d3.selectAll(".legend").attr("transform", d3.zoomIdentity.scale(zoom))
 
 // trying to get the hospitals to semantically zoom... works on firefox (the bottom function)
-    // d3.select("#hospitals").attr('transform', e.transform)
+    // d3.select("#hospitals").attr("transform", e.transform)
     // d3.selectAll(".hospital")
     //     .attr("transform", function(d) {
     //         console.log(xSkew)
@@ -20,9 +20,9 @@ mapZoom = d3.zoom().scaleExtent([1, 10]).on("zoom", function(e) {
     //         return d3.zoomIdentity.translate((zoom-1) * (this.x.baseVal.value - this.width.baseVal.value), (zoom-1) * this.y.baseVal.value).scale(1/zoom)
     //     })
 
-    // d3.selectAll(".hospital").attr('transform', function(d){
+    // d3.selectAll(".hospital").attr("transform", function(d){
     //     function blerp(zoom, dimension, location, skew) {
-    //         // if you don't want to scale after translation and only move via translation, use the formula:
+    //         // if you don"t want to scale after translation and only move via translation, use the formula:
     //         // (scale - 1) * ({x or y} position + {width or height}*.5) + {x or y translation}
     //         // return location.baseVal.value * zoom + skew
     //         return ((zoom-1) * (location.baseVal.value + (dimension.baseVal.value * .5))) + skew
@@ -112,23 +112,24 @@ function bubbleToolTip(element) {
         tooltipWidth = Math.max(200, width * .1)
         tooltipHeight = tooltipWidth * .65
 
-        tooltip.innerHTML = ''
         ttp = d3.select(tooltip)
         ttp.style("opacity", 1).style("z-index", 1)
-        ttpSVG = ttp.append('svg')
-            .attr('id', 'tooltip-svg')        
-            .attr('height', tooltipHeight)
-            .attr('width', tooltipWidth)
+        ttpSVG = ttp.select("#tooltip-svg")
+            .attr("height", tooltipHeight)
+            .attr("width", tooltipWidth)
 
         data = element.data()[0]
+
+        ttp.select("p.tooltip").text(data.region[0].toUpperCase() + data.region.substring(1))
+        ttpSVG.node().innerHTML = ""
 
         d3.json("/get-county-disease-tooltip", { // covid county data
             "method": "POST",
             "headers": {"Content-Type": "application/json"},
             "body": JSON.stringify({
-                'county': data.region,
-                'date': data.date.substring(1),
-                'data-type': `${caseDeathSwitch.value} 7-day average`,
+                "county": data.region,
+                "date": data.date.substring(1),
+                "data-type": `${caseDeathSwitch.value} 7-day average`,
             })}).then((result) => { 
                 
                 timeDomain = []
@@ -139,12 +140,12 @@ function bubbleToolTip(element) {
                             .domain([result.stats.min, result.stats.max])        
                             .nice()
 
-                temp = ttpSVG.append('text').text(yScale.domain()[1]).attr('x', 0).attr('y', 0)
+                temp = ttpSVG.append("text").text(yScale.domain()[1]).attr("x", 0).attr("y", 0)
                 margins = {
-                    'top': Math.max(em, tooltipHeight * .05),
-                    'bottom': Math.max(2.5*em, tooltipHeight * .2),
-                    'left': temp.node().getBBox().width + em,
-                    'right': em,
+                    "top": Math.max(0.5*em, tooltipHeight * .05),
+                    "bottom": Math.max(2.5*em, tooltipHeight * .2),
+                    "left": temp.node().getBBox().width + 0.5*em,
+                    "right": em,
                 }
                 temp.remove()
 
@@ -154,29 +155,29 @@ function bubbleToolTip(element) {
                     .x((d) => xScale(d.date))
                     .y((d) => yScale(d.count))
 
-                graphSVG = ttpSVG.append('svg')
-                    .attr('id', 'graph-svg')
-                    .attr('height', tooltipHeight)
-                    .attr('width', tooltipWidth)
+                graphSVG = ttpSVG.append("svg")
+                    .attr("id", "graph-svg")
+                    .attr("height", tooltipHeight)
+                    .attr("width", tooltipWidth)
 
                 Object.entries(result.data).forEach(function([disease, values]) {
                     data = []
                     Object.entries(values).forEach(function([date, count]) {
                         date = dayjs.tz(date, "America/New_York").toDate()
-                        data.push({'date': date, 'count': count})
+                        data.push({"date": date, "count": count})
                     })
-                        diseaseGroup = graphSVG.append('g')
-                        diseaseGroup.append('path')
-                            .attr('d', line(data))
+                        diseaseGroup = graphSVG.append("g")
+                        diseaseGroup.append("path")
+                            .attr("d", line(data))
                             .attr("stroke", diseaseColorMap(disease))
                             .attr("fill", "none")
         
-                        diseaseGroup.selectAll('circle').data(data)
+                        diseaseGroup.selectAll("circle").data(data)
                         .enter()
-                        .append('circle')
-                        .attr('r', 3)
-                        .attr('cx', (d) => xScale(d.date))
-                        .attr('cy', (d) => yScale(d.count))
+                        .append("circle")
+                        .attr("r", 3)
+                        .attr("cx", (d) => xScale(d.date))
+                        .attr("cy", (d) => yScale(d.count))
                         .attr("fill", diseaseColorMap(disease))
                     })
 
@@ -223,22 +224,23 @@ function hospitalToolTip(element) {
         tooltipWidth = Math.max(200, width * .1)
         tooltipHeight = tooltipWidth * .65
 
-        tooltip.innerHTML = ''
         ttp = d3.select(tooltip)
         ttp.style("opacity", 1).style("z-index", 1)
-        ttpSVG = ttp.append('svg')
-            .attr('id', 'tooltip-svg')        
-            .attr('height', tooltipHeight)
-            .attr('width', tooltipWidth)
+        ttpSVG = ttp.select("#tooltip-svg")
+            .attr("height", tooltipHeight)
+            .attr("width", tooltipWidth)
 
         data = element.data()[0]
+
+        ttp.select("p.tooltip").text(data.region.substring(1))
+        ttpSVG.node().innerHTML = ""
 
         d3.json("/get-hospital-zcta-tooltip", { // covid county data
             "method": "POST",
             "headers": {"Content-Type": "application/json"},
             "body": JSON.stringify({
-                'region-name': data.region.substring(1),
-                'date': data.date.substring(1),
+                "region-name": data.region.substring(1),
+                "date": data.date.substring(1),
             })}).then((result) => { 
                 
                 timeDomain = []
@@ -249,12 +251,12 @@ function hospitalToolTip(element) {
                             .domain([result.stats.min, result.stats.max])        
                             .nice()
 
-                temp = ttpSVG.append('text').text(yScale.domain()[1]).attr('x', 0).attr('y', 0)
+                temp = ttpSVG.append("text").text(yScale.domain()[1]).attr("x", 0).attr("y", 0)
                 margins = {
-                    'top': Math.max(em, tooltipHeight * .05),
-                    'bottom': Math.max(2.5*em, tooltipHeight * .2),
-                    'left': temp.node().getBBox().width + em,
-                    'right': em,
+                    "top": Math.max(em, tooltipHeight * .05),
+                    "bottom": Math.max(2.5*em, tooltipHeight * .2),
+                    "left": temp.node().getBBox().width + em,
+                    "right": em,
                 }
                 temp.remove()
 
@@ -264,29 +266,29 @@ function hospitalToolTip(element) {
                     .x((d) => xScale(d.date))
                     .y((d) => yScale(d.count))
 
-                graphSVG = ttpSVG.append('svg')
-                    .attr('id', 'graph-svg')
-                    .attr('height', tooltipHeight)
-                    .attr('width', tooltipWidth)
+                graphSVG = ttpSVG.append("svg")
+                    .attr("id", "graph-svg")
+                    .attr("height", tooltipHeight)
+                    .attr("width", tooltipWidth)
 
                 Object.entries(result.data).forEach(function([disease, values]) {
                     data = []
                     Object.entries(values).forEach(function([date, count]) {
                         date = dayjs.tz(date, "YYYY-MM", "America/New_York").toDate()
-                        data.push({'date': date, 'count': count})
+                        data.push({"date": date, "count": count})
                     })
-                        diseaseGroup = graphSVG.append('g')
-                        diseaseGroup.append('path')
-                            .attr('d', line(data))
+                        diseaseGroup = graphSVG.append("g")
+                        diseaseGroup.append("path")
+                            .attr("d", line(data))
                             .attr("stroke", diseaseColorMap(disease))
                             .attr("fill", "none")
         
-                        diseaseGroup.selectAll('circle').data(data)
+                        diseaseGroup.selectAll("circle").data(data)
                         .enter()
-                        .append('circle')
-                        .attr('r', 3)
-                        .attr('cx', (d) => xScale(d.date))
-                        .attr('cy', (d) => yScale(d.count))
+                        .append("circle")
+                        .attr("r", 3)
+                        .attr("cx", (d) => xScale(d.date))
+                        .attr("cy", (d) => yScale(d.count))
                         .attr("fill", diseaseColorMap(disease))
                     })
 
@@ -309,7 +311,7 @@ function generalTooltip(element) {
     var tooltipWidth = 0
     var tooltipHeight = 0
     element.on("pointerenter", function(e) {
-        tooltip.innerHTML = ''
+        tooltip.innerHTML = ""
         data = element.data()[0]
         ttp = d3.select(tooltip)
         ttp.style("opacity", 1).style("z-index", 1).style("background")

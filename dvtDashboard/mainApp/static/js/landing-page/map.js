@@ -52,15 +52,15 @@ function displayMap() {
             "method": "POST",
             "headers": {"Content-Type": "application/json"},
             "body": JSON.stringify({
-                'region-size': 'county',
-                'region-name': 'all',
-                'disease': 'all',
-                'date': 'max',
-                'data-type': 'cases 7-day average',
+                "region-size": "county",
+                "region-name": "all",
+                "disease": "all",
+                "date": "max",
+                "data-type": "cases 7-day average",
             })}).then((result) => {
                 data = result.data.map(function(item) {
                     item.region = fixName(item.region)
-                    item.date = '_'+item.date
+                    item.date = "_"+item.date
                     return item
                 })
                 diseaseStats = result.stats
@@ -77,7 +77,7 @@ function displayMap() {
                 })
 
                 // draw legend
-                drawLegend(diseaseStats, radiusMap, "disease", true)
+                drawLegend(diseaseStats, "disease", true)
 
                 // setup bubbles
                 data.forEach(element => {
@@ -99,9 +99,9 @@ function displayMap() {
             "method": "POST",
             "headers": {"Content-Type": "application/json"},
             "body": JSON.stringify({
-                'region-name': 'all',
-                'disease': 'all',
-                'date': 'max',
+                "region-name": "all",
+                "disease": "all",
+                "date": "max",
             })}).then((result) => { 
                 hospitalData = mapSVG.append("g")
                 .attr("id", "hospital-data")
@@ -109,8 +109,8 @@ function displayMap() {
                 .lower()
 
                 data = result.data.map(function(item) {
-                    item['region'] = '_'+item['region']
-                    item['date'] = '_'+item['date']
+                    item["region"] = "_"+item["region"]
+                    item["date"] = "_"+item["date"]
                     return item
                 })
                 hospitalStats = result.stats
@@ -127,7 +127,7 @@ function displayMap() {
                 })
                 
                 // draw legend
-                drawLegend(hospitalStats, radiusMap, "hospital", false)
+                drawLegend(hospitalStats, "hospital", false)
 
                 // draw bubbles
                 data.forEach(element => {
@@ -144,7 +144,7 @@ function displayMap() {
                     });
         })
     }).then(() => {
-        console.log('resizepls')
+        console.log("resizepls")
         resizeMap()
     })
 }
@@ -237,7 +237,7 @@ function resizeMap() {
 }
 
 
-function drawLegend(stats, radiusMap, type, show) {
+function drawLegend(stats, type, show) {
     d3.select("#legends")
     .selectAll(`.legend.${type}`)
     .data([[stats.max / 3, 0], [stats.max * 2/3, 1], [stats.max, 2]])
@@ -261,15 +261,15 @@ function drawDiseaseBubbles(dataType) {
         "method": "POST",
         "headers": {"Content-Type": "application/json"},
         "body": JSON.stringify({
-            'region-size': 'county',
-            'region-name': 'all',
-            'disease': 'all',
-            'date': 'max',
-            'data-type': `${dataType} 7-day average`,
+            "region-size": "county",
+            "region-name": "all",
+            "disease": "all",
+            "date": "max",
+            "data-type": `${dataType} 7-day average`,
         })}).then((result) => {
             data = result.data.map(function(item) {
                 item.region = fixName(item.region)
-                item.date = '_'+item.date
+                item.date = "_"+item.date
                 return item
             })
             diseaseStats = result.stats

@@ -1,3 +1,7 @@
+p, text {
+    font-family: var(--sl-font-sans);
+}
+
 .fill-height {
 height: 100%;
 }
@@ -26,7 +30,6 @@ overflow-y: scroll;
 }
 
 .options-header {
-    font-family: var(--sl-font-sans);
     font-size: var(--sl-font-size-large);
     margin-top: 0;
     margin-bottom: .5rem;
@@ -69,6 +72,7 @@ path.county {
 .legend>text {
     text-anchor: middle;
     transform: scaleY(-1);
+    fill: currentColor;
 }
 
 .disease-bubble, .hospital-bubble, .legend>circle {
@@ -80,15 +84,22 @@ path.county {
 #tooltip {
     position:absolute;
     /* padding: .25em; */
-    border-width: .0625em;
+    border-width: var(--sl-border-radius-small);    
     border-style: solid;
     border-radius: .25em;
+}
+
+p.tooltip {
+    margin: 0;
+    padding-top: var(--sl-spacing-x-small);
+    text-align: center;
+    font-size: var(--sl-font-size-small);
 }
 
 .tooltip.text {
     margin: 0;
     padding: 0;
-    font-family: var(--sl-font-sans);
+    /* font-family: var(--sl-font-sans); */
     font-size: var(--sl-font-size-x-small);
     white-space: nowrap;
 }
