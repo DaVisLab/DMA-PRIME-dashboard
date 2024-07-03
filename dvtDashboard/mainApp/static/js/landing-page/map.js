@@ -45,58 +45,6 @@ function displayMap() {
                 .attr("id", "legends")
                 .attr("transform", `translate(0 ${height}) scale(1 -1)`)
                 
-        diseaseData = mapSVG.append("g")
-            .attr("id", "disease-data")
-        
-        d3.json("/get-county-disease-data", { // covid county data
-            "method": "POST",
-            "headers": {"Content-Type": "application/json"},
-            "body": JSON.stringify({
-                "region-name": "all",
-                "disease": "all",
-                "date": "max",
-                "data-type": "cases 7-day average",
-            })}).then((result) => {
-                data = result.data.map(function(item) {
-                    item.region = fixName(item.region)
-                    return item
-                })
-                diseaseStats = result.stats
-                diseaseMetadata = result.metadata
-
-                maxRadius = Math.min(height, width) * 0.05
-                radiusMap = d3.scaleLinear([0, diseaseStats.max], [0, maxRadius])
-
-                diseaseGroups = {}
-                diseaseMetadata.disease.forEach(disease => {
-                    diseaseGroups[disease] = diseaseData.append("g")
-                        .attr("id", disease + "-data")
-                        .attr("class", "disease-data-group")
-                        .attr("disease", disease)
-                        .raise()
-                    // create checkbox
-                    createDiseaseCheck(disease, diseaseColorMap(disease))
-                })
-
-                // draw legend
-                drawLegend(diseaseStats, "disease", true)
-
-                // setup bubbles
-                data.forEach(element => {
-                    temp = diseaseGroups[element.disease].selectAll(`.disease-bubble .${element.disease}.${element.region}`)
-                    temp
-                        .data([element])
-                        .enter()
-                        .append("circle")
-                        .attr("class", `disease-bubble ${element.disease} ${element.region}`)
-                        .attr("bubble-type", "disease")
-                        .style("fill", diseaseColorMap(element.disease))
-                        .style("stroke", diseaseColorMap(element.disease))
-                        .each(function(d) {bubbleTooltip(d3.select(this))})
-                });
-
-        }).catch((err) => {console.log(err)})
-
         d3.json("/get-hospital-zcta-data", { // covid county data
             "method": "POST",
             "headers": {"Content-Type": "application/json"},
@@ -107,8 +55,7 @@ function displayMap() {
             })}).then((result) => { 
                 hospitalData = mapSVG.append("g")
                 .attr("id", "hospital-data")
-                .style("opacity", 0)
-                .lower()
+                .style("opacity", +hospitalToggle.checked)
 
                 data = result.data.map(function(item) {
                     item["region"] = "_"+item["region"]
@@ -128,7 +75,7 @@ function displayMap() {
                 })
                 
                 // draw legend
-                drawLegend(hospitalStats, "hospital", false)
+                drawLegend(hospitalStats, "hospital", true)
 
                 // draw bubbles
                 data.forEach(element => {
@@ -180,42 +127,7 @@ function resizeMap() {
                 .attr("width", hospSize)
                 .attr("height", hospSize)
         })
-    
-        mapSVG.selectAll(".disease-bubble").each(function(d) {
-            maxRadius = Math.min(height, width) * 0.05
-            radiusMap = d3.scaleLinear([0, diseaseStats.max], [0, maxRadius])
-            mapCoords = mapProjection([d.INTPTLON, d.INTPTLAT])
-            newPos = skew(mapCoords, maxRadius/5, diseaseIndexing[d.disease], numDiseases)
-            d3.select(this)
-                .attr("cx", newPos[0])
-                .attr("cy", newPos[1])
-                .attr("r", (d) => radiusMap(d.count))
 
-            // updating legend stuff
-            em = parseFloat(getComputedStyle(this).fontSize)
-            mapSVG.select("#legends")
-            .attr("transform", `translate(0 ${height}) scale(1 -1)`)
-
-            mapSVG.selectAll(".legend.disease").select("line")
-                .attr("x1", (d) => radiusMap(diseaseStats.max) + 2.5*em)
-                .attr("y1", (d) => radiusMap(d[0]) + 2.5*em)
-                .attr("x2", (d) => 2*radiusMap(diseaseStats.max) + 3.5*em)
-                .attr("y2", (d) => radiusMap(d[0]) + 2.5*em)
-
-            mapSVG.selectAll(".legend.disease").select("circle")
-                .attr("cx", (d) => radiusMap(diseaseStats.max) + 2.5*em)
-                .attr("cy", (d) => radiusMap(d[0]) + 2.5*em)
-                .attr("r", (d) => radiusMap(d[0]))
-
-            mapSVG.selectAll(".legend.disease").select("text")
-                .attr("x", (d) => 2*radiusMap(diseaseStats.max) + 3.75*em)
-                .attr("y", (d) => -(radiusMap(d[0]) + 2.25*em))
-
-            mapSVG.select(".legend.title.disease")
-                .attr("x", (d) => radiusMap(diseaseStats.max) + 2.5*em)
-                .attr("y", (d) => -em)
-        })
-    
         mapSVG.selectAll(".hospital-bubble").each(function(d) {
             maxRadius = Math.min(height, width) * 0.025
             radiusMap = d3.scaleLinear([0, hospitalStats.max], [0, maxRadius])
@@ -280,50 +192,4 @@ function drawLegend(stats, type, show) {
         .style("opacity", +show)
         .text(() => type == "disease" ? "7 Day Average" : "Monthly\nAverage")
     resizeMap()
-}
-
-
-function drawDiseaseBubbles(dataType) {
-    d3.json("/get-county-disease-data", { // covid county data
-        "method": "POST",
-        "headers": {"Content-Type": "application/json"},
-        "body": JSON.stringify({
-            "region-name": "all",
-            "disease": "all",
-            "date": "max",
-            "data-type": `${dataType} 7-day average`,
-        })}).then((result) => {
-            data = result.data.map(function(item) {
-                item.region = fixName(item.region)
-                return item
-            })
-            diseaseStats = result.stats
-            diseaseMetadata = result.metadata
-
-            maxRadius = Math.min(height, width) * 0.05
-            radiusMap = d3.scaleLinear([0, diseaseStats.max], [0, maxRadius])
-
-            // console.log(`.disease-bubble.${getVisibleDiseases().join(",.disease-bubble.")}`, mapSVG.selectAll(`.disease-bubble.${getVisibleDiseases().join(",.disease-bubble.")}`))
-
-            mapSVG.selectAll(".disease-data-group").each(function() {
-                d3.select(this)
-                    .style("opacity", +getVisibleDiseases().includes(this.getAttribute("disease")))
-            })
-
-            data.forEach(function(d) {
-                mapSVG.select(`.disease-bubble.${d.disease}.${d.region}`)
-                .data([d])
-                .style("fill", (d) => diseaseColorMap(d.disease))
-                .style("stroke", (d) => diseaseColorMap(d.disease))
-            })
-
-            mapSVG.select("#legends")
-                .selectAll(`g.legend.disease`)
-                .data([[diseaseStats.max * 3/3, 0], [diseaseStats.max * 2/3, 1], [diseaseStats.max * 1/3, 2]])
-                .each(function(d) {
-                    d3.select(this).select("text").text(f(d[0]))
-                })
-
-            resizeMap()
-    }).catch((err) => {console.log(err)})
 }

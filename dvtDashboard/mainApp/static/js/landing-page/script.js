@@ -12,11 +12,8 @@ var navBar = document.getElementById("nav-bar")
 var mapTab = document.getElementById("map-tab")
     // options
 var resetButton = document.getElementById("reset-button")
-var diseaseToggle = document.getElementById("show-diseases")
 var hospitalToggle = document.getElementById("show-hospitals")
-var caseDeathSwitch = document.getElementById("case-death-switch")
 var showHospitalIcons = document.getElementById("show-hospital-icons")
-var diseaseSwitchBranch = document.getElementById("disease-switch-branch")
 var hospitalSwitchBranch = document.getElementById("hospital-switch-branch")
     // map
 var jsmapSVG = document.getElementById("map-svg")
@@ -132,39 +129,6 @@ function getVisibleHospitalDiseases() {
 }
 
 // make items
-
-function createDiseaseCheck(disease, color) {
-    check = d3.select(diseaseSwitchBranch)
-    .append("sl-tree-item")
-    .append("sl-checkbox")
-    .attr("id", disease + "-check")
-    .attr("class", "disease-check")
-    .attr("disease", disease)
-    .attr("checked", "")
-    .html(disease)
-
-    check.node().addEventListener("sl-change", (e) => {
-        checker = e.target
-        bubbleGroup = d3.select("#"+checker.getAttribute("disease")+"-data")
-        if(checker.checked) { 
-            bubbleGroup.style("opacity", 1).raise()
-            bubbleGroup.selectAll("*").each(function(d) {
-                bubbleTooltip(d3.select(this))
-            })
-        } else { 
-            bubbleGroup.style("opacity", 0).lower()
-            bubbleGroup.selectAll("*").each(function(d) {
-                removeTooltip(d3.select(this))
-            })
-        }
-    })
-    styleSheet.insertRule(
-        "#" + disease + `-check::part(control--checked)  {
-            border-color: `+color+`;
-            background-color: `+color+`;
-        }
-      `)
-}
 
 function createHospitalCheck(disease, color) {
     check = d3.select(hospitalSwitchBranch)
