@@ -12,6 +12,7 @@ var navBar = document.getElementById("nav-bar")
 var mapTab = document.getElementById("map-tab")
     // options
 var resetButton = document.getElementById("reset-button")
+var mapAggregationSwitch = document.getElementById("map-aggregation-switch")
 var hospitalToggle = document.getElementById("show-hospitals")
 var showHospitalIcons = document.getElementById("show-hospital-icons")
 var hospitalSwitchBranch = document.getElementById("hospital-switch-branch")
@@ -39,11 +40,14 @@ var mapData = null
 var numDiseases = 3
 var diseaseIndexing = {"covid-19": 1, "flu": 2, "opioid": 3}
 var diseaseColorMap = d3.scaleOrdinal().domain(Object.keys(diseaseIndexing)).range(d3.schemeSet1)
+var heatmapColorMap = null
 
 var diseaseStats = null
 var diseaseMetadata = null
 var hospitalStats = null
 var hospitalMetadata = null
+
+var focusCounty = null
 
 var styleSheet = new CSSStyleSheet()
 document.adoptedStyleSheets = [styleSheet]

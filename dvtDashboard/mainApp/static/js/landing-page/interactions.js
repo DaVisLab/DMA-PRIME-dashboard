@@ -5,6 +5,18 @@ navBar.addEventListener("sl-tab-show", (event) => {
     }
 })
 
+mapAggregationSwitch.addEventListener("sl-change", (event) => {
+    if(mapAggregationSwitch.value == "aggregated") {
+        reset()
+        mapSVG.selectAll(".zcta").transition().duration(750).style('fill', function(d) { return heatmapColorMap(d3.select(this).attr('count')) })
+        highlightCounty(focusCounty)
+    } else {
+        reset()
+        mapSVG.selectAll(".zcta").transition().duration(750).style("fill", "var(--sl-color-gray-800)")
+        highlightCounty(focusCounty)
+    }
+})
+
 zoomer = d3.zoom().scaleExtent([1, 10])
 mapZoom = zoomer.on("zoom", function(e) {
 
@@ -14,7 +26,7 @@ mapZoom = zoomer.on("zoom", function(e) {
 
     mapSVG.select("#counties").attr("transform", e.transform)
     mapSVG.select("#zctas").attr("transform", e.transform)
-    mapSVG.select("#hospital-data").attr("transform", e.transform)
+    mapSVG.select("#hospital-bubbles").attr("transform", e.transform)
     mapSVG.select("#hospitals").attr("transform", e.transform)
     mapSVG.selectAll(".legend-group").attr("transform", d3.zoomIdentity.scale(zoom))
 
@@ -40,16 +52,16 @@ mapZoom = zoomer.on("zoom", function(e) {
 mapSVG.call(mapZoom)
 
 mapResizer.addEventListener("sl-resize", () => {
-    resizeMap()
     if (document.body.clientWidth * 20 / 100 < 220) {
         mainContent.setAttribute("position", 220 * 100 / document.body.clientWidth)
     } else {
         mainContent.setAttribute("position", 20)
     }
+    resizeMap()
 })
 
 resetButton.addEventListener("click", () => {
-    mapSVG.call(mapZoom.transform, d3.zoomIdentity.translate(0, 0).scale(1))
+    mapSVG.transition().duration(750).call(mapZoom.transform, d3.zoomIdentity.translate(0, 0).scale(1))
 })
 
 hospitalToggle.addEventListener("sl-change", () => {
@@ -72,36 +84,76 @@ showHospitalIcons.addEventListener("sl-change", () => {
     }
 })
 
+
+function zoomToCounty(dom, data) {
+    d3.select(dom).on('click', function(event) {
+        reset()
+        zcta = d3.select(this)
+        county = d3.select("#"+zcta.attr("county"))
+        countyData = county.data()[0]
+
+        if (focusCounty == zcta.attr("county")) {
+            resetButton.click()
+            focusCounty = null
+        } else {
+            focusCounty = zcta.attr("county")
+
+            center = mapProjection([countyData.properties.INTPTLON, countyData.properties.INTPTLAT])        
+            dims = county.node().getBBox()
+    
+            countyWidth = dims.width
+            countyHeight = dims.height
+            scale = Math.min(4, Math.min(width/countyWidth, height/countyHeight)-1.25)
+    
+            selection = mapSVG.selectAll("#counties, #hospital-data, #hospitals, .legend-group")
+            mapSVG.transition().duration(750).call(zoomer.transform, new d3.ZoomTransform(scale, width/2 - center[0]*scale, height/2 - center[1]*scale))
+            mapSVG.select("#legends").style("opacity", 1)
+    
+            highlightCounty(focusCounty)
+        }
+    })
+}
+
+function highlightCounty(county) {
+    if (focusCounty == null) {
+        reset()
+    } else {
+        mapSVG.select("#counties").raise()
+        mapSVG.select("#counties").transition().duration(750).style("opacity", .5)
+        mapSVG.select("#"+county).transition().duration(750).style("fill", "none")
+        mapSVG.select("#legends").raise()
+        mapSVG.select("#hospital-bubbles").raise()
+        mapSVG.selectAll(".hospital-bubble").transition().duration(750)
+            .style("fill", "var(--sl-color-gray-300)")
+            .style("stroke", "var(--sl-color-gray-300)")
+        mapSVG.selectAll(".hospital-bubble."+zcta.attr("county")).transition().duration(750)
+            .style("opacity", 1)
+            .style("fill", (d) => diseaseColorMap(d.disease))
+            .style("stroke", (d) => diseaseColorMap(d.disease))
+    }
+}
+
+function reset() {
+    mapSVG.select("#counties").lower()
+    mapSVG.select("#counties").transition().duration(750).style("opacity", 1)
+    mapSVG.selectAll(".county").transition().duration(750).style("fill", "var(--sl-color-gray-300)")
+    mapSVG.selectAll(".hospital-bubble")
+        .style("opacity", +(mapAggregationSwitch.value != "aggregated"))
+        .style("fill", (d) => diseaseColorMap(d.disease))
+        .style("stroke", (d) => diseaseColorMap(d.disease))
+    mapSVG.select("#legends").style("opacity", +(mapAggregationSwitch.value != "aggregated" || focusCounty != null))
+}
+
 function removeTooltip(element) {
     element.on("pointermove", null)
     element.on("pointerleave", null)
     element.on("pointerenter", null)
 }
 
-function zoomToCounty(dom, data) {
-    d3.select(dom).on('click', function(event) {
-        zcta = d3.select(this)
-        county = d3.select("#"+zcta.attr("county"))
-        countyData = county.data()[0]
-
-        center = mapProjection([countyData.properties.INTPTLON, countyData.properties.INTPTLAT])        
-        dims = county.node().getBBox()
-
-        countyWidth = dims.width
-        countyHeight = dims.height
-        scale = Math.min(5, Math.min(width/countyWidth, height/countyHeight)-1.25)
-
-        selection = mapSVG.selectAll("#counties, #hospital-data, #hospitals, .legend-group")
-        mapSVG.transition().duration(750).call(zoomer.transform, new d3.ZoomTransform(scale, width/2 - center[0]*scale, height/2 - center[1]*scale))
-
-    })
-    mapSVG.call(mapZoom)
-}
-
 function hospitalTooltip(element) {
     var tooltipWidth = 200
     var tooltipHeight = 130
-
+    d3.select(tooltip).style("opacity", 0).style("z-index", -1)
     element.on("pointermove", function(e) {
         if((e.layerY + tooltipHeight + 1.5*em) < mapDiv.clientHeight) {
             tooltip.style.top = (e.layerY + 1.5*em) + "px"

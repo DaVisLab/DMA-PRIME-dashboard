@@ -50,16 +50,20 @@
       <sl-tree class="options-div">
       <sl-tree-item id="hospital-switch-branch" expanded>
         <sl-switch id="show-hospitals" checked><p class="options-header">Hospitals</p></sl-switch>
-        <sl-tree-item>Hospitals shows the daily average of the current month's hospitalizations due to the below reasons.</sl-tree-item>
+        <sl-tree-item>Hospitals shows the monthly count of the current month's hospitalizations due to the below diseases.</sl-tree-item>
       </sl-tree-item>
       <sl-tree-item><sl-checkbox id="show-hospital-icons" checked>Hospital Icons</sl-checkbox></sl-tree-item>
       </sl-tree>
     </div>
     <!-- This is where the visualizations will sit -->
-    <sl-split-panel slot="end" position="100" class="fill-height fill-width hide-overflow">
+    <sl-split-panel slot="end" vertical position="100" class="fill-height fill-width hide-overflow">
       <div slot="start" class="fill-width " id="map-div">
-          <sl-resize-observer id="map-resizer" class="">
-          <svg id="map-svg" class="scroll fill-height fill-width"></svg>
+          <sl-resize-observer id="map-resizer">
+            <sl-radio-group value="aggregated" id="map-aggregation-switch">
+              <sl-radio-button pill value="aggregated">Aggregated</sl-radio-button>
+              <sl-radio-button pill value="individual">Individual</sl-radio-button>
+            </sl-radio-group>
+            <svg id="map-svg" class="scroll fill-height fill-width"></svg>
           </sl-resize-observer>
           <div id="tooltip">
             <p class="tooltip"></p>
@@ -69,11 +73,7 @@
           </div>          
       </div>
       <div slot="end" id="details-div">
-          <sl-resize-observer >
-          <sl-tab-group placement="end" id="minor-vis-resizer">
-              <!-- stuff will go in here from main vis interaction -->
-          </sl-tab-group>
-          </sl-resize-observer>
+        <!-- stuff will go in here from main vis interaction -->
       </div>
     </sl-spit-panel>
 
@@ -95,8 +95,8 @@
             stroke: ${getComputedStyle(document.getElementsByClassName("options-header")[0]).getPropertyValue("color")}      
           } 
         `)
+        mapSVG.call(mapZoom)
 
-        console.log(d3.selectAll("._29821").empty())
       });
     </script>
   </sl-tab-panel>
