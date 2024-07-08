@@ -107,9 +107,7 @@ function zoomToCounty(dom, data) {
             countyHeight = dims.height
             scale = Math.min(4, Math.min(width/countyWidth, height/countyHeight)-1.25)
     
-            selection = mapSVG.selectAll("#counties, #hospital-data, #hospitals, .legend-group")
             mapSVG.transition().duration(750).call(zoomer.transform, new d3.ZoomTransform(scale, width/2 - center[0]*scale, height/2 - center[1]*scale))
-            mapSVG.select("#hospital-legend").style("opacity", 1)
     
             highlightCounty(focusCounty)
         }
@@ -124,14 +122,15 @@ function highlightCounty(county) {
         mapSVG.select("#counties").transition().duration(750).style("opacity", .5)
         mapSVG.select("#"+county).transition().duration(750).style("fill", "none")
         mapSVG.select("#legends").raise()
-        mapSVG.select("#hospital-bubbles").raise()
-        mapSVG.selectAll(".hospital-bubble").transition().duration(750)
-            .style("fill", "var(--sl-color-gray-300)")
-            .style("stroke", "var(--sl-color-gray-300)")
-        mapSVG.selectAll(".hospital-bubble."+zcta.attr("county")).transition().duration(750)
-            .style("opacity", 1)
-            .style("fill", (d) => diseaseColorMap(d.disease))
-            .style("stroke", (d) => diseaseColorMap(d.disease))
+        if (mapAggregationSwitch.value != "aggregated") {
+            mapSVG.selectAll(".hospital-bubble").transition().duration(750)
+                .style("fill", "var(--sl-color-gray-300)")
+                .style("stroke", "var(--sl-color-gray-300)")
+            mapSVG.selectAll(".hospital-bubble."+zcta.attr("county")).transition().duration(750)
+                .style("opacity", 1)
+                .style("fill", (d) => diseaseColorMap(d.disease))
+                .style("stroke", (d) => diseaseColorMap(d.disease))
+        }
     }
 }
 
@@ -143,7 +142,7 @@ function reset() {
         .style("opacity", +(mapAggregationSwitch.value != "aggregated"))
         .style("fill", (d) => diseaseColorMap(d.disease))
         .style("stroke", (d) => diseaseColorMap(d.disease))
-    mapSVG.select("#hospital-legend").style("opacity", +(mapAggregationSwitch.value != "aggregated" || focusCounty != null))
+    mapSVG.select("#hospital-legend").style("opacity", +(mapAggregationSwitch.value != "aggregated"))
 }
 
 function removeTooltip(element) {

@@ -166,7 +166,6 @@ function displayMap() {
                     linearGrdient.append("stop")
                         .attr("offset", "0%")
                         .attr("stop-color", "white")
-
                     linearGrdient.append("stop")
                         .attr("offset", "100%")
                         .attr("stop-color", "saddlebrown")
@@ -177,19 +176,12 @@ function displayMap() {
 
                     colorLegendContent = colorLegend.append("g").attr("id", "color-legend-contents")
                     colorLegendContent.append("rect")
-                        .attr("width", legendWidth)
-                        .attr("height", em)
-                        .attr("x", 2*em)
-                        .attr("y", height - 4.5*em)
                         .style("fill", "url(#linear-gradient)");
 
                     colorLegendContent.append("g").attr("id", "color-legend-axis")
-                        .attr("transform", `translate(${2*em},${height - 3.5*em})`)
                         .call(d3.axisBottom(d3.scaleLinear(heatmapColorMap.domain(), [0, legendWidth])))
 
                     colorLegendContent.append("text")
-                        .attr("y", height-1*em)
-                        .attr("x", 2*em + legendWidth/2)
                         .text("Monthly Hospitalization for All Diseases")
       
                     resizeMap()
@@ -225,16 +217,33 @@ function resizeMap() {
         mapSVG.selectAll(".zcta")
             .attr("d", (d) => pathGenerator(d))
 
+        mapSVG.select("#hospitals").selectAll(".hospital").each(function(item) {
+                hospSize = Math.max(16, Math.min(width, height) * 0.015)
+                coords = mapProjection(item.geometry.coordinates)
+                d3.select(this)
+                    .attr("x", coords[0] - hospSize/2)
+                    .attr("y", coords[1] - hospSize/2)
+                    .attr("width", hospSize)
+                    .attr("height", hospSize)
+            })
+
         legendWidth = Math.max(width/3, 300)
         colorLegend = mapSVG.select("#color-legend")
         colorLegend.select("#color-legend-contents>rect")
             .attr("width", legendWidth)
+            .attr("height", em)
+            .attr("x", 2*em)
+            .attr("y", height - 4.5*em)
 
         colorLegendAxis = colorLegend.select("#color-legend-axis")
         colorLegendAxis.selectAll("*").remove()
         colorLegendAxis
             .attr("transform", `translate(${2*em},${height - 3.5*em})`)
             .call(d3.axisBottom(d3.scaleLinear(heatmapColorMap.domain(), [0, legendWidth])))
+
+        colorLegend.select("#color-legend-contents>text")    
+            .attr("y", height-1*em)
+            .attr("x", 2*em + legendWidth/2)
 
         legendBBox = colorLegend.select("#color-legend-contents").node().getBBox()
         colorLegend.select("#color-legend-background")
@@ -243,19 +252,6 @@ function resizeMap() {
             .attr("height", legendBBox.height + 0.5*em)
             .attr("width", legendBBox.width + em)
             .attr("rx", 0.5*em)
-
-        colorLegend.select("#color-legend-contents>text")
-            .attr("x", legendBBox.x + legendBBox.width/2)
-    
-        mapSVG.select("#hospitals").selectAll(".hospital").each(function(item) {
-            hospSize = Math.max(16, Math.min(width, height) * 0.015)
-            coords = mapProjection(item.geometry.coordinates)
-            d3.select(this)
-                .attr("x", coords[0] - hospSize/2)
-                .attr("y", coords[1] - hospSize/2)
-                .attr("width", hospSize)
-                .attr("height", hospSize)
-        })
 
         mapSVG.selectAll(".hospital-bubble").each(function(d) {
             maxRadius = Math.min(height, width) * 0.02
