@@ -180,12 +180,17 @@ function displayMap() {
                         .attr("width", legendWidth)
                         .attr("height", em)
                         .attr("x", 2*em)
-                        .attr("y", height - 3*em)
+                        .attr("y", height - 4.5*em)
                         .style("fill", "url(#linear-gradient)");
 
                     colorLegendContent.append("g").attr("id", "color-legend-axis")
-                        .attr("transform", `translate(${2*em},${height - 2*em})`)
+                        .attr("transform", `translate(${2*em},${height - 3.5*em})`)
                         .call(d3.axisBottom(d3.scaleLinear(heatmapColorMap.domain(), [0, legendWidth])))
+
+                    colorLegendContent.append("text")
+                        .attr("y", height-1*em)
+                        .attr("x", 2*em + legendWidth/2)
+                        .text("Monthly Hospitalization for All Diseases")
       
                     resizeMap()
                 })
@@ -224,12 +229,11 @@ function resizeMap() {
         colorLegend = mapSVG.select("#color-legend")
         colorLegend.select("#color-legend-contents>rect")
             .attr("width", legendWidth)
-            .attr("y", height - 3*em)
 
         colorLegendAxis = colorLegend.select("#color-legend-axis")
         colorLegendAxis.selectAll("*").remove()
         colorLegendAxis
-            .attr("transform", `translate(${2*em},${height - 2*em})`)
+            .attr("transform", `translate(${2*em},${height - 3.5*em})`)
             .call(d3.axisBottom(d3.scaleLinear(heatmapColorMap.domain(), [0, legendWidth])))
 
         legendBBox = colorLegend.select("#color-legend-contents").node().getBBox()
@@ -238,7 +242,10 @@ function resizeMap() {
             .attr("y", legendBBox.y)
             .attr("height", legendBBox.height + 0.5*em)
             .attr("width", legendBBox.width + em)
-            .attr("rx", 0.5*em)   
+            .attr("rx", 0.5*em)
+
+        colorLegend.select("#color-legend-contents>text")
+            .attr("x", legendBBox.x + legendBBox.width/2)
     
         mapSVG.select("#hospitals").selectAll(".hospital").each(function(item) {
             hospSize = Math.max(16, Math.min(width, height) * 0.015)

@@ -88,6 +88,11 @@ path.zcta {
     fill: currentColor;
 }
 
+#color-legend-contents>text {
+    fill: currentColor;
+    text-anchor: middle;
+}
+
 .disease-bubble, .hospital-bubble {
     fill-opacity: .25;
     stroke-width: 3;
