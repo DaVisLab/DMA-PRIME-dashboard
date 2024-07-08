@@ -118,8 +118,7 @@ function highlightCounty(county) {
     if (focusCounty == null) {
         reset()
     } else {
-        mapSVG.select("#counties").raise()
-        mapSVG.select("#counties").transition().duration(750).style("opacity", .5)
+        mapSVG.select("#counties").transition().duration(750).style("fill-opacity", .5)
         mapSVG.select("#"+county).transition().duration(750).style("fill", "none")
         mapSVG.select("#legends").raise()
         if (mapAggregationSwitch.value != "aggregated") {
@@ -135,8 +134,7 @@ function highlightCounty(county) {
 }
 
 function reset() {
-    mapSVG.select("#counties").lower()
-    mapSVG.select("#counties").transition().duration(750).style("opacity", 1)
+    mapSVG.select("#counties").transition().duration(750).style("fill-opacity", 0)
     mapSVG.selectAll(".county").transition().duration(750).style("fill", "var(--sl-color-gray-300)")
     mapSVG.selectAll(".hospital-bubble")
         .style("opacity", +(mapAggregationSwitch.value != "aggregated"))

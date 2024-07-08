@@ -52,7 +52,6 @@ overflow-wrap: normal;
 }
 
 path.county {
-    fill: var(--sl-color-gray-300);
     stroke-width: 2px;
 }
 

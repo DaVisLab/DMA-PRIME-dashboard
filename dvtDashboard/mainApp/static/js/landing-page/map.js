@@ -20,6 +20,7 @@ function displayMap() {
               .attr("class", "county")
               .attr("id", d => fixName(d.properties.NAME))
               .attr("d", d => pathGenerator(d))
+              .attr("fill", "none")
 
         zctas = mapSVG.append("g")
             .attr("id", "zctas")
@@ -195,6 +196,7 @@ function displayMap() {
 }
 
 function resizeMap() {
+    mapSVG.select("#counties").raise()
 
     function setup() {
         return new Promise(function(resolve, failure) {
