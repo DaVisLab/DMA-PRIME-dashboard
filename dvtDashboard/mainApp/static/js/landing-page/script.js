@@ -36,6 +36,9 @@ var height = jsmapSVG.height.baseVal.value
 
 var mapProjection = null
 var mapData = null
+var zoom = 1
+var xSkew = 0
+var ySkew = 0
 
 var numDiseases = 3
 var diseaseIndexing = {"covid-19": 1, "flu": 2, "opioid": 3}

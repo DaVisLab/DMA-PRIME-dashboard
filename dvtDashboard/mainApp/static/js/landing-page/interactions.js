@@ -21,53 +21,29 @@ mapAggregationSwitch.addEventListener("sl-change", (event) => {
 
 zoomer = d3.zoom().scaleExtent([1, 10])
 mapZoom = zoomer.on("zoom", function(e) {
-
     zoom = e.transform.k
     xSkew = e.transform.x
     ySkew = e.transform.y
 
-    // console.log(e.transform)
-    // console.log(e.transform.toString())
-    // console.log(e.transform.scale(1/zoom))
-
-    // console.log( e.transform.apply([100, 200]))
-    // console.log( e.transform.apply([0, 0]))
-    // console.log( e.transform.invert([100, 200]))
-    // console.log( e.transform.invert([0, 0]))
-
-
     mapSVG.select("#counties").attr("transform", e.transform)
     mapSVG.select("#zctas").attr("transform", e.transform)
-    mapSVG.select("#hospital-bubbles").attr("transform", e.transform)
-    mapSVG.select("#hospitals").attr("transform", e.transform)
-    mapSVG.selectAll("#hospital-legend-innards").attr("transform", d3.zoomIdentity.scale(zoom))
     mapSVG.select("#color-legend").attr("transform", d3.zoomIdentity)
 
-    // mapSVG.select("#hospitals").selectAll(".hospital")
-    //     .attr("transform", function(d){
-    //         bbox = this.getBBox()
+    hospSize = Math.max(16, Math.min(width, height) * 0.015)
+    mapSVG.select("#hospitals").selectAll(".hospital").each(function(d) {
+        coords = mapProjection(d.geometry.coordinates)
+        d3.select(this)
+            .attr("x", coords[0]*zoom + xSkew - hospSize/2)
+            .attr("y", coords[1]*zoom + ySkew - hospSize/2)
+    }) 
 
-    //         return "translate(" + e.transform.apply([bbox.x, bbox.y]) + ")"
-    //     })
- 
-// trying to get the hospitals to semantically zoom... works on firefox (the bottom function)
-    // mapSVG.select("#hospitals").attr("transform", e.transform)
-    // mapSVG.selectAll(".hospital")
-    //     .attr("transform", function(d) {
-    //         console.log(xSkew)
-    //         console.log(ySkew)
-    //         return d3.zoomIdentity.translate((zoom-1) * (this.x.baseVal.value - this.width.baseVal.value), (zoom-1) * this.y.baseVal.value).scale(1/zoom)
-    //     })
-
-    // mapSVG.selectAll(".hospital").attr("transform", function(d){
-    //     function blerp(zoom, dimension, location, skew) {
-    //         // if you don"t want to scale after translation and only move via translation, use the formula:
-    //         // (scale - 1) * ({x or y} position + {width or height}*.5) + {x or y translation}
-    //         // return location.baseVal.value * zoom + skew
-    //         return ((zoom-1) * (location.baseVal.value + (dimension.baseVal.value * .5))) + skew
-    //     }
-    //     return d3.zoomIdentity.translate(blerp(zoom, this.width, this.x, xSkew), blerp(zoom, this.height, this.y, ySkew))
-    // })
+    mapSVG.selectAll(".hospital-bubble").each(function(d) {
+        mapCoords = mapProjection([d.INTPTLON, d.INTPTLAT])
+        newPos = skew(mapCoords, maxHospitalRadius/5, diseaseIndexing[d.disease], numDiseases)
+        d3.select(this)
+            .attr("cx", newPos[0]*zoom + xSkew)
+            .attr("cy", newPos[1]*zoom + ySkew)
+    })
 })
 mapSVG.call(mapZoom)
 

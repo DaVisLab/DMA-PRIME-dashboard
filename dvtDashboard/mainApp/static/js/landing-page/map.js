@@ -41,8 +41,8 @@ function displayMap() {
               .attr("class", "hospital")
               .attr("id", d => fixName(d.properties.webdbINFOHEALTHFACILITYLF_NAME))
               .attr("viewBox", "0 0 16 16")
-              .attr("x", (d) => mapProjection(d.geometry.coordinates)[0] - hospSize)
-              .attr("y", (d) => mapProjection(d.geometry.coordinates)[1] - hospSize)
+              .attr("x", (d) => mapProjection(d.geometry.coordinates)[0])
+              .attr("y", (d) => mapProjection(d.geometry.coordinates)[1])
               .attr("width", hospSize)
               .attr("height", hospSize)
               .each(function(d) {
@@ -154,8 +154,6 @@ function displayMap() {
                         .style('fill', function(d) { return heatmapColorMap(d3.select(this).attr("count")) })
                         .each(function(data) {zoomToCounty(this, data)})
 
-
-
                     legendWidth = Math.max(width/3, 300)
                     colorLegend = mapSVG.select("#legends").append("g")
                         .attr("id", "color-legend")
@@ -222,12 +220,12 @@ function resizeMap() {
         mapSVG.selectAll(".zcta")
             .attr("d", (d) => pathGenerator(d))
 
-        mapSVG.select("#hospitals").selectAll(".hospital").each(function(item) {
-                hospSize = Math.max(16, Math.min(width, height) * 0.015)
-                coords = mapProjection(item.geometry.coordinates)
+        hospSize = Math.max(16, Math.min(width, height) * 0.015)
+        mapSVG.select("#hospitals").selectAll(".hospital").each(function(d) {
+                coords = mapProjection(d.geometry.coordinates)
                 d3.select(this)
-                    .attr("x", coords[0] - hospSize/2)
-                    .attr("y", coords[1] - hospSize/2)
+                    .attr("x", coords[0]*zoom + xSkew - hospSize/2)
+                    .attr("y", coords[1]*zoom + ySkew - hospSize/2)
                     .attr("width", hospSize)
                     .attr("height", hospSize)
             })
@@ -265,8 +263,8 @@ function resizeMap() {
             mapCoords = mapProjection([d.INTPTLON, d.INTPTLAT])
             newPos = skew(mapCoords, maxHospitalRadius/5, diseaseIndexing[d.disease], numDiseases)
             d3.select(this)
-                .attr("cx", newPos[0])
-                .attr("cy", newPos[1])
+                .attr("cx", newPos[0]*zoom + xSkew)
+                .attr("cy", newPos[1]*zoom + ySkew)
                 .attr("r", hospitalRadiusMap(d.count))
 
             // updating legend stuff
