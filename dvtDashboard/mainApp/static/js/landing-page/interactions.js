@@ -147,10 +147,10 @@ function hospitalTooltip(element) {
     var tooltipHeight = 130
     d3.select(tooltip).style("opacity", 0).style("z-index", -1)
     element.on("pointermove", function(e) {
-        if((e.layerY + tooltipHeight + 1.5*em) < mapDiv.clientHeight) {
-            tooltip.style.top = (e.layerY + 1.5*em) + "px"
+        if((e.layerY + tooltipHeight + 2*em) < mapDiv.clientHeight) {
+            tooltip.style.top = (e.layerY + 2*em) + "px"
         } else {
-            tooltip.style.top = (e.layerY - tooltipHeight - 2.5*em) + "px"
+            tooltip.style.top = (e.layerY - tooltipHeight - 4*em) + "px"
         }
         if ((e.layerX + tooltipWidth) < mapDiv.clientWidth) {
             tooltip.style.left = e.layerX +"px"
