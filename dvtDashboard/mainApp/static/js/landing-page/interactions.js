@@ -222,20 +222,7 @@ function hospitalTooltip(element) {
 
                 xScale = d3.scaleUtc([fullTimeDomain[0], fullTimeDomain[fullTimeDomain.length - 1]], [margins.left, tooltipWidth - margins.right]) 
                 yScale.range([tooltipHeight - margins.bottom, margins.top])
-                pointCoords = function(datum, yType="count") {
-                    // this is temporary to generate max and min
-                    // to use real data, take out y = datum... and the two if statements, and use yScale(datum[yType])
-                    y = datum["count"]
-                    if (yType == "max") {
-                        y *= 1.25
-                    }
-                    if (yType == "min") {
-                        y /= 1.25
-                    }
-                    coords = [xScale(datum.date), yScale(y)] // yScale(datum[yType])]
-
-                    return coords
-                }
+                
                 line = d3.line()
                     .x((d) => xScale(d.date))
                     .y((d) => yScale(d.count))
@@ -295,19 +282,19 @@ function hospitalTooltip(element) {
                         .attr("cy", (d) => yScale(d.count))
                         .attr("fill", diseaseColorMap(disease))
 
-                    predictiveAreaBackground = [pointCoords(predictiveData[0])]
-                    predictiveData.slice(1).forEach(function(point) {
-                        predictiveAreaBackground.push(pointCoords(point, "max"))
-                        predictiveAreaBackground = [pointCoords(point, "min")].concat(predictiveAreaBackground)
-                    })
-
-                    predictiveGroup 
-                        .append("polygon")
+                    // Show confidence interval
+                    predictiveGroup.append("path")
                         .attr("class", "prediction-background")
-                        .attr("points", predictiveAreaBackground.join(' '))
+                        .datum(predictiveData)
                         .style("fill", diseaseColorMap(disease))
                         .style("opacity", 0.25)
-
+                        .attr("stroke", "none")
+                        .attr("d", d3.area()
+                            .x(function(d) { return xScale(d.date) })
+                            .y0(function(d, i) { return yScale(i == 0 ? d.count : d.count/1.25) })
+                            .y1(function(d, i) { return yScale(i == 0 ? d.count : d.count*1.25) })
+                            .curve(d3.curveMonotoneX)
+                        )
 
                 })
 
