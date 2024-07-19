@@ -63,7 +63,7 @@ regularBedData.forEach(function(e, i) {
     regularBedHeight = e * dimensions2.height/2
     timeBarsGroup.append("rect")
         .attr("x", dimensions2.x + i * (dimensions2.width/30))
-        .attr("y", dimensions2.y + (dimensions2.height-regularBedHeight))
+        .attr("y", dimensions2.y + (dimensions2.height/2))
         .attr("width", dimensions2.width/30)
         .attr("height", regularBedHeight)
         .style("fill", "blue")
@@ -71,8 +71,7 @@ regularBedData.forEach(function(e, i) {
     icuBedHeight = icuBedData[i] * dimensions2.height/2
     timeBarsGroup.append("rect")
         .attr("x", dimensions2.x + i * (dimensions2.width/30))
-        // .attr("y", dimensions2.y + (dimensions2.height-(regularBedHeight+icuBedHeight)))
-        .attr("y", dimensions2.y)
+        .attr("y", dimensions2.y + dimensions2.height/2 - icuBedHeight)
         .attr("width", dimensions2.width/30)
         .attr("height", icuBedHeight)
         .style("fill", "red")
