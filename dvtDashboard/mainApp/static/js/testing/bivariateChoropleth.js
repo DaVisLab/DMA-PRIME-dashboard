@@ -8,6 +8,7 @@ margins = {
     bottom: 10,
     left: 10
 }
+f = d3.format(".0f")
 
 var width = jsmapSVG.width.baseVal.value
 var height = jsmapSVG.height.baseVal.value
@@ -67,7 +68,6 @@ d3.json("../../static/data/tl_2023_sc_county_trimmed.json").then(function(mapdat
                 county.style("fill", bivariateColormap(datum.count)(datum.confidence))
             })
 
-            f = d3.format(".0f")
             legend = mapSVG.append("svg")
                 .attr("id", "legend")
                 .attr("overflow", "visible")

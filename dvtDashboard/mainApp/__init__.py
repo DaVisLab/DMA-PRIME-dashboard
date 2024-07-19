@@ -219,8 +219,8 @@ def loadCountyData():
     files = [
     # 'C:/Users/***REMOVED***/Box/BoxPHI-PHMR Projects/Toolkit/Cleaned_Data/SC/Covid19/Case_Death_Counts.csv',
     'mainApp/static/data/covid_case_death_counts.csv',
-    # 'mainApp/static/data/dummy_flu.csv',
-    # 'mainApp/static/data/dummy_opioid.csv',
+    'mainApp/static/data/dummy_flu.csv',
+    'mainApp/static/data/dummy_opioid.csv',
     ]
 
     for f_path in files:
