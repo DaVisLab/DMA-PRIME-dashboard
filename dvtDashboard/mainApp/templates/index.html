@@ -1,126 +1,30 @@
-
-<!DOCTYPE html>
-<html lang="en" class="sl-theme-dark">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
-  <title>DMA-PRIME</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/dark.css" />
-  <script type="module"
-    src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/shoelace-autoloader.js"></script>
-
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/landing-style.css') }}" />
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/map-style.css') }}" />
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/grid-style.css') }}" />
-
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-geo@3"></script>
-
-  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
-  
-  <script>
-    dayjs.extend(window.dayjs_plugin_utc)
-    dayjs.extend(window.dayjs_plugin_timezone)
-    dayjs.extend(window.dayjs_plugin_customParseFormat)
-  </script>
-</head>
-
-<body>
-  <!-- Top nav bar -->
-  <sl-tab-group id="nav-bar" >
-    <sl-tab id="main-tab" slot="nav" panel="main">DMA-PRIME</sl-tab>
-    <sl-tab id="map-tab"  slot="nav" panel="map" active>Map</sl-tab>
-    <sl-tab id="grid-tab" slot="nav" panel="county-grid">County</sl-tab>
-
+{% extends "base.html" %}
+{% block title %}DMA-PRIME{% endblock %}
+{% block linkout %}
     <sl-button slot="nav" id="prediction-modelling-button-link" href="{{ url_for('modelExploration') }}" target="_blank" variant="text">Prediction Modelling <sl-icon name="box-arrow-up-right"></sl-icon></sl-button>
+{% endblock %}
+{% block scripts %}
+<!-- Contains helper functions/data/constants -->
+<script src="{{ url_for('static', filename='js/landing-page/script.js') }}"></script>
+<!-- Functions to get the main (left) vis working -->
+<script src="{{ url_for('static', filename='js/landing-page/map.js') }}"></script>
+<!-- All the magic for panel resizing/vis options -->
+<script src="{{ url_for('static', filename='js/landing-page/interactions.js') }}"></script>
+<script src="{{ url_for('static', filename='js/landing-page/script_new.js') }}"></script>
 
+<script>
+    displayMap();
+    addEventListener("load", () => {
+    resizeMap();
 
-    <sl-tab-panel name="map" id="map-panel" >
+    // styleSheet.insertRule(`
+    //   #counties>path, #zctas>path {
+    //     stroke: ${getComputedStyle(document.getElementsByClassName("options-header")[0]).getPropertyValue("color")}      
+    //   } 
+    // `)
+    mapSVG.call(mapZoom)
 
-<!-- Main content -->
-  <sl-split-panel position="20" disabled id="main-content" class="fill-height">
+    });
+</script>
 
-    <!-- Visualization options panel -->
-    <div slot="start" id="options" class="fill-height"> <!-- This is the -->
-      <div class="centering-container options-div">
-        <sl-button pill id="reset-button">Reset Map</sl-button>
-      </div>
-      <sl-divider class="options-divider"></sl-divider>
-      <sl-tree class="options-div">
-      <sl-tree-item id="hospital-switch-branch" expanded>
-        <sl-switch id="show-hospitals" checked><p class="options-header">Hospitalizations</p></sl-switch>
-        <sl-tree-item>Monthly count of hospitalizations due to the below diseases.</sl-tree-item>
-      </sl-tree-item>
-      <sl-tree-item><sl-checkbox id="show-hospital-icons" checked>Hospital Icons</sl-checkbox></sl-tree-item>
-      </sl-tree>
-    </div>
-    <!-- This is where the visualizations will sit -->
-    <sl-split-panel slot="end" vertical position="100" class="fill-height fill-width hide-overflow">
-      <div slot="start" class="fill-width " id="map-div">
-          <sl-resize-observer id="map-resizer">
-            <sl-radio-group value="aggregated" id="map-aggregation-switch">
-              <sl-radio-button pill value="aggregated">Aggregated</sl-radio-button>
-              <sl-radio-button pill value="individual">Individual</sl-radio-button>
-            </sl-radio-group>
-            <svg id="map-svg" class="scroll fill-height fill-width"></svg>
-          </sl-resize-observer>
-          <div id="tooltip">
-            <p class="tooltip"></p>
-            <svg id="tooltip-svg">
-            <!-- set via interactions -->
-            </svg>
-          </div>          
-      </div>
-      <div slot="end" id="details-div">
-        <!-- stuff will go in here from main vis interaction -->
-      </div>
-    </sl-spit-panel>
-
-  </sl-split-panel>
-
-    <!-- Contains helper functions/data/constants -->
-    <script src="{{ url_for('static', filename='js/landing-page/script.js') }}"></script>
-    <!-- Functions to get the main (left) vis working -->
-    <script src="{{ url_for('static', filename='js/landing-page/map.js') }}"></script>
-    <!-- All the magic for panel resizing/vis options -->
-    <script src="{{ url_for('static', filename='js/landing-page/interactions.js') }}"></script>
-    <script>
-      displayMap();
-      addEventListener("load", () => {
-        resizeMap();
-
-        // styleSheet.insertRule(`
-        //   #counties>path, #zctas>path {
-        //     stroke: ${getComputedStyle(document.getElementsByClassName("options-header")[0]).getPropertyValue("color")}      
-        //   } 
-        // `)
-        mapSVG.call(mapZoom)
-
-      });
-    </script>
-  </sl-tab-panel>
-
-    <sl-tab-panel name="county-grid">
-      <!-- <div id="grid-container" >
-        <div id="grid-explanation" class="grid-item"></div>
-        <div id="grid-legend" class="grid-item"></div>
-      </div> -->
-      <div class="container"></div>
-      <button class="toggle-button" id="toggleButton">TOT
-      </button>
-        
-      <div id="legend">
-        <!-- <script src="script.js"></script> -->
-      </div>
-
-      <script src="{{ url_for('static', filename='js/landing-page/script_new.js') }}"></script>
-    </sl-tab-panel>
-  </sl-tab-group>
-
-</body>
-
-</html>
+{% endblock %}

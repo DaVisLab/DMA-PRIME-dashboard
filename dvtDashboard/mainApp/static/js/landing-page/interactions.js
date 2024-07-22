@@ -49,11 +49,6 @@ mapZoom = zoomer.on("zoom", function(e) {
 mapSVG.call(mapZoom)
 
 mapResizer.addEventListener("sl-resize", () => {
-    if (document.body.clientWidth * 20 / 100 < 220) {
-        mainContent.setAttribute("position", 220 * 100 / document.body.clientWidth)
-    } else {
-        mainContent.setAttribute("position", 20)
-    }
     resizeMap()
 })
 

@@ -2,7 +2,6 @@
 
 // dom objects
     // containing divs
-var mainContent = document.getElementById("main-content")
 var mapResizer = document.getElementById("map-resizer")
 var mapDiv = document.getElementById("map-div")
 var tooltip = document.getElementById("tooltip")
@@ -29,7 +28,7 @@ margins = {
     left: 10
 }
 var f = d3.format(".0f")
-var em = parseFloat(getComputedStyle(mainContent).fontSize)
+var em = parseFloat(getComputedStyle(document.getElementById("nav-bar")).fontSize)
 
 var width = jsmapSVG.width.baseVal.value
 var height = jsmapSVG.height.baseVal.value

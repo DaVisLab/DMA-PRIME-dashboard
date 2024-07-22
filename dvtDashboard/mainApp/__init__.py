@@ -53,7 +53,24 @@ def create_app(test_config=None):
     # landing page
     @app.route('/')
     def index():
-        return render_template('index.html')
+        panels = [
+            {
+                'name': 'main',
+                'displayName': 'DMA-PRIME',
+            },
+            {
+                'name': 'map',
+                'displayName': 'Map View',
+                'active': True,
+                'html': 'landing-page/map-panel.html'
+            },
+            {
+                'name': 'grid',
+                'displayName': 'Grid View',
+                'html': 'landing-page/grid-panel.html'
+            }
+        ]
+        return render_template('index.html', panels=panels)
     
     @app.route('/model-exploration')
     def modelExploration():

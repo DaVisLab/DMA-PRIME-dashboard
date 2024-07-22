@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html lang="en" class="sl-theme-dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
+  <title>{% block title %}DMA-PRIME{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/dark.css" />
+  <script type="module"
+    src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/shoelace-autoloader.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/landing-style.css') }}" />
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/map-style.css') }}" />
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/grid-style.css') }}" />
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-geo@3"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
+  
+  <script>
+    dayjs.extend(window.dayjs_plugin_utc)
+    dayjs.extend(window.dayjs_plugin_timezone)
+    dayjs.extend(window.dayjs_plugin_customParseFormat)
+  </script>
+</head>
+
+<body>
+  <!-- Top nav bar -->
+   <script>
+    var mainContent = {}
+    var panels = {}
+   </script>
+  <sl-tab-group id="nav-bar" >
+    <sl-tab id="main-tab" slot="nav" panel="main">DMA-PRIME</sl-tab>
+
+    {% for panel in panels %}
+      {% include panel.html if panel.html else "" ignore missing %}
+    {% endfor %}
+
+    {% block linkout %}{% endblock %}
+
+  </sl-tab-group>
+
+  {% block scripts %}
+  {% endblock %}
+
+</body>
+
+</html>
