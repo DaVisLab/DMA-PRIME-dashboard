@@ -1,56 +1,127 @@
-<sl-tab id="{{panel.name}}-tab" slot="nav" panel="{{panel.name}}" 
-      {% if panel.active %}active{% endif %}>
-        {{panel.displayName}}
-      </sl-tab>
-      <sl-tab-panel name="{{panel.name}}" id="{{panel.name}}-panel">
-          <sl-split-panel position="20" disabled id="{{panel.name}}-main-content" class="fill-height">
-              <div slot="start" id="{{panel.name}}-options" class="fill-height">
-                <div class="centering-container options-div">
-                    <sl-button pill id="reset-button">Reset Map</sl-button>
-                </div>
-                <sl-divider class="options-divider"></sl-divider>
-                <sl-tree class="options-div">
-                    <sl-tree-item id="hospital-switch-branch" expanded>
-                        <sl-switch id="show-hospitals" checked><p class="options-header">Hospitalizations</p></sl-switch>
-                        <sl-tree-item>Monthly count of hospitalizations due to the below diseases.</sl-tree-item>
-                    </sl-tree-item>
-                    <sl-tree-item><sl-checkbox id="show-hospital-icons" checked>Hospital Icons</sl-checkbox></sl-tree-item>
-                </sl-tree>
-              </div>
-              <div slot="end" id="{{panel.name}}-content" class="fill-height fill-width hide-overflow">
-                <div class="fill-width fill-height" id="map-div">
-                    <sl-resize-observer id="map-resizer">
-                      <sl-radio-group value="aggregated" id="map-aggregation-switch">
-                        <sl-radio-button pill value="aggregated">Aggregated</sl-radio-button>
-                        <sl-radio-button pill value="individual">Individual</sl-radio-button>
-                      </sl-radio-group>
-                      <svg id="map-svg" class="scroll fill-height fill-width"></svg>
-                    </sl-resize-observer>
-                    <div id="tooltip">
-                      <p class="tooltip"></p>
-                      <svg id="tooltip-svg">
-                      <!-- set via interactions -->
-                      </svg>
-                    </div>          
-                </div>
-              </div>
-          </sl-split-panel>
-      </sl-tab-panel>
-      <script>
-        Object.assign(mainContent, 
-        {"{{panel.name}}": document.getElementById("{{panel.name}}-main-content")})
-        Object.assign(panels, 
-        {"{{panel.name}}": document.getElementById("{{panel.name}}-panel")})
-        addEventListener("resize", (event) => {
-          if(panels["{{panel.name}}"].active){
-            if (document.body.clientWidth * 20 / 100 < 250) {
-              mainContent["{{panel.name}}"].setAttribute("position", 250 / document.body.clientWidth * 100)
-            } else {
-              mainContent["{{panel.name}}"].setAttribute("position", 20)
-            }}
-        });
+<sl-tab id="{{panel.name}}-tab" slot="nav" panel="{{panel.name}}" {% if panel.active %}active{% endif %}>
+  {{panel.displayName}}
+</sl-tab>
+<sl-tab-panel name="{{panel.name}}" id="{{panel.name}}-panel">
+  <sl-split-panel position="20" disabled id="{{panel.name}}-main-content" class="fill-height">
+    <div slot="start" id="{{panel.name}}-options" class="fill-height">
+      <div class="centering-container options-div">
+        <sl-button pill id="map-reset-button">Reset Map</sl-button>
+      </div>
+      <sl-divider class="options-divider"></sl-divider>
+      <sl-tree class="options-div">
+        <sl-tree-item id="hospital-switch-branch" expanded>
+          <sl-switch id="show-hospitals" checked>
+            <p class="options-header">Hospitalizations</p>
+          </sl-switch>
+          <sl-tree-item>Monthly count of hospitalizations due to the below diseases.</sl-tree-item>
+        </sl-tree-item>
+        <sl-tree-item><sl-checkbox id="show-hospital-icons" checked>Hospital Icons</sl-checkbox></sl-tree-item>
+      </sl-tree>
+    </div>
+    <div slot="end" id="{{panel.name}}-content" class="fill-height fill-width hide-overflow">
+      <div class="fill-width fill-height" id="map-div">
+        <sl-resize-observer id="map-resizer">
+          <sl-radio-group value="aggregated" id="map-aggregation-switch">
+            <sl-radio-button pill value="aggregated">Aggregated</sl-radio-button>
+            <sl-radio-button pill value="individual">Individual</sl-radio-button>
+          </sl-radio-group>
+          <svg id="map-svg" class="scroll fill-height fill-width"></svg>
+        </sl-resize-observer>
+        <div id="tooltip">
+          <p class="tooltip"></p>
+          <svg id="tooltip-svg">
+            <!-- set via interactions -->
+          </svg>
+        </div>
+      </div>
+    </div>
+  </sl-split-panel>
+</sl-tab-panel>
+<script>
+  var mapResizer = document.getElementById("map-resizer")
+  var mapDiv = document.getElementById("map-div")
+  var tooltip = document.getElementById("tooltip")
+  var resetButton = document.getElementById("map-reset-button")
+  var mapAggregationSwitch = document.getElementById("map-aggregation-switch")
+  var hospitalToggle = document.getElementById("show-hospitals")
+  var showHospitalIcons = document.getElementById("show-hospital-icons")
+  var hospitalSwitchBranch = document.getElementById("hospital-switch-branch")
 
-        if (document.body.clientWidth * 20 / 100 < 250) {
-          mainContent["{{panel.name}}"].setAttribute("position", 250 / document.body.clientWidth * 100)
+  var jsmapSVG = document.getElementById("map-svg")
+  var mapSVG = d3.select("#map-svg")
+  var countiesGroup = d3.select("#counties")
+
+  var width = jsmapSVG.width.baseVal.value
+  var height = jsmapSVG.height.baseVal.value
+
+  var mapProjection = null
+  var mapData = null
+  var zoom = 1
+  var xSkew = 0
+  var ySkew = 0
+
+  var numDiseases = 3
+  var diseaseIndexing = { "covid-19": 1, "flu": 2, "opioid": 3 }
+  var diseaseColorMap = d3.scaleOrdinal().domain(Object.keys(diseaseIndexing)).range(d3.schemeSet1)
+  var heatmapColorMap = null
+
+  var diseaseStats = null
+  var diseaseMetadata = null
+  var hospitalStats = null
+  var hospitalMetadata = null
+
+  var focusCounty = null
+  Object.assign(mainContent,
+    { "{{panel.name}}": document.getElementById("{{panel.name}}-main-content") })
+  Object.assign(panels,
+    { "{{panel.name}}": document.getElementById("{{panel.name}}-panel") })
+  addEventListener("resize", (event) => {
+    if (panels["{{panel.name}}"].active) {
+      if (document.body.clientWidth * 20 / 100 < 250) {
+        mainContent["{{panel.name}}"].setAttribute("position", 250 / document.body.clientWidth * 100)
+      } else {
+        mainContent["{{panel.name}}"].setAttribute("position", 20)
+      }
+    }
+  });
+
+  if (document.body.clientWidth * 20 / 100 < 250) {
+    mainContent["{{panel.name}}"].setAttribute("position", 250 / document.body.clientWidth * 100)
+  }
+
+  function createHospitalCheck(disease, color) {
+    check = d3.select(hospitalSwitchBranch)
+      .append("sl-tree-item")
+      .append("sl-checkbox")
+      .attr("id", "hospital-" + disease + "-check")
+      .attr("class", "hospital-check ")
+      .attr("disease", disease)
+      .attr("checked", "")
+      .html(disease)
+
+    check.node().addEventListener("sl-change", (e) => {
+      checker = e.target
+      bubbleGroup = d3.select("#" + checker.getAttribute("disease") + "-hospital-data")
+      if (checker.checked) {
+        bubbleGroup.raise().style("opacity", 1)
+        bubbleGroup.selectAll("*").each(function (d) {
+          hospitalTooltip(d3.select(this))
+        })
+      } else {
+        bubbleGroup.lower().style("opacity", 0)
+        bubbleGroup.selectAll("*").each(function (d) {
+          removeTooltip(d3.select(this))
+        })
+      }
+    })
+    styleSheet.insertRule(
+      "#hospital-" + disease + `-check::part(control--checked)  {
+            border-color: `+ color + `;
+            background-color: `+ color + `;
         }
-      </script>
+      `)
+  }
+</script>
+
+<script src="{{ url_for('static', filename='js/landing-page/map.js') }}"></script>
+<script src="{{ url_for('static', filename='js/landing-page/map-interactions.js') }}"></script>

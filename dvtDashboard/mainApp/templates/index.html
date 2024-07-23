@@ -1,30 +1,54 @@
 {% extends "base.html" %}
 {% block title %}DMA-PRIME{% endblock %}
-{% block linkout %}
-    <sl-button slot="nav" id="prediction-modelling-button-link" href="{{ url_for('modelExploration') }}" target="_blank" variant="text">Prediction Modelling <sl-icon name="box-arrow-up-right"></sl-icon></sl-button>
+{% block style %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/landing-style.css') }}" />
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/map-style.css') }}" />
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/grid-style.css') }}" />
 {% endblock %}
-{% block scripts %}
+
+{% block headScripts %}
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
+
+<script>
+    dayjs.extend(window.dayjs_plugin_utc)
+    dayjs.extend(window.dayjs_plugin_timezone)
+    dayjs.extend(window.dayjs_plugin_customParseFormat)
+</script>
+
 <!-- Contains helper functions/data/constants -->
 <script src="{{ url_for('static', filename='js/landing-page/script.js') }}"></script>
-<!-- Functions to get the main (left) vis working -->
-<script src="{{ url_for('static', filename='js/landing-page/map.js') }}"></script>
-<!-- All the magic for panel resizing/vis options -->
-<script src="{{ url_for('static', filename='js/landing-page/interactions.js') }}"></script>
-<script src="{{ url_for('static', filename='js/landing-page/script_new.js') }}"></script>
+{% endblock %}
+
+{% block linkout %}
+<sl-button slot="nav" id="prediction-modelling-button-link" href="{{ url_for('modelExploration') }}" target="_blank"
+    variant="text">Prediction Modelling <sl-icon name="box-arrow-up-right"></sl-icon></sl-button>
+{% endblock %}
+
+{% block bodyScripts %}
 
 <script>
     displayMap();
     addEventListener("load", () => {
-    resizeMap();
+        resizeMap();
 
-    // styleSheet.insertRule(`
-    //   #counties>path, #zctas>path {
-    //     stroke: ${getComputedStyle(document.getElementsByClassName("options-header")[0]).getPropertyValue("color")}      
-    //   } 
-    // `)
-    mapSVG.call(mapZoom)
+        // styleSheet.insertRule(`
+        //   #counties>path, #zctas>path {
+        //     stroke: ${getComputedStyle(document.getElementsByClassName("options-header")[0]).getPropertyValue("color")}      
+        //   } 
+        // `)
+        mapSVG.call(mapZoom)
 
     });
+
+    var navBar = document.getElementById("nav-bar")
+    navBar.addEventListener("sl-tab-show", (event) => {
+        if (event.detail.name == "main") {
+            navBar.show("map")
+        }
+    })
 </script>
 
 {% endblock %}

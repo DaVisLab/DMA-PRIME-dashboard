@@ -4,7 +4,7 @@
 }
 
 .hide-overflow {
-  overflow:hidden
+  overflow: hidden
 }
 
 #main-content {
@@ -12,13 +12,13 @@
 }
 
 #main-content-divider {
-  font-size: 2rem; 
+  font-size: 2rem;
   background-color: lightgray;
 }
 
 #options {
   height: 100%;
-  overflow: hidden; 
+  overflow: hidden;
   overflow-wrap: normal;
 }
 
@@ -49,4 +49,3 @@ body {
 * {
   box-sizing: border-box;
 }
-

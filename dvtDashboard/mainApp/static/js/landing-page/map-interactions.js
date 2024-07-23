@@ -1,10 +1,4 @@
 
-navBar.addEventListener("sl-tab-show", (event) => {
-    if (event.detail.name == "main") {
-        navBar.show("map")
-    }
-})
-
 mapAggregationSwitch.addEventListener("sl-change", (event) => {
     reset()
     mapSVG.select("#color-legend").transition().duration(750).style("opacity", +(mapAggregationSwitch.value == "aggregated" && hospitalToggle.checked))
@@ -12,10 +6,8 @@ mapAggregationSwitch.addEventListener("sl-change", (event) => {
     highlightCounty(focusCounty)
     
     if(mapAggregationSwitch.value == "aggregated") {
-        reset()
         mapSVG.selectAll(".zcta").style('fill', function(d) { return heatmapColorMap(d3.select(this).attr('count')) })
     } else {
-        reset()
         mapSVG.selectAll(".zcta").style("fill", "var(--sl-color-gray-800)")
     }
 })
@@ -332,7 +324,7 @@ function generalTooltip(element) {
             .each(function(d) {
                 p = ttp.append("p")
                 .attr("class", "tooltip text")
-                .text(`${d.disease}: ${f(d.count)}`)
+                .text(`${d.disease}: ${formatInt(d.count)}`)
             })
         tooltipWidth = ttp.node().scrollWidth
         tooltipHeight = ttp.node().clientHeight

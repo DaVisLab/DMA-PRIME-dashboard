@@ -1,40 +1,44 @@
-<sl-tab id="{{panel.name}}-tab" slot="nav" panel="{{panel.name}}" 
-      {% if panel.active %}active{% endif %}>
-        {{panel.displayName}}
-      </sl-tab>
-      <sl-tab-panel name="{{panel.name}}" id="{{panel.name}}-panel">
-          <sl-split-panel position="20" disabled id="{{panel.name}}-main-content" class="fill-height">
-              <div slot="start" id="{{panel.name}}-options" class="fill-height">
-                <div class="centering-container options-div">
-                    <p>Filtering/sorting options here</p>
-                </div>
-                </div>
-              <div slot="end" id="{{panel.name}}-content" class="fill-height fill-width hide-overflow">
-                <div class="container"></div>
-                <button class="toggle-button" id="toggleButton">TOT
-                </button>
-                    
-                <div id="legend">
-                    <!-- <script src="script.js"></script> -->
-                </div>                
-              </div>
-          </sl-split-panel>
-      </sl-tab-panel>
-      <script>
-        Object.assign(mainContent, 
-        {"{{panel.name}}": document.getElementById("{{panel.name}}-main-content")})
-        Object.assign(panels, 
-        {"{{panel.name}}": document.getElementById("{{panel.name}}-panel")})
-        addEventListener("resize", (event) => {
-          if(panels["{{panel.name}}"].active){
-            if (document.body.clientWidth * 20 / 100 < 250) {
-              mainContent["{{panel.name}}"].setAttribute("position", 250 / document.body.clientWidth * 100)
-            } else {
-              mainContent["{{panel.name}}"].setAttribute("position", 20)
-            }}
-        });
+<sl-tab id="{{panel.name}}-tab" slot="nav" panel="{{panel.name}}" {% if panel.active %}active{% endif %}>
+  {{panel.displayName}}
+</sl-tab>
+<sl-tab-panel name="{{panel.name}}" id="{{panel.name}}-panel">
+  <sl-split-panel position="20" disabled id="{{panel.name}}-main-content" class="fill-height">
+    <div slot="start" id="{{panel.name}}-options" class="fill-height">
+      <div class="centering-container options-div">
+        <p>Filtering/sorting options here</p>
+      </div>
+    </div>
+    <div slot="end" id="{{panel.name}}-content" class="fill-height fill-width hide-overflow">
+      <div class="container"></div>
+      <button class="toggle-button" id="toggleButton">TOT
+      </button>
 
-        if (document.body.clientWidth * 20 / 100 < 250) {
-          mainContent["{{panel.name}}"].setAttribute("position", 250 / document.body.clientWidth * 100)
-        }
-      </script>
+      <div id="legend">
+        <!-- <script src="script.js"></script> -->
+      </div>
+    </div>
+  </sl-split-panel>
+</sl-tab-panel>
+<script>
+  var gridContainer = document.getElementById("grid-container")
+
+  Object.assign(mainContent,
+    { "{{panel.name}}": document.getElementById("{{panel.name}}-main-content") })
+  Object.assign(panels,
+    { "{{panel.name}}": document.getElementById("{{panel.name}}-panel") })
+  addEventListener("resize", (event) => {
+    if (panels["{{panel.name}}"].active) {
+      if (document.body.clientWidth * 20 / 100 < 250) {
+        mainContent["{{panel.name}}"].setAttribute("position", 250 / document.body.clientWidth * 100)
+      } else {
+        mainContent["{{panel.name}}"].setAttribute("position", 20)
+      }
+    }
+  });
+
+  if (document.body.clientWidth * 20 / 100 < 250) {
+    mainContent["{{panel.name}}"].setAttribute("position", 250 / document.body.clientWidth * 100)
+  }
+</script>
+
+<script src="{{ url_for('static', filename='js/landing-page/grid.js') }}"></script>

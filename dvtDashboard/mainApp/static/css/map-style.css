@@ -13,36 +13,36 @@
 }
 
 
-    
+
 #main-content-divider {
-font-size: 2rem; 
-background-color: var(--sl-color-neutral-300);
+    font-size: 2rem;
+    background-color: var(--sl-color-neutral-300);
 }
 
 #options {
-height: 100%;
-overflow: hidden; 
-overflow-wrap: normal;
+    height: 100%;
+    overflow: hidden;
+    overflow-wrap: normal;
 }
 
 #map-aggregation-switch {
-    position:absolute;
+    position: absolute;
     top: var(--sl-spacing-small);
     right: var(--sl-spacing-small);
 }
 
-#map-aggregation-switch > sl-radio-button::part(button) {
+#map-aggregation-switch>sl-radio-button::part(button) {
     background-color: var(--sl-color-neutral-500);
 }
 
-#map-aggregation-switch > sl-radio-button::part(button--checked) {
+#map-aggregation-switch>sl-radio-button::part(button--checked) {
     background-color: var(--sl-color-primary-600);
 }
 
 
 
 
-#show-hospital-icons::part(control--checked)  {
+#show-hospital-icons::part(control--checked) {
     border-color: var(--sl-color-neutral-400);
     background-color: var(--sl-color-neutral-400);
 }
@@ -85,7 +85,8 @@ path.zcta {
     transform: scaleY(-1);
 }
 
-.legend>text, .tick>text {
+.legend>text,
+.tick>text {
     font-size: var(--sl-font-size-x-small);
     fill: currentColor;
 }
@@ -101,16 +102,17 @@ path.zcta {
     text-anchor: middle;
 }
 
-.disease-bubble, .hospital-bubble {
+.disease-bubble,
+.hospital-bubble {
     fill-opacity: .25;
     stroke-width: 3;
     stroke-opacity: .3;
 }
 
 #tooltip {
-    position:absolute;
+    position: absolute;
     /* padding: .25em; */
-    border-width: var(--sl-border-radius-small);    
+    border-width: var(--sl-border-radius-small);
     border-style: solid;
     border-radius: .25em;
 }

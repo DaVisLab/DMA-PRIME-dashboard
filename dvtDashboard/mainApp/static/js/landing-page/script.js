@@ -1,61 +1,18 @@
 
+// visualization variables
+var formatInt = d3.format(".0f")
+console.log(document.head)
+var em = parseFloat(getComputedStyle(document.head).fontSize)
 
-// dom objects
-    // containing divs
-var mapResizer = document.getElementById("map-resizer")
-var mapDiv = document.getElementById("map-div")
-var tooltip = document.getElementById("tooltip")
-var gridContainer = document.getElementById("grid-container")
-    // nav bar
-var navBar = document.getElementById("nav-bar")
-var mapTab = document.getElementById("map-tab")
-    // options
-var resetButton = document.getElementById("reset-button")
-var mapAggregationSwitch = document.getElementById("map-aggregation-switch")
-var hospitalToggle = document.getElementById("show-hospitals")
-var showHospitalIcons = document.getElementById("show-hospital-icons")
-var hospitalSwitchBranch = document.getElementById("hospital-switch-branch")
-    // map
-var jsmapSVG = document.getElementById("map-svg")
-var mapSVG = d3.select("#map-svg")
-var countiesGroup = d3.select("#counties")
-
-// visualization variabls
 margins = {
-    top: 10,
-    right: 10,
-    bottom: 10,
-    left: 10
+    top: 8,
+    right: 8,
+    bottom: 8,
+    left: 8,
 }
-var f = d3.format(".0f")
-var em = parseFloat(getComputedStyle(document.getElementById("nav-bar")).fontSize)
-
-var width = jsmapSVG.width.baseVal.value
-var height = jsmapSVG.height.baseVal.value
-
-var mapProjection = null
-var mapData = null
-var zoom = 1
-var xSkew = 0
-var ySkew = 0
-
-var numDiseases = 3
-var diseaseIndexing = {"covid-19": 1, "flu": 2, "opioid": 3}
-var diseaseColorMap = d3.scaleOrdinal().domain(Object.keys(diseaseIndexing)).range(d3.schemeSet1)
-var heatmapColorMap = null
-
-var diseaseStats = null
-var diseaseMetadata = null
-var hospitalStats = null
-var hospitalMetadata = null
-
-var focusCounty = null
 
 var styleSheet = new CSSStyleSheet()
 document.adoptedStyleSheets = [styleSheet]
-
-tooltip.style.backgroundColor = opacify(d3.select(tooltip).style("--sl-color-neutral-500").replace(/ /g, ","), 0.75)
-tooltip.style.borderColor = opacify(d3.select(tooltip).style("--sl-color-neutral-700").replace(/ /g, ","), 0.5)
 
 // helper functions
 function fixName(name) {
@@ -135,39 +92,6 @@ function getVisibleHospitalDiseases() {
 }
 
 // make items
-
-function createHospitalCheck(disease, color) {
-    check = d3.select(hospitalSwitchBranch)
-    .append("sl-tree-item")
-    .append("sl-checkbox")
-    .attr("id", "hospital-" + disease + "-check")
-    .attr("class", "hospital-check ")
-    .attr("disease", disease)
-    .attr("checked", "")
-    .html(disease)
-
-    check.node().addEventListener("sl-change", (e) => {
-        checker = e.target
-        bubbleGroup = d3.select("#"+checker.getAttribute("disease")+"-hospital-data")
-        if(checker.checked) { 
-            bubbleGroup.raise().style("opacity", 1) 
-            bubbleGroup.selectAll("*").each(function(d) {
-                hospitalTooltip(d3.select(this))
-            })
-        } else { 
-            bubbleGroup.lower().style("opacity", 0)
-            bubbleGroup.selectAll("*").each(function(d) {
-                removeTooltip(d3.select(this))
-            })
-         }
-    })
-    styleSheet.insertRule(
-        "#hospital-" + disease + `-check::part(control--checked)  {
-            border-color: `+color+`;
-            background-color: `+color+`;
-        }
-      `)
-}
 
 function makeHospital(id) {
     stringy =  `<clipPath id="clipper-${id}"> \n

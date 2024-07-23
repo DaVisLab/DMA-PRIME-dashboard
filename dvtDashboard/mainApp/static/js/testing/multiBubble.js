@@ -133,7 +133,7 @@ d3.json("../../static/data/tl_2023_sc_county_trimmed.json").then(function(mapdat
                     d3.select(this).append("line")
                     d3.select(this).append("circle")
                     d3.select(this).append("text")
-                    .text(f(d))
+                    .text(formatInt(d))
                 })
 
             legendBBox = diseaseLegend.select("#disease-legend-innards").node().getBBox()

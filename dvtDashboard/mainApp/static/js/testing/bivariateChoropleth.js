@@ -118,7 +118,7 @@ d3.json("../../static/data/tl_2023_sc_county_trimmed.json").then(function(mapdat
                     .attr("font-size", 10)
                     .attr("fill", "white")
                     .attr("transform", "scale(1 -1)")
-                    .text(f(i * (response.stats.max-response.stats.min)/3))
+                    .text(formatInt(i * (response.stats.max-response.stats.min)/3))
             }
 
             legendCountAxis = legend.append("g")

@@ -1,3 +1,5 @@
+tooltip.style.backgroundColor = opacify(d3.select(tooltip).style("--sl-color-neutral-500").replace(/ /g, ","), 0.75)
+tooltip.style.borderColor = opacify(d3.select(tooltip).style("--sl-color-neutral-700").replace(/ /g, ","), 0.5)
 
 function displayMap() {
     width = jsmapSVG.width.baseVal.value
@@ -74,7 +76,7 @@ function displayMap() {
                 hospitalMetadata = result.metadata
 
                 maxHospitalCount = hospitalStats.max[hospitalMetadata.date[0]]
-                maxHospitalRadius = Math.min(height, width) * 0.02
+                maxHospitalRadius = Math.min(height, width) * 0.025
                 hospitalRadiusMap = d3.scaleLinear([0, maxHospitalCount], [0, maxHospitalRadius]).nice(9)
                 diseaseGroups = {}
                 hospitalMetadata.disease.forEach(disease => {
@@ -108,7 +110,7 @@ function displayMap() {
                         d3.select(this).append("line")
                         d3.select(this).append("circle")
                         d3.select(this).append("text")
-                        .text(f(d))
+                        .text(formatInt(d))
                     })
 
                 legendBBox = hospitalLegend.select("#hospital-legend-innards").node().getBBox()
@@ -270,7 +272,7 @@ function resizeMap() {
             .attr("rx", 0.5*em)
 
         maxHospitalCount = hospitalStats.max[hospitalMetadata.date[0]]
-        maxHospitalRadius = Math.min(height, width) * 0.02
+        maxHospitalRadius = Math.min(height, width) * 0.025
         mapSVG.selectAll(".hospital-bubble").each(function(d) {
             mapCoords = mapProjection([d.INTPTLON, d.INTPTLAT])
             newPos = skew(mapCoords, maxHospitalRadius/5, diseaseIndexing[d.disease], numDiseases)
@@ -342,7 +344,7 @@ function resizeMap() {
 //             d3.select(this).append("line")
 //             d3.select(this).append("circle")
 //             d3.select(this).append("text")
-//             .text(f(d))
+//             .text(formatInt(d))
 //         })
 
 //     mapSVG.select(`#${type}-legend`).append("text")
