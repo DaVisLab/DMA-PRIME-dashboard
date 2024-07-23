@@ -1,0 +1,54 @@
+<sl-tab id="{{panel.name}}-tab" slot="nav" panel="{{panel.name}}" {% if panel.active %}active{% endif %}>
+    {{panel.displayName}}
+</sl-tab>
+<sl-tab-panel name="{{panel.name}}" id="{{panel.name}}-panel">
+    <sl-split-panel position="20" disabled id="{{panel.name}}-main-content" class="fill-height">
+        <!-- Line w/ button to resize the options panel and open/close it -->
+        <div slot="divider" id="{{panel.name}}-content-divider" class="content-divider">
+            <sl-icon-button name="chevron-compact-left" id="hide-{{panel.name}}-options-button" class="hide-options-button"></sl-icon-button>
+        </div>
+        <div slot="start" id="{{panel.name}}-options" class="fill-height">
+            {% block options %}
+            {% endblock %}
+        </div>
+        <div slot="end" id="{{panel.name}}-content" class="fill-height fill-width hide-overflow">
+            {% block contents %}
+
+            {% endblock %}
+        </div>
+    </sl-split-panel>
+</sl-tab-panel>
+
+<script>
+    {{panel.name}}OptionsHider = document.getElementById("hide-{{panel.name}}-options-button")
+    {{panel.name}}OptionsOpen = true
+    {{panel.name}}Panel = document.getElementById("{{panel.name}}-panel")
+    {{panel.name}}MainContent = document.getElementById("{{panel.name}}-main-content")
+
+    set{{panel.name}}Panel = function() {
+        if ({{panel.name}}OptionsOpen) {
+            if (document.body.clientWidth * 20 / 100 < 250) {
+                {{panel.name}}MainContent.setAttribute("position", 250 / document.body.clientWidth * 100)
+            } else {
+                {{panel.name}}MainContent.setAttribute("position", 20)
+            }
+        } else {
+            {{panel.name}}MainContent.setAttribute("position", 0)
+        }
+    }
+    addEventListener("resize", set{{panel.name}}Panel)
+
+    {{panel.name}}OptionsHider.addEventListener("click", () => {
+        {{panel.name}}OptionsOpen = !{{panel.name}}OptionsOpen;
+        if ({{panel.name}}OptionsOpen) {
+            {{panel.name}}OptionsHider.name = "chevron-compact-left"
+        } else {
+            {{panel.name}}OptionsHider.name = "chevron-compact-right"
+        }
+        set{{panel.name}}Panel()
+    });
+
+</script>
+
+{% block scripts %}
+{% endblock %}

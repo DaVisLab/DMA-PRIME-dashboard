@@ -44,6 +44,11 @@ sl-tab-panel::part(base) {
   display: block;
 }
 
+.content-divider {
+  font-size: 2rem;
+  background-color: lightgray;
+}
+
 /* The following is from  https://dev.to/lennythedev/css-gotcha-how-to-fill-page-with-a-div-270j*/
 /* override browser default */
 html,
