@@ -163,13 +163,41 @@ def create_app(test_config=None):
     @app.route('/get-hospital-zcta-data', methods=['POST'])
     def returnZCTAHospitalData():
         variables = request.get_json()
-        region = slice(None) if variables['region-name'] == 'all' else variables['region-name'].split(',')
+        region = variables['region-name']
         disease = slice(None) if variables['disease'] == 'all' else variables['disease'].split(',') 
-        date = [max(real_dict['hospital-zcta']['data'].index.levels[2])] if variables['date'] == 'max' else variables['date'].split(',')
+        date = [max(real_dict['hospital-zcta']['data'].index.levels[2])] if variables['date'] == 'max' else slice(None) if variables['date'] == 'all' else variables['date'].split(',')
+        
+        region2 = None
+        if isinstance(region, list):
+            region2 = []
+            for r in region:
+                if int(r) in real_dict['hospital-zcta']['data'].index.levels[0]:
+                    region2.append(r)
+        elif region == 'all':
+                region2 = slice(None)
+        else:
+                if int(region) in real_dict['hospital-zcta']['data'].index.levels[0]:
+                    return jsonify({'data': None, 'stats': None, 'metadata': None})
+
+        result =  getZCTAHospitalData(region2, disease, date)
+
+        return jsonify({'data': json.loads(result['data'].to_json(orient='table', index=True))['data'], 'stats': result['stats'].to_dict(), 'metadata': result['metadata']})
+
+    @app.route('/get-hospital-zcta-data-by-county', methods=['POST'])
+    def returnZCTAHospitalDataByCounty():
+        variables = request.get_json()
+        county = variables['region-name']
+        region = slice(None)
+        disease = slice(None) if variables['disease'] == 'all' else variables['disease'].split(',') 
+        date = [max(real_dict['hospital-zcta']['data'].index.levels[2])] if variables['date'] == 'max' else slice(None) if variables['date'] == 'all' else variables['date'].split(',')
         
         result =  getZCTAHospitalData(region, disease, date)
 
-        return jsonify({'data': json.loads(result['data'].to_json(orient='table', index=True))['data'], 'stats': result['stats'].to_dict(), 'metadata': result['metadata']})
+        grouped_data = result['data'].groupby(['disease', 'date','county']).agg({'count':'sum'})
+        data = grouped_data.xs(county.lower(), level=2, drop_level=False)
+
+        return jsonify({'data': json.loads(data.to_json(orient='table', index=True))['data'], 'stats': result['stats'].to_dict(), 'metadata': result['metadata']})
+
 
     @app.route('/get-hospital-zcta-tooltip', methods=['POST'])
     def getHospitalZCTATooltip():

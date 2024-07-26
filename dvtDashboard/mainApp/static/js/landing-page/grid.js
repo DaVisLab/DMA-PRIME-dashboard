@@ -221,25 +221,38 @@ function uploadAveraged() {
 }
 
 function updateCountyGraphs(type) {
-    countyPOPCsvMapping.forEach(({ county, countyPop }) => {
-        d3.csv("static/data/county/Counties daily cases/" + county + "_case_daily.csv").then(function (data) {
 
-            // Parse the date
+    d3.json("../../static/data/zcta_county_crosswalk.json").then((crosswalk) => {    
+    // words.filter((word) => word.length > 6)
+    //             .then( async function(crosswalk) {
+    diseases = ["covid-19", "flu"]
+
+    countyPOPCsvMapping.forEach(({ county, countyPop }) => {
+        zctas = Object.keys(crosswalk).filter(key => crosswalk[key] === county)
+        
+        d3.json("/get-hospital-zcta-data-by-county", { // zcta hospital data
+            "method": "POST",
+            "headers": {"Content-Type": "application/json"},
+            "body": JSON.stringify({
+                "region-name": county,
+                "disease": "covid-19",
+                "date": "all",
+        })}).then(function(result) {
+            data = result.data
             var parseDate = d3.timeParse("%Y-%m-%d");
             data.forEach(function (d) {
                 d.date = parseDate(d.date);
-                d[chosenColumn] = +d[chosenColumn];
             });
 
             const aggregate = Math.round(
-                data.reduce((total, d) => total + d[chosenColumn], 0)
+                data.reduce((total, d) => total + d.count, 0)
             );
 
             // information to display total values
             // may be redefined in the switch if we are not displaying total
-            let fixedMaxYValue = 2500;
-            let maxYValue = d3.max(data, (d) => d[chosenColumn]);
-            const maxDataPoint = data.find((d) => d[chosenColumn] === maxYValue);
+            let maxYValue = d3.max(data, (d) => d.count);
+            let fixedMaxYValue = maxYValue; //2500
+            const maxDataPoint = data.find((d) => d.count === maxYValue);
             let pointLabel = Math.round(maxYValue);
             let countyValue = aggregate;
             let lineFunc = function (val) { return val; };
@@ -250,7 +263,7 @@ function updateCountyGraphs(type) {
                 case "popAdjusted":
                     quartiles = [0.0, 0.03, 0.2, 0.5];
                     fixedMaxYValue = 0.006;
-                    maxYValue = d3.max(data, (d) => d[chosenColumn] / countyPop);
+                    maxYValue = d3.max(data, (d) => d.count / countyPop);
                     pointLabel = maxYValue.toFixed(3);
                     countyValue = (aggregate / countyPop).toFixed(3);
                     lineFunc = function (val) { return val / countyPop; };
@@ -279,9 +292,9 @@ function updateCountyGraphs(type) {
                 .range([gridItemHeight + margin.top - margin.bottom, margin.top]);
 
             const line = d3.line()
-                .defined((d) => !isNaN(d[chosenColumn]))
+                .defined((d) => !isNaN(d.count))
                 .x((d) => x(d.date))
-                .y((d) => y(lineFunc(d[chosenColumn])));
+                .y((d) => y(lineFunc(d.count)));
 
             d3.select("#" + county + "-grid")
                 .select("path")
@@ -311,5 +324,97 @@ function updateCountyGraphs(type) {
                 .attr("title", countyTitle);
 
         })
+
+        // d3.csv("static/data/county/Counties daily cases/" + county + "_case_daily.csv").then(function (data) {
+        //     console.log(data)
+        //     // Parse the date
+        //     var parseDate = d3.timeParse("%Y-%m-%d");
+        //     data.forEach(function (d) {
+        //         d.date = parseDate(d.date);
+        //         d[chosenColumn] = +d[chosenColumn];
+        //     });
+
+        //     const aggregate = Math.round(
+        //         data.reduce((total, d) => total + d[chosenColumn], 0)
+        //     );
+
+        //     // information to display total values
+        //     // may be redefined in the switch if we are not displaying total
+        //     let fixedMaxYValue = 2500;
+        //     let maxYValue = d3.max(data, (d) => d[chosenColumn]);
+        //     const maxDataPoint = data.find((d) => d[chosenColumn] === maxYValue);
+        //     let pointLabel = Math.round(maxYValue);
+        //     let countyValue = aggregate;
+        //     let lineFunc = function (val) { return val; };
+        //     let countyTitle = "Total Cases";
+        //     let quartiles = [0, 4000, 40000, 180000];
+
+        //     switch (type) {
+        //         case "popAdjusted":
+        //             quartiles = [0.0, 0.03, 0.2, 0.5];
+        //             fixedMaxYValue = 0.006;
+        //             maxYValue = d3.max(data, (d) => d[chosenColumn] / countyPop);
+        //             pointLabel = maxYValue.toFixed(3);
+        //             countyValue = (aggregate / countyPop).toFixed(3);
+        //             lineFunc = function (val) { return val / countyPop; };
+        //             countyTitle = "Pop Adjusted Cases";
+        //             break;
+        //         // in the event we have many different things, I'm using a switch statement the default is total, see above
+        //     }
+
+        //     var colorMap = d3.scaleLinear().domain(quartiles).range(colors);
+
+        //     d3.select("#" + county + "-grid")
+        //         .select("rect")
+        //         .transition()
+        //         .duration(2000)
+        //         .style("fill", colorMap(countyValue));
+
+        //     const x = d3
+        //         .scaleTime()
+        //         .domain(d3.extent(data, (d) => d.date))
+        //         .range([0, gridItemWidth]);
+
+        //     const y = d3
+        //         .scaleLinear()
+        //         .domain([0, fixedMaxYValue])
+        //         .nice()
+        //         .range([gridItemHeight + margin.top - margin.bottom, margin.top]);
+
+        //     const line = d3.line()
+        //         .defined((d) => !isNaN(d[chosenColumn]))
+        //         .x((d) => x(d.date))
+        //         .y((d) => y(lineFunc(d[chosenColumn])));
+
+        //     d3.select("#" + county + "-grid")
+        //         .select("path")
+        //         .datum(data)
+        //         .transition()
+        //         .duration(2000)
+        //         .attr("d", line);
+
+        //     d3.select("#" + county + "-grid")
+        //         .select("circle")
+        //         .transition()
+        //         .duration(2000)
+        //         .attr("cx", x(maxDataPoint.date)) // x-coordinate
+        //         .attr("cy", y(maxYValue)); // y-coordinate
+
+        //     d3.select("#" + county + "-grid")
+        //         .select(".pointlabel")
+        //         .transition()
+        //         .duration(2000)
+        //         .attr("x", x(maxDataPoint.date) + 8) // x-coordinate
+        //         .attr("y", y(maxYValue) - 4) // Adjust the position to be above the circle
+        //         .text(pointLabel);
+
+
+        //     d3.select("#" + county + "-grid")
+        //         .select(".totnumb").text(`(${countyValue})`)
+        //         .attr("title", countyTitle);
+
+        // })
     })
+})
+
 }
