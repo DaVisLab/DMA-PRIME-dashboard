@@ -83,15 +83,15 @@ def create_app(test_config=None):
                 'name': 'grid',
                 'displayName': 'Grid View',
                 'active': True,
-                'html': 'main-vis/grid-panel.html'
+                'html': 'model-exploration/grid-panel.html'
             },
             {
                 'name': 'map',
                 'displayName': 'Map View',
-                'html': 'main-vis/map-panel.html'
+                'html': 'model-exploration/map-panel.html'
             }, 
         ]
-        return render_template('main-vis.html', panels=panels)
+        return render_template('model-exploration.html', panels=panels)
     
     @app.route('/testing')
     def testing():

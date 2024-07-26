@@ -1,0 +1,27 @@
+{% extends "subtemplates/panel.html" %}
+
+{% block options %}
+<div class="centering-container options-div">
+  <p>Filtering/sorting options here</p>
+</div>
+{% endblock %}
+
+{% block contents %}
+<div class="container"></div>
+<button class="toggle-button" id="toggleButton">TOT
+</button>
+
+<div id="legend">
+  <!-- <script src="script.js"></script> -->
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var gridContainer = document.getElementById("grid-container")
+
+  set{{panel.name}}Panel()
+</script>
+
+<script src="{{ url_for('static', filename='js/main-vis/grid.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}DMA-PRIME{% endblock %}
+{% block style %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main-vis-style.css') }}" />
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/map-style.css') }}" />
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/grid-style.css') }}" />
+{% endblock %}
+
+{% block headScripts %}
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
+
+<script>
+    dayjs.extend(window.dayjs_plugin_utc)
+    dayjs.extend(window.dayjs_plugin_timezone)
+    dayjs.extend(window.dayjs_plugin_customParseFormat)
+</script>
+
+<!-- Contains helper functions/data/constants -->
+<script src="{{ url_for('static', filename='js/model-exploration/script.js') }}"></script>
+{% endblock %}
+
+{% block linkout %}
+<sl-button slot="nav" id="landing-page-button-link" href="{{ url_for('index') }}" target="_blank"
+    variant="text">Main Dashboard <sl-icon name="box-arrow-up-right"></sl-icon></sl-button>
+{% endblock %}
+
+{% block bodyScripts %}
+<script>
+//   displayMap(mapType);
+  var navBar = document.getElementById("nav-bar")
+    navBar.addEventListener("sl-tab-show", (event) => {
+        if (event.detail.name == "main") {
+            navBar.show("grid")
+        }
+    })
+</script>
+
+<!-- <script>
+    addEventListener("load", () => {
+        // resizeMap();
+        displayMap().then(function() {
+            resizeMap()
+            mapSVG.call(mapZoom)
+            mapResizer.addEventListener("sl-resize", () => {
+                resizeMap()
+            })
+
+        Promise.all([displayAggregateChart(), displayDonut()]).then(() => {
+            mapAggregationResizer.addEventListener("sl-resize", () => {
+                displayAggregateChart()
+                displayDonut()
+            })
+        })
+        
+    })
+        // styleSheet.insertRule(`
+        //   #counties>path, #zctas>path {
+        //     stroke: ${getComputedStyle(document.getElementsByClassName("options-header")[0]).getPropertyValue("color")}      
+        //   } 
+        // `)
+
+    });
+</script> -->
+
+{% endblock %}

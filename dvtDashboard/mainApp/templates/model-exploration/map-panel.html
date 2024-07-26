@@ -1,0 +1,92 @@
+{% extends "subtemplates/panel.html" %}
+
+{% block options %}
+<sl-details>
+    <p slot="summary">Model Selection</p>
+    <sl-menu id="map-model-menu">
+        <sl-menu-item value="map-model-1">Model 1</sl-menu-item>
+        <sl-menu-item value="map-model-2">Model 2</sl-menu-item>
+    </sl-menu>
+</sl-details>
+<sl-tab-group id="map-model-options">
+    <sl-tab-panel name="map-model-1">
+        <p>Model 1 Option Set</p>
+        <sl-switch id="normalize-pop-switch">Normalize by Population</sl-switch>
+        <sl-divider></sl-divider>
+        <sl-radio-group id="vis-selector" name="vis-selector" value="none">
+            <label>Select a visualization</label>
+            <sl-radio value="none">None</sl-radio>
+            <sl-radio value="aggregated">Aggregated</sl-radio>
+            <sl-radio value="daily" >Daily</sl-radio>
+            <sl-radio value="3" disabled>Option 3</sl-radio>
+        </sl-radio-group>
+        <sl-divider></sl-divider>
+        <sl-select id="forecast-selector" value="day-1">
+            <p slot="label">Forecast Length</p>
+            <sl-option value="day-1">1 Day</sl-option>
+            <sl-option value="day-3">3 Day</sl-option>
+            <sl-option value="day-7">Week</sl-option>
+        </sl-select>
+    </sl-tab-panel>
+    <sl-tab-panel name="map-model-2">Model 2 Option Set</sl-tab-panel>
+</sl-tab-group>
+{% endblock %}
+
+{% block contents %}
+<sl-split-panel vertical disabled position="90" id="vis-container" class="fill-height hide-overflow">
+    <!-- This is where the visualizations will sit -->
+    <sl-split-panel slot="start" position="100" class="fill-height">
+      <div slot="start">
+        <sl-mutation-observer>
+            <!-- add closable tabs/panels when the a model is selected -->
+             <!-- <sl-tab-group id="model-comparison">
+
+             </sl-tab-group> -->
+            </sl-tab-group>
+        </sl-mutation-observer>
+        <sl-resize-observer id="main-vis-resizer">
+          <svg id="main-vis" class="fill-height"></svg>
+        </sl-resize-observer>
+      </div>
+      <div slot="end" id="minor-vis-div">
+        <sl-resize-observer >
+          <sl-tab-group placement="end" id="minor-vis-resizer">
+            <!-- stuff will go in here from main vis interaction -->
+          </sl-tab-group>
+        </sl-resize-observer>
+      </div>
+    </sl-split-panel>
+
+    <!-- Extra options here -->
+    <div slot="end" id="extras-div">
+      <label>Date</label>
+      <sl-range min="1585008000" max="1680134400" step="86400" id="time-slider"></sl-range>
+    </div>
+  </sl-split-panel>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    mOptions = d3.select("#map-model-options")
+
+    document.getElementById("map-model-menu").addEventListener("sl-select", function(event) {
+        mOptions.selectAll("sl-tab-panel").each(function (d) {
+            if (this.name == event.detail.item.value) {
+                this.active = true
+            } else {
+                this.active = false
+            }
+        })
+    })
+</script>
+
+<script src="{{ url_for('static', filename='js/main-vis/script.js') }}"></script>
+<!-- Functions to get the main (left) vis working -->
+<script src="{{ url_for('static', filename='js/main-vis/minor-vis.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main-vis/main-vis.js') }}"></script>
+<!-- All the magic for panel resizing/vis options -->
+<script src="{{ url_for('static', filename='js/main-vis/interactions.js') }}"></script>
+<script>
+  displayMap(mapType);
+</script>
+{% endblock %}
