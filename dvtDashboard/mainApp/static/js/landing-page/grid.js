@@ -239,7 +239,8 @@ function updateCountyGraphs(type) {
                 "date": "all",
         })}).then(function(result) {
             data = result.data
-            var parseDate = d3.timeParse("%Y-%m-%d");
+            // var parseDate = d3.timeParse("%Y-%m-%d");
+            var parseDate = function(date) {return dayjs.tz(date, "YYYY-MM", "America/New_York").toDate()}
             data.forEach(function (d) {
                 d.date = parseDate(d.date);
             });
