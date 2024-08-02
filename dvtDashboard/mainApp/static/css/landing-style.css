@@ -45,6 +45,16 @@ sl-tab-panel::part(base) {
   display: block;
 }
 
+.options-header {
+  font-size: var(--sl-font-size-large);
+  margin-top: 0;
+  margin-bottom: .5rem;
+}
+
+.options-divider {
+  --spacing: 0;
+}
+
 .content-divider {
   font-size: 2rem;
   background-color: var(--sl-color-neutral-200);

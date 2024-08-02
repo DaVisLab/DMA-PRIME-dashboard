@@ -129,7 +129,12 @@ function displayMap() {
                     .style("opacity", 0)
                     .each(function(d) {
                         bubble = d3.select(this)
-                        result.metadata["zcta-county-crosswalk"][d.region.substring(1)].forEach((county) => {
+                        region = d.region.substring(1)
+                        data = bubble.datum()
+                        data["main-county"] = result.metadata["zcta-main-county"][region]
+                        data["population"] = result.metadata["zcta-population"][region]
+
+                        result.metadata["zcta-county-crosswalk"][region].forEach((county) => {
                             bubble.attr(county, true)
                         })
                     })
@@ -158,7 +163,7 @@ function displayMap() {
                             bubbles = mapSVG.selectAll(`._${zctaData.properties.ZCTA5CE20}`)
                             bubbles.each((d) => {
                                 value += d.count
-                                zcta.attr("population", d.ZCTA_POP)
+                                zcta.attr("population", d.population)
                             })
                             zcta.attr("count", value)
                             aggregated.push(value)
@@ -277,7 +282,7 @@ async function resizeMap() {
                 .attr("cx", newPos[0]*zoom + xSkew)
                 .attr("cy", newPos[1]*zoom + ySkew)
                 .attr("r", function(d) {
-                    population = d.ZCTA_POP
+                    population = d.population
                     population = population == 0 ? NaN : population
                     return hospitalRadiusMap(d.count / (mapPopulationSwitch.value == "total" ? 1 : population))
                 })

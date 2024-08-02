@@ -1,21 +1,7 @@
 
-.options-header {
-    font-size: var(--sl-font-size-large);
-    margin-top: 0;
-    margin-bottom: .5rem;
-}
-
-.options-divider {
-    --spacing: 0;
-}
 
 .map-options-centered {
     justify-self: center;
-}
-
-#main-content-divider {
-    font-size: 2rem;
-    background-color: var(--sl-color-neutral-300);
 }
 
 #map-sidebar {
@@ -47,18 +33,11 @@
 #map-aggregation-svg {
     aspect-ratio: 50/35;
 }
+
 #map-aggregation-graph-title {
     margin: 0;
     font-size: var(--sl-font-size-x-small);
 }
-
-/* #map-aggregation-switch>sl-radio-button::part(button) {
-    background-color: var(--sl-color-neutral-500);
-}
-
-#map-aggregation-switch>sl-radio-button::part(button--checked) {
-    background-color: var(--sl-color-primary-600);
-} */
 
 #map-options-hospital-icons-toggle::part(control--checked) {
     border-color: var(--sl-color-neutral-400);

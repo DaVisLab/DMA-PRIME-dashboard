@@ -13,6 +13,39 @@
   background-color: aliceblue;
 } */
 
+.grid-options-centered {
+  justify-self: center;
+}
+
+#grid-options {
+  height: max-content;
+  overflow-wrap: normal;
+  overflow-y: auto;
+  display: grid;
+  row-gap: var(--sl-spacing-x-small);
+  padding: var(--sl-spacing-small);
+}
+
+#grid-aggregation-vis {
+  width: 100%;
+  overflow: hidden;
+  padding: var(--sl-spacing-x-small);
+  display: flex;
+  flex-direction: column;
+}
+
+#grid-aggregation-donut-svg {
+  aspect-ratio: 50/20;
+}
+#grid-aggregation-svg {
+  aspect-ratio: 50/35;
+}
+
+#map-aggregation-graph-title {
+  margin: 0;
+  font-size: var(--sl-font-size-x-small);
+}
+
 
 .container {
   display: flex;
