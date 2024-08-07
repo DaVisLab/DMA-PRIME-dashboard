@@ -107,9 +107,6 @@
   var xSkew = 0
   var ySkew = 0
 
-  var numDiseases = 3
-  var diseaseIndexing = { "covid-19": 1, "influenza": 2, "rsv": 3 }
-  var diseaseColorMap = d3.scaleOrdinal().domain(Object.keys(diseaseIndexing)).unknown("var(--sl-color-gray-600").range(d3.schemeSet1)
   var heatmapColorMap = null
   var hospitalRadiusMap = null
 
@@ -132,7 +129,7 @@
 
     check.node().addEventListener("sl-change", (e) => {
       checker = e.target
-      displayAggregateChart()
+      displayMapAggregateChart()
       bubbleGroup = d3.select("#" + checker.getAttribute("disease") + "-hospital-data")
       if (checker.checked) {
         bubbleGroup.raise().style("opacity", 1)
@@ -152,6 +149,16 @@
             background-color: `+ color + `;
         }
       `)
+  }
+
+  function getVisibleHospitalDiseases() {
+    diseases = []
+    d3.selectAll(".hospital-check").each(function(d){
+        if (this.checked) {
+            diseases.push(this.getAttribute("disease"))
+        }
+    })
+    return diseases
   }
   set{{panel.name}}Panel()
 </script>

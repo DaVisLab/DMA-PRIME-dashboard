@@ -2,6 +2,11 @@
 // visualization variables
 var formatInt = d3.format(".0f")
 
+
+var numDiseases = 3
+var diseaseIndexing = { "covid-19": 1, "influenza": 2, "rsv": 3 }
+var diseaseColorMap = d3.scaleOrdinal().domain(Object.keys(diseaseIndexing)).unknown("var(--sl-color-gray-600").range(d3.schemeSet1)
+
 margins = {
     top: 8,
     right: 8,
@@ -72,16 +77,6 @@ function skew(orig, radius, idx, total) {
 function getVisibleDiseases() {
     diseases = []
     d3.selectAll(".disease-check").each(function(d){
-        if (this.checked) {
-            diseases.push(this.getAttribute("disease"))
-        }
-    })
-    return diseases
-}
-
-function getVisibleHospitalDiseases() {
-    diseases = []
-    d3.selectAll(".hospital-check").each(function(d){
         if (this.checked) {
             diseases.push(this.getAttribute("disease"))
         }

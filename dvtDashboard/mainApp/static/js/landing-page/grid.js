@@ -122,7 +122,14 @@ function createBaseObjects() {
 }
 
 function initialVisualisation() {
+    
+    Object.entries(diseaseIndexing).forEach((entry) => {
+        createGridCheck(entry[0], diseaseColorMap(entry[0]))
+        console.log(entry)
+    })
+
     updateCountyGraphs();
+
     countyPOPCsvMapping.forEach(({ county }) => {
 
         d3.select("#" + county + "-grid")
@@ -146,21 +153,18 @@ function updateCountyGraphs() {
         "method": "POST",
         "headers": {"Content-Type": "application/json"},
         "body": JSON.stringify({
-            "disease": "all",
+            "disease": getVisibleGridDiseases(),
             "date": "all",
             "pop-norm": gridPopulationSwitch.value == "pop-norm"
     })}).then(function(result) {
-        console.log("run")
+
         diseaseType = gridAggregationSwitch.value
 
         gridHeight = gridContainer.clientHeight
         gridWidth = gridContainer.clientWidth
 
         gridItemWidth = (gridWidth/8) - 1
-        gridItemHeight = (gridHeight/6)
-
-        console.log(gridItemHeight, gridItemWidth)
-        
+        gridItemHeight = (gridHeight/6)        
 
         data = result.data
         
@@ -195,7 +199,7 @@ function updateCountyGraphs() {
                 .scaleLinear()
                 .domain([0, maxYValue * 1.2])
                 .nice()
-                .range([gridItemHeight + margin.top - margin.bottom, margin.top]);
+                .range([gridItemHeight - margin.bottom, margin.top]);
 
             const line = d3.line()
                 .defined((d) => !isNaN(d.count))

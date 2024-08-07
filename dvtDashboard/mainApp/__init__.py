@@ -208,12 +208,8 @@ def create_app(test_config=None):
     def returnZCTAHospitalDataByCounty():
         variables = request.get_json()
         base_data = real_dict['hospital-zcta']['data']
-
-        # county: aggregate disease, disease1, disease2, etc
-            # disease: {date: value, count: value}
-        # stats: max of (cumulative sum for every county) - the way hospital data is handled, it is current cases, not new cases, so this aggregation number does not make much sense...
-        # stats: county: max per disease (aggregate or otherwise)
-
+        diseases = slice(None) if variables['disease'] == 'all' else variables['disease']
+        
         if variables['pop-norm']:
             countyPops = pd.read_csv('mainApp/static/data/county/countyPopulations.csv')
 
@@ -239,7 +235,7 @@ def create_app(test_config=None):
             else:
                 zctas = int(zctas)
             zctas = base_data.index.levels[0].intersection(zctas) # make sure region exists
-            result = base_data.loc[(zctas, slice(None), slice(None), slice(None)), ['count']] 
+            result = base_data.loc[(zctas, diseases, slice(None), slice(None)), ['count']] 
 
             return_data[county] = {
                 'aggregated': None,
@@ -251,7 +247,7 @@ def create_app(test_config=None):
                 'individual': {}
             }
 
-            for disease in result.index.levels[1]:
+            for disease in diseases:
                 temp2 = temp1.xs(disease) / countyPop
                 stats['county'][county]['individual'][disease] = {
                     'date': temp2.idxmax().values[0],
@@ -272,7 +268,11 @@ def create_app(test_config=None):
 
             if stats['max-cum'] < cumsummax:
                 stats['max-cum'] = cumsummax
-        print(stats['max-cum'])
+
+        metadata = {
+            'disease': result.index.levels[1]
+        }
+
         return jsonify({'data': return_data, 'stats': stats})
 
 

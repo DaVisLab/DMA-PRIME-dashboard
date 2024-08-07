@@ -61,6 +61,8 @@
   var gridAggregationResizer = document.getElementById("grid-aggregation-resizer")
 
   var gridContainer = document.getElementById("grid-container")
+  var gridOptionsHospitalizationsBranch = document.getElementById("grid-options-hospitalizations-branch")
+
   var gridPopulationSwitch = document.getElementById("grid-population-switch")
   var gridAggregationSwitch = document.getElementById("grid-aggregation-switch")
 
@@ -69,6 +71,38 @@
   var gridAggregationDonut = d3.select("#grid-aggregation-donut")
   var jsgridAggregationSvg = document.getElementById("grid-aggregation-svg")
   var gridAggregationSvg = d3.select("#grid-aggregation-svg")
+
+  function createGridCheck(disease, color) {
+    check = d3.select(gridOptionsHospitalizationsBranch)
+      .append("sl-checkbox")
+      .attr("id", "grid-" + disease + "-check")
+      .attr("class", "grid-check")
+      .attr("disease", disease)
+      .attr("checked", "")
+      .style("display", "none")
+      .html(disease)
+
+    check.node().addEventListener("sl-change", (e) => {
+      updateCountyGraphs()
+      displayGridAggregateChart()
+    })
+    
+    styleSheet.insertRule(
+      `#grid-${disease}-check::part(control--checked)  {
+            border-color: ${color};
+            background-color: ${color};}`
+      )
+  }
+
+  function getVisibleGridDiseases() {
+    diseases = []
+    d3.selectAll(".grid-check").each(function(d){
+        if (this.checked) {
+            diseases.push(this.getAttribute("disease"))
+        }
+    })
+    return diseases
+  }
 
   set{{panel.name}}Panel()
 </script>

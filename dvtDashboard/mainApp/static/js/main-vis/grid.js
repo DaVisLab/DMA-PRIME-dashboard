@@ -117,7 +117,6 @@ countyPOPCsvMapping.forEach(({ county }) => {
 
 
 createBaseObjects();
-initialVisualisation();
 
 function createBaseObjects() {
     countyPOPCsvMapping.forEach(({ county }) => {

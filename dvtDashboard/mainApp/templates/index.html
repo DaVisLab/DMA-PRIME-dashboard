@@ -47,8 +47,9 @@
             })
         })
 
+        initialVisualisation() 
         gridContainerResizer.addEventListener("sl-resize", () => {
-                initialVisualisation() 
+            updateCountyGraphs()
         })
         
         Promise.all([displayGridAggregateChart(), displayGridDonut()]).then(() => {

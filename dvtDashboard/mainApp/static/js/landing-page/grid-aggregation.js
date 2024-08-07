@@ -17,13 +17,13 @@ async function displayGridAggregateChart() {
         dateMax = stats["date-max"]
         if (gridAggregationSwitch.value != "aggregated") {
             maxCount = d3.max(Object.entries(stats.max), (entry) => {
-                return getVisibleHospitalDiseases().includes(entry[0]) ? entry[1] : NaN
+                return getVisibleGridDiseases().includes(entry[0]) ? entry[1] : NaN
             })
             dateMin = d3.min(Object.entries(stats['date-min']), (entry) => {
-                return getVisibleHospitalDiseases().includes(entry[0]) ? entry[1] : NaN
+                return getVisibleGridDiseases().includes(entry[0]) ? entry[1] : NaN
             })
             dateMax = d3.max(Object.entries(stats['date-max']), (entry) => {
-                return getVisibleHospitalDiseases().includes(entry[0]) ? entry[1] : NaN
+                return getVisibleGridDiseases().includes(entry[0]) ? entry[1] : NaN
             })
         }
 
@@ -74,9 +74,11 @@ async function displayGridAggregateChart() {
         
         aggregateChart = gridAggregationSvg.append("g")
 
+        console.log(getVisibleGridDiseases())
+
         if (gridAggregationSwitch.value != "aggregated") {
             Object.entries(data).forEach((entry) => {
-                if(getVisibleHospitalDiseases().includes(entry[0])){
+                if(getVisibleGridDiseases().includes(entry[0])){
                     aggregateChart.append("path")
                         .attr("id", "grid-aggregate-chart-"+entry[0])
                         .attr("d", line(entry[1]))
