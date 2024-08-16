@@ -17,9 +17,11 @@
 
   </div>
 
-  </div>
-  <div class="options-div" id="{{panel.name}}-aggregation-vis">
-  <svg id="{{panel.name}}-aggregation-donut-svg" class="fill-width">
+</div>
+
+<!-- Aggregation visualization -->
+<div class="options-div" id="{{panel.name}}-aggregation-vis" class="aggregation-vis">
+  <svg id="{{panel.name}}-aggregation-donut-svg" class="fill-width aggregation-donut">
     <defs>
       <pattern id="nan-pattern"
           width="2.5%" height="2.5%"
@@ -35,7 +37,7 @@
     <!-- <rect style="width: 100%; height: 100%;"></rect> -->
   </svg>
   <sl-resize-observer id="{{panel.name}}-aggregation-resizer">
-    <svg id="{{panel.name}}-aggregation-svg" class="fill-width">
+    <svg id="{{panel.name}}-aggregation-svg" class="fill-width aggregation-svg">
 
     </svg>
   </sl-resize-observer>
@@ -56,24 +58,30 @@
 
 {% block scripts %}
 <script>
+  // containing elements
+  var comparisonContainer = document.getElementById("comparison-container")
   var comparisonResizers = document.getElementsByClassName("comparison-resizer")
   var comparisonAggregationResizer = document.getElementById("comparison-aggregation-resizer")
-
-  var comparisonContainer = document.getElementById("comparison-container")
   var comparisonOptionsHospitalizationsBranch = document.getElementById("comparison-options-hospitalizations-branch")
   var visibleComparisonMaps = document.getElementById("visible-comparison-maps")
   var hiddenComparisonMaps = document.getElementById("hidden-comparison-maps")
 
+  // interactive elements
   var comparisonPopulationSwitch = document.getElementById("comparison-population-switch")
 
-  var jscomparisonAggregationDonutSvg = document.getElementById("comparison-aggregation-donut-svg")
+  // TODO: implement comparison panel aggregation visualization
+  // aggregation visualization elements (haven't implemented this yet)
   var comparisonAggregationDonutSvg = d3.select("#comparison-aggregation-donut-svg")
   var comparisonAggregationDonut = d3.select("#comparison-aggregation-donut")
   var jscomparisonAggregationSvg = document.getElementById("comparison-aggregation-svg")
   var comparisonAggregationSvg = d3.select("#comparison-aggregation-svg")
 
-  var comparisonProjection = null
+  // visualization data
   var mapData = null
+
+  // visualization functions
+  var comparisonProjection = null
+
 
   comparisonCheckFunction = function(e) {
     div = d3.select(`#comparison-${d3.select(this).attr("disease")}-container`)
@@ -99,6 +107,7 @@
       )
 
   Object.entries(diseaseIndexing).forEach((entry) => {
+    // Creating base elements to contain the disease maps
       createComparisonCheck(entry[0], diseaseColorMap(entry[0]))
       svg = d3.select(visibleComparisonMaps)
           .append("div")
@@ -129,16 +138,6 @@
             border-color: ${color};
             background-color: ${color};}`
       )
-  }
-
-  function getVisibleComparisonDiseases() {
-    diseases = []
-    d3.selectAll(".grid-check").each(function(d){
-        if (this.checked) {
-            diseases.push(this.getAttribute("disease"))
-        }
-    })
-    return diseases
   }
 
   set{{panel.name}}Panel()

@@ -1,3 +1,5 @@
+main_dir = "\\".join(__file__.split("\\")[:-1])
+
 counties = [
     'abbeville',
     'aiken',

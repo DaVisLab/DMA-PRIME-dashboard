@@ -5,9 +5,10 @@
 
 function comparisonInitialVisualization() {
 
-    d3.json("../../static/data/tl_2023_sc_county_trimmed.json").then(function(mapdata) {
+    d3.json("/map-data/county").then(function(mapdata) {
 
         d3.selectAll(".comparison-svg").each(function(d) {
+            // Create a map for each disease
             svg = d3.select(this)
             disease = svg.attr("disease")
             
@@ -38,6 +39,7 @@ function comparisonInitialVisualization() {
 }
 
 function resizeComparisonMaps() {
+    // Resize maps
     d3.select(visibleComparisonMaps).selectAll(".comparison-svg").each(function(d) {
         async function setup(map) {
             comparisonWidth = map.width.baseVal.value

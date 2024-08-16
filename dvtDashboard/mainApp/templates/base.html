@@ -4,16 +4,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
+
   <title>{% block title %}DMA-PRIME{% endblock %}</title>
+
+  <!-- Shoelace -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/dark.css" />
   <script type="module"
     src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/shoelace-autoloader.js"></script>
 
+  <!-- D3 -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3-geo@3"></script>
+
+  <!-- Style that should load before the rest of the page -->
   {% block style %}
   {% endblock %}
 
+  <!-- code that should run before the rest of the page -->
   {% block headScripts %}
   {% endblock %}
 
@@ -22,17 +29,17 @@
 <body>
   <!-- Top nav bar -->
   <script>
-    var mainContent = {}
-    var panels = {}
     var em = parseFloat(getComputedStyle(document.head).fontSize)
   </script>
   <sl-tab-group id="nav-bar">
     <sl-tab id="main-tab" slot="nav" panel="main">DMA-PRIME</sl-tab>
 
+    <!-- Adding all the nav bar tabs and corresponding panels for this page -->
     {% for panel in panels %}
     {% include panel.html if panel.html else "" ignore missing %}
     {% endfor %}
 
+    <!-- Navbar righthand linkout to wherever -->
     {% block linkout %}{% endblock %}
 
   </sl-tab-group>

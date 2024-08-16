@@ -8,7 +8,7 @@ import pandas as pd
 import glob
 import json
 
-# from .utility import counties 
+from .utility import * 
 
 # Data:
 #    map, county, zip code
@@ -69,11 +69,11 @@ def create_app(test_config=None):
                 'displayName': 'Grid View',
                 'html': 'landing-page/grid-panel.html'
             },
-            {
-                'name': 'comparison',
-                'displayName': 'Map Comparison View',
-                'html': 'landing-page/comparison-panel.html'
-            }
+            # {
+            #     'name': 'comparison',
+            #     'displayName': 'Map Comparison View',
+            #     'html': 'landing-page/comparison-panel.html'
+            # }
         ]
         return render_template('index.html', panels=panels)
     
@@ -101,6 +101,16 @@ def create_app(test_config=None):
     @app.route('/testing')
     def testing():
         return render_template('testing-vis.html')
+    
+    @app.route('/map-data/<mapType>')
+    def mapData(mapType):
+        if mapType == "zcta_county_crosswalk":
+            mapDataDict = json.load(open(f'{main_dir}/static/data/zcta_county_crosswalk.json'))
+        elif mapType == "hospitals":
+            mapDataDict = json.load(open(f'{main_dir}/static/data/Hospitals.geojson'))
+        else:
+            mapDataDict = json.load(open(f'{main_dir}/static/data/tl_2023_sc_{mapType}_trimmed.json'))
+        return mapDataDict
 
     @app.route('/hospital/<id>')
     def getHospitalHTML(id):
@@ -216,7 +226,7 @@ def create_app(test_config=None):
         diseases = slice(None) if variables['disease'] == 'all' else variables['disease']
         
         if variables['pop-norm']:
-            countyPops = pd.read_csv('mainApp/static/data/county/countyPopulations.csv')
+            countyPops = pd.read_csv(main_dir+'/static/data/county/countyPopulations.csv')
 
         stats = {
             'county': {}, # max of all disease for plotting, max point (date, count) for each disease
@@ -291,7 +301,7 @@ def create_app(test_config=None):
         pred_dates = (pd.Timestamp(date) + pd.DateOffset(months=1)).strftime('%Y-%m')
 
         try:
-            historical_result = getZCTAHospitalData(variables['region-name'].split(','), variables['disease'].split(','), dates)
+            historical_result = getZCTAHospitalData(variables['region-name'].split(','), variables['disease'], dates)
             population = historical_result['data']['ZCTA_POP'].max()
         except KeyError:
             temp_index = pd.MultiIndex.from_product(
@@ -309,10 +319,10 @@ def create_app(test_config=None):
             historical_return_data_dict[disease] = historical_return_data.xs(disease).groupby('date').sum().to_dict()
 
         try:
-            predictive_result = getZCTAHospitalData(variables['region-name'].split(','), variables['disease'].split(','), pred_dates)
+            predictive_result = getZCTAHospitalData(variables['region-name'].split(','), variables['disease'], pred_dates)
         except KeyError:
             temp_index = pd.MultiIndex.from_product(
-                [variables['region-name'].split(','), variables['disease'].split(','), ['temp'], pred_dates if isinstance(pred_dates, list) else [pred_dates]],
+                [variables['region-name'].split(','), variables['disease'], ['temp'], pred_dates if isinstance(pred_dates, list) else [pred_dates]],
                 names=['zcta', 'disease', 'county', 'date'])
             temp_df = pd.DataFrame(index=temp_index, columns=['count'])
             temp_df.loc[(variables['region-name'].split(','), variables['disease'].split(','), slice(None), pred_dates)] = 0
@@ -412,9 +422,9 @@ def loadCountyData():
 
     files = [
     # 'C:/Users/***REMOVED***/Box/BoxPHI-PHMR Projects/Toolkit/Cleaned_Data/SC/Covid19/Case_Death_Counts.csv',
-    'mainApp/static/data/covid_case_death_counts.csv',
-    'mainApp/static/data/dummy_flu.csv',
-    'mainApp/static/data/dummy_opioid.csv',
+    main_dir+'/static/data/covid_case_death_counts.csv',
+    main_dir+'/static/data/dummy_flu.csv',
+    main_dir+'/static/data/dummy_opioid.csv',
     ]
 
     for f_path in files:
@@ -447,8 +457,8 @@ def loadZCTAData():
     df_multi = pd.DataFrame()
 
     files = [
-    'mainApp/static/data/covid_hospital_zcta.csv',
-    'mainApp/static/data/flu_hospital_zcta.csv',
+    main_dir+'/static/data/covid_hospital_zcta.csv',
+    main_dir+'/static/data/flu_hospital_zcta.csv',
     ]
 
     for f_path in files:
@@ -459,7 +469,7 @@ def loadZCTAData():
     df_multi.sort_index(inplace=True)
     
     df_multi["county"] = ""
-    zcta_county_crosswalk = pd.read_csv("mainApp/static/data/zcta_county_weights.csv").fillna(0)
+    zcta_county_crosswalk = pd.read_csv(main_dir+"/static/data/zcta_county_weights.csv").fillna(0)
     one_to_one_crosswalk = zcta_county_crosswalk.groupby('GEOID_ZCTA5_20').apply(lambda zcta: zcta.loc[zcta['WEIGHT'].idxmax()])
     for zcta in temp_df.index.levels[0]:
         county = one_to_one_crosswalk.loc[zcta, 'County'].split(' County')[0].lower()
@@ -491,9 +501,9 @@ def loadZCTAData2():
     df_multi = pd.DataFrame()
 
     files = [
-    'mainApp/static/data/covid_hospital_zcta_new.csv', # 'mainApp/static/data/covid_hospital_zcta.csv',
-    'mainApp/static/data/influenza_hospital_zcta_new.csv', #'mainApp/static/data/flu_hospital_zcta.csv',
-    'mainApp/static/data/rsv_hospital_zcta_new.csv',
+    main_dir+'/static/data/covid_hospital_zcta_new.csv', # 'mainApp/static/data/covid_hospital_zcta.csv',
+    main_dir+'/static/data/influenza_hospital_zcta_new.csv', #'mainApp/static/data/flu_hospital_zcta.csv',
+    main_dir+'/static/data/rsv_hospital_zcta_new.csv',
     ]
 
     for f_path in files:
@@ -513,9 +523,9 @@ def loadZCTAData2():
     for idx in dates:    
         stats_df.loc[idx, :] = np.nanquantile(df_multi.loc[(slice(None), slice(None), slice(None), idx), 'count'], quantiles)
 
-    population_df = pd.read_csv("mainApp/static/data/zcta_county_weights.csv")
+    population_df = pd.read_csv(main_dir+"/static/data/zcta_county_weights.csv")
     zcta_population = population_df.groupby(['GEOID_ZCTA5_20']).max()['ZCTA_POP']
-    zcta_main_county_df = pd.read_json("mainApp/static/data/zcta_county_crosswalk.json", typ='series')
+    zcta_main_county_df = pd.read_json(main_dir+"/static/data/zcta_county_crosswalk.json", typ='series')
     zcta_counties_df = df_multi.groupby(['zcta', 'county']).max().index.to_frame(index=False).groupby(['zcta']).apply(lambda x: list(x.county))
     zcta_stats = pd.concat([zcta_population, zcta_main_county_df, zcta_counties_df], axis=1).rename({0: 'main-county', 1: 'counties'}, axis=1)
     zcta_stats.index.set_names(['zcta'], inplace=True)

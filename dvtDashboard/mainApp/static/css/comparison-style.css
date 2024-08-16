@@ -1,8 +1,10 @@
 #hidden-comparison-maps > * {
+    /* Container for the hidden disease maps */
     display: none
 }
 
 #visible-comparison-maps {
+    /* Container for the visible disease maps */
     display: flex;
     flex-wrap: wrap;
     justify-content: space-around;
@@ -10,11 +12,16 @@
 }
 
 .comparison-container {
+    /* Div that holds the map SVG */
+    /* TODO: make this variable so the maps grow and shrink depending on how many are visualized
+        This may only be relevant for when there's one map
+    */
     width: 45%;
     height: 45%;
 }
 
 .comparison-svg {
+    /* Map svg */
     width: 100%;
     height: 100%;
 }

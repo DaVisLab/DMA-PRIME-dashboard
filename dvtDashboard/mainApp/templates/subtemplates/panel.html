@@ -1,16 +1,24 @@
+<!-- base template for page panels -->
+
+<!-- Adding navigation tab -->
 <sl-tab id="{{panel.name}}-tab" slot="nav" panel="{{panel.name}}" {% if panel.active %}active{% endif %}>
     {{panel.displayName}}
 </sl-tab>
+
+<!-- Adding panel corresponding to tab -->
 <sl-tab-panel name="{{panel.name}}" id="{{panel.name}}-panel">
+    <!-- Splitting panel into a sidebar and content with button to open/close sidebar  -->
     <sl-split-panel position="20" disabled id="{{panel.name}}-main-content" class="fill-height">
         <!-- Line w/ button to resize the options panel and open/close it -->
-        <!-- <div slot="divider" id="{{panel.name}}-content-divider" class="content-divider"> -->
-            <sl-icon-button slot="divider" name="chevron-compact-left" id="hide-{{panel.name}}-options-button" class="hide-options-button"></sl-icon-button>
-        <!-- </div> -->
+        <sl-icon-button slot="divider" name="chevron-compact-left" id="hide-{{panel.name}}-sidebar-button" class="hide-sidebar-button"></sl-icon-button>
+    
+        <!-- Sidebar -->
         <div slot="start" id="{{panel.name}}-sidebar" class="fill-height sidebar">
             {% block options %}
             {% endblock %}
         </div>
+
+        <!-- Content -->
         <div slot="end" id="{{panel.name}}-content" class="fill-height fill-width hide-overflow">
             {% block contents %}
 
@@ -20,13 +28,16 @@
 </sl-tab-panel>
 
 <script>
-    {{panel.name}}OptionsHider = document.getElementById("hide-{{panel.name}}-options-button")
-    {{panel.name}}OptionsOpen = true
+    // getting dom elements
+    {{panel.name}}SidebarHider = document.getElementById("hide-{{panel.name}}-sidebar-button")
     {{panel.name}}Panel = document.getElementById("{{panel.name}}-panel")
     {{panel.name}}MainContent = document.getElementById("{{panel.name}}-main-content")
 
+    {{panel.name}}SidebarOpen = true
+
     set{{panel.name}}Panel = function() {
-        if ({{panel.name}}OptionsOpen) {
+        // Making sure sidebar is a reasonable size
+        if ({{panel.name}}SidebarOpen) {
             if (document.body.clientWidth * 20 / 100 < 250) {
                 {{panel.name}}MainContent.setAttribute("position", 250 / document.body.clientWidth * 100)
             } else {
@@ -38,14 +49,15 @@
     }
     addEventListener("resize", set{{panel.name}}Panel)
 
-    {{panel.name}}OptionsHider.addEventListener("click", () => {
-        {{panel.name}}OptionsOpen = !{{panel.name}}OptionsOpen;
-        if ({{panel.name}}OptionsOpen) {
-            {{panel.name}}OptionsHider.name = "chevron-compact-left"
-            d3.select("#{{panel.name}}-sidebar").classed("hidden", false)
+    // Makes button to open/close sidebar funcitonal
+    {{panel.name}}SidebarHider.addEventListener("click", () => {
+        {{panel.name}}SidebarOpen = !{{panel.name}}SidebarOpen;
+        if ({{panel.name}}SidebarOpen) {
+            {{panel.name}}SidebarHider.name = "chevron-compact-left"
+            d3.select("#{{panel.name}}-sidebar").classed("hidden-children", false)
         } else {
-            {{panel.name}}OptionsHider.name = "chevron-compact-right"
-            d3.select("#{{panel.name}}-sidebar").classed("hidden", "true")
+            {{panel.name}}SidebarHider.name = "chevron-compact-right"
+            d3.select("#{{panel.name}}-sidebar").classed("hidden-children", "true")
         }
         set{{panel.name}}Panel()
     });

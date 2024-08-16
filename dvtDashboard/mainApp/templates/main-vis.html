@@ -46,12 +46,12 @@
 
 <!-- <script>
     addEventListener("load", () => {
-        // resizeMap();
+        // updateMap();
         displayMap().then(function() {
-            resizeMap()
+            updateMap()
             mapSVG.call(mapZoom)
             mapResizer.addEventListener("sl-resize", () => {
-                resizeMap()
+                updateMap()
             })
 
         Promise.all([displayAggregateChart(), displayDonut()]).then(() => {

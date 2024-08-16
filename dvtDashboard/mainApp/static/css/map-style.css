@@ -1,100 +1,87 @@
 
-#map-aggregation-vis {
-    width: 100%;
-    overflow: hidden;
-    padding: var(--sl-spacing-x-small);
-    display: flex;
-    flex-direction: column;
-}
-
-#map-aggregation-donut-svg {
-    aspect-ratio: 50/20;
-}
-#map-aggregation-svg {
-    aspect-ratio: 50/35;
-}
-
-#map-aggregation-graph-title {
-    margin: 0;
-    font-size: var(--sl-font-size-x-small);
-}
 
 #map-options-hospital-icons-toggle::part(control--checked) {
+    /* Hospital icons toggle color is grey */
     border-color: var(--sl-color-neutral-400);
     background-color: var(--sl-color-neutral-400);
 }
 
-#map-div {
-    position: relative;
-}
-
-path.county {
+path.map-county {
+    /* SC counties */
     stroke-width: 1;
     stroke: black;
-
+    fill: var(--sl-color-gray-300);
 }
 
-path.zcta {
+path.map-zcta {
+    /* ZCTA map items */
     stroke-width: 0.2;
     stroke: black;
     stroke-linejoin: round;
-
 }
 
-.legend-background {
+.map-legend-background {
+    /* legend background - applies to multiple legends (color & circle) */
     fill: var(--sl-color-neutral-50);
     fill-opacity: .5;
 }
 
-.legend>circle {
+/* legend components */
+.map-legend>circle {
+    /* hospitalization circle */
     fill: var(--sl-color-neutral-500);
     stroke: var(--sl-color-neutral-600);
     stroke-width: 3;
 }
 
-.legend>line {
+.map-legend>line {
+    /* lines connecting hospitalization circles to labels */
     stroke-width: 1.5;
     stroke: var(--sl-color-neutral-800);
 }
 
-.legend>text {
+.map-legend>text {
+    /* hospitalizaiton circles text */
     text-anchor: end;
     transform: scaleY(-1);
 }
 
-.legend>text,
+.map-legend>text,
 .tick>text {
+    /* both color legend and hospitalization circle text */
     font-size: var(--sl-font-size-x-small);
     fill: currentColor;
 }
 
-.legend.title {
+.map-legend.title {
+    /* titles for the legends */
     text-anchor: middle;
+    fill: currentColor;
+}
+
+#map-hospital-legend  text {
+    /* The hospitalization bubble legend title */
     transform: scaleY(-1);
-    fill: currentColor;
 }
 
-#map-color-legend-contents>text {
-    fill: currentColor;
-    text-anchor: middle;
-}
-
-.disease-bubble,
+/* .disease-bubble, /* no longer exists*/
 .hospital-bubble {
+    /* data bubbles (for individual */
     fill-opacity: .25;
     stroke-width: 3;
     stroke-opacity: .3;
 }
 
 #map-tooltip {
+    /* div containing the tooltip svg */
     position: absolute;
-    /* padding: .25em; */
     border-width: var(--sl-border-radius-small);
     border-style: solid;
     border-radius: .25em;
 }
 
 p.tooltip {
+    /* tooltip label */
     margin: 0;
     padding-top: var(--sl-spacing-x-small);
     text-align: center;
@@ -102,6 +89,7 @@ p.tooltip {
 }
 
 .tooltip.text {
+    /* tooltip svg text */
     margin: 0;
     padding: 0;
     font-size: var(--sl-font-size-x-small);
@@ -109,11 +97,13 @@ p.tooltip {
 }
 
 #tooltip-prediction-separator {
+    /* line indicating the difference between prediction and reality */
     stroke-width: 1;
     stroke: black;
 }
 
 #tooltip-prediction-highlighter {
+    /* grey rectangle that highlights the prediction in the tooltip */
     opacity: .25;
     fill: var(--sl-color-gray-600);
 }

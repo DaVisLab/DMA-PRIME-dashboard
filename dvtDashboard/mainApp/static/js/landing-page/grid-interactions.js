@@ -1,4 +1,5 @@
 gridAggregationSwitch.addEventListener("sl-change", (event) => {
+    // when disease aggregation switch is changed, update the visualization
     displayGridAggregateChart()
     updateCountyGraphs()
 
@@ -12,6 +13,7 @@ gridAggregationSwitch.addEventListener("sl-change", (event) => {
 })
 
 gridPopulationSwitch.addEventListener("sl-change", (event) => {
+    // when population aggregation switch is changed, update the visualization
     displayGridAggregateChart()
     updateCountyGraphs()
 })

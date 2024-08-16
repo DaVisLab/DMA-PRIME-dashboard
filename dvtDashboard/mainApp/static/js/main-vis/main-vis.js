@@ -71,7 +71,7 @@ function displayMap(mapType) {
     
 }
 
-function resizeMap(mapType) {
+function updateMap(mapType) {
     mapJSON = determineMap(mapType)
     var dimensions = ({
         width: width, 

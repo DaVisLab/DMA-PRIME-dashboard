@@ -1,8 +1,4 @@
-p,
-text {
-  font-family: var(--sl-font-sans);
-  margin: 0;
-}
+/* Useful class styling */
 
 .fill-height {
   height: 100%;
@@ -31,41 +27,54 @@ text {
   justify-self: center;
 }
 
+/* Specifics */
+
+p,
+text {
+  /* Set font family for entire website */
+  font-family: var(--sl-font-sans);
+  margin: 0;
+}
+
 sl-tab-group,
 sl-tab-group::part(base),
 sl-tab-group::part(body),
 sl-tab-panel,
 sl-tab-panel::part(base),
 sl-tab-panel::part(body) {
+  /* Ensuring entire panel is full height (panel is the actual content below the nav bar) */
   height: 100%;
 }
 
 sl-tab-panel::part(base) {
+  /* Removing padding from panel (it was 1rem on top and bottom) */
   padding: 0;
 }
 
 #prediction-modelling-button-link {
+  /* Styling for link to the prediction modelling part of the site
+    The link is floating on the right side of the navbar
+  */
   margin: auto var(--sl-spacing-small) auto auto;
   display: block;
 }
 
 .sidebar {
+  /* This is the lefthand sidebar
+    Differs from sidebar container because it is a part of the panel template as opposed to the panel-instance 
+  */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
-.options-header {
-  font-size: var(--sl-font-size-large);
-  margin-top: 0;
-  margin-bottom: .5rem;
-}
-
 .options-divider {
+  /* Horizontal content divider for the options in the sidebar */
   --spacing: 0;
 }
 
 .sidebar-container {
+  /* this contains all of the sidebar content (options and the aggregate graphs) and resides within the .sidebar*/
   height: max-content;
   overflow-wrap: normal;
   overflow-y: auto;
@@ -74,14 +83,46 @@ sl-tab-panel::part(base) {
   padding: var(--sl-spacing-small);
 }
 
-.hidden > * {
-  display: none;
-}
-
-.hide-options-button {
+.hide-sidebar-button {
+  /* The button that opens/closes the sidebar */
   font-size: 2rem;
   background-color: var(--sl-color-neutral-200);
 }
+
+.hidden-children > * {
+  /* Mainly used for the sidebar when closed */
+  display: none;
+}
+
+.aggregation-vis {
+  width: 100%;
+  overflow: hidden;
+  padding: var(--sl-spacing-x-small);
+  display: flex;
+  flex-direction: column;
+}
+
+svg.aggregation-donut {
+  aspect-ratio: 50/20;
+}
+
+.aggregation-svg {
+  aspect-ratio: 50/35;
+}
+
+.aggregation-graph-title {
+  margin: 0;
+  font-size: var(--sl-font-size-x-small);
+}
+
+/* Graveyard */
+/* .options-header { This is not in use anymore, but may be in the future?
+  font-size: var(--sl-font-size-large);
+  margin-top: 0;
+  margin-bottom: .5rem;
+} */
+
+
 
 /* The following is from  https://dev.to/lennythedev/css-gotcha-how-to-fill-page-with-a-div-270j*/
 /* override browser default */

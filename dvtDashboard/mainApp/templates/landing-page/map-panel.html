@@ -22,18 +22,11 @@
   <div id="map-options-hospitalizations-branch" class="map-options">
 
   </div>
-  <!-- <sl-tree class="options-div">
-    <sl-tree-item id="map-options-hospitalizations-branch" expanded>
-      <sl-switch id="map-options-hospitalizations-toggle" checked>
-        <p class="options-header">Hospitalizations</p>
-      </sl-switch>
-      <sl-tree-item>Monthly count of hospitalizations due to the below diseases.</sl-tree-item>
-    </sl-tree-item>
-    <sl-tree-item><sl-checkbox id="map-options-hospital-icons-toggle" checked>Hospital Icons</sl-checkbox></sl-tree-item>
-  </sl-tree> -->
 </div>
-<div class="options-div" id="map-aggregation-vis">
-  <svg id="map-aggregation-donut-svg" class="fill-width">
+
+<!-- Aggregation visualization -->
+<div class="options-div" id="{{panel.name}}-aggregation-vis" class="aggregation-vis">
+  <svg id="{{panel.name}}-aggregation-donut-svg" class="fill-width aggregation-donut">
     <defs>
       <pattern id="nan-pattern"
           width="2.5%" height="2.5%"
@@ -45,11 +38,10 @@
         <rect x="-100%" y="-100%" width="200%" height="200%" fill="url(#nan-pattern)" />
       </mask>
     </defs>
-    <g id="map-aggregation-donut"></g>
-    <!-- <rect style="width: 100%; height: 100%;"></rect> -->
+    <g id="{{panel.name}}-aggregation-donut"></g>
   </svg>
-  <sl-resize-observer id="map-aggregation-resizer">
-    <svg id="map-aggregation-svg" class="fill-width">
+  <sl-resize-observer id="{{panel.name}}-aggregation-resizer">
+    <svg id="{{panel.name}}-aggregation-svg" class="fill-width">
 
     </svg>
   </sl-resize-observer>
@@ -83,41 +75,39 @@
   var resetButton = document.getElementById("map-reset-button")
   var mapAggregationSwitch = document.getElementById("map-aggregation-switch")
   var mapPopulationSwitch = document.getElementById("map-population-switch")
-  // var hospitalizationsToggle = document.getElementById("map-options-hospitalizations-toggle")
   var hospitalIconsToggle = document.getElementById("map-options-hospital-icons-toggle")
 
-  // visualization elements
+  // aggregation visualization elements
   var jsmapAggregationDonutSvg = document.getElementById("map-aggregation-donut-svg")
-  var mapAggregationDonutSvg = d3.select("#map-aggregation-donut-svg")
-  var mapAggregationDonut = d3.select("#map-aggregation-donut")
-  var jsmapAggregationSvg = document.getElementById("map-aggregation-svg")
+  var mapAggregationDonutGroup = d3.select("#map-aggregation-donut")
   var mapAggregationSvg = d3.select("#map-aggregation-svg")
-  var jsmapSVG = document.getElementById("map-svg")
+
+  // content visualization elements
   var mapSVG = d3.select("#map-svg")
   var mapTooltip = document.getElementById("map-tooltip")
 
-  var countiesGroup = d3.select("#map-counties")
-
-  var width = jsmapSVG.width.baseVal.value
-  var height = jsmapSVG.height.baseVal.value
-
-  var mapProjection = null
-  var mapData = null
+  // map visualization variables
+  var width = mapDiv.clientWidth
+  var height = mapDiv.clientHeight
   var zoom = 1
   var xSkew = 0
   var ySkew = 0
+  var focusCounty = null
 
-  var heatmapColorMap = null
-  var hospitalRadiusMap = null
-
+  // visualization data
+  var mapData = null
   var diseaseStats = null
   var diseaseMetadata = null
   var hospitalStats = null
   var hospitalMetadata = null
 
-  var focusCounty = null
+  // visualization functions (d3)
+  var mapProjection = null
+  var choroplethColorMap = null
+  var hospitalRadiusMap = null
 
   function createHospitalCheck(disease, color) {
+    // creates checks corresponding to each disease hospitalization data
     check = d3.select(hospitalizationsBranch)
       .append("sl-checkbox")
       .attr("id", "hospital-" + disease + "-check")
@@ -144,6 +134,7 @@
       }
     })
     styleSheet.insertRule(
+      // colors checks according to disease
       "#hospital-" + disease + `-check::part(control--checked)  {
             border-color: `+ color + `;
             background-color: `+ color + `;
@@ -151,19 +142,28 @@
       `)
   }
 
-  function getVisibleHospitalDiseases() {
-    diseases = []
-    d3.selectAll(".hospital-check").each(function(d){
-        if (this.checked) {
-            diseases.push(this.getAttribute("disease"))
-        }
-    })
-    return diseases
+  async function displayMapAggregateChart() {
+    displayAggregateChart(
+        "map",
+        mapAggregationSvg,
+        mapAggregationSwitch.value == "aggregated",
+        mapPopulationSwitch.value != "total",
+        getVisibleDiseases("hospital")
+    )
   }
+
+  async function displayMapDonut() {
+      displayDonut(
+          "map",
+          jsmapAggregationDonutSvg,
+          mapAggregationDonutGroup
+      )
+  }
+
+
   set{{panel.name}}Panel()
 </script>
 
-<script src="{{ url_for('static', filename='js/landing-page/map-aggregation.js') }}"></script>
 <script src="{{ url_for('static', filename='js/landing-page/map.js') }}"></script>
 <script src="{{ url_for('static', filename='js/landing-page/map-interactions.js') }}"></script>
 

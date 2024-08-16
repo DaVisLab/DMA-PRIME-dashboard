@@ -1,7 +1,7 @@
 {% extends "subtemplates/panel.html" %}
 
 {% block options %}
-<div id="grid-options" class="pansidebarel-container">
+<div id="grid-options" class="sidebar-container">
   <sl-radio-group value="aggregated" id="grid-aggregation-switch" class="center-self" size="small">
     <sl-radio-button pill value="aggregated">Aggregated</sl-radio-button>
     <sl-radio-button pill value="individual">Individual</sl-radio-button>
@@ -14,15 +14,17 @@
   <p id="grid-summary">
     Monthly count of hospitalizations due to covid-19, influenza, and respiratory syncytial virus (RSV).
     <br/>
-    Hospitalization cases are aggregated by county.
+    Hospitalization cases are aggregated by zcta.
   </p>
   <div id="grid-options-hospitalizations-branch">
 
   </div>
 
-  </div>
-  <div class="options-div" id="grid-aggregation-vis">
-  <svg id="grid-aggregation-donut-svg" class="fill-width">
+</div>
+
+<!-- Aggregation visualization -->
+<div class="options-div" id="{{panel.name}}-aggregation-vis" class="aggregation-vis">
+  <svg id="{{panel.name}}-aggregation-donut-svg" class="fill-width aggregation-donut">
     <defs>
       <pattern id="nan-pattern"
           width="2.5%" height="2.5%"
@@ -34,11 +36,10 @@
         <rect x="-100%" y="-100%" width="200%" height="200%" fill="url(#nan-pattern)" />
       </mask>
     </defs>
-    <g id="grid-aggregation-donut"></g>
-    <!-- <rect style="width: 100%; height: 100%;"></rect> -->
+    <g id="{{panel.name}}-aggregation-donut"></g>
   </svg>
-  <sl-resize-observer id="grid-aggregation-resizer">
-    <svg id="grid-aggregation-svg" class="fill-width">
+  <sl-resize-observer id="{{panel.name}}-aggregation-resizer">
+    <svg id="{{panel.name}}-aggregation-svg" class="fill-width aggregation-svg">
 
     </svg>
   </sl-resize-observer>
@@ -46,33 +47,31 @@
 {% endblock %}
 
 {% block contents %}
+<!-- TODO: make a legend -->
 <sl-resize-observer id="grid-container-resizer">
   <div id="grid-container"></div>
 </sl-resize-observer>
-
-<!-- <div id="legend">
-  <script src="script.js"></script>
-</div> -->
 {% endblock %}
 
 {% block scripts %}
 <script>
+  // containing elements
+  var gridContainer = document.getElementById("grid-container")
   var gridContainerResizer = document.getElementById("grid-container-resizer")
   var gridAggregationResizer = document.getElementById("grid-aggregation-resizer")
-
-  var gridContainer = document.getElementById("grid-container")
   var gridOptionsHospitalizationsBranch = document.getElementById("grid-options-hospitalizations-branch")
 
+  // interactive elements
   var gridPopulationSwitch = document.getElementById("grid-population-switch")
   var gridAggregationSwitch = document.getElementById("grid-aggregation-switch")
 
+  // aggregation visualization elements
   var jsgridAggregationDonutSvg = document.getElementById("grid-aggregation-donut-svg")
-  var gridAggregationDonutSvg = d3.select("#grid-aggregation-donut-svg")
-  var gridAggregationDonut = d3.select("#grid-aggregation-donut")
-  var jsgridAggregationSvg = document.getElementById("grid-aggregation-svg")
+  var gridAggregationDonutGroup = d3.select("#grid-aggregation-donut")
   var gridAggregationSvg = d3.select("#grid-aggregation-svg")
 
   function createGridCheck(disease, color) {
+    // creates checks corresponding to each disease hospitalization data
     check = d3.select(gridOptionsHospitalizationsBranch)
       .append("sl-checkbox")
       .attr("id", "grid-" + disease + "-check")
@@ -88,26 +87,35 @@
     })
     
     styleSheet.insertRule(
+      // colors checks according to disease
       `#grid-${disease}-check::part(control--checked)  {
             border-color: ${color};
             background-color: ${color};}`
       )
   }
 
-  function getVisibleGridDiseases() {
-    diseases = []
-    d3.selectAll(".grid-check").each(function(d){
-        if (this.checked) {
-            diseases.push(this.getAttribute("disease"))
-        }
-    })
-    return diseases
+  async function displayGridAggregateChart() {
+    displayAggregateChart(
+        "grid",
+        gridAggregationSvg,
+        gridAggregationSwitch.value == "aggregated",
+        gridPopulationSwitch.value != "total",
+        getVisibleDiseases("grid")
+    )
   }
+
+  async function displayGridDonut() {
+      displayDonut(
+          "grid",
+          jsgridAggregationDonutSvg,
+          gridAggregationDonutGroup
+      )
+  }
+
 
   set{{panel.name}}Panel()
 </script>
 
 <script src="{{ url_for('static', filename='js/landing-page/grid.js') }}"></script>
-<script src="{{ url_for('static', filename='js/landing-page/grid-aggregation.js') }}"></script>
 <script src="{{ url_for('static', filename='js/landing-page/grid-interactions.js') }}"></script>
 {% endblock %}

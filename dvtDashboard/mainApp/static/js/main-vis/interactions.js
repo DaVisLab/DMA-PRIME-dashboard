@@ -63,7 +63,7 @@ timeSlider.tooltipFormatter = (t) => {
 // main visualization visual functionality
 {
 mainVisResizer.addEventListener("sl-resize", () => {
-    resizeMap(mapType)
+    updateMap(mapType)
 })
 
 function determineMap(mapType) {

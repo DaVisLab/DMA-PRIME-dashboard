@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}DMA-PRIME{% endblock %}
 {% block style %}
+<!-- Linking stylesheets -->
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/landing-style.css') }}" />
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/map-style.css') }}" />
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/grid-style.css') }}" />
@@ -8,15 +9,21 @@
 {% endblock %}
 
 {% block headScripts %}
+<!-- Adding datetime package timejs (allows timezone date instantiation) -->
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
 
 <script>
+    // Ensuring the timejs additional plugins are linked
     dayjs.extend(window.dayjs_plugin_utc)
     dayjs.extend(window.dayjs_plugin_timezone)
     dayjs.extend(window.dayjs_plugin_customParseFormat)
+
+    // A value... I forget where I got it from - I think the US census
+    // TODO: Find a better place to put this value? maybe script.js?
+    // TODO: Find source for value
     scPopulation = 5118425
 </script>
 
@@ -25,6 +32,7 @@
 {% endblock %}
 
 {% block linkout %}
+<!-- Link to prediction modelling/model exploration page -->
 <sl-button slot="nav" id="prediction-modelling-button-link" href="{{ url_for('modelExploration') }}" target="_blank"
     variant="text">Prediction Modelling <sl-icon name="box-arrow-up-right"></sl-icon></sl-button>
 {% endblock %}
@@ -32,15 +40,18 @@
 {% block bodyScripts %}
 
 <script>
+
     addEventListener("load", () => {
-        // resizeMap();
+        // display map for map panel, then resize
         displayMap().then(function() {
-            resizeMap()
+            updateMap()
             mapSVG.call(mapZoom)
             mapResizer.addEventListener("sl-resize", () => {
-                resizeMap()
+                updateMap()
             })
 
+
+        // Display aggregate visualizations for map
             Promise.all([displayMapAggregateChart(), displayMapDonut()]).then(() => {
                 mapAggregationResizer.addEventListener("sl-resize", () => {
                     displayMapAggregateChart()
@@ -49,11 +60,13 @@
             })
         })
         
+        // Create grid visualization
         initialVisualisation() 
         gridContainerResizer.addEventListener("sl-resize", () => {
             updateCountyGraphs()
         })
         
+        // Display aggregate visualizations for grid
         Promise.all([displayGridAggregateChart(), displayGridDonut()]).then(() => {
             gridAggregationResizer.addEventListener("sl-resize", () => {
                 displayGridAggregateChart()
@@ -61,19 +74,17 @@
             })        
         })
 
-        comparisonInitialVisualization()
-        Object.entries(comparisonResizers).forEach(function(d) {
-            d[1].addEventListener("sl-resize", resizeComparisonMaps)
-        })
+        // Create 4 map comparison visualization
+        // comparisonInitialVisualization()
 
-        // styleSheet.insertRule(`
-        //   #counties>path, #zctas>path {
-        //     stroke: ${getComputedStyle(document.getElementsByClassName("options-header")[0]).getPropertyValue("color")}      
-        //   } 
-        // `)
+        // Display aggregate visualizations for comparison
+        // Object.entries(comparisonResizers).forEach(function(d) {
+        //     d[1].addEventListener("sl-resize", resizeComparisonMaps)
+        // })
 
     });
 
+    // Link the DMA-PRIME tab to map panel
     var navBar = document.getElementById("nav-bar")
     navBar.addEventListener("sl-tab-show", (event) => {
         if (event.detail.name == "main") {
