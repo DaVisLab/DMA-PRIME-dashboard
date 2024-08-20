@@ -105,7 +105,7 @@ function zoomToCounty(zcta, data) {
             resetButton.click()
             focusCounty = null
             d3.select(mapTooltip)
-                .style("opacity", 0)
+                .style("display", "none")
                 .style("z-index", -1)
         } else {
             focusCounty = countyName
@@ -189,7 +189,7 @@ function hospitalTooltip(element) {
 
     var tooltipWidth = 200
     var tooltipHeight = 130
-    d3.select(mapTooltip).style("opacity", 0).style("z-index", -1)
+    d3.select(mapTooltip).style("display", "none").style("z-index", -1)
     
     element.on("pointermove", function(e) {
         // move tooltip on pointer move
@@ -208,7 +208,7 @@ function hospitalTooltip(element) {
     element.on("pointerleave", function(e) {
         // hide tooltip on pointer leave
         d3.select(mapTooltip)
-            .style("opacity", 0)
+            .style("display", none)
             .style("z-index", -1)
     })
 
@@ -225,7 +225,7 @@ function hospitalTooltip(element) {
 
         // make tooltip visible and render on top
         ttp = d3.select(mapTooltip)
-        ttp.style("opacity", 1).style("z-index", 1)
+        ttp.style("display", "block").style("z-index", 1)
         ttpSVG = ttp.select("#map-tooltip-svg")
             .attr("height", tooltipHeight)
             .attr("width", tooltipWidth)

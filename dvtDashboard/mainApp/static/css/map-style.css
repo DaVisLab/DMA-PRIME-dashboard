@@ -75,6 +75,7 @@ path.map-zcta {
 #map-tooltip {
     /* div containing the tooltip svg */
     position: absolute;
+    display: none;
     border-width: var(--sl-border-radius-small);
     border-style: solid;
     border-radius: .25em;
