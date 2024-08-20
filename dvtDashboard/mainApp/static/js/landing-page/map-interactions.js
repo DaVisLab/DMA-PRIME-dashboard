@@ -88,7 +88,9 @@ mapSVG.call(mapZoom)
 
 resetButton.addEventListener("click", () => {
     // reset map's zoom and pan
+    focusCounty = null
     mapSVG.transition().duration(750).call(mapZoom.transform, d3.zoomIdentity.translate(0, 0).scale(1))
+    reset()
 })
 
 // allow click on zcta region to zoom to corresponding county
@@ -306,12 +308,12 @@ function hospitalTooltip(element) {
     
                     // marks each datapoint on historical line
                     historicalGroup.selectAll("circle").data(data)
-                    .enter()
-                    .append("circle")
-                    .attr("r", 3)
-                    .attr("cx", (d) => xScale(d.date))
-                    .attr("cy", (d) => yScale(mapPopulationSwitch.value == "total" ? d.count : d.count/result.metadata.population))
-                    .attr("fill", diseaseColorMap(disease))
+                        .enter()
+                        .append("circle")
+                        .attr("r", 3)
+                        .attr("cx", (d) => xScale(d.date))
+                        .attr("cy", (d) => yScale(mapPopulationSwitch.value == "total" ? d.count : d.count/result.metadata.population))
+                        .attr("fill", diseaseColorMap(disease))
 
                     predictiveData = [{
                         "date": dayjs.tz(hospitalMetadata.date[0], "YYYY-MM", "America/New_York").toDate(), 
