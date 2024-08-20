@@ -108,7 +108,7 @@ function createBaseObjects() {
         svg
             .append("text")
             .attr("class", "county-label")
-            .attr("x", 0.5*em)
+            .attr("x", 0.25*em)
             .attr("y", em)
             .text(countyName)
             .style("fill", "black")
@@ -117,7 +117,7 @@ function createBaseObjects() {
         svg
             .append("text")
             .attr("class", "totnumb")
-            .attr("x", 0.5*em)
+            .attr("x", 0.25*em)
             .attr("y", 2*em) // Adjust the y-coordinate to position it below the existing text
             .style("font-size", "var(--sl-font-size-x-small)")
             .style("fill", "black")
@@ -181,6 +181,9 @@ function updateCountyGraphs() {
             .scaleTime()
             .domain([parseDate(result.stats['min-date']), parseDate(result.stats['max-date'])])
             .range([0, gridItemWidth]);
+
+        gridStartDate.html(d3.utcFormat("%B %Y")(parseDate(result.stats['min-date'])))
+        gridEndDate.html(d3.utcFormat("%B %Y")(parseDate(result.stats['max-date'])))
 
         countyPOPCsvMapping.forEach(({ county, countyPop }) => {
             // update each county grid visualization

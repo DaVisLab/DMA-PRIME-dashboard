@@ -12,9 +12,9 @@
   </sl-radio-group>
 
   <p id="grid-summary">
-    Monthly count of hospitalizations due to covid-19, influenza, and respiratory syncytial virus (RSV).
+    Monthly count of hospitalizations due to covid-19, influenza, and respiratory syncytial virus (RSV) from <text id="grid-start-date"></text> to <text id="grid-end-date"></text>.
     <br/>
-    Hospitalization cases are aggregated by zcta.
+    Hospitalization cases are aggregated by county.
   </p>
   <div id="grid-options-hospitalizations-branch">
 
@@ -69,6 +69,10 @@
   var jsgridAggregationDonutSvg = document.getElementById("grid-aggregation-donut-svg")
   var gridAggregationDonutGroup = d3.select("#grid-aggregation-donut")
   var gridAggregationSvg = d3.select("#grid-aggregation-svg")
+
+  // Text elements
+  var gridStartDate = d3.select("#grid-start-date")
+  var gridEndDate = d3.select("#grid-end-date")
 
   function createGridCheck(disease, color) {
     // creates checks corresponding to each disease hospitalization data
