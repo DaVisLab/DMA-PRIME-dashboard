@@ -129,6 +129,7 @@ function displayMap() {
                     .append("circle")
                     .attr("class", `hospital-bubble ${element.disease} ${element.region}`)
                     .attr("bubble-type", "hospital")
+                    .attr("main-county", d => result.metadata["zcta-main-county"][d.region.substring(1)])
                     .style("fill", diseaseColorMap(element.disease))
                     .style("stroke", diseaseColorMap(element.disease))
                     .style("opacity", 0)
@@ -238,7 +239,7 @@ async function updateMap() {
         pathGenerator = d3.geoPath(mapProjection)
     }
 
-    function updateMap(value) {
+    function updateMap(value) {try {
         // actually update map visualization
         mapSVG.selectAll(".map-county") //redo counties
             .attr("d", (d) => pathGenerator(d))
@@ -342,11 +343,13 @@ async function updateMap() {
             .attr("y", legendBBox.y)
             .attr("height", legendBBox.height + 0.5*em)
             .attr("width", legendBBox.width + em)
+
+        } catch (error) {
+            console.log("something bad happened during map resizing", error)
+            setTimeout(updateMap, 100)
+        }
     }
 
-    setup().then(updateMap).catch((error) => {
-        console.log("something bad happened during map resizing", error)
-        setTimeout(updateMap, 100)
-    })
+    setup().then(updateMap)
 }
 

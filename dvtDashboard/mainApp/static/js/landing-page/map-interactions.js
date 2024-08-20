@@ -136,7 +136,7 @@ function highlightCounty(county) {
             mapSVG.selectAll(".hospital-bubble").transition().duration(750)
                 .style("fill", "var(--sl-color-gray-300)")
                 .style("stroke", "var(--sl-color-gray-300)")
-            mapSVG.selectAll(`.hospital-bubble[${focusCounty}=true]`)
+            mapSVG.selectAll(`.hospital-bubble[main-county=${focusCounty}]`)
                 .transition().duration(750)
                 .style("opacity", 1)
                 .style("fill", (d) => diseaseColorMap(d.disease))
