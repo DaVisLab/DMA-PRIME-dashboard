@@ -149,6 +149,9 @@ function getClickedCounty(event, zcta) {
     // approximate if you click on a zcta, which county is selected
     counties =  zcta.datum().properties['counties']
 
+    x = event.pageX - mapDiv.offsetLeft
+    y = event.pageY - mapDiv.offsetTop
+    
     numPointSamples = 100
     county = counties ? counties.filter((countyName) => {
         path = document.getElementById(`map-${countyName}`)
@@ -158,7 +161,7 @@ function getClickedCounty(event, zcta) {
             point = path.getPointAtLength(i/(numPointSamples-1) * len)
             points.push([point.x, point.y])
         }
-        return d3.polygonContains(points, [(event.layerX-xSkew)/zoom, (event.layerY-ySkew)/zoom])
+        return d3.polygonContains(points, [(x-xSkew)/zoom, (y-ySkew)/zoom])
     })[0] : zcta.attr("county")
 
     return county

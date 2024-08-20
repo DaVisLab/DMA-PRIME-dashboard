@@ -168,8 +168,8 @@ function updateCountyGraphs() {
         gridHeight = gridContainer.clientHeight
         gridWidth = gridContainer.clientWidth
 
-        gridItemWidth = (gridWidth/8) - 1
-        gridItemHeight = (gridHeight/6) - 1  
+        gridItemWidth = Math.max((gridWidth/8) - 1, 0)
+        gridItemHeight = Math.max((gridHeight/6) - 1, 0)
         
         data = result.data
         
