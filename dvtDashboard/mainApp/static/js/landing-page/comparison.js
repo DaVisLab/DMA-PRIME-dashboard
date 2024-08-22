@@ -44,17 +44,20 @@ function comparisonInitialVisualization() {
                 
                     svg.append("g")
                         .attr("id", `comparison-${disease}-zctas`)
-                        .style("pointer-events", "none")
+                        .attr("class", "comparison-zctas")
                         .selectAll("path")
                             .data(mapdata.features)
                             .enter()
                             .append("path")
-                            .attr("class", "zcta")
+                            .attr("class", d => `comparison-zcta _${d.properties.ZCTA5CE20}`)
                             .attr("id", d => disease + "-map-" + d.properties.ZCTA5CE20)
                             .attr("d", d => comparisonPathGenerator(d))
                             .attr("disease", disease)
                             .attr("count", 0)
                             .style("fill", diseaseColor)
+                            .style("stroke-width", 0)
+                            .style("stroke", diseaseColor)
+                            .each(function(d) {setupComparisonTooltip(d3.select(this))})
                 })
 
             data.forEach(d => {

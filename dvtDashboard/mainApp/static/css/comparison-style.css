@@ -16,3 +16,10 @@
     width: 100%;
     height: 100%;
 }
+
+.comparison-tooltip-text {
+    visibility: collapse;
+    fill: var(--sl-color-neutral-500);
+    font-size: var(--sl-font-size-small);
+    font-weight: bold;
+}

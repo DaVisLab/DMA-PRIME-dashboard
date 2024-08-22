@@ -49,6 +49,7 @@
   <div id="visible-comparison-maps" class="fill-height fill-width">
     <div id="comparison-aggregated-container" class="comparison-container">
         <svg id="comparison-aggregated-svg" class="comparison-svg" disease="aggregated">
+          <text id="comparison-aggregated-tooltip-text" class="comparison-tooltip-text"></text>
         </svg>
     </div>
   </div>
@@ -118,6 +119,9 @@
               .attr("id", `comparison-${entry[0]}-svg`)
               .attr("class", "comparison-svg")
               .attr("disease", entry[0])
+          .append("text")
+              .attr("id", `comparison-${entry[0]}-tooltip-text`)
+              .attr("class", "comparison-tooltip-text")
   })
 
   function createComparisonCheck(disease, color) {

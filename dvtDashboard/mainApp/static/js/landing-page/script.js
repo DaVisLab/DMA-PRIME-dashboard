@@ -25,6 +25,13 @@ function fixName(name) {
     return newName
 }
 
+function fixCoord(coord) {
+    while (coord[1] == "0") {
+        coord = coord[0] + coord.slice(2)
+    }
+    return parseFloat(coord)
+}
+
 function formatTuple(string) {
     // Remove (, ), ', and space and split the resulting string one , to turn "(item, item, item)" into [item, item, item]
     return string.replace(/[(' )]/g, "").split(",")
