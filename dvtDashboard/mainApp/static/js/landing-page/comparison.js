@@ -45,19 +45,46 @@ function comparisonInitialVisualization() {
                     svg.append("g")
                         .attr("id", `comparison-${disease}-zctas`)
                         .attr("class", "comparison-zctas")
-                        .selectAll("path")
+                        .selectAll("g")
                             .data(mapdata.features)
                             .enter()
-                            .append("path")
-                            .attr("class", d => `comparison-zcta _${d.properties.ZCTA5CE20}`)
-                            .attr("id", d => disease + "-map-" + d.properties.ZCTA5CE20)
-                            .attr("d", d => comparisonPathGenerator(d))
-                            .attr("disease", disease)
-                            .attr("count", 0)
-                            .style("fill", diseaseColor)
-                            .style("stroke-width", 0)
-                            .style("stroke", diseaseColor)
-                            .each(function(d) {setupComparisonTooltip(d3.select(this))})
+                            .append("g")
+                            .attr("id", d => `${disease}-map-${d.properties.ZCTA5CE20}-group`)
+                            .attr("class", d => `comparison-zcta-group _${d.properties.ZCTA5CE20}`)
+                            .each(function(d) {
+                                setupComparisonTooltip(this)
+
+                                zcta = d.properties.ZCTA5CE20
+                
+                                lon = fixCoord(d.properties.INTPTLON20)
+                                lat = fixCoord(d.properties.INTPTLAT20)
+                                coords = comparisonProjection([lon, lat])
+
+                                group = d3.select(this)
+                                group.append("path")
+                                    .attr("id", disease + "-map-" + zcta)
+                                    .attr("class", `comparison-zcta _${zcta}`)
+                                    .attr("d", comparisonPathGenerator(d))
+                                    .attr("disease", disease)
+                                    .attr("count", 0)
+                                    .style("fill", diseaseColor)
+                                    .style("stroke-width", 0)
+                                    .style("stroke", diseaseColor)
+                                    .datum(d)
+
+                                group.append("text")
+                                    .attr("id", `${disease}-map-${zcta}-text`)
+                                    .attr("class", "comparison-zcta-text")
+                                    .attr("text-anchor", "middle")
+                                    .attr("x", coords[0])
+                                    .attr("y", coords[1])
+                                    .style("visibility", "collapse")
+                                    .style("pointer-events", "none")
+                                    .text(zcta)
+                                    .datum({"lat": lat, "lon": lon})
+                            })
+                            
+
                 })
 
             data.forEach(d => {
@@ -72,9 +99,26 @@ function comparisonInitialVisualization() {
             })
 
             d3.selectAll(".comparison-svg").selectAll("path").each(function(d) {
-                item = d3.select(this)
+                zctaElement = d3.select(this)
+                zcta = zctaElement.datum().properties.ZCTA5CE20
 
-                item.style("fill", comparisonColormaps[item.attr("disease")](item.attr("count")))
+                lon = fixCoord(zctaElement.datum().properties.INTPTLON20)
+                lat = fixCoord(zctaElement.datum().properties.INTPTLAT20)
+                coords = comparisonProjection([lon, lat])
+
+                d3.select(this.parentNode)
+                    .append("text")
+                    .attr("id", `${zctaElement.attr("disease")}-map-${zcta}-text`)
+                    .attr("class", "comparison-zcta-text")
+                    .attr("text-anchor", "middle")
+                    .attr("x", coords[0])
+                    .attr("y", coords[1])
+                    .style("visibility", "collapse")
+                    .style("pointer-events", "none")
+                    .text(zcta)
+                    .datum({"lat": lat, "lon": lon})
+
+                zctaElement.style("fill", comparisonColormaps[zctaElement.attr("disease")](zctaElement.attr("count")))
             })
         
         })
@@ -107,6 +151,11 @@ function resizeComparisonMaps() {
 
         d3.select(visibleComparisonMaps).selectAll("path")
             .attr("d", d => comparisonPathGenerator(d))
+        
+        d3.select(visibleComparisonMaps).selectAll("text")
+            .attr("x", d => comparisonPathGenerator([d.lon, d.lat])[0])
+            .attr("x", d => comparisonPathGenerator([d.lon, d.lat])[1])
+
     })
     
 }

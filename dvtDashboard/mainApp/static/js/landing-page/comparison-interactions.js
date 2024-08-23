@@ -39,37 +39,27 @@ comparisonPopulationSwitch.addEventListener("sl-change", (event) => {
 
 function setupComparisonTooltip(element) {
 
-    element.on("pointerenter", function(e) {
-        zctaElement = d3.select(e.target)
+    element.addEventListener("pointerenter", function(e) {
+        zctaGroup = d3.select(e.target)
         zcta = zctaElement.datum().properties.ZCTA5CE20
-        
-        lon = fixCoord(zctaElement.datum().properties.INTPTLON20)
-        lat = fixCoord(zctaElement.datum().properties.INTPTLAT20)
-        coords = comparisonProjection([lon, lat])
 
-        d3.selectAll(`.comparison-zcta`)
+        zctaGroup.raise()
+
+        d3.selectAll(`.comparison-zcta-group:not(_${zcta})`).select("path")
             .style("stroke-width", 0)
+        d3.selectAll(`.comparison-zcta-group:not(_${zcta})`).select("text")
+            .style("visibility", "collapse")
 
-        d3.select(`#comparison-${zctaElement.attr("disease")}-tooltip-text`)
-            .attr("text-anchor", "middle")
-            .attr("x", coords[0])
-            .attr("y", coords[1])
-            .style("visibility", "visible")
-            .text(zcta)
-            .raise()
-
-        d3.selectAll(`.comparison-zcta._${zcta}`)
+        zctaGroup.select("path")
             .style("stroke-width", 3)
-            .raise()
+        zctaGroup.select("text")
+            .style("visibility", "visible")
+
     })
 
-    element.on("pointerleave", function(e) {
-        zctaElement = d3.select(e.target)
-        zcta = zctaElement.datum().properties.ZCTA5CE20
-
-        d3.selectAll(`.comparison-tooltip-text`)
+    element.addEventListener("pointerleave", function(e) {
+        d3.selectAll(".comparison-zcta-text")
             .style("visibility", "collapse")
-            .lower()
 
         d3.selectAll(`.comparison-zcta`)
             .style("stroke-width", 0)
