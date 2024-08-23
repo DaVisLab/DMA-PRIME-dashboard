@@ -1,6 +1,4 @@
 
-comparisonResizer.addEventListener("sl-resize", resizeComparisonMaps)
-
 comparisonPopulationSwitch.addEventListener("sl-change", (event) => {
     // when population aggregation switch is changed, update the visualization
     displayComparisonAggregateChart()
@@ -41,20 +39,20 @@ function setupComparisonTooltip(element) {
 
     element.addEventListener("pointerenter", function(e) {
         zctaGroup = d3.select(e.target)
-        zcta = zctaElement.datum().properties.ZCTA5CE20
+        zcta = zctaGroup.datum().properties.ZCTA5CE20
 
-        zctaGroup.raise()
+        groups = d3.selectAll(`.comparison-zcta-group._${zcta}`)
+        groups.raise()
 
-        d3.selectAll(`.comparison-zcta-group:not(_${zcta})`).select("path")
+        d3.selectAll(`:not(._${zcta}).comparison-zcta-group`).select("path")
             .style("stroke-width", 0)
-        d3.selectAll(`.comparison-zcta-group:not(_${zcta})`).select("text")
+        d3.selectAll(`:not(._${zcta}).comparison-zcta-group`).select("text")
             .style("visibility", "collapse")
 
-        zctaGroup.select("path")
+        groups.select("path")
             .style("stroke-width", 3)
-        zctaGroup.select("text")
+            zctaGroup.select("text")
             .style("visibility", "visible")
-
     })
 
     element.addEventListener("pointerleave", function(e) {

@@ -18,8 +18,29 @@
 }
 
 .comparison-zcta-text {
+    /* For tooltip - labels for zcta regions */
     visibility: collapse;
     fill: var(--sl-color-neutral-500);
     font-size: var(--sl-font-size-small);
     font-weight: bold;
+}
+
+.comparison-legend-background {
+    /* legend background */
+    fill: var(--sl-color-neutral-50);
+    fill-opacity: .5;
+}
+
+.comparison-legend>text,
+.tick>text {
+    /* both color legend and hospitalization circle text */
+    font-size: var(--sl-font-size-x-small);
+    fill: currentColor;
+}
+
+.comparison-legend.title {
+    /* titles for the legends */
+    text-anchor: middle;
+    font-size: var(--sl-font-size-small);
+    fill: currentColor;
 }
