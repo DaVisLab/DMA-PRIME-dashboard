@@ -277,6 +277,8 @@ def create_app(test_config=None):
                 return_data[county]['individual'].append({'disease': disease, 'data': json.loads(temp2.to_json(orient='table', index=True))['data']})
 
             aggregate = result.groupby(['date']).sum() / countyPop
+            # if aggregate.empty:
+            #     continue
             return_data[county]['aggregated'] = [{'disease': 'aggregated', 'data': json.loads(aggregate.to_json(orient='table', index=True))['data']}] 
             stats['county'][county]['max'] = aggregate.max().values[0].item()
             stats['county'][county]['aggregated'] = {'aggregated':{
@@ -343,8 +345,7 @@ def create_app(test_config=None):
                 predictive_return_data = predictive_result['data']
                 predictive_return_data.index = predictive_return_data.index.droplevel(0) # drop region
                 predictive_return_data.index = predictive_return_data.index.droplevel(0) # drop disease since we know what it is
-                print("r data ")
-                print(predictive_return_data.to_dict(orient='index'))  
+ 
                 p_mins.append(predictive_return_data['min_prediction'].min(axis=None))
                 p_maxs.append(predictive_return_data['max_prediction'].max(axis=None))
                 predictive_return_data_dict[disease] = predictive_return_data.to_dict(orient='index')
@@ -364,8 +365,6 @@ def create_app(test_config=None):
 
         p_min = min(p_mins)
         p_max = max(p_maxs)
-
-        print(predictive_return_data_dict)
 
         # return_stats_dict = {'min': min(historical_return_data.min(axis=None), predictive_return_data.min(axis=None)), 'max': max(historical_return_data.max(axis=None), predictive_return_data.max(axis=None))}
         return_stats_dict = {'min': min(historical_return_data.min(axis=None), p_min), 'max': max(historical_return_data.max(axis=None), p_max)}
@@ -446,10 +445,7 @@ def getZCTAHospitalPredictionData(region, disease, date):
             region = [region]
         for i in range(len(region)):
             region[i] = int(region[i])
-    print(region, disease, date)
     return_data = base_data.loc[(region, disease, date), ['prediction', 'max_prediction', 'min_prediction']] 
-    print("rd")
-    print(return_data)
 
     return_stats = {
         'prediction': {'min': 0, 'max': 0},
@@ -462,7 +458,6 @@ def getZCTAHospitalPredictionData(region, disease, date):
     return_data.index = returned_index
     metadata = {name: vals.to_list() for (name, vals) in zip(returned_index.names, returned_index.levels)}
 
-    print("success")
     return {'data': return_data, 'stats': return_stats, 'metadata': metadata}
 
 

@@ -321,11 +321,16 @@ function hospitalTooltip(element) {
 
                     predictiveData = [{
                         "date": dayjs.tz(hospitalMetadata.date[0], "YYYY-MM", "America/New_York").toDate(), 
-                        "count": values[hospitalMetadata.date[0]]}]
-                    Object.entries(result.data.predictive[disease]).forEach(function([date, count]) {
-                        date = dayjs.tz(date, "YYYY-MM", "America/New_York").toDate()
-                        predictiveData.push({"date": date, "count": count})
+                        "count": values[hospitalMetadata.date[0]],
+                        "min-prediction": values[hospitalMetadata.date[0]], 
+                        "max-prediction": values[hospitalMetadata.date[0]]}]
+                    Object.entries(result.data.predictive[disease]).forEach(function([date, prediction]) {
+                        date = dayjs.tz(date, "YYYY-MM-DD", "America/New_York").toDate()
+                        predictiveData.push({"date": date, "count": prediction.prediction, 
+                            "min-prediction": prediction.min_prediction, "max-prediction": prediction.max_prediction})
                     })
+
+                    console.log(predictiveData)
 
                     // draw predictive data line chart
                     predictiveGroup = diseaseGroup.append("g")
@@ -354,8 +359,8 @@ function hospitalTooltip(element) {
                         .attr("stroke", "none")
                         .attr("d", d3.area()
                             .x(function(d) { return xScale(d.date) })
-                            .y0(function(d, i) { return yScale(i == 0 ? d.count : d.count/1.25) })
-                            .y1(function(d, i) { return yScale(i == 0 ? d.count : d.count*1.25) })
+                            .y0(function(d, i) { return yScale(i == 0 ? d.count : d["min-prediction"]) })
+                            .y1(function(d, i) { return yScale(i == 0 ? d.count : d["max-prediction"]) })
                             .curve(d3.curveMonotoneX)
                         )
 
