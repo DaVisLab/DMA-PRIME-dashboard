@@ -23,7 +23,7 @@ real_dict = {
     'zcta': {'shape': {}, 'stats': None, 'data': None}, # zip code level data
     'county': {'shape': {}, 'stats': None, 'data': None}, # county level data
     'hospital': {'coordinates':{}, 'stats': None, 'usage': None}, # from individual hospitals
-    'hospital-zcta': {'stats': None, 'data': None, 'zcta-stats': None}, # from individual hospitals
+    'hospital-zcta': {'stats': None, 'data': None, 'zcta-stats': None, 'prediction': None, 'prediction-stats': None}, # from individual hospitals
 }
 
 def create_app(test_config=None):
@@ -309,6 +309,9 @@ def create_app(test_config=None):
         dates = pd.date_range(end=date, periods=12, freq='MS').strftime('%Y-%m').to_list()
 
         pred_dates = (pd.Timestamp(date) + pd.DateOffset(months=1)).strftime('%Y-%m')
+        
+        # TODO: TEMPORARY NOTES - make pred dates dynamic 
+        pred_dates = pd.date_range(pd.to_datetime("11/20/2023"), periods=5, freq='7D').strftime('%Y-%m-%d').to_list()
 
         try:
             historical_result = getZCTAHospitalData(variables['region-name'], variables['disease'], dates)
@@ -328,23 +331,44 @@ def create_app(test_config=None):
         for disease in historical_return_data.index.levels[0]:
             historical_return_data_dict[disease] = historical_return_data.xs(disease).groupby('date').sum().to_dict()
 
-        try:
-            predictive_result = getZCTAHospitalData(variables['region-name'], variables['disease'], pred_dates)
-        except KeyError:
-            temp_index = pd.MultiIndex.from_product(
-                [variables['region-name'], variables['disease'], ['temp'], pred_dates if isinstance(pred_dates, list) else [pred_dates]],
-                names=['zcta', 'disease', 'county', 'date'])
-            temp_df = pd.DataFrame(index=temp_index, columns=['count'])
-            temp_df.loc[(variables['region-name'], variables['disease'], slice(None), pred_dates)] = 0
-            predictive_result = {'data': temp_df}
-            predictive_result['metadata'] = {name: vals.to_list() for (name, vals) in zip(temp_index.names, temp_index.levels)}
-        predictive_return_data = predictive_result['data']['count']
-        predictive_return_data.index = predictive_return_data.index.droplevel(0)
         predictive_return_data_dict = {}
-        for disease in predictive_return_data.index.levels[0]:
-            predictive_return_data_dict[disease] = predictive_return_data.xs(disease).groupby('date').sum().to_dict()
+        
+        p_mins = []
+        p_maxs = []
+        for disease in variables['disease']:
+                
+            try:
+                # predictive_result = getZCTAHospitalData(variables['region-name'], variables['disease'], pred_dates)
+                predictive_result = getZCTAHospitalPredictionData(variables['region-name'], disease, pred_dates)
+                predictive_return_data = predictive_result['data']
+                predictive_return_data.index = predictive_return_data.index.droplevel(0) # drop region
+                predictive_return_data.index = predictive_return_data.index.droplevel(0) # drop disease since we know what it is
+                print("r data ")
+                print(predictive_return_data.to_dict(orient='index'))  
+                p_mins.append(predictive_return_data['min_prediction'].min(axis=None))
+                p_maxs.append(predictive_return_data['max_prediction'].max(axis=None))
+                predictive_return_data_dict[disease] = predictive_return_data.to_dict(orient='index')
+            except KeyError:
+                predictive_return_data_dict[disease] = []
+                p_mins.append(historical_return_data.min(axis=None))
+                p_maxs.append(historical_return_data.max(axis=None))
+                continue
 
-        return_stats_dict = {'min': min(historical_return_data.min(axis=None), predictive_return_data.min(axis=None)), 'max': max(historical_return_data.max(axis=None), predictive_return_data.max(axis=None))}
+            # predictive_return_data = predictive_result['data']['count']
+            # print(predictive_result['data'])
+            # predictive_return_data = predictive_result['data']['prediction', 'max_prediction', 'min_prediction']
+            # predictive_return_data.index = predictive_return_data.index.droplevel(0)
+            # predictive_return_data_dict = {}
+            # for disease in predictive_return_data.index.levels[0]:
+            #     predictive_return_data_dict[disease] = predictive_return_data.xs(disease).groupby('date').sum().to_dict()
+
+        p_min = min(p_mins)
+        p_max = max(p_maxs)
+
+        print(predictive_return_data_dict)
+
+        # return_stats_dict = {'min': min(historical_return_data.min(axis=None), predictive_return_data.min(axis=None)), 'max': max(historical_return_data.max(axis=None), predictive_return_data.max(axis=None))}
+        return_stats_dict = {'min': min(historical_return_data.min(axis=None), p_min), 'max': max(historical_return_data.max(axis=None), p_max)}
         metadata = historical_result['metadata']
         metadata['date'] = {'historical': historical_result['metadata']['date'], 'predictive': predictive_result['metadata']['date']}
         metadata['population'] = population
@@ -413,6 +437,34 @@ def getZCTAHospitalData(region, disease, date):
     return_data.index = returned_index
     metadata = {name: vals.to_list() for (name, vals) in zip(returned_index.names, returned_index.levels)}
     return {'data': return_data, 'stats': return_stats, 'metadata': metadata}
+
+def getZCTAHospitalPredictionData(region, disease, date): 
+    base_data = real_dict['hospital-zcta']['prediction']
+    base_stats = real_dict['hospital-zcta']['prediction-stats']
+    if not isinstance(region, slice):
+        if isinstance(region, str):
+            region = [region]
+        for i in range(len(region)):
+            region[i] = int(region[i])
+    print(region, disease, date)
+    return_data = base_data.loc[(region, disease, date), ['prediction', 'max_prediction', 'min_prediction']] 
+    print("rd")
+    print(return_data)
+
+    return_stats = {
+        'prediction': {'min': 0, 'max': 0},
+        'min_prediction': {'min': 0, 'max': 0},
+        'max_prediction': {'min': 0, 'max': 0},
+    }
+
+    # return_stats = base_stats.loc[date, :]
+    returned_index = return_data.index.remove_unused_levels().set_names('date', level=2).set_names('region', level=0)
+    return_data.index = returned_index
+    metadata = {name: vals.to_list() for (name, vals) in zip(returned_index.names, returned_index.levels)}
+
+    print("success")
+    return {'data': return_data, 'stats': return_stats, 'metadata': metadata}
+
 
 # data loading
 
@@ -511,11 +563,16 @@ def loadZCTAData2():
     # zcta,county,date,count,disease,days,INTPTLON,INTPTLAT,PARTIAL_POP,ZCTA_POP
 
     df_multi = pd.DataFrame()
+    pred_multi = pd.DataFrame()
 
     files = [
     main_dir+'/static/data/covid_hospital_zcta_new.csv', # 'mainApp/static/data/covid_hospital_zcta.csv',
     main_dir+'/static/data/influenza_hospital_zcta_new.csv', #'mainApp/static/data/flu_hospital_zcta.csv',
     main_dir+'/static/data/rsv_hospital_zcta_new.csv',
+    ]
+
+    pred_files = [
+        main_dir+'/static/data/covid_hospital_prediction_zcta.csv',
     ]
 
     for f_path in files:
@@ -525,6 +582,13 @@ def loadZCTAData2():
         df_multi = pd.concat([df_multi, temp_df])
     df_multi.sort_index(inplace=True)
 
+    for f_path in pred_files:
+        df = pd.read_csv(f_path)
+        value_columns = df.columns.difference(index_names)
+        temp_df = pd.pivot_table(df, values=value_columns, index=['zcta', 'disease', 'date'])
+        pred_multi = pd.concat([pred_multi, temp_df])
+    pred_multi.sort_index(inplace=True)
+
     # zcta stats
     columns=['min', 'q20', 'q25', 'q40', 'q50', 'q60', 'q75', 'q80', 'max']
     quantiles = [0, .2, .25, .4, .5, .6, .75, .8, 1]
@@ -533,7 +597,7 @@ def loadZCTAData2():
     stats_df = pd.DataFrame(columns=columns, index=dates)
     stats_df.sort_index(inplace=True)
     for idx in dates:    
-        stats_df.loc[idx, :] = np.nanquantile(df_multi.loc[(slice(None), slice(None), slice(None), idx), 'count'], quantiles)
+        stats_df.loc[idx, :] = np.nanquantile(df_multi.loc[(slice(None), slice(None), slice(None), idx), ['count']], quantiles)
 
     population_df = pd.read_csv(main_dir+"/static/data/zcta_county_weights.csv")
     zcta_population = population_df.groupby(['GEOID_ZCTA5_20']).max()['ZCTA_POP']
@@ -546,3 +610,6 @@ def loadZCTAData2():
     real_dict['hospital-zcta']['data'] = df_multi
     real_dict['hospital-zcta']['zcta-stats'] = zcta_stats
     real_dict['hospital-zcta']['stats'] = stats_df
+
+    real_dict['hospital-zcta']['prediction'] = pred_multi
+

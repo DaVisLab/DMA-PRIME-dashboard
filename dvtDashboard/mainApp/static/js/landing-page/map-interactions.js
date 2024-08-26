@@ -244,6 +244,7 @@ function hospitalTooltip(element) {
                 "disease": getVisibleDiseases("hospital"),
                 "date": hospitalMetadata.date[0]
             })}).then((result) => { 
+                console.log(result)
                 // fix dates
                 historicalTimeDomain = []
                 result.metadata.date.historical.forEach(function(date) {
