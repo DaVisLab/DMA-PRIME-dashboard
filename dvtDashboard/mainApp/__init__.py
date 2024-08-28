@@ -1,6 +1,8 @@
 # This is where the main flask code should lie
 
 from flask import Flask, jsonify, render_template, request
+from werkzeug.middleware.proxy_fix import ProxyFix
+
 import os
 import pandas as pd
 import numpy as np
@@ -32,8 +34,12 @@ def create_app(test_config=None):
     # ^ app is refered to with the decorators. It can be named whatever you want but you then do @name instead of @app
 
     app.config.from_mapping(
-        SECRET_KEY='dev',
+        SECRET_KEY='***REMOVED***',
         # DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
+    )
+
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
     )
 
     if test_config is None:
