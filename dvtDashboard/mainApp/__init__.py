@@ -21,7 +21,7 @@ from .utility import *
 # cases and deaths should be MultiIndexes 
 # stats and usage can be normal dataframes
 zcta_hospitalizations_dict = {
-    'data': None
+    'data': {}
 }
 
 def create_app():
@@ -60,16 +60,16 @@ def create_app():
                 'active': True,
                 'html': 'landing-page/map-panel.html'
             },
-            {
-                'name': 'grid',
-                'displayName': 'Grid View',
-                'html': 'landing-page/grid-panel.html'
-            },
-            {
-                'name': 'comparison',
-                'displayName': 'Map Comparison View',
-                'html': 'landing-page/comparison-panel.html'
-            }
+            # {
+            #     'name': 'grid',
+            #     'displayName': 'Grid View',
+            #     'html': 'landing-page/grid-panel.html'
+            # },
+            # {
+            #     'name': 'comparison',
+            #     'displayName': 'Map Comparison View',
+            #     'html': 'landing-page/comparison-panel.html'
+            # }
         ]
         return render_template('index.html', panels=panels)
     
@@ -110,12 +110,51 @@ def create_app():
             mapDataDict = json.load(open(f'{main_dir}/static/data/tl_2023_sc_{mapType}_trimmed.json'))
         return mapDataDict
     
-    @app.route('/hospitalizations/<disease>/<dataSource>')
-    def getHospitalizations(disease='covid-19', dataSource='jiandeModel'):
-        base_data = zcta_hospitalizations_dict.data[disease]
+    @app.route('/hospitalizations/<disease>/<dataSource>', methods=['GET', 'POST'])
+    def getHospitalizations(disease='covid-19', dataSource='state'):
+        variables = request.get_json()
 
-        return ''
+        region = input_parser(variables['region'])
+        date = input_parser(variables['date'])
+
+        data = fetchHospitalizations(disease, region, date, dataSource)
+
+        if variables['rate']:
+            data['count'] /= (data['zcta_pop'] / 1000)
+
+        stats = {
+            'min': data['count'].min(axis=None),
+            'max': data['count'].max(axis=None),
+        }
+
+        return jsonify({'data': json.loads(data.to_json(orient='table', index=True))['data'], 'stats': stats})
     
+    return app
+
+
+def fetchHospitalizations(disease, region, date, dataSource):
+    base_data = zcta_hospitalizations_dict['data'][disease]
+
+    if not isinstance(region, slice):
+        for i in range(len(region)):
+            region[i] = int(region[i])
+
+    if not isinstance(date, slice):
+        for i in range(len(date)):
+            date[i] = pd.Timestamp(date[i]).tz_localize(None).round('d')
+    if dataSource == 'health-system':
+        result = base_data.loc[(region, date), ['Health System hospitalizations', 'zcta_pop']]
+        result = result.rename({'Health System hospitalizations': 'count'}, axis=1)
+        result = result.fillna(value=0)
+
+    else:
+        result = base_data.loc[(region, date), ['Statewide hospitalizations', 'zcta_pop']]
+        result = result.rename({'Statewide hospitalizations': 'count'}, axis=1)
+
+        if result['count'].isna().any():
+            result = base_data.loc[(region, date), ['Projected Cases', 'zcta_pop']]
+            result = result.rename({'Projected Cases': 'count'}, axis=1)
+    return result
 
 
 def load_data():
@@ -130,18 +169,25 @@ def load_zcta_hospitalization():
 
     zcta_data = pd.read_csv(main_dir+'/static/data/zcta_summary.csv', index_col=0)
 
-    for disease, file in files.items:
+    for disease, file in files.items():
+
         df = pd.read_csv(file)
         df.rename({'Zip code': 'zcta', 'Date': 'date'}, axis=1, inplace=True)
-        
-        zcta_data_reformatted = zcta_data.loc[df['zcta']]
+
+        df['Projected Cases'] = df['Projected Cases(train)'].fillna(value=0) + df['Projected Cases(post training)'].fillna(value=0)
+
+        df['date'] = df['date'].apply(lambda x: '{0:>02s}/{1:>02s}/{2:04s}'.format(*x.split('/')))
+        df['date'] = pd.to_datetime(df['date'], format='%m/%d/%Y')
+
+        value_columns = df.columns.difference(index_names)
+        df = pd.pivot_table(df, values=value_columns, index=index_names)
+
+        zcta_data_reformatted = zcta_data.loc[df.index.get_level_values(0)]
         zcta_data_reformatted.index=pd.Index(range(df.shape[0]))
 
-        df = df.assign(zcta_pop=zcta_data_reformatted['ZCTA_POP'], main_county=zcta_data_reformatted['County'], INTPTLON=zcta_data_reformatted['INTPTLON'], INTPTLAT=zcta_data_reformatted['INTPTLAT'])
-        
-        value_columns = df.columns.difference(index_names)
-        df = pd.pivot_table(df, values = value_columns, index=index_names)
+        df = df.assign(zcta_pop=zcta_data_reformatted['population'].values, main_county=zcta_data_reformatted['main_county'].values, 
+                       INTPTLON=zcta_data_reformatted['INTPTLON'].values, INTPTLAT=zcta_data_reformatted['INTPTLAT'].values)
 
-        zcta_hospitalizations_dict.data[disease] = df
+        zcta_hospitalizations_dict['data'][disease] = df
 
 

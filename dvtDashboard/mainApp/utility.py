@@ -1,4 +1,4 @@
-main_dir = "\\".join(__file__.split("\\")[:-1])
+main_dir = "/".join(__file__.split("\\")[:-1])
 
 counties = [
     'abbeville',
@@ -50,11 +50,12 @@ counties = [
 ]
 
 def input_parser(input):
+    if isinstance(input, list):
+        return input
     if isinstance(input, str):
         if input == 'all':
             return slice(None)
         elif input == 'max':
             return input
-        else:
-            return [input]
-    return input
+    return [input]
+    

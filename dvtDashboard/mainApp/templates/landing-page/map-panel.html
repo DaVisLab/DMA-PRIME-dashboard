@@ -4,17 +4,31 @@
 <div id="map-options" class="sidebar-container">
   <sl-button pill id="map-reset-button" class="center-self">Reset Map</sl-button>
   <sl-divider class="options-divider"></sl-divider>
-  <sl-radio-group value="aggregated" id="map-aggregation-switch" class="center-self" size="small">
-    <sl-radio-button pill value="aggregated">Aggregated</sl-radio-button>
-    <sl-radio-button pill value="individual">Individual</sl-radio-button>
+
+  <sl-radio-group value="count" id="map-rate-switch" class="center-self" size="small">
+    <sl-tooltip content="Count of hospitalizations">
+      <sl-radio-button pill value="count">Count</sl-radio-button>
+    </sl-tooltip>
+    <sl-tooltip content="Hospitalizations per 1000 people">
+      <sl-radio-button pill value="rate">Rate</sl-radio-button>
+    </sl-tooltip>
   </sl-radio-group>
-  <sl-radio-group value="total" id="map-population-switch" class="center-self" size="small">
-    <sl-radio-button pill value="total">Total</sl-radio-button>
-    <sl-radio-button pill value="pop-norm">Pop. Norm.</sl-radio-button>
-  </sl-radio-group>
+
+  <sl-select value="covid-19" id="map-disease-selector" class="center-self">
+    <p slot="label">Select a disease or group of diseases</p>
+    <sl-option value="respiratory-disease" disabled>Respiratory Diseases (COVID-19, Flu, RSV)</sl-option>
+    <sl-option value="covid-19">COVID-19</sl-option>
+    <sl-option value="flu" disabled>Flu (Influenza)</sl-option>
+  </sl-select>
+
+  <sl-select value="state" id="map-data-source-selector" class="center-self">
+    <p slot="label">Select source of hospitalization data</p>
+    <sl-option value="state" >State</sl-option>
+    <sl-option value="health-system">Health System</sl-option>
+  </sl-select>
   
   <p id="map-summary">
-    Monthly count of hospitalizations due to covid-19, influenza, and respiratory syncytial virus (RSV).
+    Weekly <text>count</text> of hospitalizations due to <text>covid-19, influenza, and respiratory syncytial virus (RSV)</text>.
     <br/>
     Hospitalization cases are aggregated by zip code tabulation area (zcta).
   </p>
@@ -73,8 +87,9 @@
 
   // interactive elements
   var resetButton = document.getElementById("map-reset-button")
-  var mapAggregationSwitch = document.getElementById("map-aggregation-switch")
-  var mapPopulationSwitch = document.getElementById("map-population-switch")
+  var mapDiseaseSelector = document.getElementById("map-disease-selector")
+  var mapDataSourceSelector = document.getElementById("map-data-source-selector")
+  var mapRateSwitch = document.getElementById("map-rate-switch")
   var hospitalIconsToggle = document.getElementById("map-options-hospital-icons-toggle")
 
   // aggregation visualization elements
@@ -164,7 +179,7 @@
   set{{panel.name}}Panel()
 </script>
 
-<script src="{{ url_for('static', filename='js/landing-page/map.js') }}"></script>
-<script src="{{ url_for('static', filename='js/landing-page/map-interactions.js') }}"></script>
+<script src="{{ url_for('static', filename='js/landing-page/map-new.js') }}"></script>
+<!-- <script src="{{ url_for('static', filename='js/landing-page/map-interactions.js') }}"></script> -->
 
 {% endblock %}

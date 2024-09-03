@@ -33,8 +33,8 @@
 
 {% block linkout %}
 <!-- Link to prediction modelling/model exploration page -->
-<sl-button slot="nav" id="prediction-modelling-button-link" href="{{ url_for('modelExploration') }}" target="_blank"
-    variant="text">Prediction Modelling <sl-icon name="box-arrow-up-right"></sl-icon></sl-button>
+<!-- <sl-button slot="nav" id="prediction-modelling-button-link" href="{ url_for('modelExploration') }}" target="_blank"
+    variant="text">Prediction Modelling <sl-icon name="box-arrow-up-right"></sl-icon></sl-button> -->
 {% endblock %}
 
 {% block bodyScripts %}
@@ -43,47 +43,48 @@
 
     addEventListener("load", () => {
         // display map for map panel, then resize
-        displayMap().then(function() {
-            updateMap()
-            mapSVG.call(mapZoom)
-            mapResizer.addEventListener("sl-resize", () => {
-                updateMap()
-            })
+        mapInitialVisualization()
+        // displayMap().then(function() {
+        //     updateMap()
+        //     mapSVG.call(mapZoom)
+        //     mapResizer.addEventListener("sl-resize", () => {
+        //         updateMap()
+        //     })
 
 
         // Display aggregate visualizations for map
-            Promise.all([displayMapAggregateChart(), displayMapDonut()]).then(() => {
-                mapAggregationResizer.addEventListener("sl-resize", () => {
-                    displayMapAggregateChart()
-                    displayMapDonut()
-                })
-            })
-        })
+        //     Promise.all([displayMapAggregateChart(), displayMapDonut()]).then(() => {
+        //         mapAggregationResizer.addEventListener("sl-resize", () => {
+        //             displayMapAggregateChart()
+        //             // displayMapDonut()
+        //         })
+        //     })
+        // })
         
         // Create grid visualization
-        initialVisualisation() 
-        gridContainerResizer.addEventListener("sl-resize", () => {
-            updateCountyGraphs()
-        })
+        // initialVisualisation() 
+        // gridContainerResizer.addEventListener("sl-resize", () => {
+        //     updateCountyGraphs()
+        // })
         
-        // Display aggregate visualizations for grid
-        Promise.all([displayGridAggregateChart(), displayGridDonut()]).then(() => {
-            gridAggregationResizer.addEventListener("sl-resize", () => {
-                displayGridAggregateChart()
-                displayGridDonut()
-            })        
-        })
+        // // Display aggregate visualizations for grid
+        // Promise.all([displayGridAggregateChart(), displayGridDonut()]).then(() => {
+        //     gridAggregationResizer.addEventListener("sl-resize", () => {
+        //         displayGridAggregateChart()
+        //         // displayGridDonut()
+        //     })        
+        // })
 
-        // Create 4 map comparison visualization
-        comparisonInitialVisualization()
+        // // Create 4 map comparison visualization
+        // comparisonInitialVisualization()
 
-        // Display aggregate visualizations for comparison
-        Promise.all([displayComparisonAggregateChart(), displayComparisonDonut()]).then(() => {
-            comparisonAggregationResizer.addEventListener("sl-resize", () => {
-                displayComparisonAggregateChart()
-                displayComparisonDonut()
-            })        
-        })
+        // // Display aggregate visualizations for comparison
+        // Promise.all([displayComparisonAggregateChart(), displayComparisonDonut()]).then(() => {
+        //     comparisonAggregationResizer.addEventListener("sl-resize", () => {
+        //         displayComparisonAggregateChart()
+        //         // displayComparisonDonut()
+        //     })        
+        // })
 
     });
 
