@@ -117,7 +117,7 @@ def create_app():
         region = input_parser(variables['region'])
         date = input_parser(variables['date'])
 
-        data = fetchHospitalizations(disease, region, date, dataSource)
+        data = fetchHospitalizationData(disease, region, date, dataSource)
 
         if variables['rate']:
             data['count'] /= (data['zcta_pop'] / 1000)
@@ -126,14 +126,81 @@ def create_app():
             'min': data['count'].min(axis=None),
             'max': data['count'].max(axis=None),
         }
-
         return jsonify({'data': json.loads(data.to_json(orient='table', index=True))['data'], 'stats': stats})
     
+    @app.route('/hospitalization-history/<disease>', methods=['GET', 'POST'])
+    def getHospitalizationHistory(disease='covid-19'):
+        variables = request.get_json()
+
+        region = input_parser(variables['region'])
+        date = parse_date(variables['date'])
+
+        # if variables['rate']:
+        start_date = date - pd.DateOffset(months=18)
+        historical_dates = pd.date_range(end=date, start=start_date, freq='M').strftime("%Y-%m-%d").to_list()
+
+        end_date = date + pd.DateOffset(weeks=5)
+        pred_dates = pd.date_range(start=date, end=end_date, freq='W').strftime("%Y-%m-%d").to_list()
+
+        historical_return_data_dict = {}
+
+        h_mins = []
+        h_maxs = []
+        for data_source in ['state-data', 'state-model', 'health-system']:
+
+            try:
+                historical_data = fetchHospitalizationData(disease, region, historical_dates, data_source)
+                if variables['rate']:
+                    historical_data['count'] /= (historical_data['zcta_pop'] / 1000)
+                historical_data.index = historical_data.index.droplevel(0)
+
+            except KeyError:
+                historical_data = pd.DataFrame(index=historical_dates, columns=['count'])
+                historical_data['count'] = 0
+
+            historical_data.index = historical_data.index.astype(str)
+            historical_return_data_dict[data_source] = historical_data['count'].to_dict()
+            h_mins.append(historical_data['count'].min(axis=None))
+            h_maxs.append(historical_data['count'].max(axis=None))
+
+
+        prediction_return_data_dict = {}
+
+        try:
+            predictive_data = fetchHospitalizationData(disease, region, pred_dates, 'state-model')
+            if variables['rate']:
+                    predictive_data['count'] /= (predictive_data['zcta_pop'] / 1000)
+            predictive_data.index = predictive_data.index.droplevel(0)
+            predictive_data.index = predictive_data.index.astype(str)
+        except KeyError:
+            predictive_data = pd.DataFrame(columns=['count'])
+
+        prediction_return_data_dict['state-model'] = predictive_data['count'].to_dict()
+
+        data = {
+            'historical': historical_return_data_dict,
+            'prediction': prediction_return_data_dict,
+        }
+
+        stats = {
+            'count': {'min': min(*h_mins, predictive_data['count'].min(axis=None)),
+                'max': max(*h_maxs, predictive_data['count'].max(axis=None))},
+            'date': {'min': historical_dates[0], 'max': pred_dates[-1]},
+        }
+
+        return_data = {'data': data, 'stats': stats}
+
+        print(return_data)
+        return jsonify(return_data)
+
+
     return app
 
 
-def fetchHospitalizations(disease, region, date, dataSource):
+def fetchHospitalizationData(disease, region, date, dataSource):
     base_data = zcta_hospitalizations_dict['data'][disease]
+
+    result = None
 
     if not isinstance(region, slice):
         for i in range(len(region)):
@@ -141,19 +208,33 @@ def fetchHospitalizations(disease, region, date, dataSource):
 
     if not isinstance(date, slice):
         for i in range(len(date)):
-            date[i] = pd.Timestamp(date[i]).tz_localize(None).round('d')
+            date[i] = parse_date(date[i])
     if dataSource == 'health-system':
         result = base_data.loc[(region, date), ['Health System hospitalizations', 'zcta_pop']]
         result = result.rename({'Health System hospitalizations': 'count'}, axis=1)
         result = result.fillna(value=0)
 
-    else:
+    elif dataSource == 'state':
         result = base_data.loc[(region, date), ['Statewide hospitalizations', 'zcta_pop']]
         result = result.rename({'Statewide hospitalizations': 'count'}, axis=1)
 
         if result['count'].isna().any():
-            result = base_data.loc[(region, date), ['Projected Cases', 'zcta_pop']]
-            result = result.rename({'Projected Cases': 'count'}, axis=1)
+            # replace any state data with state model data
+            supplemental_data = base_data.loc[(region, date), ['Projected Cases', 'zcta_pop']]
+            supplemental_data = supplemental_data.rename({'Projected Cases': 'count'}, axis=1)
+
+            result.loc[result['count'].isna()] = supplemental_data.loc[result['count'].isna()]
+    
+    elif dataSource == 'state-data':
+        result = base_data.loc[(region, date), ['Statewide hospitalizations', 'zcta_pop']]
+        result = result.rename({'Statewide hospitalizations': 'count'}, axis=1)
+        result = result.dropna()
+
+    elif dataSource == 'state-model':
+        result = base_data.loc[(region, date), ['Projected Cases', 'zcta_pop']]
+        result = result.rename({'Projected Cases': 'count'}, axis=1)
+        result = result.dropna()
+
     return result
 
 

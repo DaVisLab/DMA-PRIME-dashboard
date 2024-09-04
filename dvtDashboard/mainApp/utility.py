@@ -1,3 +1,5 @@
+import pandas as pd
+
 main_dir = "/".join(__file__.split("\\")[:-1])
 
 counties = [
@@ -59,3 +61,9 @@ def input_parser(input):
             return input
     return [input]
     
+
+def parse_date(date):
+    # returns the monday of whatever week the date that is passed in belongs to
+    pd_date = pd.Timestamp(date, tz=None).tz_localize(None).round('d')
+
+    return pd_date - pd.DateOffset(pd_date.dayofweek, 'd')

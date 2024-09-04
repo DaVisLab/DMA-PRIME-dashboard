@@ -108,6 +108,8 @@
   var xSkew = 0
   var ySkew = 0
   var focusCounty = null
+  var mapTooltipWidth = 200
+  var mapTooltipHeight = 130
 
   // visualization data
   var mapData = null
@@ -120,6 +122,10 @@
   var mapProjection = null
   var choroplethColorMap = null
   var hospitalRadiusMap = null
+
+  mapTooltip.style.backgroundColor = opacify(d3.select(mapTooltip).style("--sl-color-neutral-500").replace(/ /g, ","), 0.75)
+  mapTooltip.style.borderColor = opacify(d3.select(mapTooltip).style("--sl-color-neutral-700").replace(/ /g, ","), 0.5)
+
 
   function createHospitalCheck(disease, color) {
     // creates checks corresponding to each disease hospitalization data
