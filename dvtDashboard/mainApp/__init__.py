@@ -60,11 +60,11 @@ def create_app():
                 'active': True,
                 'html': 'landing-page/map-panel.html'
             },
-            # {
-            #     'name': 'grid',
-            #     'displayName': 'Grid View',
-            #     'html': 'landing-page/grid-panel.html'
-            # },
+            {
+                'name': 'grid',
+                'displayName': 'Grid View',
+                'html': 'landing-page/grid-panel.html'
+            },
             # {
             #     'name': 'comparison',
             #     'displayName': 'Map Comparison View',
@@ -123,8 +123,10 @@ def create_app():
             data['count'] /= (data['zcta_pop'] / 1000)
 
         stats = {
-            'min': data['count'].min(axis=None),
-            'max': data['count'].max(axis=None),
+            'count':{'min': data['count'].min(axis=None),
+                'max': data['count'].max(axis=None)},
+            'date': {'min': data.index.levels[1].min(axis=None),
+                'max': data.index.levels[1].max(axis=None)}
         }
         return jsonify({'data': json.loads(data.to_json(orient='table', index=True))['data'], 'stats': stats})
     
@@ -137,10 +139,23 @@ def create_app():
 
         # if variables['rate']:
         start_date = date - pd.DateOffset(months=18)
-        historical_dates = pd.date_range(end=date, start=start_date, freq='M').strftime("%Y-%m-%d").to_list()
+        historical_dates = pd.date_range(end=date, start=start_date, freq='M')
 
         end_date = date + pd.DateOffset(weeks=5)
-        pred_dates = pd.date_range(start=date, end=end_date, freq='W').strftime("%Y-%m-%d").to_list()
+        pred_dates = pd.date_range(start=date, end=end_date, freq='W')
+
+        if historical_dates[-1] < date:
+            historical_dates = historical_dates.union([date])
+
+        if pred_dates[0] > date:
+            pred_dates = pred_dates.insert(0, date)
+
+        historical_dates = historical_dates.strftime("%Y-%m-%d").to_list()
+        pred_dates = pred_dates.strftime("%Y-%m-%d").to_list()
+
+        print(date)
+        print(historical_dates)
+        print(pred_dates)
 
         historical_return_data_dict = {}
 
@@ -190,7 +205,6 @@ def create_app():
 
         return_data = {'data': data, 'stats': stats}
 
-        print(return_data)
         return jsonify(return_data)
 
 

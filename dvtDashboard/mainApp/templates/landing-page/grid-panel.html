@@ -2,19 +2,40 @@
 
 {% block options %}
 <div id="grid-options" class="sidebar-container">
-  <sl-radio-group value="aggregated" id="grid-aggregation-switch" class="center-self" size="small">
-    <sl-radio-button pill value="aggregated">Aggregated</sl-radio-button>
-    <sl-radio-button pill value="individual">Individual</sl-radio-button>
-  </sl-radio-group>
-  <sl-radio-group value="total" id="grid-population-switch" class="center-self" size="small">
-    <sl-radio-button pill value="total">Total</sl-radio-button>
-    <sl-radio-button pill value="pop-norm">Pop. Norm.</sl-radio-button>
+  <sl-radio-group value="count" id="{{panel.name}}-rate-switch" class="center-self" size="small">
+    <sl-tooltip content="Count of hospitalizations">
+      <sl-radio-button pill value="count">Count</sl-radio-button>
+    </sl-tooltip>
+    <sl-tooltip content="Hospitalizations per 1000 people">
+      <sl-radio-button pill value="rate">Rate</sl-radio-button>
+    </sl-tooltip>
   </sl-radio-group>
 
+  <sl-select value="covid-19" id="{{panel.name}}-disease-selector" class="center-self">
+    <p slot="label">Select a disease or group of diseases</p>
+    <sl-option value="respiratory-disease" disabled>Respiratory Diseases (COVID-19, Flu, RSV)</sl-option>
+    <sl-option value="covid-19">COVID-19</sl-option>
+    <sl-option value="flu" disabled>Flu (Influenza)</sl-option>
+  </sl-select>
+
+  <sl-select value="state" id="{{panel.name}}-data-source-selector" class="center-self">
+    <p slot="label">Select source of hospitalization data</p>
+    <sl-option value="state" >State</sl-option>
+    <sl-option value="health-system">Health System</sl-option>
+  </sl-select>
+
+  <sl-select value="alphabetical-low" id="{{panel.name}}-sort" class="center-self">
+    <p slot="label">Sort zctas</p>
+    <sl-option value="value-high" >Value (count or rate) High-Low</sl-option>
+    <sl-option value="value-low">Value (count or rate) Low-High</sl-option>
+    <sl-option value="alphabetical-low" >Alphanumerical A-Z-0-9</sl-option>
+    <sl-option value="alphabetical-high">Alphanumerical 9-0-Z-A </sl-option>
+  </sl-select>
+
   <p id="grid-summary">
-    Monthly count of hospitalizations due to covid-19, influenza, and respiratory syncytial virus (RSV) from <text id="grid-start-date"></text> to <text id="grid-end-date"></text>.
+    Weekly count of hospitalizations due to covid-19, influenza, and respiratory syncytial virus (RSV) from <text id="grid-start-date"></text> to <text id="grid-end-date"></text>.
     <br/>
-    Hospitalization cases are aggregated by county.
+    Hospitalization cases are aggregated by zip code tabulation areas (zcta).
   </p>
   <div id="grid-options-hospitalizations-branch">
 
@@ -62,8 +83,10 @@
   var gridOptionsHospitalizationsBranch = document.getElementById("grid-options-hospitalizations-branch")
 
   // interactive elements
-  var gridPopulationSwitch = document.getElementById("grid-population-switch")
-  var gridAggregationSwitch = document.getElementById("grid-aggregation-switch")
+  var gridRateSwitch = document.getElementById("grid-rate-switch")
+  var gridDiseaseSelector = document.getElementById("grid-disease-selector")
+  var gridDataSourceSelector = document.getElementById("grid-data-source-selector")
+  var gridSort = document.getElementById("grid-sort")
 
   // aggregation visualization elements
   var jsgridAggregationDonutSvg = document.getElementById("grid-aggregation-donut-svg")
@@ -73,6 +96,11 @@
   // Text elements
   var gridStartDate = d3.select("#grid-start-date")
   var gridEndDate = d3.select("#grid-end-date")
+
+  // Visualization variables
+  var margin = { top: em, right: 0, bottom: 0.5*em, left: 0 }
+  var gridTooltipWidth = 200
+  var gridTooltipHeight = 130
 
   function createGridCheck(disease, color) {
     // creates checks corresponding to each disease hospitalization data
@@ -120,6 +148,6 @@
   set{{panel.name}}Panel()
 </script>
 
-<script src="{{ url_for('static', filename='js/landing-page/grid.js') }}"></script>
-<script src="{{ url_for('static', filename='js/landing-page/grid-interactions.js') }}"></script>
+<script src="{{ url_for('static', filename='js/landing-page/grid-new.js') }}"></script>
+<script src="{{ url_for('static', filename='js/landing-page/grid-interactions-new.js') }}"></script>
 {% endblock %}

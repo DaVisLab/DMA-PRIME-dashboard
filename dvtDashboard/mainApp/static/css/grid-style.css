@@ -16,12 +16,44 @@
   justify-content: center;
   align-items: center;
   gap: 0px;
-
+  overflow-y: scroll;
 }
 
 .quadrant {
   height: 16.6%;
   width: 12.5%;
+}
+
+.grid-title {
+  fill: black;
+  font-size: var(--sl-font-size-x-small);
+}
+
+
+.grid-subtitle {
+  fill: black;
+  font-size: var(--sl-font-size-2x-small);
+}
+
+.grid-value {
+  fill: black;
+  font-size: var(--sl-font-size-x-small);
+}
+
+.grid-prediction-separator {
+  /* line indicating the difference between prediction and reality */
+  stroke-width: 1;
+  stroke: black;
+}
+
+.grid-prediction-highlighter {
+  /* grey rectangle that highlights the prediction in the tooltip */
+  opacity: .25;
+  fill: var(--sl-color-gray-600);
+}
+
+sl-tooltip {
+  --max-width: 800px;
 }
 
 /* below is text in grid item, I think this is already handled by d3 in grid.js */

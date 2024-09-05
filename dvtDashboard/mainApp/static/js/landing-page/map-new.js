@@ -38,7 +38,7 @@ function mapInitialVisualization() {
             .style("pointer-events", "none")
     }).then(() => {
         // draw zcta map items
-        d3.json("/map-data/zcta").then( async function(mapdata) {
+        d3.json("/map-data/zcta").then(function(mapdata) {
         d3.json("/map-data/zcta_county_crosswalk").then( async function(crosswalk) {
             zcta = mapdata
             zctas.selectAll("path")
@@ -197,7 +197,7 @@ function updateMapData() {
         data = result.data
         stats = result.stats
 
-        choroplethColorMap.domain([0, stats.max])
+        choroplethColorMap.domain([0, stats.count.max])
 
         data.forEach(element => {
             d3.select(`#map-${element.zcta}`)

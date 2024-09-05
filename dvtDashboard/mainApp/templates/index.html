@@ -62,10 +62,10 @@
         // })
         
         // Create grid visualization
-        // initialVisualisation() 
-        // gridContainerResizer.addEventListener("sl-resize", () => {
-        //     updateCountyGraphs()
-        // })
+        gridInitialVisualization() 
+        gridContainerResizer.addEventListener("sl-resize", () => {
+            updateGridData()
+        })
         
         // // Display aggregate visualizations for grid
         // Promise.all([displayGridAggregateChart(), displayGridDonut()]).then(() => {
