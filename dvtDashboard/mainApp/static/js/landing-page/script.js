@@ -6,6 +6,32 @@ var numDiseases = 3
 var diseaseIndexing = { "covid-19": 1, "influenza": 2, "rsv": 3 }
 var diseaseColorMap = d3.scaleOrdinal().domain(Object.keys(diseaseIndexing)).unknown("var(--sl-color-gray-600").range(d3.schemeSet1)
 
+var dataSourceColorMap = {
+    "health-system": "LimeGreen",
+    "state-data": "blue",
+    "state-train": "orange",
+    "state-post-train": "orange",
+    "state-model": "orange",
+    "prediction": "red",
+    "state": "orange",
+}
+
+var dataSourceLabelPlacement = {
+    "health-system": .5,
+    "state-data": 0,
+    "state-train": .5,
+    "state-post-train": .5,
+    "prediction": .5,
+}
+
+var dataSourceLineStyle = {
+    "health-system": null,
+    "state-data": null,
+    "state-train": "5,5",
+    "state-post-train": null,
+    "prediction": null,
+}
+
 margins = {
     top: 8,
     right: 8,
@@ -88,6 +114,10 @@ function skew(orig, radius, idx, total) {
     orig[0] += radius * fakeSin(angle)
     orig[1] += radius * fakeCos(angle)
     return orig
+}
+
+function getMonday(date) {
+    return new Date((date - date.getDay()) + 1) 
 }
 
  // determines what disease hospitalization are checked (to show) for specified type of check

@@ -30,7 +30,8 @@
 /* Specifics */
 
 p,
-text {
+text, 
+text.tooltip-label {
   /* Set font family for entire website */
   font-family: var(--sl-font-sans);
   margin: 0;

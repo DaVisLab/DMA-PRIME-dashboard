@@ -13,7 +13,7 @@
   flex-wrap: wrap;
   height: 100%;
   width: 100%;
-  justify-content: center;
+  justify-content: space-evenly;
   align-items: center;
   gap: 0px;
   overflow-y: scroll;

@@ -27,10 +27,10 @@ function mapInitialVisualization() {
 
 
 
-        // add group for hospital icons
-        hospitals = mapSVG.append("g")
-            .attr("id", "map-hospitals")
-            .style("pointer-events", "none")
+        // // add group for hospital icons
+        // hospitals = mapSVG.append("g")
+        //     .attr("id", "map-hospitals")
+        //     .style("pointer-events", "none")
 
         // add group for map legends
         legendsGroup = mapSVG.append("g")
@@ -60,33 +60,36 @@ function mapInitialVisualization() {
                 .call(updateMapData)
         })})
 
-        // draw hospital icons
-        hospSize = Math.max(16, Math.min(width, height) * 0.015)
-        d3.json("/map-data/hospitals").then( async function(hospdata){
-              hospitals.selectAll("svg")
-              .data(hospdata.features)
-              .enter()
-              .append("svg")
-              .attr("class", "hospital")
-              .attr("id", d => "map-"+fixName(d.properties.webdbINFOHEALTHFACILITYLF_NAME))
-              .attr("viewBox", "0 0 16 16")
-              .attr("x", d => mapProjection(d.geometry.coordinates)[0]*zoom + xSkew - hospSize/2)
-              .attr("y", d => mapProjection(d.geometry.coordinates)[1]*zoom + ySkew - hospSize/2)
-              .attr("width", hospSize)
-              .attr("height", hospSize)
-              .each(function(d) {
-                this.innerHTML = makeHospital(fixName(d.properties.webdbINFOHEALTHFACILITYLF_NAME))
-              })
-        })
+        // // draw hospital icons
+        // hospSize = Math.max(16, Math.min(width, height) * 0.015)
+        // d3.json("/map-data/hospitals").then( async function(hospdata){
+        //       hospitals.selectAll("svg")
+        //       .data(hospdata.features)
+        //       .enter()
+        //       .append("svg")
+        //       .attr("class", "hospital")
+        //       .attr("id", d => "map-"+fixName(d.properties.webdbINFOHEALTHFACILITYLF_NAME))
+        //       .attr("viewBox", "0 0 16 16")
+        //       .attr("x", d => mapProjection(d.geometry.coordinates)[0]*zoom + xSkew - hospSize/2)
+        //       .attr("y", d => mapProjection(d.geometry.coordinates)[1]*zoom + ySkew - hospSize/2)
+        //       .attr("width", hospSize)
+        //       .attr("height", hospSize)
+        //       .each(function(d) {
+        //         this.innerHTML = makeHospital(fixName(d.properties.webdbINFOHEALTHFACILITYLF_NAME))
+        //       })
+        // })
 
-        choroplethColorMap = d3.scaleLinear([0, 0], ["white", "saddlebrown"]).unknown("var(--sl-color-gray-600)").nice()
+        choroplethColorMap = d3.scaleLinear()
+            .domain([0, 0])
+            .range(["white", dataSourceColorMap[mapDataSourceSelector.value]])
+            .unknown("var(--sl-color-gray-600)").nice()
 
         // Add components for choropleth legend
         legendWidth = Math.max(width/3, 300)
         colorLegend = mapSVG.select("#map-legends").append("g")
             .attr("id", "map-color-legend")
 
-        // create gradient that goes from white to saddlebrown like the choropleth coloring
+        // create gradient that goes from white to color... like the choropleth coloring
         colorLegendDefs = colorLegend.append("defs")
         linearGrdient = colorLegendDefs.append("linearGradient")
         linearGrdient.attr("id", "linear-gradient")
@@ -95,11 +98,13 @@ function mapInitialVisualization() {
             .attr("x2", "100%")
             .attr("y2", "0%")
         linearGrdient.append("stop")
+            .attr("id", "linear-gradient-stop-0")
             .attr("offset", "0%")
             .attr("stop-color", "white")
         linearGrdient.append("stop")
+            .attr("id", "linear-gradient-stop-1")
             .attr("offset", "100%")
-            .attr("stop-color", "saddlebrown")
+            .attr("stop-color", dataSourceColorMap[mapDataSourceSelector.value])
 
         // add background
         colorLegend.append("rect")
@@ -118,7 +123,7 @@ function mapInitialVisualization() {
         // add a title :)
         colorLegendContent.append("text")
             .attr("class", `map-legend title hospital`)
-            .text("Aggregated Monthly Hospitalizations")
+            .text("Current Week's Hospitalizations by ZCTA")
     }).then(() => {
         mapResizer.addEventListener("sl-resize", () => {
             resizeMap()
@@ -190,7 +195,7 @@ function updateMapData() {
         "headers": {"Content-Type": "application/json"},
         "body": JSON.stringify({
             "region": "all",
-            "date": new Date(2024, 5, 24), // 5 is for month 6 - june
+            "date": new Date(2024, 7, 26), // 5 is for month 6 - june
             "rate": mapRateSwitch.value == "rate"
     })}).then((result) => {
         // display data
@@ -198,11 +203,19 @@ function updateMapData() {
         stats = result.stats
 
         choroplethColorMap.domain([0, stats.count.max])
+            .range(["white", dataSourceColorMap[mapDataSourceSelector.value]])
+            .unknown("var(--sl-color-gray-600)").nice()
 
         data.forEach(element => {
             d3.select(`#map-${element.zcta}`)
                 .attr("fill", choroplethColorMap(element.count))
         });
+
+        d3.select("#linear-gradient-stop-1")
+            .attr("stop-color", dataSourceColorMap[mapDataSourceSelector.value])
+
+        // d3.select("#map-color-legend-contents").select("rect")
+        //     .style("fill", "url(#linear-gradient)")
 
         colorLegendAxis = mapSVG.select("#map-color-legend-axis")
         colorLegendAxis.selectAll("*").remove()

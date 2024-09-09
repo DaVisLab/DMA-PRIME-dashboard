@@ -105,6 +105,6 @@ p.tooltip {
 
 #tooltip-prediction-highlighter {
     /* grey rectangle that highlights the prediction in the tooltip */
-    opacity: .25;
+    opacity: .5;
     fill: var(--sl-color-gray-600);
 }

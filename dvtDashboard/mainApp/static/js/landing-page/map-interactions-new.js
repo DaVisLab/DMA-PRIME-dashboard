@@ -132,11 +132,11 @@ function setZctaInteractions(zcta) {
             "headers": {"Content-Type": "application/json"},
             "body": JSON.stringify({
                 "region": zctaName,
-                "date": new Date(2024, 5, 24), // 5 is for month 6 - june
+                "date": new Date(2024, 7, 26), // 5 is for month 6 - june
                 "rate": mapRateSwitch.value == "rate"
             })}).then((result) => {
-                mapTooltipWidth = Math.max(400, width * .1)
-                mapTooltipHeight = mapTooltipWidth * .65
+                mapTooltipWidth = Math.max(500, width * .3)
+                mapTooltipHeight = mapTooltipWidth * .55
 
                 ttp = d3.select(mapTooltip)
                 ttp.style("display", "block").style("z-index", 1)
@@ -145,14 +145,16 @@ function setZctaInteractions(zcta) {
                     .attr("width", mapTooltipWidth)
 
                 // reset tooltip contents for new data
-                ttp.select("p.tooltip").node().innerHTML = `${county[0].toUpperCase() + county.slice(1)}<br>ZCTA: ${zctaName}`
+                ttp.select("p.tooltip").node().innerHTML = `County: ${county[0].toUpperCase() + county.slice(1)}<br>ZCTA: ${zctaName}`
                 ttpSVG.node().innerHTML = ""
 
                 data = result.data
                 stats = result.stats
 
-                stats.date.min = dayjs.tz(stats.date.min, "America/New_York").toDate()
-                stats.date.max = dayjs.tz(stats.date.max, "America/New_York").toDate()
+                stats.date.historical.min = dayjs.tz(stats.date.historical.min.split("GMT")[0], "America/New_York").toDate()
+                stats.date.historical.max = dayjs.tz(stats.date.historical.max.split("GMT")[0], "America/New_York").toDate()
+                stats.date.prediction.min = dayjs.tz(stats.date.prediction.min.split("GMT")[0], "America/New_York").toDate()
+                stats.date.prediction.max = dayjs.tz(stats.date.prediction.max.split("GMT")[0], "America/New_York").toDate()
 
                 // create y axis scaling (counts of hospitalizations)
                 yScale = d3.scaleLinear()
@@ -170,12 +172,22 @@ function setZctaInteractions(zcta) {
                 temp.remove()
 
                 // finish creating both x and y scales
-                xScale = d3.scaleUtc([stats.date.min, stats.date.max], [ttpMargins.left, mapTooltipWidth - ttpMargins.right]) 
                 yScale.range([mapTooltipHeight - ttpMargins.bottom, ttpMargins.top])
+                xScaleHistorical = d3.scaleUtc()
+                    .domain([stats.date.historical.min, stats.date.historical.max])
+                    .range([ttpMargins.left, ttpMargins.left + (mapTooltipWidth - ttpMargins.right - ttpMargins.left)*3/4]) 
+                xScalePrediction = d3.scaleUtc()
+                    .domain([stats.date.prediction.min, stats.date.prediction.max])
+                    .range([ttpMargins.left + (mapTooltipWidth - ttpMargins.right - ttpMargins.left)*3/4, mapTooltipWidth - ttpMargins.right]) 
 
                 // line generator
-                line = d3.line()
-                    .x((d) => xScale(d.date))
+                historicalLine = d3.line()
+                    .x((d) => xScaleHistorical(d.date))
+                    .y((d) => yScale(d.count))
+                    .curve(d3.curveMonotoneX)
+
+                predictionLine = d3.line()
+                    .x((d) => xScalePrediction(d.date))
                     .y((d) => yScale(d.count))
                     .curve(d3.curveMonotoneX)
 
@@ -188,48 +200,80 @@ function setZctaInteractions(zcta) {
                     .attr("height", mapTooltipHeight)
                     .attr("width", mapTooltipWidth)
 
-                color = d3.scaleOrdinal(d3.schemeAccent).domain(Object.keys(data.historical))
-
-                Object.entries(data.historical).forEach(function([dataSource, values]) {
+                Object.entries(data.historical).forEach(function([dataSource, values], i) {
                     // for each data source
                     historicalData = []
                     Object.entries(values).forEach(function([date, count]) {
-                        date = dayjs.tz(date, "America/New_York").toDate()
-                        historicalData.push({"date": date, "count": count})
+                        jsDate = dayjs.tz(date, "America/New_York").toDate()
+                        historicalData.push({"date": jsDate, "count": count})
                     })
 
                     // draw historical line chart
                     historicalGroup = graphSVG.append("g")
                     historicalGroup.append("path")
-                        .attr("d", line(historicalData))
-                        .attr("stroke", color(dataSource))
+                        .attr("d", historicalLine(historicalData))
+                        .attr("stroke", dataSourceColorMap[dataSource])
                         .attr("fill", "none")
                         .attr("stroke-width", 2)
+                        .style("stroke-dasharray", dataSourceLineStyle[dataSource])
     
                     // marks each datapoint on historical line
-                    historicalGroup.selectAll("circle").data(historicalData)
+                    historicalGroup.selectAll("circle")
+                        .data(historicalData.filter(function(d) {
+                            refDate = getMonday(new Date(2024, 7, 26))
+                            refDate.setDate(refDate.getDate() - 7)
+                            return d.date >= refDate}))
                         .enter()
                         .append("circle")
                         .attr("r", 3)
-                        .attr("cx", (d) => xScale(d.date))
+                        .attr("cx", (d) => xScaleHistorical(d.date))
                         .attr("cy", (d) => yScale(d.count))
-                        .attr("stroke", color(dataSource))
+                        .attr("stroke", dataSourceColorMap[dataSource])
 
+                    labelBasis =  historicalData[parseInt((historicalData.length-1)*dataSourceLabelPlacement[dataSource])]
+
+                    labelGroup = historicalGroup.append("g")
+                        .attr("class", "tooltip-label-group")
+                    labelGroupBackground = labelGroup.append("rect") 
+                    labelText = labelGroup.append("text")
+                        .attr("class", "tooltip-label")
+                        .attr("x", xScaleHistorical(labelBasis.date))
+                        .attr("y", Math.max(yScale(yScale.domain()[1])+em, yScale(labelBasis.count) - (i%2+1)*em))
+                        .attr("fill", dataSourceColorMap[dataSource])
+                        .attr("font-size", "var(--sl-font-size-small)")
+                        .text(dataSource)
+                    labelBBox = labelText.node().getBBox()
+
+                    labelGroupBackground
+                        .attr("height", labelBBox.height)
+                        .attr("width", labelBBox.width)
+                        .attr("x", labelBBox.x)
+                        .attr("y", labelBBox.y)
+                        .attr("fill", "var(--sl-color-gray-600)")
+                        .attr("opacity", .5)
                 })
 
+                
+                graphSVG.append("rect")
+                    .attr("id", "tooltip-prediction-highlighter")
+
+                predictiveTicks = []
+
                 Object.entries(data.prediction).forEach(function([dataSource, values]) {
+
                     // for each data source
                     predictiveData = []
                     Object.entries(values).forEach(function([date, count]) {
-                        date = dayjs.tz(date, "America/New_York").toDate()
-                        predictiveData.push({"date": date, "count": count})
+                        jsDate = dayjs.tz(date, "YYYY-MM-DD", "America/New_York").toDate()
+                        predictiveData.push({"date": jsDate, "count": count})
+                        predictiveTicks.push(jsDate)
                     })
 
-                    // draw historical line chart
+                    // draw predictive line chart
                     predictiveGroup = graphSVG.append("g")
                     predictiveGroup.append("path")
-                        .attr("d", line(predictiveData))
-                        .attr("stroke", color(dataSource))
+                        .attr("d", predictionLine(predictiveData))
+                        .attr("stroke", dataSourceColorMap["prediction"])
                         .attr("fill", "none")
                         .attr("stroke-width", 2)
     
@@ -238,10 +282,9 @@ function setZctaInteractions(zcta) {
                         .enter()
                         .append("circle")
                         .attr("r", 3)
-                        .attr("cx", (d) => xScale(d.date))
+                        .attr("cx", (d) =>  xScalePrediction(d.date))
                         .attr("cy", (d) => yScale(d.count))
-                        .attr("stroke", color(dataSource))
-
+                        .attr("stroke", dataSourceColorMap["prediction"])
                 })
 
                 // // Show confidence interval
@@ -260,34 +303,85 @@ function setZctaInteractions(zcta) {
 
                 if (predictiveData.length){
                     // highlights predictive data
-                    graphSVG.append("rect")
-                        .attr("id", "tooltip-prediction-highlighter")
-                        .attr("x", xScale(predictiveData[0].date))
+                    graphSVG.select("#tooltip-prediction-highlighter")
+                        .attr("x", xScalePrediction(predictiveData[0].date))
                         .attr("y", ttpMargins.top)
-                        .attr("width", xScale(predictiveData[predictiveData.length - 1].date) - xScale(predictiveData[0].date))
+                        .attr("width", xScalePrediction(predictiveData[predictiveData.length - 1].date) - xScalePrediction(predictiveData[0].date))
                         .attr("height", mapTooltipHeight - ttpMargins.bottom - ttpMargins.top)
 
                     // place line separating historical and prediction data
                     ttpSVG.select("#tooltip-prediction-separator")
-                        .attr("x1", xScale(predictiveData[0].date))
+                        .attr("x1", xScalePrediction(predictiveData[0].date))
                         .attr("y1", ttpMargins.top)
-                        .attr("x2", xScale(predictiveData[0].date))
+                        .attr("x2", xScalePrediction(predictiveData[0].date))
                         .attr("y2", mapTooltipHeight - ttpMargins.bottom)
+
+                    
+                    labelBasis = predictiveData[parseInt((predictiveData.length-1))]
+                    fiveWeekLabelGroup = predictiveGroup.append("g")
+                        .attr("class", "tooltip-label-group")
+                    fiveWeekLabel = fiveWeekLabelGroup.append("text")
+                        .attr("class", "tooltip-label")
+                        .attr("x", xScalePrediction(labelBasis.date))
+                        .attr("y", yScale(labelBasis.count) - em)
+                        .attr("text-anchor", "end")
+                        .attr("font-size", "var(--sl-font-size-small)")
+                        .attr("text-decoration", "underline")
+                        .text("5 Week Prediction")
+
+                    labelBBox = fiveWeekLabel.node().getBBox()
+                    fiveWeekLabelGroup.append("line")
+                        .attr("x1", labelBBox.width/2 + labelBBox.x)
+                        .attr("y1", labelBBox.height + labelBBox.y)
+                        .attr("x2", xScalePrediction(labelBasis.date))
+                        .attr("y2", yScale(labelBasis.count))
+                        .attr("stroke", "black")
+
+                    labelGroup = predictiveGroup.append("g")
+                        .attr("class", "tooltip-label-group")
+                    // labelGroupBackground = labelGroup.append("rect") 
+                    labelText = labelGroup.append("text")
+                        .attr("class", "tooltip-label")
+                        .attr("x", xScalePrediction(d3.mean(xScalePrediction.domain())))
+                        .attr("y", yScale(yScale.domain()[1]) + 1.5*em)
+                        .attr("fill", dataSourceColorMap["prediction"])
+                        .attr("font-size", "var(--sl-font-size-small)")
+                        .attr("text-anchor", "middle")
+                        .text("prediction")
+
+                    // labelBBox = labelText.node().getBBox()
+                    // labelGroupBackground
+                    //     .attr("height", labelBBox.height)
+                    //     .attr("width", labelBBox.width)
+                    //     .attr("x", labelBBox.x)
+                    //     .attr("y", labelBBox.y)
+                    //     .attr("fill", "var(--sl-color-gray-600)")
+                    //     .attr("opacity", .5)
                 }
 
                 // display x-axis on the bottom
-                ttpSVG.append("g")
+                ttpSVG.append("g") // historical
                     .attr("transform", `translate(0,${mapTooltipHeight - ttpMargins.bottom})`)
-                    .call(d3.axisBottom(xScale).tickSize(4).tickFormat(d3.timeFormat("%d %b %Y")))
+                    .call(d3.axisBottom(xScaleHistorical).tickSize(4).tickFormat(d3.timeFormat("%b %Y")))
                     .selectAll("text")  
+                    .attr("class", "tooltip-label")
                     .style("text-anchor", "end")
-                    .attr("transform", "rotate(-30)");
+                    .attr("transform", "rotate(-40)");
+
+                ttpSVG.append("g") //prediction
+                    .attr("transform", `translate(0,${mapTooltipHeight - ttpMargins.bottom})`)
+                    .call(d3.axisBottom(xScalePrediction).tickValues(predictiveTicks).tickSize(4).tickFormat(d3.timeFormat("%d %b")))
+                    .selectAll("text")  
+                    .attr("class", "tooltip-label")
+                    .style("text-anchor", "end")
+                    .attr("transform", "rotate(-40)");
     
                 // display y-axis on the left
                 ttpSVG.append("g")
                     .attr("transform", `translate(${ttpMargins.left},0)`)
-                    .call(d3.axisLeft(yScale).ticks(5).tickSize(4));
-                
+                    .call(d3.axisLeft(yScale).ticks(5).tickSize(4))
+                    .selectAll("text")
+                    .attr("class", "tooltip-label")
             })
     })
 }

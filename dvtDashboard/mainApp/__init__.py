@@ -130,6 +130,59 @@ def create_app():
         }
         return jsonify({'data': json.loads(data.to_json(orient='table', index=True))['data'], 'stats': stats})
     
+    @app.route('/hospitalization-grid/<disease>', methods=['GET', 'POST'])
+    def getHospitalizationGrid(disease='covid-19'):
+        variables = request.get_json()
+
+        region = input_parser(variables['region'])
+        date = parse_date(variables['date'])
+
+        # if variables['rate']:
+        start_date = date - pd.DateOffset(months=18)
+        historical_dates = pd.date_range(end=date, start=start_date, freq='W')
+
+        if historical_dates[-1] < date:
+            historical_dates = historical_dates.union([date])
+
+        historical_dates = historical_dates.insert(-1, date - pd.DateOffset(weeks=1))
+
+        historical_dates = historical_dates.strftime("%Y-%m-%d").to_list()
+
+        historical_return_data_dict = {}
+
+        h_mins = []
+        h_maxs = []
+        for data_source in ['state-model', 'health-system']:
+
+            try:
+                historical_data = fetchHospitalizationData(disease, region, historical_dates, data_source)
+                if variables['rate']:
+                    historical_data['count'] /= (historical_data['zcta_pop'] / 1000)
+                historical_data.index = historical_data.index.droplevel(0)
+
+            except KeyError:
+                historical_data = pd.DataFrame(index=historical_dates, columns=['count'])
+                historical_data['count'] = 0
+
+            historical_data.index = historical_data.index.astype(str)
+            historical_return_data_dict[data_source] = historical_data['count'].to_dict()
+            h_mins.append(historical_data['count'].min(axis=None))
+            h_maxs.append(historical_data['count'].max(axis=None))
+
+        data = {
+            'historical': historical_return_data_dict,
+        }
+
+        stats = {
+            'count': {'min': min(*h_mins),
+                'max': max(*h_maxs)},
+            'date': {'min': historical_dates[0], 'max': historical_dates[-1]}
+        }
+
+        return_data = {'data': data, 'stats': stats}
+
+        return jsonify(return_data)
+
     @app.route('/hospitalization-history/<disease>', methods=['GET', 'POST'])
     def getHospitalizationHistory(disease='covid-19'):
         variables = request.get_json()
@@ -139,13 +192,15 @@ def create_app():
 
         # if variables['rate']:
         start_date = date - pd.DateOffset(months=18)
-        historical_dates = pd.date_range(end=date, start=start_date, freq='M')
+        historical_dates = pd.date_range(end=date, start=start_date, freq='W')
 
-        end_date = date + pd.DateOffset(weeks=5)
-        pred_dates = pd.date_range(start=date, end=end_date, freq='W')
+        end_date = date + pd.DateOffset(weeks=6)
+        pred_dates = pd.date_range(start=date, end=end_date, freq='W', inclusive='both')
 
         if historical_dates[-1] < date:
             historical_dates = historical_dates.union([date])
+
+        historical_dates = historical_dates.insert(-1, date - pd.DateOffset(weeks=1))
 
         if pred_dates[0] > date:
             pred_dates = pred_dates.insert(0, date)
@@ -153,15 +208,11 @@ def create_app():
         historical_dates = historical_dates.strftime("%Y-%m-%d").to_list()
         pred_dates = pred_dates.strftime("%Y-%m-%d").to_list()
 
-        print(date)
-        print(historical_dates)
-        print(pred_dates)
-
         historical_return_data_dict = {}
 
         h_mins = []
         h_maxs = []
-        for data_source in ['state-data', 'state-model', 'health-system']:
+        for data_source in ['state-data', 'state-train', 'state-post-train', 'health-system']:
 
             try:
                 historical_data = fetchHospitalizationData(disease, region, historical_dates, data_source)
@@ -200,7 +251,10 @@ def create_app():
         stats = {
             'count': {'min': min(*h_mins, predictive_data['count'].min(axis=None)),
                 'max': max(*h_maxs, predictive_data['count'].max(axis=None))},
-            'date': {'min': historical_dates[0], 'max': pred_dates[-1]},
+            'date': {'min': historical_dates[0], 'max': pred_dates[-1],
+                'historical': {'min': historical_dates[0], 'max': historical_dates[-1]},
+                'prediction': {'min': pred_dates[0], 'max': pred_dates[-1]}
+                     },
         }
 
         return_data = {'data': data, 'stats': stats}
@@ -249,6 +303,16 @@ def fetchHospitalizationData(disease, region, date, dataSource):
         result = result.rename({'Projected Cases': 'count'}, axis=1)
         result = result.dropna()
 
+    elif dataSource == 'state-train':
+        result = base_data.loc[(region, date), ['Projected Cases(train)', 'zcta_pop']]
+        result = result.rename({'Projected Cases(train)': 'count'}, axis=1)
+        result = result.dropna()
+
+    elif dataSource == 'state-post-train':
+        result = base_data.loc[(region, date), ['Projected Cases(post training)', 'zcta_pop']]
+        result = result.rename({'Projected Cases(post training)': 'count'}, axis=1)
+        result = result.dropna()
+
     return result
 
 
@@ -257,7 +321,8 @@ def load_data():
 
 def load_zcta_hospitalization():
     files = {
-        'covid-19': main_dir+'/static/data/covid-19 hospitalization (CDC visit TEMPORARY) v2.csv'
+        'covid-19': main_dir+'/static/data/Data file for CDC site visit.csv'
+        # 'covid-19': main_dir+'/static/data/covid-19 hospitalization (CDC visit TEMPORARY) v2.csv'
     }
 
     index_names = ['zcta', 'date']
@@ -270,9 +335,9 @@ def load_zcta_hospitalization():
         df.rename({'Zip code': 'zcta', 'Date': 'date'}, axis=1, inplace=True)
 
         df['Projected Cases'] = df['Projected Cases(train)'].fillna(value=0) + df['Projected Cases(post training)'].fillna(value=0)
-
-        df['date'] = df['date'].apply(lambda x: '{0:>02s}/{1:>02s}/{2:04s}'.format(*x.split('/')))
-        df['date'] = pd.to_datetime(df['date'], format='%m/%d/%Y')
+        # print(df['date'])
+        # df['date'] = df['date'].apply(lambda x: '{0:>02s}-{1:>02s}-{2:04s}'.format(*x.split('-')))
+        df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
 
         value_columns = df.columns.difference(index_names)
         df = pd.pivot_table(df, values=value_columns, index=index_names)

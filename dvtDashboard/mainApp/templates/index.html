@@ -95,6 +95,16 @@
             navBar.show("map")
         }
     })
+
+    document.addEventListener("keyup", function(e) {
+        if (e.key == "l") {
+            d3.selectAll(".tooltip-label-group")
+                .each(function(d) {
+                    display = d3.select(this).attr("display") == "none" ? "initial" : "none"
+                    d3.select(this).attr("display", display)
+                })
+        }
+    })
 </script>
 
 {% endblock %}

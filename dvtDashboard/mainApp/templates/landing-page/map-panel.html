@@ -22,7 +22,7 @@
   </sl-select>
 
   <sl-select value="state" id="map-data-source-selector" class="center-self">
-    <p slot="label">Select source of hospitalization data</p>
+    <p slot="label">Select hospitalization level</p>
     <sl-option value="state" >State</sl-option>
     <sl-option value="health-system">Health System</sl-option>
   </sl-select>
@@ -32,7 +32,7 @@
     <br/>
     Hospitalization cases are aggregated by zip code tabulation area (zcta).
   </p>
-  <sl-checkbox id="map-options-hospital-icons-toggle" class="map-options" checked >Hospital Icons</sl-checkbox>
+  <sl-checkbox id="map-options-hospital-icons-toggle" class="map-options" checked style="display: none;">Hospital Icons</sl-checkbox>
   <div id="map-options-hospitalizations-branch" class="map-options">
 
   </div>
@@ -123,8 +123,8 @@
   var choroplethColorMap = null
   var hospitalRadiusMap = null
 
-  mapTooltip.style.backgroundColor = opacify(d3.select(mapTooltip).style("--sl-color-neutral-500").replace(/ /g, ","), 0.75)
-  mapTooltip.style.borderColor = opacify(d3.select(mapTooltip).style("--sl-color-neutral-700").replace(/ /g, ","), 0.5)
+  mapTooltip.style.backgroundColor = opacify(d3.select(mapTooltip).style("--sl-color-neutral-500").replace(/ /g, ","), 0.85)
+  mapTooltip.style.borderColor = opacify(d3.select(mapTooltip).style("--sl-color-neutral-700").replace(/ /g, ","), 0.75)
 
 
   function createHospitalCheck(disease, color) {
