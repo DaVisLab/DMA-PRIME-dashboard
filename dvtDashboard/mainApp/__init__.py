@@ -174,8 +174,8 @@ def create_app():
         }
 
         stats = {
-            'count': {'min': min(*h_mins),
-                'max': max(*h_maxs)},
+            'count': {'min': float(min(*h_mins)),
+                'max': float(max(*h_maxs))},
             'date': {'min': historical_dates[0], 'max': historical_dates[-1]}
         }
 

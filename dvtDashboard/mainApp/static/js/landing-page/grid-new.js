@@ -74,7 +74,7 @@ function updateGridData() {
     gridHeight = gridContainer.clientHeight
     gridWidth = gridContainer.clientWidth
 
-    gridItemWidth = Math.max((gridWidth/8) - 2, 0)
+    gridItemWidth = Math.max((gridWidth/8) - .5*em, 0)
     gridItemHeight = Math.max((gridHeight/6) - 1, 0)
 
     var parseDate = function(date) {return dayjs.tz(date, "America/New_York").toDate()}

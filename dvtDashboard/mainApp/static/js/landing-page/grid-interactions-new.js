@@ -207,34 +207,51 @@ function setGridTooltip(gridTooltip) {
                 labelBasis = predictiveData[parseInt((predictiveData.length-1))]
                 fiveWeekLabelGroup = predictiveGroup.append("g")
                     .attr("class", "tooltip-label-group")
+                fiveWeekTextPosition = yScale(labelBasis.count) - em
+                if (yScale(yScale.domain()[1]) > fiveWeekTextPosition - em) {
+                    fiveWeekTextPosition = yScale(yScale.domain()[1]) + 1*em
+                }
                 fiveWeekLabel = fiveWeekLabelGroup.append("text")
                     .attr("class", "tooltip-label")
                     .attr("x", xScalePrediction(labelBasis.date))
-                    .attr("y", yScale(labelBasis.count) - em)
+                    .attr("y", fiveWeekTextPosition)
                     .attr("text-anchor", "end")
                     .attr("font-size", "var(--sl-font-size-small)")
                     .attr("text-decoration", "underline")
                     .text("5 Week Prediction")
 
-                labelBBox = fiveWeekLabel.node().getBBox()
+                fiveWeekLabelBBox = fiveWeekLabel.node().getBBox()
                 fiveWeekLabelGroup.append("line")
-                    .attr("x1", labelBBox.width/2 + labelBBox.x)
-                    .attr("y1", labelBBox.height + labelBBox.y)
+                    .attr("x1", fiveWeekLabelBBox.width/2 + fiveWeekLabelBBox.x)
+                    .attr("y1", fiveWeekLabelBBox.height + fiveWeekLabelBBox.y)
                     .attr("x2", xScalePrediction(labelBasis.date))
                     .attr("y2", yScale(labelBasis.count))
                     .attr("stroke", "black")
 
                 labelGroup = predictiveGroup.append("g")
                     .attr("class", "tooltip-label-group")
-                // labelGroupBackground = labelGroup.append("rect") 
+                labelGroupBackground = labelGroup.append("rect") 
+                predictionTextPosition = yScale(yScale.domain()[1]) + em
+                if (yScale(labelBasis.count) <= predictionTextPosition + em) {
+                    predictionTextPosition = yScale(0) - .5*em
+                }
                 labelText = labelGroup.append("text")
                     .attr("class", "tooltip-label")
                     .attr("x", xScalePrediction(d3.mean(xScalePrediction.domain())))
-                    .attr("y", yScale(yScale.domain()[1]) + 1.5*em)
+                    .attr("y", predictionTextPosition)
                     .attr("fill", dataSourceColorMap["prediction"])
                     .attr("font-size", "var(--sl-font-size-small)")
                     .attr("text-anchor", "middle")
                     .text("prediction")
+
+                labelBBox = labelText.node().getBBox()
+                labelGroupBackground
+                    .attr("height", labelBBox.height)
+                    .attr("width", labelBBox.width)
+                    .attr("x", labelBBox.x)
+                    .attr("y", labelBBox.y)
+                    .attr("fill", "var(--sl-color-gray-600)")
+                    .attr("opacity", .5)
             }
 
            // display x-axis on the bottom
