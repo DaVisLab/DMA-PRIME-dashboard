@@ -118,7 +118,7 @@ function updateGridData() {
                 yScale = d3.scaleLinear()
                             .domain([stats.count.min, stats.count.max])        
                             .nice()
-                            .range([gridItemHeight - margin.bottom, margin.top])
+                            .range([gridItemHeight, margin.top])
 
                 xScale = d3.scaleUtc()
                     .domain([stats.date.min, stats.date.max])
@@ -157,13 +157,19 @@ function updateGridData() {
                     })
                 })
 
-                gridItem.append("g").append("text")
-                    .attr("class", "grid-item-value-label")
-                    .attr("x", (xScale.range()[1] + gridItemWidth)/2)
-                    .attr("y", yScale(value[gridDataSourceSortSelector.value]))
+                lastDot = gridItem.append("g") //TODO: rename this, my brain is tired
+                    .attr("class", "grid-item-value")
+                
+                lastDot.append("text")
+                    .attr("x", xScale.range()[1] + 6)
+                    .attr("y", yScale(value[gridDataSourceSortSelector.value == "health-system" ? "health-system" : "state-model"]))
                     .attr("font-size", "var(--sl-font-size-x-small)")
-                    .attr("text-anchor", "middle")
-                    .text(parseInt(value[gridDataSourceSortSelector.value]))
+                    .text(value[gridDataSourceSortSelector.value].toFixed(1))
+
+                lastDot.append("circle")
+                    .attr("cx", xScale.range()[1])
+                    .attr("cy", yScale(value[gridDataSourceSortSelector.value == "health-system" ? "health-system" : "state-model"]))
+                    .attr("r", 3)
 
                 // Object.entries(data.prediction).forEach(function([dataSource, values]) {
                 //     // for each data source

@@ -11,12 +11,25 @@ gridRateSwitch.addEventListener("sl-change", (event) => {
 })
 
 gridDataSourceSortSelector.addEventListener("sl-change", (event) => {
-    d3.selectAll(".grid-item-value-label")
-        .text(function() {
-            dataNode = this.parentNode.parentNode.parentNode.parentNode.parentNode
-            value = d3.select(dataNode).datum()
-            return parseInt(value[gridDataSourceSortSelector.value])
-        })
+    // d3.selectAll(".grid-item-value")
+    //     .each(function() {
+    //         thisNode = d3.select(this)
+    //         dataNode = d3.select(this.parentNode.parentNode.parentNode.parentNode)
+    //         value = dataNode.datum()
+
+    //         thisNode.select("text")
+    //             .attr("y", yScale(value[gridDataSourceSortSelector.value]))
+    //             .text(parseInt(value[gridDataSourceSortSelector.value]))
+
+            
+
+    //         return parseInt(value[gridDataSourceSortSelector.value])
+    //     })
+    //     .text(function() {
+            
+    //     })
+
+    updateGridData()
     
     sortGrid()
 
