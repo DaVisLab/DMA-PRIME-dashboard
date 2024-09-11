@@ -1,0 +1,1 @@
+d3.json('../../static/data/zcta_hospitalization_data.json').then(function(data) {console.log(data)})

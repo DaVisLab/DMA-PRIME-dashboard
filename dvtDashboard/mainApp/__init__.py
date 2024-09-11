@@ -351,10 +351,78 @@ def load_zcta_hospitalization():
 
     index_names = ['zcta', 'date']
 
+    label_dict = {
+            'health-system-data': 'Health System hospitalizations', 
+            'state-training': 'Projected Cases(train)', 
+            'state-testing': 'Projected Cases(post training)',
+            'state-data': 'Statewide hospitalizations',
+            }
+
+    date = pd.Timestamp(year=2024, month=8, day=26) # pd.Timestamp.now().round(freq='d')
+
+    start_date = date - pd.DateOffset(months=18)
+    historical_dates = pd.date_range(end=date, start=start_date, freq='W-MON')
+    historical_dates = historical_dates.to_list()
+
+    end_date = date + pd.DateOffset(weeks=5)
+    pred_dates = pd.date_range(start=date, end=end_date, freq='W-MON', inclusive='both')
+    pred_dates = pred_dates.to_list()
+
+
     zcta_data = pd.read_csv(main_dir+'/static/data/zcta_summary.csv', index_col=0)
 
     for disease, file in files.items():
 
+        # grid view
+        df = pd.read_csv(file)
+        df.rename({'Zip code': 'zcta', 'Date': 'date'}, axis=1, inplace=True)
+        df['date'] = pd.to_datetime(df['date'])
+        value_columns = df.columns.difference(index_names)
+        df = pd.pivot_table(df, values=value_columns, index=index_names)
+        zcta_data = pd.read_csv(main_dir+'/static/data/zcta_summary.csv', index_col=0)
+
+        zctas = zcta_data['zcta'].unique()
+
+        zcta_list = []
+
+        for zcta in zctas:
+            zcta_dict = {
+                'zcta': int(zcta),
+                'population': float(zcta_data.loc[zcta, 'population']),
+                'county': zcta_data.loc[zcta, 'main_county']
+            }
+            for name, column in label_dict.items():
+                try:
+                    data = df.xs(zcta, axis=0).loc[historical_dates, column].fillna(value=0)
+                    zcta_dict[name] = {
+                            'start-date': data.index[0].strftime("%Y-%m-%d"),
+                            'data': data.to_list(),
+                        }
+                except KeyError:
+                    zcta_dict[name] = {
+                            'start-date': date.strftime("%Y-%m-%d"),
+                            'data': [],
+                        }
+            try:
+                data = df.xs(zcta, axis=0).loc[pred_dates, 'Projected Cases(post training)']
+                zcta_dict['state-prediction'] = {
+                        'start-date': data.index[0].strftime("%Y-%m-%d"),
+                        'data': data.to_list(),
+                    }
+            except KeyError:
+                zcta_dict['state-prediction'] = {
+                        'start-date': date.strftime("%Y-%m-%d"),
+                        'data': [],
+                    } 
+
+            if len(zcta_dict['state-testing']['data']) > 0:
+                zcta_dict['state-training']['data'].append(zcta_dict['state-testing']['data'][-1])
+            
+            zcta_list.append(zcta_dict)
+            with open( main_dir+'/static/data/'+disease+'_zcta_hospitalization_data.json', 'w') as f:
+                json.dump(zcta_list, f)
+
+        # map view
         df = pd.read_csv(file)
         df.rename({'Zip code': 'zcta', 'Date': 'date'}, axis=1, inplace=True)
 
