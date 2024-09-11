@@ -56,6 +56,28 @@ sl-tooltip {
   --max-width: 800px;
 }
 
+#grid-legend {
+  background-color: var(--sl-color-gray-900);
+  opacity: .75;
+  display: block;
+  position: absolute;
+  left: calc(20% + 1em);
+  bottom: 1em;
+}
+
+#grid-legend-svg {
+  height: 3em;
+  width: 200px;
+}
+
+#grid-legend-svg > line {
+  stroke: black;
+}
+
+#grid-legend-state-model-line {
+  stroke-dasharray: 5, 5;
+}
+
 /* below is text in grid item, I think this is already handled by d3 in grid.js */
 /* .quandrant text {
   font-size: var(--sl-font-size-x-small)

@@ -45,7 +45,7 @@ function gridInitialVisualization() {
 
             gridSVG.append("rect")
                 .attr("class", "grid-background")
-                .style("fill", "grey")
+                .style("fill", "var(--sl-color-gray-600)")
 
             // title
             gridSVG.append("text")
@@ -71,6 +71,7 @@ function gridInitialVisualization() {
 }
 
 function updateGridData() {
+    console.log("updating grid data")
     gridHeight = gridContainer.clientHeight
     gridWidth = gridContainer.clientWidth
 
@@ -103,12 +104,16 @@ function updateGridData() {
 
                 data = result.data
                 stats = result.stats
-
+                
                 stats.date.min = parseDate(stats.date.min)
                 stats.date.max = parseDate(stats.date.max)
+
+                gridStartDate.html(d3.utcFormat("%B %d, %Y")(parseDate(result.stats.date.min)))
+                gridEndDate.html(d3.utcFormat("%B %d, %Y")(parseDate(result.stats.date.max)))
                 
                 value = {
                     "state-model": 0,
+                    "state-model-sum": 0,
                     "health-system": 0,
                     "zcta": itemData
                 }
@@ -116,11 +121,11 @@ function updateGridData() {
                 yScale = d3.scaleLinear()
                             .domain([stats.count.min, stats.count.max])        
                             .nice()
-                            .range([gridItemHeight - margin.bottom, margin.top])
+                            .range([gridItemHeight, margin.top])
 
                 xScale = d3.scaleUtc()
                     .domain([stats.date.min, stats.date.max])
-                    .range([0, gridItemWidth]) 
+                    .range([0, gridItemWidth*.75]) 
 
                 line = d3.line()
                     .x((d) => xScale(parseDate(d.date)))
@@ -148,6 +153,26 @@ function updateGridData() {
 
                 })
 
+                Object.entries(data.prediction).forEach(function([dataSource, values]) {
+                    // for each data source
+                    Object.entries(values).forEach(function([date, count]) {
+                        value["state-model-sum"] += count
+                    })
+                })
+
+                lastDot = gridItem.append("g") //TODO: rename this, my brain is tired
+                    .attr("class", "grid-item-value")
+                
+                lastDot.append("text")
+                    .attr("x", xScale.range()[1] + 6)
+                    .attr("y", yScale(value[gridDataSourceSortSelector.value == "health-system" ? "health-system" : "state-model"]))
+                    .attr("font-size", "var(--sl-font-size-x-small)")
+                    .text(value[gridDataSourceSortSelector.value].toFixed(1))
+
+                lastDot.append("circle")
+                    .attr("cx", xScale.range()[1])
+                    .attr("cy", yScale(value[gridDataSourceSortSelector.value == "health-system" ? "health-system" : "state-model"]))
+                    .attr("r", 3)
 
                 // Object.entries(data.prediction).forEach(function([dataSource, values]) {
                 //     // for each data source

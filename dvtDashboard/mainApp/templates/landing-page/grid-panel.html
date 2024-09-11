@@ -19,8 +19,9 @@
   </sl-select>
 
   <sl-select value="state-model" id="{{panel.name}}-data-source-sort-selector" class="center-self">
-    <p slot="label">Sort by hospitalization level</p>
-    <sl-option value="state-model" >State</sl-option>
+    <p slot="label">Select hospitalization level</p>
+    <sl-option value="state-model" >State (current week)</sl-option>
+    <sl-option value="state-model-sum" >State (next 5 weeks)</sl-option>
     <sl-option value="health-system">Health System</sl-option>
   </sl-select>
 
@@ -72,6 +73,14 @@
 <sl-resize-observer id="grid-container-resizer">
   <div id="grid-container"></div>
 </sl-resize-observer>
+<div id="grid-legend">
+  <svg id="grid-legend-svg">
+    <line id="grid-legend-state-model-line" x1=".5em" x2="3.5em" y1="1em" y2="1em"></line>
+    <text id="grid-legend-state-model-text" x="4em" y="1.5em">State Prediction</text>
+    <line id="grid-legend-health-system-line" x1=".5em" x2="3.5em" y1="2em" y2="2em"></line>
+    <text id="grid-legend-health-system-text" x="4em" y="2.5em">Health System</text>
+  </svg>
+</div>
 {% endblock %}
 
 {% block scripts %}

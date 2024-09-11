@@ -108,10 +108,10 @@ def create_app():
             mapDataDict = json.load(open(f'{main_dir}/static/data/Hospitals.geojson'))
         else:
             if mapType == 'zcta':
-                mapDataDict = json.load(open(f'{main_dir}/static/data/tl_2023_sc_{mapType}_trimmed_simplified_ogr2ogr_.0001.json'))
+                mapDataDict = json.load(open(f'{main_dir}/static/data/tl_2023_sc_{mapType}_trimmed_simplified_ogr2ogr_.001.json'))
                 # mapDataDict = json.load(open(f'{main_dir}/static/data/tl_2023_sc_{mapType}_trimmed_simplified.json'))
             else:
-                mapDataDict = json.load(open(f'{main_dir}/static/data/tl_2023_sc_{mapType}_trimmed.json'))
+                mapDataDict = json.load(open(f'{main_dir}/static/data/tl_2023_sc_{mapType}_trimmed_simplified_ogr2ogr_.001.json'))
         return mapDataDict
     
     @app.route('/hospitalizations/<disease>/<dataSource>', methods=['GET', 'POST'])
@@ -145,12 +145,19 @@ def create_app():
         start_date = date - pd.DateOffset(months=18)
         historical_dates = pd.date_range(end=date, start=start_date, freq='W')
 
+        end_date = date + pd.DateOffset(weeks=6)
+        pred_dates = pd.date_range(start=date, end=end_date, freq='W', inclusive='both')
+
         if historical_dates[-1] < date:
             historical_dates = historical_dates.union([date])
 
         historical_dates = historical_dates.insert(-1, date - pd.DateOffset(weeks=1))
 
+        if pred_dates[0] > date:
+            pred_dates = pred_dates.insert(0, date)
+
         historical_dates = historical_dates.strftime("%Y-%m-%d").to_list()
+        pred_dates = pred_dates.strftime("%Y-%m-%d").to_list()
 
         historical_return_data_dict = {}
 
@@ -173,8 +180,22 @@ def create_app():
             h_mins.append(historical_data['count'].min(axis=None))
             h_maxs.append(historical_data['count'].max(axis=None))
 
+        prediction_return_data_dict = {}
+
+        try:
+            predictive_data = fetchHospitalizationData(disease, region, pred_dates, 'state-model')
+            if variables['rate']:
+                    predictive_data['count'] /= (predictive_data['zcta_pop'] / 1000)
+            predictive_data.index = predictive_data.index.droplevel(0)
+            predictive_data.index = predictive_data.index.astype(str)
+        except KeyError:
+            predictive_data = pd.DataFrame(columns=['count'])
+
+        prediction_return_data_dict['state-model'] = predictive_data['count'].to_dict()
+
         data = {
             'historical': historical_return_data_dict,
+            'prediction': prediction_return_data_dict,
         }
 
         stats = {
@@ -194,7 +215,6 @@ def create_app():
         region = input_parser(variables['region'])
         date = parse_date(variables['date'])
 
-        # if variables['rate']:
         start_date = date - pd.DateOffset(months=18)
         historical_dates = pd.date_range(end=date, start=start_date, freq='W')
 

@@ -2,17 +2,57 @@ gridSort.addEventListener("sl-change", (event) => {
     sortGrid()
 })
 
-// gridRateSwitch.addEventListener("sl-change", (event) => {
-//     // when population aggregation switch is changed, update the visualization
-//     // displayGridAggregateChart()
-//     updateGridData()
-//     sortGrid()
+gridRateSwitch.addEventListener("sl-change", (event) => {
+    // when population aggregation switch is changed, update the visualization
+    // displayGridAggregateChart()
+    updateGridData()
+    sortGrid()
 
-// })
+})
 
 gridDataSourceSortSelector.addEventListener("sl-change", (event) => {
+    // d3.selectAll(".grid-item-value")
+    //     .each(function() {
+    //         thisNode = d3.select(this)
+    //         dataNode = d3.select(this.parentNode.parentNode.parentNode.parentNode)
+    //         value = dataNode.datum()
+
+    //         thisNode.select("text")
+    //             .attr("y", yScale(value[gridDataSourceSortSelector.value]))
+    //             .text(parseInt(value[gridDataSourceSortSelector.value]))
+
+            
+
+    //         return parseInt(value[gridDataSourceSortSelector.value])
+    //     })
+    //     .text(function() {
+            
+    //     })
+
+    updateGridData()
+    
     sortGrid()
+
 })
+
+// function resizeGridItems() {
+    
+//     gridHeight = gridContainer.clientHeight
+//     gridWidth = gridContainer.clientWidth
+
+//     gridItemWidth = Math.max((gridWidth/8) - .5*em, 0)
+//     gridItemHeight = Math.max((gridHeight/6) - 1, 0)
+
+//     d3.selectAll(".grid-background")
+//         .attr("width", gridItemWidth)
+//         .attr("height", gridItemHeight)
+
+//     d3.selectAll(".grid-item")
+//         .attr("width", gridItemWidth)
+//         .attr("height", gridItemHeight)
+//         .each(function(item) {})
+
+// }
 
 function setGridTooltip(gridTooltip) {
     gridTooltip.on("sl-show", function(event) {
