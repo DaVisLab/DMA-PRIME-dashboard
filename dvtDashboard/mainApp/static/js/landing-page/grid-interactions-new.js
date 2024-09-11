@@ -74,6 +74,7 @@ function setGridTooltip(gridTooltip) {
                 .attr("height", gridTooltipHeight)
                 .attr("width", gridTooltipWidth)
 
+
             // reset tooltip contents for new data
             // ttp.select("p.tooltip").node().innerHTML = `${county[0].toUpperCase() + county.slice(1)}<br>ZCTA: ${zctaName}`
             ttpSVG.node().innerHTML = ""
@@ -131,8 +132,8 @@ function setGridTooltip(gridTooltip) {
                 .attr("y", gridTooltipLegendTop)
                 .attr("height", 2.5*em)
                 .attr("width", gridTooltipWidth-em)
-                .attr("fill", "var(--sl-color-gray-300)")
-                .attr("opacity", .5)
+                .attr("fill", "rgba(0, 0, 0, 0.75)")
+                // .attr("opacity", .5)
             // holds lines of linechart
             graphSVG = ttpSVG.append("svg")
                 .attr("id", "graph-svg")

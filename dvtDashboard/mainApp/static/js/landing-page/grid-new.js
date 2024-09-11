@@ -27,6 +27,7 @@ function gridInitialVisualization() {
 
             gridTTP.append("svg")
                 .attr("id", `grid-${zcta}-tooltip-svg`)
+                .attr("fill", "red")
                 .attr("zcta", zcta)
 
             // main visualization
@@ -66,6 +67,7 @@ function gridInitialVisualization() {
             // line to delineate prediction and historical data
             gridSVG.append("line")
                 .attr("class", "grid-prediction-separator")
+                
         })
     }) //.then(updateGridData)
 }

@@ -13,7 +13,7 @@ var dataSourceColorMap = {
     "state-post-train": "#CC6677",
     "state-model": "#FFB000",
     "prediction": "#CC6677",
-    "state": "#FFB000",
+    "state": "#CC6677",
 }
 
 var dataSourceLabelPlacement = {
@@ -27,8 +27,8 @@ var dataSourceLabelPlacement = {
 var dataSourceDisplayName = {
     "health-system": "Health System Data",
     "state-data": "State Data",
-    "state-train": "Prediction (training)",
     "state-post-train": "Prediction (test)",
+    "state-train": "Prediction (training)",
     "prediction": "Forecast",
 }
 
