@@ -18,11 +18,11 @@
     <sl-option value="flu" disabled>Flu (Influenza)</sl-option>
   </sl-select>
 
-  <sl-select value="state-model" id="{{panel.name}}-data-source-sort-selector" class="center-self">
+  <sl-select value="state-testing" id="{{panel.name}}-data-source-sort-selector" class="center-self">
     <p slot="label">Select hospitalization level</p>
-    <sl-option value="state-model" >State (current week)</sl-option>
-    <sl-option value="state-model-sum" >State (next 5 weeks)</sl-option>
-    <sl-option value="health-system">Health System</sl-option>
+    <sl-option value="state-testing" >State (current week)</sl-option>
+    <sl-option value="state-prediction" >State (5th week prediction)</sl-option>
+    <sl-option value="health-system-data">Health System</sl-option>
   </sl-select>
 
   <sl-select value="" id="{{panel.name}}-sort" class="center-self">
@@ -162,6 +162,6 @@
   set{{panel.name}}Panel()
 </script>
 
-<script src="{{ url_for('static', filename='js/landing-page/grid-new.js') }}"></script>
+<script src="{{ url_for('static', filename='js/landing-page/grid-new(working).js') }}"></script>
 <script src="{{ url_for('static', filename='js/landing-page/grid-interactions-new.js') }}"></script>
 {% endblock %}

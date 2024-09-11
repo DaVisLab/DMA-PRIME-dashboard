@@ -135,6 +135,10 @@ def create_app():
         return jsonify({'data': json.loads(data.to_json(orient='table', index=True))['data'], 'stats': stats})
     
     @app.route('/hospitalization-grid/<disease>', methods=['GET', 'POST'])
+    def getHospitalizations2(disease='covid-19'):
+        return json.load(open(f'{main_dir}/static/data/{disease}_zcta_hospitalization_data.json'))
+
+
     def getHospitalizationGrid(disease='covid-19'):
         variables = request.get_json()
 
@@ -377,6 +381,7 @@ def load_zcta_hospitalization():
         df = pd.read_csv(file)
         df.rename({'Zip code': 'zcta', 'Date': 'date'}, axis=1, inplace=True)
         df['date'] = pd.to_datetime(df['date'])
+        df['Health System hospitalizations'] = df['Health System hospitalizations'].fillna(value=0)
         value_columns = df.columns.difference(index_names)
         df = pd.pivot_table(df, values=value_columns, index=index_names)
         zcta_data = pd.read_csv(main_dir+'/static/data/zcta_summary.csv', index_col=0)
@@ -388,12 +393,12 @@ def load_zcta_hospitalization():
         for zcta in zctas:
             zcta_dict = {
                 'zcta': int(zcta),
-                'population': float(zcta_data.loc[zcta, 'population']),
-                'county': zcta_data.loc[zcta, 'main_county']
+                'population': str(zcta_data.loc[zcta, 'population']),
+                'county': str(zcta_data.loc[zcta, 'main_county'])
             }
             for name, column in label_dict.items():
                 try:
-                    data = df.xs(zcta, axis=0).loc[historical_dates, column].fillna(value=0)
+                    data = df.xs(zcta, axis=0).loc[historical_dates, column].dropna()
                     zcta_dict[name] = {
                             'start-date': data.index[0].strftime("%Y-%m-%d"),
                             'data': data.to_list(),
@@ -404,7 +409,7 @@ def load_zcta_hospitalization():
                             'data': [],
                         }
             try:
-                data = df.xs(zcta, axis=0).loc[pred_dates, 'Projected Cases(post training)']
+                data = df.xs(zcta, axis=0).loc[pred_dates, 'Projected Cases(post training)'].dropna()
                 zcta_dict['state-prediction'] = {
                         'start-date': data.index[0].strftime("%Y-%m-%d"),
                         'data': data.to_list(),
@@ -416,7 +421,7 @@ def load_zcta_hospitalization():
                     } 
 
             if len(zcta_dict['state-testing']['data']) > 0:
-                zcta_dict['state-training']['data'].append(zcta_dict['state-testing']['data'][-1])
+                zcta_dict['state-training']['data'].append(zcta_dict['state-testing']['data'][0])
             
             zcta_list.append(zcta_dict)
             with open( main_dir+'/static/data/'+disease+'_zcta_hospitalization_data.json', 'w') as f:

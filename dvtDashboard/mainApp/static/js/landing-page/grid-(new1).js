@@ -252,6 +252,9 @@ function sortGrid() {
             d3.selectAll("div.grid-container")
                 .sort((a, b) => b[gridDataSourceSortSelector.value] - a[gridDataSourceSortSelector.value])
             break;
+
+
+                
         case "value-low": 
             d3.selectAll("div.grid-container")
                 .sort((a, b) => a[gridDataSourceSortSelector.value] - b[gridDataSourceSortSelector.value])

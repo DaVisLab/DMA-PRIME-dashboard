@@ -6,11 +6,16 @@ var numDiseases = 3
 var diseaseIndexing = { "covid-19": 1, "influenza": 2, "rsv": 3 }
 var diseaseColorMap = d3.scaleOrdinal().domain(Object.keys(diseaseIndexing)).unknown("var(--sl-color-gray-600").range(d3.schemeSet1)
 
+var gridItemDataSources = ["health-system-data", "state-training", "state-testing"]
+
 var dataSourceColorMap = {
-    "health-system": "#648FFF",
+    "health-system-data": "#648FFF",
     "state-data": "#785EF0",
-    "state-train": "#FFB000",
-    "state-post-train": "#FFB000",
+    "state-training": "#FFB000",
+    "state-testing": "#FFB000",
+    "state-prediction": "#FE6100",
+
+    // remove when thingy is done
     "state-model": "#FFB000",
     "prediction": "#FE6100",
     "state": "#FFB000",
@@ -38,6 +43,10 @@ var dataSourceLineStyle = {
     "state-train": "5,5",
     "state-post-train": null,
     "prediction": null,
+
+    "health-system-data": null,
+    "state-training": "5,5",
+    "state-testing": "5,5",
 }
 
 margins = {
@@ -49,6 +58,18 @@ margins = {
 
 var styleSheet = new CSSStyleSheet()
 document.adoptedStyleSheets = [styleSheet]
+
+// other info
+thisWeekMonday = new Date(2024, 7, 26)
+thisWeekMonday = d3.timeMonday.floor(thisWeekMonday)
+
+startDate = new Date(thisWeekMonday);
+startDate.setMonth(startDate.getMonth() - 18);
+historicalDates = d3.timeMonday.range(startDate, new Date(thisWeekMonday).setDate(thisWeekMonday.getDate()+1), 1)
+
+endDate = new Date(thisWeekMonday);
+endDate.setDate(endDate.getDate() + 5*7);
+predictionDates = d3.timeMonday.range(thisWeekMonday, new Date(endDate).setDate(endDate.getDate()+1), 1)
 
 // helper functions
 function fixName(name) {
