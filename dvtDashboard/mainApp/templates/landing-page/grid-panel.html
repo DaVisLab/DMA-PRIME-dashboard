@@ -25,7 +25,7 @@
     <sl-option value="health-system-data">Health System</sl-option>
   </sl-select>
 
-  <sl-select value="" id="{{panel.name}}-sort" class="center-self">
+  <sl-select value="alphabetical-low" id="{{panel.name}}-sort" class="center-self">
     <p slot="label">Sort zctas</p>
     <sl-option value="value-high" >Value (count or rate) High-Low</sl-option>
     <sl-option value="value-low">Value (count or rate) Low-High</sl-option>
@@ -115,6 +115,8 @@
     "health-system": null,
     "state-model": "5,5",
   }
+
+  var gridBackgroundColors = [1, 2, 3, 4].map(i => d3.schemeReds[9][i])
 
   function createGridCheck(disease, color) {
     // creates checks corresponding to each disease hospitalization data
