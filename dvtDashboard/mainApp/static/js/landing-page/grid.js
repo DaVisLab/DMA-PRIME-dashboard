@@ -15,7 +15,7 @@ function gridInitialVisualization() {
                 .domain([historicalDates[0], historicalDates.at(-1)])
                 .range([0, gridItemWidth*.75]) 
 
-    d3.json(`/hospitalization-grid/${mapDiseaseSelector.value}`).then(function(zcta_data) {
+    d3.json(`/hospitalization-grid/${gridDiseaseSelector.value}`).then(function(zcta_data) {
         zctaData = zcta_data
 
         gridColor = d3.scaleQuantile()
