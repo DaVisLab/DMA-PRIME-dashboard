@@ -25,7 +25,6 @@ function gridInitialVisualization() {
             .append("div")
             .attr("class", "grid-container")
             .each(function(d, i, dom) {
-                // console.log(d, i, dom, this)
                 zcta = d.zcta
                 county = d.county
                 gridItemContainer = d3.select(this)
@@ -103,13 +102,12 @@ function gridInitialVisualization() {
                     
                     return d3.line()
                         .x((_, i) => xScale(historicalDates[i+startIndex]))
-                        .y((d, i) => {console.log(d, i); return yScale(d)})
+                        .y((d, i) => yScale(d))
                         .curve(d3.curveMonotoneX)(data.data)
                 }
 
                 gridItemDataSources.forEach(function(dataSource) {
                     // draw historical line chart
-                    console.log(dataSource)
                     historicalGroup = gridSVG.append("g")
                     historicalGroup.append("path")
                         .attr("d", line(d[dataSource]))
