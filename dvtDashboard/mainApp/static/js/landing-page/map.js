@@ -25,12 +25,19 @@ function mapInitialVisualization() {
               .attr("d", d => pathGenerator(d))
               .style("fill-opacity", 0)
 
+        // add group for hospital icons
+        hospitals = mapSVG.append("g")
+            .attr("id", "map-hospitals")
+            .style("pointer-events", "none")
 
+        // add group for hospital icons
+        mobileClinics = mapSVG.append("g")
+            .attr("id", "map-mobile-clinics")
+            .style("pointer-events", "none")
 
-        // // add group for hospital icons
-        // hospitals = mapSVG.append("g")
-        //     .attr("id", "map-hospitals")
-        //     .style("pointer-events", "none")
+        communityPartners = mapSVG.append("g")
+            .attr("id", "map-community-partners")
+            .style("pointer-events", "none")
 
         // add group for map legends
         legendsGroup = mapSVG.append("g")
@@ -60,22 +67,60 @@ function mapInitialVisualization() {
                 .call(updateMapData)
         })})
 
-        // // draw hospital icons
-        // hospSize = Math.max(16, Math.min(width, height) * 0.015)
-        // d3.json("/map-data/hospitals").then( async function(hospdata){
-        //       hospitals.selectAll("svg")
-        //       .data(hospdata.features)
+        // draw hospital icons
+        hospSize = Math.max(16, Math.min(width, height) * 0.015)
+        d3.csv("../../static/data/hospitals-list.csv").then(function(hospdata){
+            hospitals.selectAll("svg")
+              .data(hospdata)
+              .enter()
+              .append("svg")
+              .attr("class", "hospital")
+              .attr("id", d => "map-"+fixName(d["Name of Facility"]))
+              .attr("viewBox", "0 0 16 16")
+              .attr("x", d => mapProjection([d.X, d.Y])[0]*zoom + xSkew - hospSize/2)
+              .attr("y", d => mapProjection([d.X, d.Y])[1]*zoom + ySkew - hospSize/2)
+              .attr("width", hospSize)
+              .attr("height", hospSize)
+              .each(function(d) {
+                this.innerHTML = makeHospital(fixName(d["Name of Facility"]))
+              })
+        })
+
+        // draw mobile health clinic icons
+        mobileClinicSize = Math.max(16, Math.min(width, height) * 0.015)
+        // d3.csv("../../static/data/hospitals-list.csv").then(function(clinicData){
+        //     mobileClinics.selectAll("svg")
+        //       .data(clinicData)
         //       .enter()
         //       .append("svg")
-        //       .attr("class", "hospital")
-        //       .attr("id", d => "map-"+fixName(d.properties.webdbINFOHEALTHFACILITYLF_NAME))
-        //       .attr("viewBox", "0 0 16 16")
-        //       .attr("x", d => mapProjection(d.geometry.coordinates)[0]*zoom + xSkew - hospSize/2)
-        //       .attr("y", d => mapProjection(d.geometry.coordinates)[1]*zoom + ySkew - hospSize/2)
-        //       .attr("width", hospSize)
-        //       .attr("height", hospSize)
+        //       .attr("class", "mobile-clinic")
+        //       .attr("id", d => "map-"+fixName(d["Name of Facility"]))
+        //       .attr("viewBox", "0 0 18 18")
+        //       .attr("x", d => mapProjection([d.X, d.Y])[0]*zoom + xSkew - healthClinicSize/2)
+        //       .attr("y", d => mapProjection([d.X, d.Y])[1]*zoom + ySkew - healthClinicSize/2)
+        //       .attr("width", mobileClinicSize)
+        //       .attr("height", mobileClinicSize)
         //       .each(function(d) {
-        //         this.innerHTML = makeHospital(fixName(d.properties.webdbINFOHEALTHFACILITYLF_NAME))
+        //         this.innerHTML = makeMobileHealthClinic(fixName(d["Name of Facility"]))
+        //       })
+        // })
+
+        // draw community partner icons
+        communityPartnerSize = Math.max(16, Math.min(width, height) * 0.015)
+        // d3.csv("../../static/data/hospitals-list.csv").then(function(clinicData){
+        //     communityPartners.selectAll("svg")
+        //       .data(clinicData)
+        //       .enter()
+        //       .append("svg")
+        //       .attr("class", "community-partner")
+        //       .attr("id", d => "map-"+fixName(d["Name of Facility"]))
+        //       .attr("viewBox", "0 0 16 16")
+        //       .attr("x", d => mapProjection([d.X, d.Y])[0]*zoom + xSkew - communityPartnerSize/2)
+        //       .attr("y", d => mapProjection([d.X, d.Y])[1]*zoom + ySkew - communityPartnerSize/2)
+        //       .attr("width", communityPartnerSize)
+        //       .attr("height", communityPartnerSize)
+        //       .each(function(d) {
+        //         this.innerHTML = makeCommunityPartner(fixName(d["Name of Facility"]))
         //       })
         // })
 
@@ -152,7 +197,7 @@ function resizeMap() {
     // resize and move hospitals to correct location
     hospSize = Math.max(16, Math.min(width, height) * 0.015)
     mapSVG.select("#map-hospitals").selectAll(".hospital").each(function(d) {
-            coords = mapProjection(d.geometry.coordinates)
+            coords = mapProjection([d.X, d.Y])
             d3.select(this)
                 .attr("x", coords[0]*zoom + xSkew - hospSize/2)
                 .attr("y", coords[1]*zoom + ySkew - hospSize/2)

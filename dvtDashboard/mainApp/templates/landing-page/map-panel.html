@@ -32,10 +32,9 @@
     <br/>
     Hospitalization cases are aggregated by zip code tabulation area (zcta).
   </p>
-  <sl-checkbox id="map-options-hospital-icons-toggle" class="map-options" checked>Hospital Icons</sl-checkbox>
-  <sl-checkbox id="map-options-mobile-health-clinic-icons-toggle" class="map-options" checked>Mobile Health Clinic Icons</sl-checkbox>
-  <sl-checkbox id="map-options-community-partner-icons-toggle" class="map-options" checked style="display: none;">Community Partner Icons Icons</sl-checkbox>
-  <div id="map-options-hospitalizations-branch" class="map-options">
+  <sl-checkbox id="map-options-hospital-icons-toggle" class="map-options" checked style="display: initial;">Hospital Icons</sl-checkbox>
+  <sl-checkbox id="map-options-mobile-clinic-icons-toggle" class="map-options" checked style="display: none;">Mobile Health Clinic Icons</sl-checkbox>
+  <sl-checkbox id="map-options-community-partner-icons-toggle" class="map-options" checked style="display: none;">Community Partner Icons</sl-checkbox>
 
   </div>
 </div>
@@ -85,7 +84,6 @@
   var mapResizer = document.getElementById("map-resizer")
   var mapAggregationResizer = document.getElementById("map-aggregation-resizer")
   var mapDiv = document.getElementById("map-div")
-  var hospitalizationsBranch = document.getElementById("map-options-hospitalizations-branch")
 
   // interactive elements
   var resetButton = document.getElementById("map-reset-button")
@@ -93,6 +91,8 @@
   var mapDataSourceSelector = document.getElementById("map-data-source-selector")
   var mapRateSwitch = document.getElementById("map-rate-switch")
   var hospitalIconsToggle = document.getElementById("map-options-hospital-icons-toggle")
+  var mobileClinicIconsToggle = document.getElementById("map-options-mobile-clinic-icons-toggle")
+  var communityPartnerIconsToggle = document.getElementById("map-options-community-partner-icons-toggle")
 
   // aggregation visualization elements
   var jsmapAggregationDonutSvg = document.getElementById("map-aggregation-donut-svg")
@@ -127,43 +127,6 @@
 
   mapTooltip.style.backgroundColor = opacify(d3.select(mapTooltip).style("--sl-color-neutral-500").replace(/ /g, ","), 0.85)
   mapTooltip.style.borderColor = opacify(d3.select(mapTooltip).style("--sl-color-neutral-700").replace(/ /g, ","), 0.75)
-
-
-  function createHospitalCheck(disease, color) {
-    // creates checks corresponding to each disease hospitalization data
-    check = d3.select(hospitalizationsBranch)
-      .append("sl-checkbox")
-      .attr("id", "hospital-" + disease + "-check")
-      .attr("class", "hospital-check ")
-      .attr("disease", disease)
-      .attr("checked", "")
-      .style("display", "none")
-      .html(disease)
-
-    check.node().addEventListener("sl-change", (e) => {
-      checker = e.target
-      displayMapAggregateChart()
-      bubbleGroup = d3.select("#" + checker.getAttribute("disease") + "-hospital-data")
-      if (checker.checked) {
-        bubbleGroup.raise().style("opacity", 1)
-        bubbleGroup.selectAll("*").each(function (d) {
-          hospitalTooltip(d3.select(this))
-        })
-      } else {
-        bubbleGroup.lower().style("opacity", 0)
-        bubbleGroup.selectAll("*").each(function (d) {
-          removeTooltip(d3.select(this))
-        })
-      }
-    })
-    // styleSheet.insertRule(
-    //   // colors checks according to disease
-    //   "#hospital-" + disease + `-check::part(control--checked)  {
-    //         border-color: `+ color + `;
-    //         background-color: `+ color + `;
-    //     }
-    //   `)
-  }
 
   async function displayMapAggregateChart() {
     displayAggregateChart(

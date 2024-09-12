@@ -15,6 +15,14 @@ hospitalIconsToggle.addEventListener("sl-change", () => {
     // toggle hospital icons
     mapSVG.select("#map-hospitals").style("display", hospitalIconsToggle.checked ? "initial" : "none")
 })
+mobileClinicIconsToggle.addEventListener("sl-change", () => {
+    // toggle hospital icons
+    mapSVG.select("#map-mobile-clinics").style("display", mobileClinicIconsToggle.checked ? "initial" : "none")
+})
+communityPartnerIconsToggle.addEventListener("sl-change", () => {
+    // toggle hospital icons
+    mapSVG.select("#map-community-partners").style("display", communityPartnerIconsToggle.checked ? "initial" : "none")
+})
 
 resetButton.addEventListener("click", () => {
     // reset map's zoom and pan
@@ -36,7 +44,7 @@ mapZoom = zoomer.on("zoom", function(e) {
 
     hospSize = Math.max(16, Math.min(width, height) * 0.015)
     mapSVG.select("#map-hospitals").selectAll(".hospital").each(function(d) {
-        coords = mapProjection(d.geometry.coordinates)
+        coords = mapProjection([d.X, d.Y])
         d3.select(this)
             .attr("x", coords[0]*zoom + xSkew - hospSize/2)
             .attr("y", coords[1]*zoom + ySkew - hospSize/2)

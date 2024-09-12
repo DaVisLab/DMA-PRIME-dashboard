@@ -18,14 +18,14 @@
     <sl-option value="flu" disabled>Flu (Influenza)</sl-option>
   </sl-select>
 
-  <sl-select value="state-model" id="{{panel.name}}-data-source-sort-selector" class="center-self">
+  <sl-select value="state-testing" id="{{panel.name}}-data-source-sort-selector" class="center-self">
     <p slot="label">Select hospitalization level</p>
-    <sl-option value="state-model" >State (current week)</sl-option>
-    <sl-option value="state-model-sum" >State (next 5 weeks)</sl-option>
-    <sl-option value="health-system">Health System</sl-option>
+    <sl-option value="state-testing" >State (current week)</sl-option>
+    <sl-option value="state-prediction" >State (5th week prediction)</sl-option>
+    <sl-option value="health-system-data">Health System</sl-option>
   </sl-select>
 
-  <sl-select value="" id="{{panel.name}}-sort" class="center-self">
+  <sl-select value="alphabetical-low" id="{{panel.name}}-sort" class="center-self">
     <p slot="label">Sort zctas</p>
     <sl-option value="value-high" >Value (count or rate) High-Low</sl-option>
     <sl-option value="value-low">Value (count or rate) Low-High</sl-option>
@@ -115,6 +115,8 @@
     "health-system": null,
     "state-model": "5,5",
   }
+
+  var gridBackgroundColors = [1, 2, 3, 4].map(i => d3.schemeReds[9][i])
 
   function createGridCheck(disease, color) {
     // creates checks corresponding to each disease hospitalization data
