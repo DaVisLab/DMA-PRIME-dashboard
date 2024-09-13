@@ -89,8 +89,9 @@ function setGridTooltip(gridTooltip) {
                 .attr("y", gridTooltipLegendTop)
                 .attr("height", 2.5*em)
                 .attr("width", gridTooltipWidth-em)
+                .attr("opacity", 0)
                 .attr("fill", "var(--sl-color-gray-300)")
-                .attr("opacity", .5)
+
             // holds lines of linechart
             graphSVG = ttpSVG.append("svg")
                 .attr("id", "graph-svg")
@@ -152,30 +153,10 @@ function setGridTooltip(gridTooltip) {
                         .attr("fill", dataSourceColorMap[dataSource])
                         .attr("font-size", "var(--sl-font-size-small)")
                         .text(dataSourceDisplayName[dataSource])
-
-                    // labelGroup = historicalGroup.append("g")
-                    //     .attr("class", "tooltip-label-group")
-                    // labelGroupBackground = labelGroup.append("rect") 
-                    // labelText = labelGroup.append("text")
-                    //     .attr("class", "tooltip-label")
-                    //     .attr("x", xScaleHistorical(labelBasis.date))
-                    //     .attr("y", Math.max(yScale(yScale.domain()[1])+em, yScale(labelBasis.count) - (i%2+1)*em))
-                    //     .attr("fill", dataSourceColorMap[dataSource])
-                    //     .attr("font-size", "var(--sl-font-size-small)")
-                    //     .text(dataSource)
-                    // labelBBox = labelText.node().getBBox()
-
-                    // labelGroupBackground
-                    //     .attr("height", labelBBox.height)
-                    //     .attr("width", labelBBox.width)
-                    //     .attr("x", labelBBox.x)
-                    //     .attr("y", labelBBox.y)
-                    //     .attr("fill", "var(--sl-color-gray-600)")
-                    //     .attr("opacity", .75)
             })
 
             graphSVG.append("rect")
-                    .attr("id", "grid-prediction-highlighter")
+                    .attr("class", "grid-prediction-highlighter")
 
             predictiveTicks = []
 
@@ -276,31 +257,6 @@ function setGridTooltip(gridTooltip) {
                 //     .attr("x2", xScalePrediction(labelBasis.date))
                 //     .attr("y2", yScale(labelBasis.count))
                 //     .attr("stroke", "black")
-
-                // labelGroup = predictiveGroup.append("g")
-                //     .attr("class", "tooltip-label-group")
-                // labelGroupBackground = labelGroup.append("rect") 
-                // predictionTextPosition = yScale(yScale.domain()[1]) + em
-                // if (yScale(labelBasis.count) <= predictionTextPosition + em) {
-                //     predictionTextPosition = yScale(0) - .5*em
-                // }
-                // labelText = labelGroup.append("text")
-                //     .attr("class", "tooltip-label")
-                //     .attr("x", xScalePrediction(d3.mean(xScalePrediction.domain())))
-                //     .attr("y", predictionTextPosition)
-                //     .attr("fill", dataSourceColorMap["prediction"])
-                //     .attr("font-size", "var(--sl-font-size-small)")
-                //     .attr("text-anchor", "middle")
-                //     .text("prediction")
-
-                // labelBBox = labelText.node().getBBox()
-                // labelGroupBackground
-                //     .attr("height", labelBBox.height)
-                //     .attr("width", labelBBox.width)
-                //     .attr("x", labelBBox.x)
-                //     .attr("y", labelBBox.y)
-                //     .attr("fill", "var(--sl-color-gray-600)")
-                //     .attr("opacity", .5)
             }
 
            // display x-axis on the bottom

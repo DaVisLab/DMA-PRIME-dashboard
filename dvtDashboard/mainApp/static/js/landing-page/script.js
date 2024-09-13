@@ -17,6 +17,8 @@ var dataSourceColorMap = {
 
     // remove when thingy is done
     "health-system": "#648FFF",
+    "state-train": "#FFB000",
+    "state-post-train": "#FFB000",
     "state-model": "#FFB000",
     "prediction": "#FE6100",
     "state": "#FFB000",

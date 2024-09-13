@@ -100,8 +100,8 @@ p.tooltip {
 
 #tooltip-prediction-separator {
     /* line indicating the difference between prediction and reality */
-    stroke-width: 1;
-    stroke: black;
+    stroke-width: 1.5;
+    stroke: white;
 }
 
 #tooltip-prediction-highlighter {
