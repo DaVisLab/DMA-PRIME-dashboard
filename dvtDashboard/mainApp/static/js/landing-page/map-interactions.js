@@ -49,6 +49,22 @@ mapZoom = zoomer.on("zoom", function(e) {
             .attr("x", coords[0]*zoom + xSkew - hospSize/2)
             .attr("y", coords[1]*zoom + ySkew - hospSize/2)
     }) 
+
+    mobileClinicSize = Math.max(16, Math.min(width, height) * 0.015)
+    mapSVG.select("#map-mobile-clinics").selectAll(".mobile-clinic").each(function(d) {
+            coords = mapProjection([d.longitude, d.latitude])
+            d3.select(this)
+                .attr("x", coords[0]*zoom + xSkew - mobileClinicSize/2)
+                .attr("y", coords[1]*zoom + ySkew - mobileClinicSize/2)
+    })
+
+    communityPartnerSize = Math.max(16, Math.min(width, height) * 0.015)
+    mapSVG.select("#map-community-partners").selectAll(".community-partner").each(function(d) {
+            coords = mapProjection([d.longitude, d.latitude])
+            d3.select(this)
+                .attr("x", coords[0]*zoom + xSkew - communityPartnerSize/2)
+                .attr("y", coords[1]*zoom + ySkew - communityPartnerSize/2)
+    })
 })
 mapSVG.call(mapZoom)
 

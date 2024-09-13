@@ -291,8 +291,8 @@ def create_app():
         }
 
         stats = {
-            'count': {'min': min(*h_mins, predictive_data['count'].min(axis=None)),
-                'max': max(*h_maxs, predictive_data['count'].max(axis=None))},
+            'count': {'min': float(min(*h_mins, predictive_data['count'].min(axis=None))),
+                'max': float(max(*h_maxs, predictive_data['count'].max(axis=None)))},
             'date': {'min': historical_dates[0], 'max': pred_dates[-1],
                 'historical': {'min': historical_dates[0], 'max': historical_dates[-1]},
                 'prediction': {'min': pred_dates[0], 'max': pred_dates[-1]}
