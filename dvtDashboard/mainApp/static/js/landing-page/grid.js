@@ -125,7 +125,7 @@ function gridInitialVisualization() {
                         .attr("stroke", "black")
                         .attr("stroke-dasharray", dataSourceLineStyle[dataSource])
                         .attr("fill", "none")
-                        .attr("stroke-width", 2)
+                        .attr("stroke-width", 1.5)
                 })
 
                 valueSelector = gridDataSourceSortSelector.value == "state-prediction" ? "state-testing" : gridDataSourceSortSelector.value
@@ -214,6 +214,8 @@ function updateGridData() {
                 .attr("height", gridItemHeight)
 
             gridSVG.select(".grid-background")
+                .transition()
+                .duration(1000)
                 .attr("width", gridItemWidth)
                 .attr("height", gridItemHeight)
                 .style("fill", data[gridDataSourceSortSelector.value].data.length > 0 ? gridColor(data[gridDataSourceSortSelector.value].data.at(-1)) : "var(--sl-color-gray-600)")
@@ -237,11 +239,13 @@ function updateGridData() {
                 // draw historical line chart
                 historicalGroup = gridSVG.select("g."+dataSource)
                 historicalGroup.select("path")
+                    .transition()
+                    .duration(1000)
                     .attr("d", line(data[dataSource]))
                     .attr("stroke", "black")
                     .attr("stroke-dasharray", dataSourceLineStyle[dataSource])
                     .attr("fill", "none")
-                    .attr("stroke-width", 2)
+                    .attr("stroke-width", 1.5)
             })
 
             valueSelector = gridDataSourceSortSelector.value == "state-prediction" ? "state-testing" : gridDataSourceSortSelector.value
@@ -251,12 +255,18 @@ function updateGridData() {
             if (valueData.length > 0 && valuePlacementData.length > 0) {
                 lastDot = gridSVG.select(".grid-item-value") //TODO: rename this, my brain is tired
                 lastDot.select("text")
+                    .transition()
+                    .duration(1000)
                     .attr("x", xScale.range()[1] + 6)
                     .attr("y", yScale(valuePlacementData.at(-1)))
                     .attr("font-size", "var(--sl-font-size-x-small)")
+                    .transition()
+                    .duration(1000)
                     .text(valueData.at(-1).toFixed(gridRateSwitch.value == "rate" ? 2 : 0))
 
                 lastDot.select("circle")
+                    .transition()
+                    .duration(1000)
                     .attr("cx", xScale.range()[1])
                     .attr("cy", yScale(valuePlacementData.at(-1)))
                     .attr("r", 3)

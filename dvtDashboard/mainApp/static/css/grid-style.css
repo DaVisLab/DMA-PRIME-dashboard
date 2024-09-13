@@ -46,10 +46,10 @@
   stroke: white;
 }
 
-.grid-prediction-highlighter {
+#grid-prediction-highlighter {
   /* grey rectangle that highlights the prediction in the tooltip */
   opacity: .25;
-  fill: var(--sl-color-gray-600);
+  fill: white;
 }
 
 sl-tooltip {

@@ -79,9 +79,7 @@ function setGridTooltip(gridTooltip) {
                 .y((d) => yScale(d.count))
                 .curve(d3.curveMonotoneX)
 
-            // line to delineate prediction and historical data
-            ttpSVG.append("line").attr("class", "grid-prediction-separator")
-            
+
             // eww legend
             ttpLegend = ttpSVG.append("g").attr("class", "grid-tooltip-legend")
             ttpLegend.append("rect")
@@ -89,8 +87,8 @@ function setGridTooltip(gridTooltip) {
                 .attr("y", gridTooltipLegendTop)
                 .attr("height", 2.5*em)
                 .attr("width", gridTooltipWidth-em)
-                .attr("opacity", 0)
-                .attr("fill", "var(--sl-color-gray-300)")
+                .attr("fill", "none")
+                // .attr("opacity", .5)
 
             // holds lines of linechart
             graphSVG = ttpSVG.append("svg")
@@ -98,13 +96,22 @@ function setGridTooltip(gridTooltip) {
                 .attr("height", gridTooltipHeight)
                 .attr("width", gridTooltipWidth)
 
+
+
             // holds lines of linechart
             graphSVG = ttpSVG.append("svg")
                 .attr("class", "tooltip-graph-svg")
                 .attr("height", gridTooltipHeight)
                 .attr("width", gridTooltipWidth)
 
+
+
+            
+
             Object.entries(data.historical).forEach(function([dataSource, values], i) {
+
+                console.log(dataSource)
+
                 // for each data source
                 historicalData = []
                 Object.entries(values).forEach(function([date, count]) {
@@ -153,11 +160,31 @@ function setGridTooltip(gridTooltip) {
                         .attr("fill", dataSourceColorMap[dataSource])
                         .attr("font-size", "var(--sl-font-size-small)")
                         .text(dataSourceDisplayName[dataSource])
-            })
 
-            graphSVG.append("rect")
-                    .attr("class", "grid-prediction-highlighter")
+                    // labelGroup = historicalGroup.append("g")
+                    //     .attr("class", "tooltip-label-group")
+                    // labelGroupBackground = labelGroup.append("rect") 
+                    // labelText = labelGroup.append("text")
+                    //     .attr("class", "tooltip-label")
+                    //     .attr("x", xScaleHistorical(labelBasis.date))
+                    //     .attr("y", Math.max(yScale(yScale.domain()[1])+em, yScale(labelBasis.count) - (i%2+1)*em))
+                    //     .attr("fill", dataSourceColorMap[dataSource])
+                    //     .attr("font-size", "var(--sl-font-size-small)")
+                    //     .text(dataSource)
+                    // labelBBox = labelText.node().getBBox()
 
+                    // labelGroupBackground
+                    //     .attr("height", labelBBox.height)
+                    //     .attr("width", labelBBox.width)
+                    //     .attr("x", labelBBox.x)
+                    //     .attr("y", labelBBox.y)
+                    //     .attr("fill", "var(--sl-color-gray-600)")
+                    //     .attr("opacity", .75)
+
+
+                    graphSVG.append("rect")
+                        .attr("id", "grid-prediction-highlighter")
+                })
             predictiveTicks = []
 
             Object.entries(data.prediction).forEach(function([dataSource, values]) {
@@ -201,17 +228,20 @@ function setGridTooltip(gridTooltip) {
             //         .y1(function(d, i) { return yScale(i == 0 ? d.count : d["max-prediction"]) })
             //         .curve(d3.curveMonotoneX)
             //     )
+            // console.log(predictiveData.length > 0)
+            if (predictiveData.length > 0){
 
-            if (predictiveData.length){
+                // console.log(gridTooltipHeight - ttpMargins.bottom - ttpMargins.top)
                 // highlights predictive data
-                graphSVG.select(".grid-prediction-highlighter")
+                
+                graphSVG.select("#grid-prediction-highlighter")
                     .attr("x", xScalePrediction(predictiveData[0].date))
                     .attr("y", ttpMargins.top)
                     .attr("width", xScalePrediction(predictiveData[predictiveData.length - 1].date) - xScalePrediction(predictiveData[0].date))
                     .attr("height", gridTooltipHeight - ttpMargins.bottom - ttpMargins.top)
 
                 // place line separating historical and prediction data
-                ttpSVG.select(".grid-prediction-separator")
+                graphSVG.select("#grid-prediction-separator")
                     .attr("x1", xScalePrediction(predictiveData[0].date))
                     .attr("y1", ttpMargins.top)
                     .attr("x2", xScalePrediction(predictiveData[0].date))
