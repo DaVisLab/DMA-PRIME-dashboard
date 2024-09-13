@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import pandas as pd
 import json
+import math
 
 from .utility import * 
 from .auth import login_required
@@ -275,7 +276,7 @@ def create_app():
         prediction_return_data_dict = {}
 
         try:
-            predictive_data = fetchHospitalizationData(disease, region, pred_dates, 'state-model')
+            predictive_data = fetchHospitalizationData(disease, region, pred_dates, 'state-post-train').dropna()
             if variables['rate']:
                     predictive_data['count'] /= (predictive_data['zcta_pop'] / 1000)
             predictive_data.index = predictive_data.index.droplevel(0)
@@ -290,14 +291,18 @@ def create_app():
             'prediction': prediction_return_data_dict,
         }
 
+        minimum = float(min(*h_mins, predictive_data['count'].min(axis=None)))
+        maximum = float(max(*h_maxs, predictive_data['count'].max(axis=None)))
         stats = {
-            'count': {'min': float(min(*h_mins, predictive_data['count'].min(axis=None))),
-                'max': float(max(*h_maxs, predictive_data['count'].max(axis=None)))},
+            'count': {'min': 0 if math.isnan(minimum) else minimum,
+                'max': 0 if math.isnan(maximum) else maximum},
             'date': {'min': historical_dates[0], 'max': pred_dates[-1],
                 'historical': {'min': historical_dates[0], 'max': historical_dates[-1]},
                 'prediction': {'min': pred_dates[0], 'max': pred_dates[-1]}
                      },
         }
+
+        print(stats['count']['min'], type(stats['count']['min']))
 
         return_data = {'data': data, 'stats': stats}
 
@@ -363,8 +368,9 @@ def load_data():
 
 def load_zcta_hospitalization():
     files = {
-        'covid-19': main_dir+'/static/data/Data file for CDC site visit.csv'
+        # 'covid-19': main_dir+'/static/data/Data file for CDC site visit.csv'
         # 'covid-19': main_dir+'/static/data/covid-19 hospitalization (CDC visit TEMPORARY) v2.csv'
+        'covid-19': main_dir+'/static/data/covid_cdc_site_visit.csv'
     }
 
     index_names = ['zcta', 'date']
@@ -416,6 +422,11 @@ def load_zcta_hospitalization():
                     zcta_dict[name] = {
                             'start-date': data.index[0].strftime("%Y-%m-%d"),
                             'data': data.to_list(),
+                        }
+                except IndexError:
+                    zcta_dict[name] = {
+                            'start-date': date.strftime("%Y-%m-%d"),
+                            'data': [],
                         }
                 except KeyError:
                     zcta_dict[name] = {
