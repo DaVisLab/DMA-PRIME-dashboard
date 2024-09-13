@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" class="sl-theme-dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
+
+  <title>{% block title %}DMA-PRIME{% endblock %}</title>
+
+  <!-- Shoelace -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/dark.css" />
+  <script type="module"
+    src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/shoelace-autoloader.js"></script>
+
+  <!-- D3 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-geo@3"></script>
+
+  <!-- Style that should load before the rest of the page -->
+  {% block style %}
+  <style>
+    body {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #form-div {
+        height: fit-content;
+        width: 30%;
+        font-family: var(--sl-font-sans); 
+    }
+
+  </style>
+  {% endblock %}
+
+  <!-- code that should run before the rest of the page -->
+  {% block headScripts %}
+  {% endblock %}
+
+</head>
+
+<body>
+
+
+  <div id="form-div">
+    <h1>Log In</h1>
+    <form method="post" id="login-form">
+        <sl-input label="Username" id="username" name="username" required></sl-input>
+        <sl-input label="Password" type="password" name="password" id="password-input" password-toggle required></sl-input>
+        <sl-button type="submit" variant="primary">Submit</sl-button>
+      </form>
+  </div>
+
+
+
+</body>
+
+</html>

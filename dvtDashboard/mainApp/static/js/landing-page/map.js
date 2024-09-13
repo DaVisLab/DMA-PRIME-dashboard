@@ -95,7 +95,7 @@ function mapInitialVisualization() {
         //       .append("svg")
         //       .attr("class", "mobile-clinic")
         //       .attr("id", d => "map-"+fixName(d["Name of Facility"]))
-        //       .attr("viewBox", "0 0 18 18")
+        //       .attr("viewBox", "0 0 16 16")
         //       .attr("x", d => mapProjection([d.X, d.Y])[0]*zoom + xSkew - healthClinicSize/2)
         //       .attr("y", d => mapProjection([d.X, d.Y])[1]*zoom + ySkew - healthClinicSize/2)
         //       .attr("width", mobileClinicSize)

@@ -2,15 +2,16 @@
 
 from flask import Flask, jsonify, render_template, request
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.security import check_password_hash, generate_password_hash
 
 import os
 import pandas as pd
 import numpy as np
 import pandas as pd
-import glob
 import json
 
 from .utility import * 
+from .auth import login_required
 
 # Data:
 #    map, county, zip code
@@ -29,6 +30,7 @@ def create_app():
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY='***REMOVED***',
+        DATABASE=os.path.join(app.instance_path, 'mainApp.sqlite'),
     )
     app.wsgi_app = ProxyFix( # allows a reverse proxy
         app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
@@ -36,6 +38,9 @@ def create_app():
 
     app.config.from_pyfile('config.py', silent=True)
 
+    from . import db
+    db.init_app(app)
+    
     # ensure the instance folder exists
     try:
         os.makedirs(app.instance_path)
@@ -46,8 +51,12 @@ def create_app():
 
     # # # routes # # #
 
+    from . import auth
+    app.register_blueprint(auth.bp)
+
     # landing page
     @app.route('/')
+    @login_required
     def index():
         panels = [
             {
@@ -97,10 +106,12 @@ def create_app():
 
     # Simply for my own convenience
     @app.route('/testing')
+    @login_required
     def testing():
         return render_template('testing-vis.html')
     
     @app.route('/map-data/<mapType>', methods=['GET', 'POST'])
+    @login_required
     def mapData(mapType):
         if mapType == 'zcta_county_crosswalk':
             mapDataDict = json.load(open(f'{main_dir}/static/data/zcta_county_crosswalk.json'))
@@ -115,6 +126,7 @@ def create_app():
         return mapDataDict
     
     @app.route('/hospitalizations/<disease>/<dataSource>', methods=['GET', 'POST'])
+    @login_required
     def getHospitalizations(disease='covid-19', dataSource='state'):
         variables = request.get_json()
 
@@ -135,6 +147,7 @@ def create_app():
         return jsonify({'data': json.loads(data.to_json(orient='table', index=True))['data'], 'stats': stats})
     
     @app.route('/hospitalization-grid/<disease>', methods=['GET', 'POST'])
+    @login_required
     def getHospitalizations2(disease='covid-19'):
         return json.load(open(f'{main_dir}/static/data/{disease}_zcta_hospitalization_data.json'))
 
@@ -213,6 +226,7 @@ def create_app():
         return jsonify(return_data)
 
     @app.route('/hospitalization-history/<disease>', methods=['GET', 'POST'])
+    @login_required
     def getHospitalizationHistory(disease='covid-19'):
         variables = request.get_json()
 

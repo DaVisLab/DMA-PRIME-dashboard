@@ -183,7 +183,7 @@ function makeMobileHealthClinic(id) {
     // makes mobile health clinic icon
     // altered from shoelace's truck icon
     stringy = `
-    <g id="outline-${id}" >
+    <g id="outline-${id}" transform="scale(${16/18},${16/18})">
         <path style="fill:white" d="M0 3.5A1.5 1.5 0 0 1 1.5 2h11a1.5 1.5 0 0 1 1.5 1.5V5h1.02a1.5 1.5 0 0 1 1.17.563l1.481 1.85a1.5 1.5 0 0 1 .329.938V10.5a1.5 1.5 0 0 1-1.5 1.5H16a2 2 0 1 1-4 0H5a2 2 0 1 1-3.998-.085A1.5 1.5 0 0 1 0 10.5v-7z"></path>
         <path style="fill:black" d="M0 3.5A1.5 1.5 0 0 1 1.5 2h11a1.5 1.5 0 0 1 1.5 1.5V5h1.02a1.5 1.5 0 0 1 1.17.563l1.481 1.85a1.5 1.5 0 0 1 .329.938V10.5a1.5 1.5 0 0 1 -1.5 1.5H16a2 2 0 1 1-4 0H5a2 2 0 1 1-3.998-.085A1.5 1.5 0 0 1 0 10.5v-7z
             m1.294 7.456A1.999 1.999 0 0 1 4.732 11h7.536a2.01 2.01 0 0 1 .732-.732V3.5a.5.5 0 0 0-.5-.5h-11a.5.5 0 0 0-.5.5v7a.5.5 0 0 0 .294.456z
