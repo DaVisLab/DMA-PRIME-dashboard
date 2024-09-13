@@ -22,6 +22,9 @@ var dataSourceColorMap = {
     "state-model": "#FFB000",
     "prediction": "#FE6100",
     "state": "#FFB000",
+
+    "state-train": "#FFB000",
+    "state-post-train": "#FFB000",
 }
 
 var dataSourceLabelPlacement = {
