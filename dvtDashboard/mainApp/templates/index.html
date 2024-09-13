@@ -41,11 +41,40 @@
 
 {% block bodyScripts %}
 
+<script type="module">
+    await Promise.allSettled([
+        customElements.whenDefined('sl-select'),
+
+        // customElements.whenDefined('sl-button'),
+        // customElements.whenDefined('sl-icon'),
+        // customElements.whenDefined('sl-icon-button'),
+        // customElements.whenDefined('sl-option'),
+        // customElements.whenDefined('sl-radio'),
+        // customElements.whenDefined('sl-radio-group'),
+        // customElements.whenDefined('sl-resize-observer'),
+        // customElements.whenDefined('sl-split-panel'),
+        // customElements.whenDefined('sl-switch'),
+        // customElements.whenDefined('sl-tab'),
+        // customElements.whenDefined('sl-tab-group'),
+    ])
+
+    mapInitialVisualization()
+
+    document.querySelector("#grid-disease-selector").updateComplete.then(() => {
+        gridInitialVisualization() 
+        gridContainerResizer.addEventListener("sl-resize", () => {
+            updateGridData()
+        })
+    })
+
+</script>
+
 <script>
+    
 
     addEventListener("load", () => {
         // display map for map panel, then resize
-        mapInitialVisualization()
+        // mapInitialVisualization()
         // displayMap().then(function() {
         //     updateMap()
         //     mapSVG.call(mapZoom)
@@ -64,10 +93,13 @@
         // })
         
         // Create grid visualization
-        gridInitialVisualization() 
-        // gridContainerResizer.addEventListener("sl-resize", () => {
-        //     updateGridData()
+        // gridDiseaseSelector.updateComplete.then(() => {
+        //     gridInitialVisualization() 
+        //     gridContainerResizer.addEventListener("sl-resize", () => {
+        //         updateGridData()
+        //     })
         // })
+        
         
         // // Display aggregate visualizations for grid
         // Promise.all([displayGridAggregateChart(), displayGridDonut()]).then(() => {

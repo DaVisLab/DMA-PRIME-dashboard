@@ -15,6 +15,14 @@ hospitalIconsToggle.addEventListener("sl-change", () => {
     // toggle hospital icons
     mapSVG.select("#map-hospitals").style("display", hospitalIconsToggle.checked ? "initial" : "none")
 })
+mobileClinicIconsToggle.addEventListener("sl-change", () => {
+    // toggle hospital icons
+    mapSVG.select("#map-mobile-clinics").style("display", mobileClinicIconsToggle.checked ? "initial" : "none")
+})
+communityPartnerIconsToggle.addEventListener("sl-change", () => {
+    // toggle hospital icons
+    mapSVG.select("#map-community-partners").style("display", communityPartnerIconsToggle.checked ? "initial" : "none")
+})
 
 resetButton.addEventListener("click", () => {
     // reset map's zoom and pan

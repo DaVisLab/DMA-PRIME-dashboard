@@ -11,7 +11,7 @@
     </sl-tooltip>
   </sl-radio-group>
 
-  <sl-select value="covid-19" id="{{panel.name}}-disease-selector" class="center-self">
+  <sl-select value="covid-19" id="grid-disease-selector" class="center-self">
     <p slot="label">Select a disease or group of diseases</p>
     <sl-option value="respiratory-disease" disabled>Respiratory Diseases (COVID-19, Flu, RSV)</sl-option>
     <sl-option value="covid-19">COVID-19</sl-option>
@@ -25,7 +25,7 @@
     <sl-option value="health-system-data">Health System</sl-option>
   </sl-select>
 
-  <sl-select value="" id="{{panel.name}}-sort" class="center-self">
+  <sl-select value="alphabetical-low" id="{{panel.name}}-sort" class="center-self">
     <p slot="label">Sort zctas</p>
     <sl-option value="value-high" >Value (count or rate) High-Low</sl-option>
     <sl-option value="value-low">Value (count or rate) Low-High</sl-option>
@@ -116,29 +116,7 @@
     "state-model": "5,5",
   }
 
-  function createGridCheck(disease, color) {
-    // creates checks corresponding to each disease hospitalization data
-    check = d3.select(gridOptionsHospitalizationsBranch)
-      .append("sl-checkbox")
-      .attr("id", "grid-" + disease + "-check")
-      .attr("class", "grid-check")
-      .attr("disease", disease)
-      .attr("checked", "")
-      .style("display", "none")
-      .html(disease)
-
-    check.node().addEventListener("sl-change", (e) => {
-      updateCountyGraphs()
-      displayGridAggregateChart()
-    })
-    
-    styleSheet.insertRule(
-      // colors checks according to disease
-      `#grid-${disease}-check::part(control--checked)  {
-            border-color: ${color};
-            background-color: ${color};}`
-      )
-  }
+  var gridBackgroundColors = [1, 2, 3, 4].map(i => d3.schemeReds[9][i])
 
   async function displayGridAggregateChart() {
     displayAggregateChart(
@@ -158,8 +136,7 @@
       )
   }
 
-
-  set{{panel.name}}Panel()
+  // set{{panel.name}}Panel()
 </script>
 
 <script src="{{ url_for('static', filename='js/landing-page/grid.js') }}"></script>
