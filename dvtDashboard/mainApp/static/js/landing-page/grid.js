@@ -8,8 +8,8 @@ function gridInitialVisualization() {
     gridHeight = gridContainer.clientHeight
     gridWidth = gridContainer.clientWidth
 
-    gridItemWidth = Math.max((gridWidth/8) - .5*em, 175)
-    gridItemHeight = Math.max((gridHeight/6) - 1, 115)
+    gridItemWidth = Math.max((gridWidth/8) - .5*em, 150)
+    gridItemHeight = Math.max((gridHeight/6) - 1, 100)
 
     xScale = d3.scaleUtc()
                 .domain([historicalDates[0], historicalDates.at(-1)])
@@ -81,7 +81,6 @@ function gridInitialVisualization() {
                     .attr("class", "grid-background")
                     .attr("width", gridItemWidth)
                     .attr("height", gridItemHeight)
-                    // .attr("opacity", d[gridDataSourceSortSelector.value].data.length > 0 ? 1 : 0.7)
                     .style("fill", d[gridDataSourceSortSelector.value].data.length > 0 ? gridColor(d[gridDataSourceSortSelector.value].data.at(-1)) : "var(--sl-color-gray-200)")
 
                 // title
@@ -105,7 +104,7 @@ function gridInitialVisualization() {
                 yScale = d3.scaleLinear()
                     .domain([0, thisCountMax])        
                     .nice()
-                    .range([gridItemHeight, margin.top])
+                    .range([gridItemHeight-2, margin.top])
                     
                 line = function(data) {
                     startDate = d3.timeMonday.round(new Date(data["start-date"]))
@@ -129,26 +128,29 @@ function gridInitialVisualization() {
                         .attr("stroke-width", 1.5)
                 })
 
-                valueSelector = gridDataSourceSortSelector.value == "state-prediction" ? "state-testing" : gridDataSourceSortSelector.value
-                valuePlacementData = d[valueSelector].data
                 valueData = d[gridDataSourceSortSelector.value].data
 
-                if (valueData.length > 0 && valuePlacementData.length > 0) {
+                dotPlacementX = gridDataSourceSortSelector.value == "state-prediction" ? gridItemWidth - 3 : xScale.range()[1]
+                valuePlacementX = gridDataSourceSortSelector.value == "state-prediction" ? dotPlacementX - 4 : dotPlacementX + 4
+                if (valueData.length > 0) {
+                    dotPlacementY = Math.max(yScale(valueData.at(-1)), 0)
+                    valuePlacementY = Math.min(Math.max(dotPlacementY + 6, em), gridItemHeight-3)
                     lastDot = gridSVG.append("g") //TODO: rename this, my brain is tired
                     .attr("class", "grid-item-value")
-
+    
                     lastDot.append("text")
-                        .attr("x", xScale.range()[1] + 6)
-                        .attr("y", yScale(valuePlacementData.at(-1)))
+                        .attr("x", valuePlacementX)
+                        .attr("y", valuePlacementY)
                         .attr("font-size", "var(--sl-font-size-x-small)")
+                        .attr("text-anchor", gridDataSourceSortSelector.value == "state-prediction" ? "end" : "start")
                         .text(valueData.at(-1).toFixed(1))
-
+    
                     lastDot.append("circle")
-                        .attr("cx", xScale.range()[1])
-                        .attr("cy", yScale(valuePlacementData.at(-1)))
+                        .attr("cx", dotPlacementX)
+                        .attr("cy", dotPlacementY)
                         .attr("r", 3)
                 }
-
+                
             })
         
     })
@@ -163,8 +165,8 @@ function updateGridData() {
     gridHeight = gridContainer.clientHeight
     gridWidth = gridContainer.clientWidth
 
-    gridItemWidth = Math.max((gridWidth/8) - .5*em, 183)
-    gridItemHeight = Math.max((gridHeight/6) - 1, 135)
+    gridItemWidth = Math.max((gridWidth/8) - .5*em, 150)
+    gridItemHeight = Math.max((gridHeight/6) - 1, 100)
 
     gridColor = d3.scaleQuantile()
     .domain(zctaData
@@ -249,28 +251,24 @@ function updateGridData() {
                     .attr("stroke-width", 1.5)
             })
 
-            valueSelector = gridDataSourceSortSelector.value == "state-prediction" ? "state-testing" : gridDataSourceSortSelector.value
-            valuePlacementData = data[valueSelector].data
-            valueData = data[gridDataSourceSortSelector.value].data
+            valueData = d[gridDataSourceSortSelector.value].data
 
-            if (valueData.length > 0 && valuePlacementData.length > 0) {
+            dotPlacementX = gridDataSourceSortSelector.value == "state-prediction" ? gridItemWidth - 3 : xScale.range()[1]
+            valuePlacementX = gridDataSourceSortSelector.value == "state-prediction" ? dotPlacementX - 4 : dotPlacementX + 4
+            if (valueData.length > 0) {
+                dotPlacementY = Math.max(yScale(valueData.at(-1)), 0)
+                valuePlacementY = Math.min(Math.max(dotPlacementY + 6, em), gridItemHeight-3)
                 lastDot = gridSVG.select(".grid-item-value") //TODO: rename this, my brain is tired
+
                 lastDot.select("text")
-                    .transition()
-                    .duration(1000)
-                    .attr("x", xScale.range()[1] + 6)
-                    .attr("y", yScale(valuePlacementData.at(-1)))
-                    .attr("font-size", "var(--sl-font-size-x-small)")
-                    .transition()
-                    .duration(1000)
-                    .text(valueData.at(-1).toFixed(gridRateSwitch.value == "rate" ? 2 : 0))
+                    .attr("x", valuePlacementX)
+                    .attr("y", valuePlacementY)
+                    .attr("text-anchor", gridDataSourceSortSelector.value == "state-prediction" ? "end" : "start")
+                    .text(valueData.at(-1).toFixed(1))
 
                 lastDot.select("circle")
-                    .transition()
-                    .duration(1000)
-                    .attr("cx", xScale.range()[1])
-                    .attr("cy", yScale(valuePlacementData.at(-1)))
-                    .attr("r", 3)
+                    .attr("cx", dotPlacementX)
+                    .attr("cy", dotPlacementY)
             }
 
         })

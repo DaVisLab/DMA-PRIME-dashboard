@@ -110,8 +110,6 @@ function setGridTooltip(gridTooltip) {
 
             Object.entries(data.historical).forEach(function([dataSource, values], i) {
 
-                console.log(dataSource)
-
                 // for each data source
                 historicalData = []
                 Object.entries(values).forEach(function([date, count]) {
@@ -228,10 +226,8 @@ function setGridTooltip(gridTooltip) {
             //         .y1(function(d, i) { return yScale(i == 0 ? d.count : d["max-prediction"]) })
             //         .curve(d3.curveMonotoneX)
             //     )
-            // console.log(predictiveData.length > 0)
             if (predictiveData.length > 0){
 
-                // console.log(gridTooltipHeight - ttpMargins.bottom - ttpMargins.top)
                 // highlights predictive data
                 
                 graphSVG.select("#grid-prediction-highlighter")

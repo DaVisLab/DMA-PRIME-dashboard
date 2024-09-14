@@ -11,21 +11,21 @@
     </sl-tooltip>
   </sl-radio-group>
 
-  <sl-select value="covid-19" id="grid-disease-selector" class="center-self">
+  <sl-select value="covid-19" id="grid-disease-selector" class="fill-width ">
     <p slot="label">Select a disease or group of diseases</p>
     <sl-option value="respiratory-disease" disabled>Respiratory Diseases (COVID-19, Flu, RSV)</sl-option>
     <sl-option value="covid-19">COVID-19</sl-option>
     <sl-option value="flu" disabled>Flu (Influenza)</sl-option>
   </sl-select>
 
-  <sl-select value="state-testing" id="{{panel.name}}-data-source-sort-selector" class="center-self">
+  <sl-select value="state-testing" id="{{panel.name}}-data-source-sort-selector" class="fill-width ">
     <p slot="label">Select hospitalization level</p>
     <sl-option value="state-testing" >State (current week)</sl-option>
     <sl-option value="state-prediction" >State (5th week prediction)</sl-option>
     <sl-option value="health-system-data">Health System</sl-option>
   </sl-select>
 
-  <sl-select value="alphabetical-low" id="{{panel.name}}-sort" class="center-self">
+  <sl-select value="alphabetical-low" id="{{panel.name}}-sort" class="fill-width ">
     <p slot="label">Sort zctas</p>
     <sl-option value="value-high" >Value (count or rate) High-Low</sl-option>
     <sl-option value="value-low">Value (count or rate) Low-High</sl-option>
@@ -33,7 +33,7 @@
     <sl-option value="alphabetical-high">Alphanumerical 9-0-Z-A </sl-option>
   </sl-select>
 
-  <p id="grid-summary">
+  <p id="grid-summary" class="panel-summary center-self">
     Weekly count of hospitalizations due to covid-19, influenza, and respiratory syncytial virus (RSV) from <text id="grid-start-date"></text> to <text id="grid-end-date"></text>.
     <br/>
     Hospitalization cases are aggregated by zip code tabulation areas (zcta).
@@ -45,7 +45,7 @@
 </div>
 
 <!-- Aggregation visualization -->
-<div class="options-div" id="{{panel.name}}-aggregation-vis" class="aggregation-vis">
+<div class="options-div aggregation-vis" id="{{panel.name}}-aggregation-vis">
   <svg id="{{panel.name}}-aggregation-donut-svg" class="fill-width aggregation-donut">
     <defs>
       <pattern id="nan-pattern"

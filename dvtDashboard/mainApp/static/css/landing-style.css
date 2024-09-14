@@ -81,7 +81,7 @@ sl-tab-panel::part(base) {
   overflow-y: auto;
   display: grid;
   row-gap: var(--sl-spacing-x-small);
-  padding: var(--sl-spacing-small);
+  padding: var(--sl-spacing-large);
 }
 
 .hide-sidebar-button {
@@ -99,7 +99,8 @@ sl-tab-panel::part(base) {
   width: 100%;
   overflow: hidden;
   padding: var(--sl-spacing-x-small);
-  display: flex;
+  display: none;
+  /* display: flex; */
   flex-direction: column;
 }
 

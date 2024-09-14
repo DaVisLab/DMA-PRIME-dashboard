@@ -152,80 +152,6 @@ def create_app():
     def getHospitalizations2(disease='covid-19'):
         return json.load(open(f'{main_dir}/static/data/{disease}_zcta_hospitalization_data.json'))
 
-
-    def getHospitalizationGrid(disease='covid-19'):
-        variables = request.get_json()
-
-        region = input_parser(variables['region'])
-        date = parse_date(variables['date'])
-
-        # if variables['rate']:
-        start_date = date - pd.DateOffset(months=18)
-        historical_dates = pd.date_range(end=date, start=start_date, freq='W')
-
-        end_date = date + pd.DateOffset(weeks=6)
-        pred_dates = pd.date_range(start=date, end=end_date, freq='W', inclusive='both')
-
-        if historical_dates[-1] < date:
-            historical_dates = historical_dates.union([date])
-
-        historical_dates = historical_dates.insert(-1, date - pd.DateOffset(weeks=1))
-
-        if pred_dates[0] > date:
-            pred_dates = pred_dates.insert(0, date)
-
-        historical_dates = historical_dates.strftime("%Y-%m-%d").to_list()
-        pred_dates = pred_dates.strftime("%Y-%m-%d").to_list()
-
-        historical_return_data_dict = {}
-
-        h_mins = []
-        h_maxs = []
-        for data_source in ['state-model', 'health-system']:
-
-            try:
-                historical_data = fetchHospitalizationData(disease, region, historical_dates, data_source)
-                if variables['rate']:
-                    historical_data['count'] /= (historical_data['zcta_pop'] / 1000)
-                historical_data.index = historical_data.index.droplevel(0)
-
-            except KeyError:
-                historical_data = pd.DataFrame(index=historical_dates, columns=['count'])
-                historical_data['count'] = 0
-
-            historical_data.index = historical_data.index.astype(str)
-            historical_return_data_dict[data_source] = historical_data['count'].to_dict()
-            h_mins.append(historical_data['count'].min(axis=None))
-            h_maxs.append(historical_data['count'].max(axis=None))
-
-        prediction_return_data_dict = {}
-
-        try:
-            predictive_data = fetchHospitalizationData(disease, region, pred_dates, 'state-model')
-            if variables['rate']:
-                    predictive_data['count'] /= (predictive_data['zcta_pop'] / 1000)
-            predictive_data.index = predictive_data.index.droplevel(0)
-            predictive_data.index = predictive_data.index.astype(str)
-        except KeyError:
-            predictive_data = pd.DataFrame(columns=['count'])
-
-        prediction_return_data_dict['state-model'] = predictive_data['count'].to_dict()
-
-        data = {
-            'historical': historical_return_data_dict,
-            'prediction': prediction_return_data_dict,
-        }
-
-        stats = {
-            'count': {'min': float(min(*h_mins)),
-                'max': float(max(*h_maxs))},
-            'date': {'min': historical_dates[0], 'max': historical_dates[-1]}
-        }
-
-        return_data = {'data': data, 'stats': stats}
-
-        return jsonify(return_data)
-
     @app.route('/hospitalization-history/<disease>', methods=['GET', 'POST'])
     @login_required
     def getHospitalizationHistory(disease='covid-19'):
@@ -276,7 +202,7 @@ def create_app():
         prediction_return_data_dict = {}
 
         try:
-            predictive_data = fetchHospitalizationData(disease, region, pred_dates, 'state-post-train').dropna()
+            predictive_data = fetchHospitalizationData(disease, region, pred_dates, 'state-model')
             if variables['rate']:
                     predictive_data['count'] /= (predictive_data['zcta_pop'] / 1000)
             predictive_data.index = predictive_data.index.droplevel(0)
@@ -291,8 +217,8 @@ def create_app():
             'prediction': prediction_return_data_dict,
         }
 
-        minimum = float(min(*h_mins, predictive_data['count'].min(axis=None)))
-        maximum = float(max(*h_maxs, predictive_data['count'].max(axis=None)))
+        minimum = float(np.nanmin([*h_mins, predictive_data['count'].min(axis=None)]))
+        maximum = float(np.nanmax([*h_maxs, predictive_data['count'].max(axis=None)]))
         stats = {
             'count': {'min': 0 if math.isnan(minimum) else minimum,
                 'max': 0 if math.isnan(maximum) else maximum},
@@ -301,8 +227,6 @@ def create_app():
                 'prediction': {'min': pred_dates[0], 'max': pred_dates[-1]}
                      },
         }
-
-        print(stats['count']['min'], type(stats['count']['min']))
 
         return_data = {'data': data, 'stats': stats}
 
@@ -404,7 +328,6 @@ def load_zcta_hospitalization():
         df['Health System hospitalizations'] = df['Health System hospitalizations'].fillna(value=0)
         value_columns = df.columns.difference(index_names)
         df = pd.pivot_table(df, values=value_columns, index=index_names)
-        zcta_data = pd.read_csv(main_dir+'/static/data/zcta_summary.csv', index_col=0)
 
         zctas = zcta_data['zcta'].unique()
 
@@ -418,7 +341,7 @@ def load_zcta_hospitalization():
             }
             for name, column in label_dict.items():
                 try:
-                    data = df.xs(zcta, axis=0).loc[historical_dates, column].dropna()
+                    data = df.xs(zcta, axis=0)[column].reindex(historical_dates).dropna() # df.xs(zcta, axis=0).loc[historical_dates, column].dropna()
                     zcta_dict[name] = {
                             'start-date': data.index[0].strftime("%Y-%m-%d"),
                             'data': data.to_list(),
@@ -457,8 +380,6 @@ def load_zcta_hospitalization():
         df.rename({'Zip code': 'zcta', 'Date': 'date'}, axis=1, inplace=True)
 
         df['Projected Cases'] = df['Projected Cases(train)'].fillna(value=0) + df['Projected Cases(post training)'].fillna(value=0)
-        # print(df['date'])
-        # df['date'] = df['date'].apply(lambda x: '{0:>02s}-{1:>02s}-{2:04s}'.format(*x.split('-')))
         df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
 
         value_columns = df.columns.difference(index_names)

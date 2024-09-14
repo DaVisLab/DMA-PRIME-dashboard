@@ -14,20 +14,20 @@
     </sl-tooltip>
   </sl-radio-group>
 
-  <sl-select value="covid-19" id="map-disease-selector" class="center-self">
+  <sl-select value="covid-19" id="map-disease-selector" class="fill-width">
     <p slot="label">Select a disease or group of diseases</p>
     <sl-option value="respiratory-disease" disabled>Respiratory Diseases (COVID-19, Flu, RSV)</sl-option>
     <sl-option value="covid-19">COVID-19</sl-option>
     <sl-option value="flu" disabled>Flu (Influenza)</sl-option>
   </sl-select>
 
-  <sl-select value="state" id="map-data-source-selector" class="center-self">
+  <sl-select value="state" id="map-data-source-selector" class="fill-width">
     <p slot="label">Select hospitalization level</p>
     <sl-option value="state" >State</sl-option>
     <sl-option value="health-system">Health System</sl-option>
   </sl-select>
   
-  <p id="map-summary">
+  <p id="map-summary" class="panel-summary center-self">
     Weekly <text>count</text> of hospitalizations due to <text>covid-19, influenza, and respiratory syncytial virus (RSV)</text>.
     <br/>
     Hospitalization cases are aggregated by zip code tabulation area (zcta).
@@ -40,7 +40,7 @@
 </div>
 
 <!-- Aggregation visualization -->
-<div class="options-div" id="{{panel.name}}-aggregation-vis" class="aggregation-vis">
+<div class="options-div aggregation-vis" id="{{panel.name}}-aggregation-vis">
   <svg id="{{panel.name}}-aggregation-donut-svg" class="fill-width aggregation-donut">
     <defs>
       <pattern id="nan-pattern"

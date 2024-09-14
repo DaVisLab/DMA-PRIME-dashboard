@@ -16,8 +16,6 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 def login():
     """Log in a registered user by adding the user id to the session."""
     if request.method == "POST":
-        print(request)
-        print(request.form)
         username = request.form["username"]
         password = request.form["password"]
         db = get_db()
