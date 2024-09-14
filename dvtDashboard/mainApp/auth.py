@@ -21,7 +21,7 @@ def login():
         db = get_db()
         error = None
         db.execute(
-            'SELECT * FROM user WHERE username = %s', [user_id]
+            'SELECT * FROM user WHERE username = %s', [username]
         )
         user = db.fetchone()
         columns = [item[0] for item in db.description]
