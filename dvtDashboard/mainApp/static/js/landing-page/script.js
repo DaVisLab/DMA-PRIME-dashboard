@@ -77,6 +77,36 @@ endDate = new Date(thisWeekMonday);
 endDate.setDate(endDate.getDate() + 5*7);
 predictionDates = d3.timeMonday.range(thisWeekMonday, new Date(endDate).setDate(endDate.getDate()+1), 1)
 
+// data fetching
+function getZCTAData(disease) {
+    if (disease in zctaData) {
+        return Promise.resolve(data[disease])
+    } else {
+        return d3.json(`/hospitalization-grid/${disease}`).then(function(zcta_data) {
+            zctaData[disease] = zcta_data
+            return Promise.resolve(zctaData[disease])
+        })
+    }
+}
+
+function getDataAsArray(disease, dataSource, rate) {
+    data = zctaData[disease]
+
+    arr = data.map((d) => {
+        if (d[dataSource].data.length > 0) {
+            if (rate) {
+                return d[dataSource].data.at(-1) / d.population * 1000
+            } else {
+                return d[dataSource].data.at(-1)
+            }
+        } else {
+            return 0
+        }
+    })
+
+    return arr
+}
+
 // helper functions
 function fixName(name) {
     // replace spaces with dashes

@@ -29,15 +29,18 @@ function mapInitialVisualization() {
         hospitals = mapSVG.append("g")
             .attr("id", "map-hospitals")
             .style("pointer-events", "none")
+            .style("display", hospitalIconsToggle.checked ? "initial" : "none")
 
         // add group for hospital icons
         mobileClinics = mapSVG.append("g")
             .attr("id", "map-mobile-clinics")
             .style("pointer-events", "none")
+            .style("display", mobileClinicIconsToggle.checked ? "initial" : "none")
 
         communityPartners = mapSVG.append("g")
             .attr("id", "map-community-partners")
             .style("pointer-events", "none")
+            .style("display", communityPartnerIconsToggle.checked ? "initial" : "none")
 
         // add group for map legends
         legendsGroup = mapSVG.append("g")
@@ -123,7 +126,7 @@ function mapInitialVisualization() {
         })
 
         choroplethColorMap = d3.scaleLinear()
-            .domain([0, 0])
+            .domain([0, Math.max(getDataAsArray(mapDiseaseSelector.value, mapDataSourceSelector.value, mapRateSwitch.value == "rate"))])
             .range(["white", dataSourceColorMap[mapDataSourceSelector.value]])
             .unknown("var(--sl-color-gray-600)").nice()
 
@@ -165,7 +168,8 @@ function mapInitialVisualization() {
 
         // add a title :)
         colorLegendContent.append("text")
-            .attr("class", `map-legend title hospital`)
+            .attr("id", `map-legend-title`)
+            .attr("class", `map-legend title`)
             .text("Current Week's Hospitalizations by ZCTA")
     }).then(() => {
         mapResizer.addEventListener("sl-resize", () => {
@@ -253,43 +257,47 @@ function resizeMap() {
 }
 
 function updateMapData() {
+    diseaseData = zctaData[mapDiseaseSelector.value]
 
-    // get data based on options
-    d3.json(`/hospitalizations/${mapDiseaseSelector.value}/${mapDataSourceSelector.value}`, { // zcta hospital data
-        "method": "POST",
-        "headers": {"Content-Type": "application/json"},
-        "body": JSON.stringify({
-            "region": "all",
-            "date": new Date(2024, 7, 26), // 5 is for month 6 - june
-            "rate": mapRateSwitch.value == "rate"
-    })}).then((result) => {
-        // display data
-        data = result.data
-        stats = result.stats
+    choroplethColorMap = d3.scaleLinear()
+        .domain([0, d3.max(getDataAsArray(mapDiseaseSelector.value, mapDataSourceSelector.value, mapRateSwitch.value == "rate"))])
+        .range(["white", dataSourceColorMap[mapDataSourceSelector.value]])
+        .unknown("var(--sl-color-gray-600)").nice()
 
-        choroplethColorMap.domain([0, stats.count.max])
-            .range(["white", dataSourceColorMap[mapDataSourceSelector.value]])
-            .unknown("var(--sl-color-gray-600)").nice()
+    diseaseData.forEach(element => {
+        thisData = element[mapDataSourceSelector.value].data
 
-        data.forEach(element => {
+        thisStartDate = dayjs.tz(element[mapDataSourceSelector.value]["start-date"], "YYYY-MM-DD", "America/New_York").toDate()
+        thisEndDate = new Date(startDate);
+        thisEndDate.setDate(endDate.getDate() + thisData.length*7);
+        datesReconstructed = d3.timeMonday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
+
+        index = datesReconstructed.findIndex((d) => d.getTime() == thisWeekMonday.getTime())
+        
+        if (index > -1) {
+            value = thisData.at(index)
+            if (mapRateSwitch.value == "rate") {
+                value /= element.population / 1000
+            }
             d3.select(`#map-${element.zcta}`)
-                .attr("fill", choroplethColorMap(element.count))
-        });
+                .style("fill", choroplethColorMap(value))
+        } else {
+            d3.select(`#map-${element.zcta}`)
+                .attr("fill", choroplethColorMap(NaN))
+        }
+        
+    });
 
-        d3.select("#linear-gradient-stop-1")
-            .attr("stop-color", dataSourceColorMap[mapDataSourceSelector.value])
+    d3.select("#linear-gradient-stop-1")
+        .attr("stop-color", dataSourceColorMap[mapDataSourceSelector.value])
 
-        // d3.select("#map-color-legend-contents").select("rect")
-        //     .style("fill", "url(#linear-gradient)")
+    colorLegendAxis = mapSVG.select("#map-color-legend-axis")
+    colorLegendAxis.selectAll("*").remove()
+    colorLegendAxis
+        .attr("transform", `translate(${2*em},${height - 3.5*em})`)
+        .call(d3.axisBottom(d3.scaleLinear(choroplethColorMap.domain(), [0, legendWidth])).ticks(9))
 
-        colorLegendAxis = mapSVG.select("#map-color-legend-axis")
-        colorLegendAxis.selectAll("*").remove()
-        colorLegendAxis
-            .attr("transform", `translate(${2*em},${height - 3.5*em})`)
-            .call(d3.axisBottom(d3.scaleLinear(choroplethColorMap.domain(), [0, legendWidth])).ticks(9))
     
-        // update titles
-    
-    })
+
 }
 

@@ -26,7 +26,8 @@
     // TODO: Find source for value
     scPopulation = 5118425
 
-    zctaData = null 
+    zctaData = {}
+    // zctaData = null
 </script>
 
 <!-- Contains helper functions/data/constants -->
@@ -43,7 +44,9 @@
 
 <script type="module">
     await Promise.allSettled([
+        customElements.whenDefined('sl-checkbox'),
         customElements.whenDefined('sl-select'),
+        customElements.whenDefined('sl-tab-group'),
 
         // customElements.whenDefined('sl-button'),
         // customElements.whenDefined('sl-icon'),
@@ -55,24 +58,38 @@
         // customElements.whenDefined('sl-split-panel'),
         // customElements.whenDefined('sl-switch'),
         // customElements.whenDefined('sl-tab'),
-        // customElements.whenDefined('sl-tab-group'),
     ])
 
-    mapInitialVisualization()
-
-    document.querySelector("#grid-disease-selector").updateComplete.then(() => {
+    getZCTAData(mapDiseaseSelector.value).then(mapInitialVisualization)
+    "grid", getZCTAData(gridDiseaseSelector.value).then(() => {
         gridInitialVisualization() 
         gridContainerResizer.addEventListener("sl-resize", () => {
             updateGridData()
         })
+    })
+   
+    // Link the DMA-PRIME tab to map panel
+    var navBar = document.getElementById("nav-bar")
+    navBar.addEventListener("sl-tab-show", (event) => {
+        if (event.detail.name == "main") {
+            navBar.show("map")
+        }
+    })
+
+    document.addEventListener("keyup", function(e) {
+        if (e.key == "l") {
+            d3.selectAll(".tooltip-label-group")
+                .each(function(d) {
+                    display = d3.select(this).attr("display") == "none" ? "initial" : "none"
+                    d3.select(this).attr("display", display)
+                })
+        }
     })
 
 </script>
 
 <script>
     
-
-    addEventListener("load", () => {
         // display map for map panel, then resize
         // mapInitialVisualization()
         // displayMap().then(function() {
@@ -119,26 +136,7 @@
         //         // displayComparisonDonut()
         //     })        
         // })
-
-    });
-
-    // Link the DMA-PRIME tab to map panel
-    var navBar = document.getElementById("nav-bar")
-    navBar.addEventListener("sl-tab-show", (event) => {
-        if (event.detail.name == "main") {
-            navBar.show("map")
-        }
-    })
-
-    document.addEventListener("keyup", function(e) {
-        if (e.key == "l") {
-            d3.selectAll(".tooltip-label-group")
-                .each(function(d) {
-                    display = d3.select(this).attr("display") == "none" ? "initial" : "none"
-                    d3.select(this).attr("display", display)
-                })
-        }
-    })
+    
 </script>
 
 {% endblock %}

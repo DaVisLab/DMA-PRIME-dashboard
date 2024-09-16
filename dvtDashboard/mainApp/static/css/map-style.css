@@ -27,25 +27,6 @@ path.map-zcta {
 }
 
 /* legend components */
-.map-legend>circle {
-    /* hospitalization circle */
-    fill: var(--sl-color-neutral-500);
-    stroke: var(--sl-color-neutral-600);
-    stroke-width: 3;
-}
-
-.map-legend>line {
-    /* lines connecting hospitalization circles to labels */
-    stroke-width: 1.5;
-    stroke: var(--sl-color-neutral-800);
-}
-
-.map-legend>text {
-    /* hospitalizaiton circles text */
-    text-anchor: end;
-    transform: scaleY(-1);
-}
-
 .map-legend>text,
 .tick>text {
     /* both color legend and hospitalization circle text */
@@ -57,11 +38,6 @@ path.map-zcta {
     /* titles for the legends */
     text-anchor: middle;
     fill: currentColor;
-}
-
-#map-hospital-legend  text {
-    /* The hospitalization bubble legend title */
-    transform: scaleY(-1);
 }
 
 /* .disease-bubble, /* no longer exists*/
