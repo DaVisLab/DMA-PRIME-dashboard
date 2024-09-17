@@ -40,18 +40,6 @@
   font-size: var(--sl-font-size-x-small);
 }
 
-.grid-prediction-separator {
-  /* line indicating the difference between prediction and reality */
-  stroke-width: 1.5;
-  stroke: white;
-}
-
-#grid-prediction-highlighter {
-  /* grey rectangle that highlights the prediction in the tooltip */
-  opacity: .25;
-  fill: white;
-}
-
 sl-tooltip {
   --max-width: 800px;
 }

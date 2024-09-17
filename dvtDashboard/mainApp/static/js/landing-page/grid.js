@@ -48,7 +48,7 @@ function gridInitialVisualization() {
 
             gridTTP.append("svg")
                 .attr("id", `grid-${zcta}-tooltip-svg`)
-                .attr("zcta", zcta)
+                .attr("class", `map-tooltip-outer-svg`)
 
             // main visualization
             gridDiv = gridTTPContainer.append("div")

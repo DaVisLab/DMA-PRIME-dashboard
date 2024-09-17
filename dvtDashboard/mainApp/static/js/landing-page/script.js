@@ -555,26 +555,32 @@ function drawTooltip(d, div, ttpHeight, ttpWidth) {
             .attr("stroke-width", 2)
             .style("stroke-dasharray", dataSourceLineStyle[`${dataSource}-tooltip`])
 
-
-        thisStartDate = dayjs.tz(d[mapDataSourceSelector.value]["start-date"], "YYYY-MM-DD", "America/New_York").toDate()
-        thisEndDate = new Date(startDate);
-        thisEndDate.setDate(endDate.getDate() + thisData.data.length*7);
-        datesReconstructed = d3.timeMonday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
-
-        refDate = new Date(thisWeekMonday)
-        refDate.setDate(refDate.getDate() - 7)
-
-        index = datesReconstructed.findIndex((d) => d.getTime() == refDate.getTime())    
-
-        if (index > -1) {
-            // marks each datapoint on historical line
-            historicalGroup.append("circle")
-                .datum(thisData.data.at(index))
-                .attr("r", 3)
-                .attr("cx", (d) => xScaleHistorical(refDate))
-                .attr("cy", (d) => yScale(d))
-                .attr("stroke", dataSourceColorMap[dataSource])
-
+        if (["state-testing", "health-system-data"].includes(dataSource)) {
+            thisStartDate = dayjs.tz(thisData["start-date"], "YYYY-MM-DD", "America/New_York").toDate()
+            thisEndDate = new Date(startDate);
+            thisEndDate.setDate(endDate.getDate() + thisData.data.length*7);
+            datesReconstructed = d3.timeMonday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
+    
+            refDate = new Date(thisWeekMonday)
+            refDate.setDate(refDate.getDate() - 7)
+    
+            index = datesReconstructed.findIndex((d) => d.getTime() == refDate.getTime())
+    
+            if (index > -1) {
+                circleData = thisData.data.slice(index).map(function(d, i) {
+                    return {"count": d, "date": datesReconstructed.slice(index)[i]};
+                  })
+                // marks each datapoint on historical line
+                historicalGroup.selectAll("circle")
+                    .data(circleData)
+                    .enter()
+                    .append("circle")
+                    .attr("r", 3)
+                    .attr("cx", (d) => xScaleHistorical(d.date))
+                    .attr("cy", (d) => yScale(d.count))
+                    .attr("stroke", dataSourceColorMap[dataSource])
+    
+            }
         }
         
         labelGroup = ttpLegend.append("g")
