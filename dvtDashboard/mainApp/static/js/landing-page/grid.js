@@ -117,6 +117,15 @@ function gridInitialVisualization() {
                     .attr("stroke-width", 1.5)
             })
 
+            lastDot = gridSVG.append("g") 
+                    .attr("class", "grid-item-value")
+            lastDot.append("line")
+                .attr("stroke", "black")
+                .attr("stroke-width", 1)
+                .attr("stroke-dasharray", "5,5")
+            lastDot.append("circle")
+            lastDot.append("text")
+
             valueData = d[gridDataSourceSortSelector.value].data
 
             dotPlacementX = gridDataSourceSortSelector.value == "state-prediction" ? gridItemWidth - 3 : xScale.range()[1]
@@ -124,20 +133,27 @@ function gridInitialVisualization() {
             if (valueData.length > 0) {
                 dotPlacementY = Math.max(yScale(valueData.at(-1)), 0)
                 valuePlacementY = Math.min(Math.max(dotPlacementY + 6, em), gridItemHeight-3)
-                lastDot = gridSVG.append("g") //TODO: rename this, my brain is tired
-                .attr("class", "grid-item-value")
+                lastDot = gridSVG.select(".grid-item-value")
 
-                lastDot.append("text")
+                lastDot.select("text")
                     .attr("x", valuePlacementX)
                     .attr("y", valuePlacementY)
                     .attr("font-size", "var(--sl-font-size-x-small)")
                     .attr("text-anchor", gridDataSourceSortSelector.value == "state-prediction" ? "end" : "start")
                     .text(valueData.at(-1).toFixed(1))
 
-                lastDot.append("circle")
+                lastDot.select("circle")
                     .attr("cx", dotPlacementX)
                     .attr("cy", dotPlacementY)
                     .attr("r", 3)
+
+                if (gridDataSourceSortSelector.value == "state-prediction") {
+                    lastDot.select("line")
+                        .attr("x1", xScale.range()[1])
+                        .attr("y1", yScale(data["state-testing"].data.at(-1)))
+                        .attr("x2", dotPlacementX)
+                        .attr("y2", dotPlacementY)
+                }
             }
             
         })
@@ -232,10 +248,18 @@ function updateGridData() {
             valueData = data[gridDataSourceSortSelector.value].data
 
             dotPlacementX = gridDataSourceSortSelector.value == "state-prediction" ? gridItemWidth - 3 : xScale.range()[1]
-            valuePlacementX = gridDataSourceSortSelector.value == "state-prediction" ? dotPlacementX - 4 : dotPlacementX + 4
+            valuePlacementX = gridDataSourceSortSelector.value == "state-prediction" ? dotPlacementX : dotPlacementX + 4
             if (valueData.length > 0) {
                 dotPlacementY = Math.max(yScale(valueData.at(-1)), 0)
-                valuePlacementY = Math.min(Math.max(dotPlacementY + 6, em), gridItemHeight-3)
+                if (gridDataSourceSortSelector.value == "state-prediction") {
+                    if (data["state-testing"].data.at(-1) < valueData.at(-1)) {
+                        valuePlacementY = Math.max(dotPlacementY - 6, em)
+                    } else{
+                        valuePlacementY = Math.min(dotPlacementY + em, gridItemHeight - 3)
+                    }
+                } else {
+                    valuePlacementY = Math.min(Math.max(dotPlacementY + 6, em), gridItemHeight - 3)
+                }
                 lastDot = gridSVG.select(".grid-item-value") //TODO: rename this, my brain is tired
 
                 lastDot.select("text")
@@ -247,6 +271,15 @@ function updateGridData() {
                 lastDot.select("circle")
                     .attr("cx", dotPlacementX)
                     .attr("cy", dotPlacementY)
+
+                if (gridDataSourceSortSelector.value == "state-prediction") {
+                    lastDot.select("line")
+                        .attr("x1", xScale.range()[1])
+                        .attr("y1", yScale(data["state-testing"].data.at(-1)))
+                        .attr("x2", dotPlacementX)
+                        .attr("y2", dotPlacementY)
+                }
+                
             }
 
         })
