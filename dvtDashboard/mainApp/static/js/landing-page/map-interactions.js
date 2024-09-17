@@ -20,15 +20,36 @@ mapDiseaseSelector.addEventListener("sl-change", (event) => {
 
 hospitalIconsToggle.addEventListener("sl-change", () => {
     // toggle hospital icons
-    mapSVG.select("#map-hospitals").style("display", hospitalIconsToggle.checked ? "initial" : "none")
+    if (hospitalIconsToggle.checked) {
+        mapSVG.select("#map-hospitals")
+            .style("display", "initial")
+            .raise()
+    } else {
+        mapSVG.select("#map-hospitals")
+            .style("display", "none")
+    }
 })
 mobileClinicIconsToggle.addEventListener("sl-change", () => {
-    // toggle hospital icons
-    mapSVG.select("#map-mobile-clinics").style("display", mobileClinicIconsToggle.checked ? "initial" : "none")
+    // toggle mobile clinic icons
+    if (mobileClinicIconsToggle.checked) {
+        mapSVG.select("#map-mobile-clinics")
+            .style("display", "initial")
+            .raise()
+    } else {
+        mapSVG.select("#map-mobile-clinics")
+            .style("display", "none")
+    }
 })
 communityPartnerIconsToggle.addEventListener("sl-change", () => {
-    // toggle hospital icons
-    mapSVG.select("#map-community-partners").style("display", communityPartnerIconsToggle.checked ? "initial" : "none")
+    // toggle community partner icons
+    if (communityPartnerIconsToggle.checked) {
+        mapSVG.select("#map-community-partners")
+            .style("display", "initial")
+            .raise()
+    } else {
+        mapSVG.select("#map-community-partners")
+            .style("display", "none")
+    }
 })
 
 resetButton.addEventListener("click", () => {
@@ -112,8 +133,6 @@ function setZctaInteractions(zcta) {
         zctaPathDom = event.target
         zctaPath = d3.select(zctaPathDom)
 
-        mapClearCountyHighlight()
-
         countyName = zctaPath.attr("county")
         zctaName = zctaPath.attr("zcta")
         county = d3.select("#map-"+countyName)
@@ -123,41 +142,52 @@ function setZctaInteractions(zcta) {
 
         if (focusZCTA == zctaName) {
             focusZCTA = null
-            console.log("yus")
+            focusCounty = null
             resetButton.click()
         } else {
             focusZCTA = zctaName
             
-            Promise.allSettled(mapHighlightCounty(county)).then(() => {
-                ttpDiv = ttpFO.select("div")
-                    .style("display", "block")
-                // Figure out map tooltip dimensions
-                mapTooltipWidth = Math.max(500, width * .3)
-                mapTooltipHeight = mapTooltipWidth * .65
-
-                // set tooltip title
-                zctaGroup = d3.select(zctaPathDom.parentNode)
-                thisData = zctaGroup.datum()
-
-                p = ttpDiv.select("p").node()
-                p.innerHTML = `County: ${thisData.county[0].toUpperCase()+thisData.county.substring(1)}<br>ZCTA: ${thisData.zcta}`
-
-                // draw tooltip
-                drawTooltip(thisData, ttpDiv, mapTooltipHeight, mapTooltipWidth)
-
-                // place tooltip and set container dimensions
-                zctaPathData = zctaPath.datum().properties
-                coords = mapProjection([zctaPathData.INTPTLON20, zctaPathData.INTPTLAT20])
-                divBorder = parseFloat(ttpDiv.style("border-width").replace("px",""))
-                ttpFO
-                    .datum({"geo-coords": [zctaPathData.INTPTLON20, zctaPathData.INTPTLAT20], "cartesian-coords": coords})
-                    .attr("x", coords[0]*zoom + xSkew)
-                    .attr("y", coords[1]*zoom + ySkew)
-                    .attr("width", ttpDiv.node().offsetWidth+divBorder*2)
-                    .attr("height", ttpDiv.node().offsetHeight+divBorder*2)
-            })
+            if (focusCounty == countyName) {
+                handleZCTAClick()
+            } else {
+                focusCounty = countyName
+                mapClearCountyHighlight()
+                Promise.allSettled(mapHighlightCounty(county)).then(() => {
+                    handleZCTAClick()
+                })
+            }
         }
 
         
     })
+
+    function handleZCTAClick() {
+        ttpDiv = ttpFO.select("div")
+                        .style("display", "block")
+                    // Figure out map tooltip dimensions
+                    mapTooltipWidth = Math.max(500, width * .3)
+                    mapTooltipHeight = mapTooltipWidth * .65
+    
+                    // set tooltip title
+                    zctaGroup = d3.select(zctaPathDom.parentNode)
+                    thisData = zctaGroup.datum()
+    
+                    p = ttpDiv.select("p").node()
+                    p.innerHTML = `County: ${thisData.county[0].toUpperCase()+thisData.county.substring(1)}<br>ZCTA: ${thisData.zcta}`
+    
+                    // draw tooltip
+                    drawTooltip(thisData, ttpDiv, mapTooltipHeight, mapTooltipWidth)
+    
+                    // place tooltip and set container dimensions
+                    zctaPathData = zctaPath.datum().properties
+                    coords = mapProjection([zctaPathData.INTPTLON20, zctaPathData.INTPTLAT20])
+                    divBorder = parseFloat(ttpDiv.style("border-width").replace("px",""))
+                    ttpFO
+                        .datum({"geo-coords": [zctaPathData.INTPTLON20, zctaPathData.INTPTLAT20], "cartesian-coords": coords})
+                        .attr("x", coords[0]*zoom + xSkew)
+                        .attr("y", coords[1]*zoom + ySkew)
+                        .attr("width", ttpDiv.node().offsetWidth+divBorder*2)
+                        .attr("height", ttpDiv.node().offsetHeight+divBorder*2)
+    }
+
 }

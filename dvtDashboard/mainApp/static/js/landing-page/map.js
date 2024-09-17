@@ -315,29 +315,6 @@ function updateMapData() {
         .range(["white", dataSourceColorMap[mapDataSourceSelector.value]])
         .unknown("var(--sl-color-gray-600)").nice()
 
-    d3.selectAll(".map-zcta-container").each(function(d) {
-        thisData = d[mapDataSourceSelector.value].data
-
-        thisStartDate = dayjs.tz(d[mapDataSourceSelector.value]["start-date"], "YYYY-MM-DD", "America/New_York").toDate()
-        thisEndDate = new Date(startDate);
-        thisEndDate.setDate(endDate.getDate() + thisData.length*7);
-        datesReconstructed = d3.timeMonday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
-
-        index = datesReconstructed.findIndex((d) => d.getTime() == thisWeekMonday.getTime())
-        
-        if (index > -1) {
-            value = thisData.at(index)
-            if (mapRateSwitch.value == "rate") {
-                value /= d.population / 1000
-            }
-            d3.select(`path#map-${d[mapDataSourceSelector.value].zcta}`)
-                .style("fill", choroplethColorMap(value))
-        } else {
-            d3.select(this).select("path")
-                .attr("fill", choroplethColorMap(NaN))
-        }
-    })
-
     legendWidth = Math.max(width/3, 300)
     d3.select("#linear-gradient-stop-1")
         .attr("stop-color", dataSourceColorMap[mapDataSourceSelector.value])
@@ -348,7 +325,28 @@ function updateMapData() {
         .attr("transform", `translate(${2*em},${height - 3.5*em})`)
         .call(d3.axisBottom(d3.scaleLinear(choroplethColorMap.domain(), [0, legendWidth])).ticks(9))
 
+        d3.selectAll(".map-zcta-container").each(function(d) {
+            thisData = d[mapDataSourceSelector.value].data
     
+            thisStartDate = dayjs.tz(d[mapDataSourceSelector.value]["start-date"], "YYYY-MM-DD", "America/New_York").toDate()
+            thisEndDate = new Date(startDate);
+            thisEndDate.setDate(endDate.getDate() + thisData.length*7);
+            datesReconstructed = d3.timeMonday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
+    
+            index = datesReconstructed.findIndex((d) => d.getTime() == thisWeekMonday.getTime())
+            
+            if (index > -1) {
+                value = thisData.at(index)
+                if (mapRateSwitch.value == "rate") {
+                    value /= d.population / 1000
+                }
+                d3.select(`path#map-${d.zcta}`)
+                    .style("fill", choroplethColorMap(value))
+            } else {
+                d3.select(this).select("path")
+                    .attr("fill", choroplethColorMap(NaN))
+            }
+        })  
 
 }
 
