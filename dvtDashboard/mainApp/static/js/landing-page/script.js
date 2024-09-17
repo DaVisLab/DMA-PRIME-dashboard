@@ -11,25 +11,6 @@ var dataSourceColorMap = {
     "state-training": "#FFB000",
     "state-testing": "#FFB000",
     "state-prediction": "#FE6100",
-
-    // remove when thingy is done
-    "health-system": "#648FFF",
-    "state-train": "#FFB000",
-    "state-post-train": "#FFB000",
-    "state-model": "#FFB000",
-    "prediction": "#FE6100",
-    "state": "#FFB000",
-
-    "state-train": "#FFB000",
-    "state-post-train": "#FFB000",
-}
-
-var dataSourceLabelPlacement = {
-    "health-system": .5,
-    "state-data": 0,
-    "state-train": .5,
-    "state-post-train": .5,
-    "prediction": .5,
 }
 
 var dataSourceDisplayName = {
@@ -556,34 +537,6 @@ function drawTooltip(d, div, ttpHeight, ttpWidth) {
             .attr("fill", "none")
             .attr("stroke-width", 2)
             .style("stroke-dasharray", dataSourceLineStyle[`${dataSource}-tooltip`])
-
-        if (["state-testing", "health-system-data"].includes(dataSource)) {
-            thisStartDate = dayjs.tz(thisData["start-date"], "YYYY-MM-DD", "America/New_York").toDate()
-            thisEndDate = new Date(startDate);
-            thisEndDate.setDate(endDate.getDate() + thisData.data.length*7);
-            datesReconstructed = d3.timeMonday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
-    
-            refDate = new Date(thisWeekMonday)
-            refDate.setDate(refDate.getDate() - 7)
-    
-            index = datesReconstructed.findIndex((d) => d.getTime() == refDate.getTime())
-    
-            if (index > -1) {
-                circleData = thisData.data.slice(index).map(function(d, i) {
-                    return {"count": d, "date": datesReconstructed.slice(index)[i]};
-                  })
-                // marks each datapoint on historical line
-                historicalGroup.selectAll("circle")
-                    .data(circleData)
-                    .enter()
-                    .append("circle")
-                    .attr("r", 3)
-                    .attr("cx", (d) => xScaleHistorical(d.date))
-                    .attr("cy", (d) => yScale(d.count))
-                    .attr("stroke", dataSourceColorMap[dataSource])
-    
-            }
-        }
         
         labelGroup = ttpLegend.append("g")
             .attr("class", "tooltip-label-group")
@@ -603,6 +556,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth) {
             .text(dataSourceDisplayName[dataSource])
     })
 
+    stateCurrentLabelPositionAbove = null
     if (data["state-prediction"].data.length) {
         graphSVG.append("rect")
             .attr("class", "tooltip-prediction-highlighter")
@@ -653,7 +607,63 @@ function drawTooltip(d, div, ttpHeight, ttpWidth) {
             .attr("fill", dataSourceColorMap["state-prediction"])
             .attr("font-size", "var(--sl-font-size-small)")
             .text(dataSourceDisplayName["state-prediction"])
+
+        stateCurrentLabelPositionAbove = data["state-prediction"].data[0] > data["state-prediction"].data[1]
     }
+
+    
+    ["state-testing", "health-system-data"].forEach(function(dataSource) {
+        thisData = data[dataSource]
+        historicalLabels = graphSVG.append("g")
+
+        thisStartDate = dayjs.tz(thisData["start-date"], "YYYY-MM-DD", "America/New_York").toDate()
+        thisEndDate = new Date(startDate);
+        thisEndDate.setDate(endDate.getDate() + thisData.data.length*7);
+        datesReconstructed = d3.timeMonday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
+
+        refDate = new Date(thisWeekMonday)
+        refDate.setDate(refDate.getDate() - 7)
+
+        index = datesReconstructed.findIndex((d) => d.getTime() == refDate.getTime())
+
+        if (index > -1) {
+            circleData = thisData.data.slice(index).map(function(d, i) {
+                return {"count": d, "date": datesReconstructed.slice(index)[i]};
+              })
+
+            historicalLabels.selectAll("circle")
+              .data(circleData)
+              .enter()
+              .append("circle")
+              .attr("r", 3)
+              .attr("cx", (d) => xScaleHistorical(d.date))
+              .attr("cy", (d) => yScale(d.count))
+              .attr("stroke", dataSourceColorMap[dataSource])
+
+            if (circleData.length > 1) {
+                yPosition = yScale(circleData[1].count)
+                if (dataSource == "state-testing") {
+                    if (stateCurrentLabelPositionAbove !== null) {
+                        yPosition += stateCurrentLabelPositionAbove ? -6 : 12
+                    }
+                } else {
+                    yPosition += 6
+                }
+
+                yPosition = Math.min(Math.max(yPosition, yScale.range()[1] + 12), yScale.range()[0] - 3)
+
+                historicalLabels.append("text")
+                    .attr("x", xScaleHistorical(circleData[1].date) + 6)
+                    .attr("y", yPosition)
+                    .attr("fill", dataSourceColorMap[dataSource])
+                    .attr("font-size", "var(--sl-font-size-x-small)")
+                    .text(circleData[1].count)
+            }
+            
+        }
+
+        
+    })
 
     // display x-axis on the bottom
     xAxisHistorical // historical

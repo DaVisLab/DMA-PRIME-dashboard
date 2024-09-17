@@ -82,35 +82,12 @@ function gridInitialVisualization() {
                 .attr("class", "grid-subtitle")
                 .html(` (${county.toUpperCase()})`)
 
-            thisCountMax = 0
-
-            gridItemDataSources.forEach(function(dataSource) {
-                if (d[dataSource].data.length) {
-                    thisCountMax = Math.max(d3.max(d[dataSource].data), thisCountMax)
-                }
-            })
-            
-            yScale = d3.scaleLinear()
-                .domain([0, thisCountMax])        
-                .nice()
-                .range([gridItemHeight-2, margin.top])
-                
-            line = function(data) {
-                startDate = d3.timeMonday.round(new Date(data["start-date"]))
-                startIndex = historicalDates.findIndex((d) => d.getTime() == startDate.getTime())
-                
-                return d3.line()
-                    .x((_, i) => xScale(historicalDates[i+startIndex]))
-                    .y((d, i) => yScale(d))
-                    .curve(d3.curveMonotoneX)(data.data)
-            }
-
             gridItemDataSources.forEach(function(dataSource) {
                 // draw historical line chart
                 historicalGroup = gridSVG.append("g")
                     .attr("class", dataSource)
                 historicalGroup.append("path")
-                    .attr("d", line(d[dataSource]))
+                    // .attr("d", line(d[dataSource]))
                     .attr("stroke", "black")
                     .attr("stroke-dasharray", dataSourceLineStyle[dataSource])
                     .attr("fill", "none")
@@ -124,38 +101,10 @@ function gridInitialVisualization() {
                 .attr("stroke-width", 1)
                 .attr("stroke-dasharray", "5,5")
             lastDot.append("circle")
+                .attr("r", 3)
             lastDot.append("text")
-
-            valueData = d[gridDataSourceSortSelector.value].data
-
-            dotPlacementX = gridDataSourceSortSelector.value == "state-prediction" ? gridItemWidth - 3 : xScale.range()[1]
-            valuePlacementX = gridDataSourceSortSelector.value == "state-prediction" ? dotPlacementX - 4 : dotPlacementX + 4
-            if (valueData.length > 0) {
-                dotPlacementY = Math.max(yScale(valueData.at(-1)), 0)
-                valuePlacementY = Math.min(Math.max(dotPlacementY + 6, em), gridItemHeight-3)
-                lastDot = gridSVG.select(".grid-item-value")
-
-                lastDot.select("text")
-                    .attr("x", valuePlacementX)
-                    .attr("y", valuePlacementY)
-                    .attr("font-size", "var(--sl-font-size-x-small)")
-                    .attr("text-anchor", gridDataSourceSortSelector.value == "state-prediction" ? "end" : "start")
-                    .text(valueData.at(-1).toFixed(1))
-
-                lastDot.select("circle")
-                    .attr("cx", dotPlacementX)
-                    .attr("cy", dotPlacementY)
-                    .attr("r", 3)
-
-                if (gridDataSourceSortSelector.value == "state-prediction") {
-                    lastDot.select("line")
-                        .attr("x1", xScale.range()[1])
-                        .attr("y1", yScale(data["state-testing"].data.at(-1)))
-                        .attr("x2", dotPlacementX)
-                        .attr("y2", dotPlacementY)
-                }
-            }
-            
+                .attr("font-size", "var(--sl-font-size-x-small)")
+                .attr("text-anchor", gridDataSourceSortSelector.value == "state-prediction" ? "end" : "start")
         })
 }
 
@@ -272,8 +221,12 @@ function updateGridData() {
                     .attr("cx", dotPlacementX)
                     .attr("cy", dotPlacementY)
 
+                lastDot.select("line")
+                    .attr("display", gridDataSourceSortSelector.value == "state-prediction" ? "initial" : "none")
+
                 if (gridDataSourceSortSelector.value == "state-prediction") {
                     lastDot.select("line")
+                        .attr("display", "initial")
                         .attr("x1", xScale.range()[1])
                         .attr("y1", yScale(data["state-testing"].data.at(-1)))
                         .attr("x2", dotPlacementX)
