@@ -24,13 +24,15 @@ def login():
             'SELECT * FROM user WHERE username = %s', [username]
         )
         user = db.fetchone()
-        columns = [item[0] for item in db.description]
-        user_data = {item[0] : item[1] for item in zip(columns, user)}
 
         if user is None:
             error = "Incorrect username."
-        elif not Bcrypt().check_password_hash(user_data["password"].decode('utf-8'), password):
-            error = "Incorrect password."
+        else:
+            columns = [item[0] for item in db.description]
+            user_data = {item[0] : item[1] for item in zip(columns, user)}
+            
+            if not Bcrypt().check_password_hash(user_data["password"].decode('utf-8'), password):
+                error = "Incorrect password."
 
         if error is None:
             # store the user id in a new session and return to the index
