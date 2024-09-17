@@ -1,5 +1,12 @@
 
 mapRateSwitch.addEventListener("sl-change", (event) => {
+    if (mapRateSwitch.value == "rate"){
+        d3.select("#map-legend-title")
+            .text("Current Week's Hospitalization Rates by ZCTA")
+    } else {
+        d3.select("#map-legend-title")
+            .text("Current Week's Hospitalizations by ZCTA")
+    }
     updateMapData()
 })
 

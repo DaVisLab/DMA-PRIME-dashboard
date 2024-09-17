@@ -330,7 +330,7 @@ function updateMapData() {
             if (mapRateSwitch.value == "rate") {
                 value /= d.population / 1000
             }
-            d3.select(this).select("path")
+            d3.select(`path#map-${d[mapDataSourceSelector.value].zcta}`)
                 .style("fill", choroplethColorMap(value))
         } else {
             d3.select(this).select("path")

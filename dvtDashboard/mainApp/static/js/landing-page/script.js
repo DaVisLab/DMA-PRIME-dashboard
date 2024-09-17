@@ -473,6 +473,8 @@ function drawTooltip(d, div, ttpHeight, ttpWidth) {
         .attr("class", "tooltip-graph-svg")
         .attr("height", ttpHeight)
         .attr("width", ttpWidth)
+    graphSVG.append("line")
+        .attr("class", "tooltip-prediction-separator")
 
     yAxis = ttpSVG.append("g")
         .attr("class", "y-axis")
@@ -604,8 +606,6 @@ function drawTooltip(d, div, ttpHeight, ttpWidth) {
     if (data["state-prediction"].data.length) {
         graphSVG.append("rect")
             .attr("class", "tooltip-prediction-highlighter")
-        graphSVG.append("line")
-            .attr("class", "tooltip-prediction-separator")
 
         // draw predictive line chart
         predictiveGroup = graphSVG.append("g")

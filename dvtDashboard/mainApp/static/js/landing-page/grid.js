@@ -34,6 +34,7 @@ function gridInitialVisualization() {
                         
             gridTTPContainer = gridItemContainer.append("sl-tooltip")
                 .attr("trigger", "click")
+                .attr("hoist", "")
 
             setGridTooltip(gridTTPContainer)
 
