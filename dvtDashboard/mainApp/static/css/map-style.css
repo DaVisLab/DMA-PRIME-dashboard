@@ -48,40 +48,10 @@ path.map-zcta {
     stroke-opacity: .3;
 }
 
-#map-tooltip {
-    /* div containing the tooltip svg */
-    position: absolute;
+#map-tooltip-div {
     display: none;
     border-width: var(--sl-border-radius-small);
     border-style: solid;
     border-radius: .25em;
     background-color: rgba(0, 0, 0, 0.75);
-}
-
-p.tooltip {
-    /* tooltip label */
-    margin: 0;
-    padding-top: var(--sl-spacing-x-small);
-    text-align: center;
-    font-size: var(--sl-font-size-small);
-}
-
-.tooltip.text {
-    /* tooltip svg text */
-    margin: 0;
-    padding: 0;
-    font-size: var(--sl-font-size-x-small);
-    white-space: nowrap;
-}
-
-#tooltip-prediction-separator {
-    /* line indicating the difference between prediction and reality */
-    stroke-width: 1.5;
-    stroke: white;
-}
-
-#tooltip-prediction-highlighter {
-    /* grey rectangle that highlights the prediction in the tooltip */
-    opacity: .5;
-    fill: var(--sl-color-gray-600);
 }

@@ -43,7 +43,7 @@ function gridInitialVisualization() {
                 .attr("id", `grid-${zcta}-tooltip`)
 
             gridTTP.append("p")
-                .attr("class", "tooltip")
+                .attr("class", "tooltip-title")
                 .node().innerHTML = `County: ${county[0].toUpperCase() + county.slice(1)}<br>ZCTA: ${zcta}`
 
             gridTTP.append("svg")

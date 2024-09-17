@@ -16,9 +16,10 @@ function mapInitialVisualization() {
         counties = mapSVG.append("g")
                 .attr("id", "map-counties")
                 .style("pointer-events", "none")
-        counties.selectAll("path")
+        counties.selectAll("g")
               .data(mapdata.features)
               .enter()
+              .append("g")
               .append("path")
               .attr("class", "map-county")
               .attr("id", d => "map-" + fixName(d.properties.NAME))
@@ -46,27 +47,77 @@ function mapInitialVisualization() {
         legendsGroup = mapSVG.append("g")
             .attr("id", "map-legends")
             .style("pointer-events", "none")
+
+        // add tooltip
+        ttpDiv = mapSVG.append("foreignObject")
+            .attr("id", `map-tooltip-fo`)
+                .datum({"geo-coords": [-80.9, 34], "cartesian-coords": [1,1]})
+                .attr("x", 1)
+                .attr("y", 1)
+                .attr("width", 500)
+                .attr("height", 300)
+                .attr("pointer-events", "none")
+            .append("xhtml:div")
+            .attr("id", `map-tooltip-div`)
+
+        ttpDiv.append("p")
+            .attr("class", "tooltip-title")
+
+        ttpDiv.append("svg")
+            .attr("id", `map-tooltip-svg`)
+            .attr("class", `map-tooltip-outer-svg`)
     }).then(() => {
+
+        choroplethColorMap = d3.scaleLinear()
+            .domain([0, d3.max(getDataAsArray(mapDiseaseSelector.value, mapDataSourceSelector.value, mapRateSwitch.value == "rate"))])
+            .range(["white", dataSourceColorMap[mapDataSourceSelector.value]])
+            .unknown("var(--sl-color-gray-600)").nice()
+
         // draw zcta map items
+        diseaseData = zctaData[mapDiseaseSelector.value]
+        
         d3.json("/map-data/zcta").then(function(mapdata) {
-        d3.json("/map-data/zcta_county_crosswalk").then( async function(crosswalk) {
-            zcta = mapdata
-            zctas.selectAll("path")
-                .data(mapdata.features)
+            zctas.selectAll("g")
+                .data(diseaseData)
                 .enter()
-                .append("path")
-                .attr("class", "map-zcta")
-                .attr("id", d => "map-"+fixName(d.properties.ZCTA5CE20))
-                .attr("county", (d) => crosswalk[d.properties.ZCTA5CE20]) // add primary county
-                .transition()
-                .attr("d", d => pathGenerator(d))
-                .attr('fill', "var(--sl-color-gray-600)")
-                .each(function(zctaData) {
-                    zcta = d3.select(this)
-                    setZctaInteractions(zcta)
-                })
-                .call(updateMapData)
-        })})
+                .append("g")
+                .attr("id", d => `map-${d.zcta}-group`)
+                .attr("class", "map-zcta-container")
+
+            mapdata.features.forEach(function(data) {
+                group = zctas.select(`#map-${data.properties.ZCTA5CE20}-group`)
+                element = group.datum()
+                thisData = element[mapDataSourceSelector.value].data
+
+                thisStartDate = dayjs.tz(element[mapDataSourceSelector.value]["start-date"], "YYYY-MM-DD", "America/New_York").toDate()
+                thisEndDate = new Date(startDate);
+                thisEndDate.setDate(endDate.getDate() + thisData.length*7);
+                datesReconstructed = d3.timeMonday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
+
+                index = datesReconstructed.findIndex((d) => d.getTime() == thisWeekMonday.getTime())
+                
+                value = NaN
+                if (index > -1) {
+                    value = thisData.at(index)
+                    if (mapRateSwitch.value == "rate") {
+                        value /= element.population / 1000
+                    }
+                }
+
+                group.append("path")
+                    .datum(data)
+                    .attr("id", "map-"+element.zcta)
+                    .attr("class", "map-zcta")
+                    .attr("county", element.county) // add primary county
+                    .attr("zcta", element.zcta) // add primary county
+                    .attr("d", d => pathGenerator(d))
+                    .attr('fill', choroplethColorMap(value))
+                    .each(function(zctaData) {
+                        zcta = d3.select(this)
+                        setZctaInteractions(zcta)
+                    })
+            })
+        })
 
         // draw hospital icons
         hospSize = Math.max(16, Math.min(width, height) * 0.015)
@@ -124,11 +175,6 @@ function mapInitialVisualization() {
                 this.innerHTML = makeCommunityPartner(fixName(d["Site.Name"]))
               })
         })
-
-        choroplethColorMap = d3.scaleLinear()
-            .domain([0, Math.max(getDataAsArray(mapDiseaseSelector.value, mapDataSourceSelector.value, mapRateSwitch.value == "rate"))])
-            .range(["white", dataSourceColorMap[mapDataSourceSelector.value]])
-            .unknown("var(--sl-color-gray-600)").nice()
 
         // Add components for choropleth legend
         legendWidth = Math.max(width/3, 300)
@@ -229,6 +275,11 @@ function resizeMap() {
                 .attr("height", communityPartnerSize)
     })
 
+    // update tooltip
+    mapSVG.select("#map-tooltip-fo")
+        .attr("x", d => mapProjection(d["geo-coords"])[0]*zoom + xSkew)
+        .attr("y", d => mapProjection(d["geo-coords"])[1]*zoom + ySkew)
+
     // update choropleth
     legendWidth = Math.max(width/3, 300)
     colorLegend = mapSVG.select("#map-color-legend")
@@ -264,10 +315,10 @@ function updateMapData() {
         .range(["white", dataSourceColorMap[mapDataSourceSelector.value]])
         .unknown("var(--sl-color-gray-600)").nice()
 
-    diseaseData.forEach(element => {
-        thisData = element[mapDataSourceSelector.value].data
+    d3.selectAll(".map-zcta-container").each(function(d) {
+        thisData = d[mapDataSourceSelector.value].data
 
-        thisStartDate = dayjs.tz(element[mapDataSourceSelector.value]["start-date"], "YYYY-MM-DD", "America/New_York").toDate()
+        thisStartDate = dayjs.tz(d[mapDataSourceSelector.value]["start-date"], "YYYY-MM-DD", "America/New_York").toDate()
         thisEndDate = new Date(startDate);
         thisEndDate.setDate(endDate.getDate() + thisData.length*7);
         datesReconstructed = d3.timeMonday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
@@ -277,17 +328,17 @@ function updateMapData() {
         if (index > -1) {
             value = thisData.at(index)
             if (mapRateSwitch.value == "rate") {
-                value /= element.population / 1000
+                value /= d.population / 1000
             }
-            d3.select(`#map-${element.zcta}`)
+            d3.select(this).select("path")
                 .style("fill", choroplethColorMap(value))
         } else {
-            d3.select(`#map-${element.zcta}`)
+            d3.select(this).select("path")
                 .attr("fill", choroplethColorMap(NaN))
         }
-        
-    });
+    })
 
+    legendWidth = Math.max(width/3, 300)
     d3.select("#linear-gradient-stop-1")
         .attr("stop-color", dataSourceColorMap[mapDataSourceSelector.value])
 
