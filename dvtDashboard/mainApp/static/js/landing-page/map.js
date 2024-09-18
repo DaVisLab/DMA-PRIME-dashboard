@@ -91,7 +91,7 @@ function mapInitialVisualization() {
 
                 thisStartDate = dayjs.tz(element[mapDataSourceSelector.value]["start-date"], "YYYY-MM-DD", "America/New_York").toDate()
                 thisEndDate = new Date(thisStartDate);
-                thisEndDate.setDate(endDate.getDate() + thisData.length*7);
+                thisEndDate.setDate(thisEndDate.getDate() + thisData.length*7);
                 datesReconstructed = d3.timeMonday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
 
                 index = datesReconstructed.findIndex((d) => d.getTime() == thisWeekMonday.getTime())
@@ -330,7 +330,7 @@ function updateMapData() {
     
             thisStartDate = dayjs.tz(d[mapDataSourceSelector.value]["start-date"], "YYYY-MM-DD", "America/New_York").toDate()
             thisEndDate = new Date(thisStartDate);
-            thisEndDate.setDate(endDate.getDate() + thisData.length*7);
+            thisEndDate.setDate(thisEndDate.getDate() + thisData.length*7);
             datesReconstructed = d3.timeMonday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
     
             index = datesReconstructed.findIndex((d) => d.getTime() == thisWeekMonday.getTime())

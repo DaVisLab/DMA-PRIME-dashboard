@@ -14,17 +14,11 @@ import math
 from .utility import * 
 from .auth import login_required
 
+# TODO: update below
 # Data:
 #    map, county, zip code
 #        past, current, prediction
 #            prediction history vs actual
-
-
-# cases and deaths should be MultiIndexes 
-# stats and usage can be normal dataframes
-zcta_hospitalizations_dict = {
-    'data': {}
-}
 
 def create_app():
     # create and configure the app
@@ -138,11 +132,9 @@ def load_data():
 
 def load_zcta_hospitalization():
     files = {
-        # 'covid-19': main_dir+'/static/data/Data file for CDC site visit.csv'
-        # 'covid-19': main_dir+'/static/data/covid-19 hospitalization (CDC visit TEMPORARY) v2.csv'
-        'covid-19': main_dir+'/static/data/covid_cdc_site_visit.csv'
+        # 'covid-19': main_dir+'/static/data/covid_cdc_site_visit.csv',
+        'covid-19': [main_dir+'/static/data/Data file for CDC site visit v1.csv', main_dir+'/static/data/Data file for CDC site visit_TA.csv'],
     }
-
     index_names = ['zcta', 'date']
 
     label_dict = {
@@ -152,7 +144,7 @@ def load_zcta_hospitalization():
             'state-data': 'Statewide hospitalizations',
             }
 
-    date = pd.Timestamp(year=2024, month=8, day=26) # pd.Timestamp.now().round(freq='d')
+    date = pd.Timestamp(year=2024, month=9, day=9) # pd.Timestamp.now().round(freq='d')
 
     start_date = date - pd.DateOffset(months=18)
     historical_dates = pd.date_range(end=date, start=start_date, freq='W-MON')
@@ -168,7 +160,13 @@ def load_zcta_hospitalization():
     for disease, file in files.items():
         
         # grid view
-        df = pd.read_csv(file)
+        df = pd.DataFrame()
+        if isinstance(file, list):
+            for f in file:
+                df = pd.concat([df, pd.read_csv(f)])
+        else:
+            df = pd.read_csv(file)
+
         df.rename({'Zip code': 'zcta', 'Date': 'date'}, axis=1, inplace=True)
         df['date'] = pd.to_datetime(df['date'])
         df['Health System hospitalizations'] = df['Health System hospitalizations'].fillna(value=0)

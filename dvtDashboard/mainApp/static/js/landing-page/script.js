@@ -46,7 +46,7 @@ var styleSheet = new CSSStyleSheet()
 document.adoptedStyleSheets = [styleSheet]
 
 // other info
-thisWeekMonday = new Date(2024, 7, 26)
+thisWeekMonday = new Date(2024, 8, 9)
 thisWeekMonday = d3.timeMonday.floor(thisWeekMonday)
 
 startDate = new Date(thisWeekMonday);
