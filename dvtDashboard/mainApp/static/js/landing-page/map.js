@@ -65,7 +65,7 @@ function mapInitialVisualization() {
 
         ttpDiv.append("svg")
             .attr("id", `map-tooltip-svg`)
-            .attr("class", `map-tooltip-outer-svg`)
+            .attr("class", `tooltip-outer-svg`)
     }).then(() => {
 
         choroplethColorMap = d3.scaleLinear()

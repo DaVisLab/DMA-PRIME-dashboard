@@ -8,6 +8,12 @@ mapRateSwitch.addEventListener("sl-change", (event) => {
             .text("Current Week's Hospitalizations by ZCTA")
     }
     updateMapData()
+
+    
+    mapTooltipWidth = Math.max(500, width * .3)
+    mapTooltipHeight = mapTooltipWidth * .65    
+    drawTooltip(d3.select(`#map-${focusZCTA}-group`).datum(), d3.select("#map-tooltip-div"), mapTooltipHeight, mapTooltipWidth, mapRateSwitch.value == "rate")
+
 })
 
 mapDataSourceSelector.addEventListener("sl-change", (event) => {
@@ -179,7 +185,7 @@ function setZctaInteractions(zcta) {
                     p.innerHTML = `County: ${thisData.county[0].toUpperCase()+thisData.county.substring(1)}<br>ZCTA: ${thisData.zcta}`
     
                     // draw tooltip
-                    drawTooltip(thisData, ttpDiv, mapTooltipHeight, mapTooltipWidth)
+                    drawTooltip(thisData, ttpDiv, mapTooltipHeight, mapTooltipWidth, mapRateSwitch.value == "rate")
     
                     // place tooltip and set container dimensions
                     zctaPathData = zctaPath.datum().properties

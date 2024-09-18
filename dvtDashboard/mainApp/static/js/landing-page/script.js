@@ -438,12 +438,12 @@ async function displayDonut(
     })
 }
 
-function drawTooltip(d, div, ttpHeight, ttpWidth) {
+function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
     data = JSON.parse(JSON.stringify(d))
 
     ttpLegendTop = ttpHeight - 2.5*em
 
-    ttpSVG = div.select(".map-tooltip-outer-svg")
+    ttpSVG = div.select(".tooltip-outer-svg")
         .attr("height", ttpHeight)
         .attr("width", ttpWidth)
 
@@ -469,7 +469,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth) {
     countMax = 0
 
     ttpDataSources.forEach(function(dataSource) {
-        if (gridRateSwitch.value == "rate") {
+        if (rate) {
             data[dataSource].data = d[dataSource].data.map(function(item) { return item/d.population * 1000} )
         }
         if (data[dataSource].data.length) {
@@ -477,7 +477,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth) {
         }
     })
 
-    if (gridRateSwitch.value == "rate") {
+    if (rate) {
         data["state-prediction"].data = d["state-prediction"].data.map(function(item) { return item/d.population * 1000} )
     }
     if (data["state-prediction"].data.length) {
@@ -485,14 +485,13 @@ function drawTooltip(d, div, ttpHeight, ttpWidth) {
     }
 
     // figure out how much space is needed for the y-axis text
-    temp = ttpSVG.append("text").text(countMax).attr("x", 0).attr("y", 0)
+    temp = ttpSVG.append("text").text(d3.format(".2r")(countMax)).attr("x", 0).attr("y", 0)
     ttpMargins = {
         "top": 1*em, 
         "bottom": 2.5*em + 3*em,
-        "left": temp.node().getBBox().width + 2*em,
+        "left": Math.max(20, temp.node().getBBox().width) + 2*em,
         "right": em,
     }
-    temp.remove()
 
     yScale = d3.scaleLinear()
         .domain([0, countMax])        
@@ -657,7 +656,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth) {
                     .attr("y", yPosition)
                     .attr("fill", dataSourceColorMap[dataSource])
                     .attr("font-size", "var(--sl-font-size-x-small)")
-                    .text(circleData[1].count)
+                    .text(parseFloat(circleData[1].count.toFixed(1)))
             }
             
         }
@@ -695,4 +694,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth) {
         .call(d3.axisLeft(yScale).ticks(5).tickSize(4))
         .selectAll("text")
         .attr("class", "tooltip-label")
+
+    temp.remove()
+
 }
