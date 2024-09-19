@@ -5,8 +5,8 @@ function gridInitialVisualization() {
     gridStartDate.html(d3.utcFormat("%B %d, %Y")(historicalDates[0]))
     gridEndDate.html(d3.utcFormat("%B %d, %Y")(thisWeekMonday))
 
-    gridHeight = gridContent.clientHeight
-    gridWidth = gridContent.clientWidth
+    gridHeight = gridContainer.clientHeight
+    gridWidth = gridContainer.clientWidth
 
     adjustedHeight = gridHeight - 1*em
     adjustedWidth = gridWidth - 1*em
@@ -14,8 +14,8 @@ function gridInitialVisualization() {
     colItems = Math.min(6, Math.max(Math.floor(adjustedHeight/(120-.25*em)), 1))
     rowItems = Math.min(8, Math.max(Math.floor(adjustedWidth/(150-.25*em)), 1))
 
-    gridItemHeight = d3.max([(adjustedHeight-((colItems)*.25*em))/colItems, (120-.125*em)])
-    gridItemWidth = d3.max([(adjustedWidth-((rowItems)*.25*em))/rowItems, (150-.125*em)])
+    gridItemHeight = d3.max([(adjustedHeight-((colItems-1)*.25*em))/colItems, (120-.125*em)])
+    gridItemWidth = d3.max([(adjustedWidth-((rowItems-1)*.25*em))/rowItems, (150-.125*em)])
 
     xScale = d3.scaleUtc()
                 .domain([historicalDates[0], historicalDates.at(-1)])
@@ -120,8 +120,8 @@ function updateGridData() {
     gridStartDate.html(d3.utcFormat("%B %d, %Y")(historicalDates[0]))
     gridEndDate.html(d3.utcFormat("%B %d, %Y")(thisWeekMonday))
 
-    gridHeight = gridContent.clientHeight
-    gridWidth = gridContent.clientWidth
+    gridHeight = gridContainer.clientHeight
+    gridWidth = gridContainer.clientWidth
 
     adjustedHeight = gridHeight - 1*em
     adjustedWidth = gridWidth - 1*em
@@ -129,8 +129,8 @@ function updateGridData() {
     colItems = Math.min(6, Math.max(Math.floor(adjustedHeight/(120-.25*em)), 1))
     rowItems = Math.min(8, Math.max(Math.floor(adjustedWidth/(150-.25*em)), 1))
 
-    gridItemHeight = d3.max([(adjustedHeight-((colItems)*.25*em))/colItems, (120-.125*em)])
-    gridItemWidth = d3.max([(adjustedWidth-((rowItems)*.25*em))/rowItems, (150-.125*em)])
+    gridItemHeight = d3.max([(adjustedHeight-((colItems-1)*.25*em))/colItems, (120-.125*em)])
+    gridItemWidth = d3.max([(adjustedWidth-((rowItems-1)*.25*em))/rowItems, (150-.125*em)])
 
     diseaseData = zctaData[gridDiseaseSelector.value]
 
