@@ -21,7 +21,9 @@ gridDataSourceSortSelector.addEventListener("sl-change", (event) => {
     updateGridData()    
 })
 
-gridTextFilter.addEventListener("sl-input", function(event) {
+gridTextFilter.addEventListener("sl-input", filterZCTAByText)
+
+function filterZCTAByText(event) {
     diseaseData = zctaData[gridDiseaseSelector.value]
 
     matchingGridItems = diseaseData.filter(function(d) {
@@ -43,7 +45,7 @@ gridTextFilter.addEventListener("sl-input", function(event) {
     objs.style("display", "initial")
     objs.exit()
         .style("display", "none")
-})
+}
 
 gridIncludeImputations.addEventListener("sl-change", () => {
     if (gridIncludeImputations.checked) {
@@ -57,6 +59,7 @@ gridIncludeImputations.addEventListener("sl-change", () => {
             .style("display", "none")
     }
     updateGridData()
+    filterZCTAByText()
 })
 
 function setGridTooltip(gridTooltip) {
