@@ -1,7 +1,7 @@
 import functools
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for
+    Blueprint, flash, g, redirect, render_template, request, session, url_for, current_app
 )
 
 from mainApp.db import get_db
@@ -59,7 +59,7 @@ def load_logged_in_user():
 def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
-        if g.user is None:
+        if not current_app.config['DEVELOPMENT'] and g.user is None:
             return redirect(url_for('auth.login'))
 
         return view(**kwargs)

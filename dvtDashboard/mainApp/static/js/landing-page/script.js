@@ -62,7 +62,7 @@ function getZCTAData(disease) {
     if (disease in zctaData) {
         return Promise.resolve(data[disease])
     } else {
-        return d3.json(`/hospitalization-grid/${disease}`).then(function(zcta_data) {
+        return d3.json(`/data/hospitalizations/${disease}`).then(function(zcta_data) {
             zctaData[disease] = zcta_data
             return Promise.resolve(zctaData[disease])
         })

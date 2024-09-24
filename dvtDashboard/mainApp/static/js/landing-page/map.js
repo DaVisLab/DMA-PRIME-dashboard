@@ -1,7 +1,7 @@
 
 // Draw the map components
 function mapInitialVisualization() {
-    d3.json("/map-data/county").then(function(mapdata) {
+    d3.json("/data/map/county").then(function(mapdata) {
         // add group for zcta map
         zctas = mapSVG.append("g")
             .attr("id", "map-zctas")
@@ -78,7 +78,7 @@ function mapInitialVisualization() {
         // draw zcta map items
         diseaseData = zctaData[mapDiseaseSelector.value]
         
-        d3.json("/map-data/zcta").then(function(mapdata) {
+        d3.json("/data/map/zcta").then(function(mapdata) {
             zctas.selectAll("g")
                 .data(diseaseData)
                 .enter()
@@ -123,7 +123,7 @@ function mapInitialVisualization() {
 
         // draw hospital icons
         hospSize = Math.max(16, Math.min(width, height) * 0.015)
-        d3.csv("../../static/data/hospitals.csv").then(function(hospdata){
+        d3.csv("/data/icon/hospitals").then(function(hospdata){
             hospitals.selectAll("svg")
               .data(hospdata)
               .enter()
@@ -142,7 +142,7 @@ function mapInitialVisualization() {
 
         // draw mobile health clinic icons
         mobileClinicSize = Math.max(16, Math.min(width, height) * 0.015)
-        d3.csv("../../static/data/mobile_health_clinics.csv").then(function(clinicData){
+        d3.csv("/data/icon/mobile_health_clinics").then(function(clinicData){
             mobileClinics.selectAll("svg")
               .data(clinicData)
               .enter()
@@ -161,7 +161,7 @@ function mapInitialVisualization() {
 
         // draw community partner icons
         communityPartnerSize = Math.max(16, Math.min(width, height) * 0.015)
-        d3.csv("../../static/data/all_community_partners.csv").then(function(clinicData){
+        d3.csv("/data/icon/all_community_partners").then(function(clinicData){
             communityPartners.selectAll("svg")
               .data(clinicData)
               .enter()
