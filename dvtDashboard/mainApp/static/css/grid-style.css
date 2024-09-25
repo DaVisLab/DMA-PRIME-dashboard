@@ -22,7 +22,6 @@
   font-size: var(--sl-font-size-x-small);
 }
 
-
 .grid-subtitle {
   fill: black;
   font-size: var(--sl-font-size-2x-small);
@@ -42,7 +41,7 @@ sl-tooltip {
   opacity: .75;
   display: block;
   position: absolute;
-  left: calc(20% + 1em);
+  margin-left: 1em;
   bottom: 1em;
 }
 

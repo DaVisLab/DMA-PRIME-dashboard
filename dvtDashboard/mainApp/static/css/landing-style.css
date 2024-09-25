@@ -87,8 +87,13 @@ sl-tab-panel::part(base) {
 
 .hide-sidebar-button {
   /* The button that opens/closes the sidebar */
-  font-size: 2rem;
+  font-size: var(--sl-font-size-large);
   background-color: var(--sl-color-neutral-200);
+  z-index: 10;
+}
+
+.main-content-split-panel::part(divider) {
+  cursor: unset;
 }
 
 .hidden-children > * {
@@ -124,7 +129,14 @@ p.tooltip-title {
   margin: 0;
   padding-top: var(--sl-spacing-x-small);
   text-align: center;
+}
+
+.tooltip-title {
   font-size: var(--sl-font-size-small);
+}
+
+.tooltip-subtitle {
+  font-size: var(--sl-font-size-x-small);
 }
 
 .tooltip.text {

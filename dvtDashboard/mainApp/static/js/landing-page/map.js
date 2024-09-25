@@ -62,8 +62,13 @@ function mapInitialVisualization() {
             .append("xhtml:div")
             .attr("id", `map-tooltip-div`)
 
-        ttpDiv.append("p")
+        ttpTitle = ttpDiv.append("p")
             .attr("class", "tooltip-title")
+        ttpTitle.append("span")
+            .attr("class", "tooltip-title")
+        ttpTitle.append("br")
+        ttpTitle.append("span")
+            .attr("class", "tooltip-subtitle")
 
         ttpDiv.append("svg")
             .attr("id", `map-tooltip-svg`)
@@ -336,7 +341,10 @@ function updateMapData() {
             datesReconstructed = d3.timeMonday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
     
             index = datesReconstructed.findIndex((d) => d.getTime() == thisWeekMonday.getTime())
-            if (index > -1 && (mapIncludeImputations.checked || !d.imputation)) {
+            
+            if (index > -1 
+                && (mapIncludeImputations.checked || !d.imputation)
+                && (focusZCTA == null || focusZCTA == d.zcta)) {
                 value = thisData.at(index)
                 if (mapRateSwitch.value == "rate") {
                     value /= d.population / 1000

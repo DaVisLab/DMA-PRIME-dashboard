@@ -14,8 +14,8 @@ function gridInitialVisualization() {
     colItems = Math.min(6, Math.max(Math.floor(adjustedHeight/(120-.25*em)), 1))
     rowItems = Math.min(8, Math.max(Math.floor(adjustedWidth/(150-.25*em)), 1))
 
-    gridItemHeight = d3.max([(adjustedHeight-((colItems-1)*.25*em))/colItems, (120-.125*em)])
-    gridItemWidth = d3.max([(adjustedWidth-((rowItems-1)*.25*em))/rowItems, (150-.125*em)])
+    gridItemHeight = (adjustedHeight-((colItems-1)*.25*em))/colItems
+    gridItemWidth = (adjustedWidth-((rowItems-1)*.25*em))/rowItems
 
     xScale = d3.scaleUtc()
                 .domain([historicalDates[0], historicalDates.at(-1)])
@@ -27,6 +27,7 @@ function gridInitialVisualization() {
         .domain(getDataAsArray(gridDiseaseSelector.value, gridDataSourceSortSelector.value, gridRateSwitch.value =="rate", gridIncludeImputations.checked)
             .filter(function(d) {return d != 0}))
         .range(gridBackgroundColors)
+        .unknown("var(--sl-color-gray-600)")
 
     gridContainerD3.selectAll("div")
         .data(diseaseData)
@@ -49,9 +50,13 @@ function gridInitialVisualization() {
                 .attr("slot", "content")
                 .attr("id", `grid-${zcta}-tooltip`)
 
-            gridTTP.append("p")
+            ttpTitle = gridTTP.append("p")
                 .attr("class", "tooltip-title")
-                .node().innerHTML = `County: ${county[0].toUpperCase() + county.slice(1)}<br>ZCTA: ${zcta}`
+            ttpTitle.append("span")
+                .attr("class", "tooltip-title")
+            ttpTitle.append("br")
+            ttpTitle.append("span")
+                .attr("class", "tooltip-subtitle")
 
             gridTTP.append("svg")
                 .attr("id", `grid-${zcta}-tooltip-svg`)
@@ -129,15 +134,16 @@ function updateGridData() {
     colItems = Math.min(6, Math.max(Math.floor(adjustedHeight/(120-.25*em)), 1))
     rowItems = Math.min(8, Math.max(Math.floor(adjustedWidth/(150-.25*em)), 1))
 
-    gridItemHeight = d3.max([(adjustedHeight-((colItems-1)*.25*em))/colItems, (120-.125*em)])
-    gridItemWidth = d3.max([(adjustedWidth-((rowItems-1)*.25*em))/rowItems, (150-.125*em)])
+    gridItemHeight = (adjustedHeight-((colItems-1)*.25*em))/colItems
+    gridItemWidth = (adjustedWidth-((rowItems-1)*.25*em))/rowItems
 
     diseaseData = zctaData[gridDiseaseSelector.value]
 
     gridColor = d3.scaleQuantile()
-    .domain(getDataAsArray(gridDiseaseSelector.value, gridDataSourceSortSelector.value, gridRateSwitch.value == "rate", gridIncludeImputations.checked)
-        .filter(function(d) {return d != 0}))
-    .range(gridBackgroundColors)
+        .domain(getDataAsArray(gridDiseaseSelector.value, gridDataSourceSortSelector.value, gridRateSwitch.value == "rate", gridIncludeImputations.checked)
+            .filter(function(d) {return d != 0}))
+        .range(gridBackgroundColors)
+        .unknown("var(--sl-color-gray-600)")
 
     xScale = d3.scaleUtc()
                 .domain([historicalDates[0], historicalDates.at(-1)])

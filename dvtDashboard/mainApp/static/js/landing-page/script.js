@@ -441,6 +441,10 @@ async function displayDonut(
 function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
     data = JSON.parse(JSON.stringify(d))
 
+    p = div.select("p")
+    p.select(".tooltip-title").html(`ZCTA: ${data.zcta}`)
+    p.select(".tooltip-subtitle").html(`County: ${data.county[0].toUpperCase()+data.county.substring(1)}`)
+
     ttpLegendTop = ttpHeight - 2.5*em
 
     ttpSVG = div.select(".tooltip-outer-svg")

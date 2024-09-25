@@ -21,23 +21,6 @@ def mapData(type):
 @login_required
 def iconData(type):
     return send_file(f'{main_dir}/static/data/{type}.csv')
-    # df = pd.read_csv()
-    # return json.load(open(f'{main_dir}/static/data/{type}.csv'))
-    # if type == 'map':        
-    #     data = url_for('static', filename='data/tl_2023_sc_{subtype}_trimmed_simplified_ogr2ogr_.001.json')
-    # if type == 'icon':
-    #     data = url_for('static', filename='data/{subtype}.csv')
-    # if mapType == 'zcta_county_crosswalk':
-    #     mapDataDict = json.load(open(f'{main_dir}/static/data/zcta_county_crosswalk.json'))
-    # elif mapType == 'hospitals':
-    #     mapDataDict = json.load(open(f'{main_dir}/static/data/Hospitals.geojson'))
-    # else:
-    #     if mapType == 'zcta':
-    #         mapDataDict = json.load(open(f'{main_dir}/static/data/tl_2023_sc_{mapType}_trimmed_simplified_ogr2ogr_.001.json'))
-    #         # mapDataDict = json.load(open(f'{main_dir}/static/data/tl_2023_sc_{mapType}_trimmed_simplified.json'))
-    #     else:
-    #         mapDataDict = json.load(open(f'{main_dir}/static/data/tl_2023_sc_{mapType}_trimmed_simplified_ogr2ogr_.001.json'))
-    return data
 
 @bp.route('/hospitalizations/<disease>', methods=['GET', 'POST'])
 @login_required
@@ -93,7 +76,7 @@ def load_zcta_hospitalization():
 
         df.rename({'Zip code': 'zcta', 'Date': 'date'}, axis=1, inplace=True)
         df['date'] = pd.to_datetime(df['date'])
-        df['Health System hospitalizations'] = df['Health System hospitalizations'].fillna(value=0)
+        df['Health System hospitalizations'] = df['Health System hospitalizations'] #.fillna(value=0)
         value_columns = df.columns.difference(index_names)
         df = pd.pivot_table(df, values=value_columns, index=index_names)
 
@@ -145,5 +128,6 @@ def load_zcta_hospitalization():
                 zcta_dict['state-training']['data'].append(zcta_dict['state-testing']['data'][0])
             
             zcta_list.append(zcta_dict)
-            with open( main_dir+'/static/data/'+disease+'_zcta_hospitalization_data.json', 'w') as f:
-                json.dump(zcta_list, f)
+
+        with open( main_dir+'/static/data/'+disease+'_zcta_hospitalization_data.json', 'w') as f:
+            json.dump(zcta_list, f)

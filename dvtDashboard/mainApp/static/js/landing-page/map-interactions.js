@@ -9,10 +9,11 @@ mapRateSwitch.addEventListener("sl-change", (event) => {
     }
     updateMapData()
 
-    
-    mapTooltipWidth = Math.max(500, width * .3)
-    mapTooltipHeight = mapTooltipWidth * .65    
-    drawTooltip(d3.select(`#map-${focusZCTA}-group`).datum(), d3.select("#map-tooltip-div"), mapTooltipHeight, mapTooltipWidth, mapRateSwitch.value == "rate")
+    if (focusZCTA != null) {
+        mapTooltipWidth = Math.max(500, width * .3)
+        mapTooltipHeight = mapTooltipWidth * .65    
+        drawTooltip(d3.select(`#map-${focusZCTA}-group`).datum(), d3.select("#map-tooltip-div"), mapTooltipHeight, mapTooltipWidth, mapRateSwitch.value == "rate")
+    }
 
 })
 
@@ -79,7 +80,7 @@ resetButton.addEventListener("click", () => {
     mapSVG.select("#map-tooltip-fo").select("div")
         .style("display", "none")
     mapUnzoom()
-    mapClearCountyHighlight()
+    mapClearMapItemHighlight()
 })
 
 // allow zoom and panning of map
@@ -127,28 +128,23 @@ function mapUnzoom() {
     mapSVG.transition().duration(750).call(mapZoom.transform, d3.zoomIdentity.translate(0, 0).scale(1))
 }
 
-function mapHighlightCounty(county) {
-
+function mapHighlightMapItem(mapItem) {
     // zoom and pan to focus on county
-    countyData = county.datum()
-    center = mapProjection([countyData.properties.INTPTLON, countyData.properties.INTPTLAT])        
-    dims = county.node().getBBox()
+    mapItemData = mapItem.datum()
+    center = mapProjection([mapItemData.properties.INTPTLON20, mapItemData.properties.INTPTLAT20])        
+    dims = mapItem.node().getBBox()
 
-    countyWidth = dims.width
-    countyHeight = dims.height
-    scale = Math.min(4, Math.min(width/countyWidth, height/countyHeight)-1.25)
+    itemWidth = dims.width
+    itemHeight = dims.height
+    scale = Math.min(4, Math.min(width/itemWidth, height/itemHeight)-1.25)
 
     t1 = mapSVG.transition().duration(750).call(zoomer.transform, new d3.ZoomTransform(scale, width/2 - center[0]*scale, height/2 - center[1]*scale))
 
-    // highlight  county (grey out other counties and zctas in those counties)
-    t2 = mapSVG.selectAll(".map-county").transition().duration(750).style("fill-opacity", .5)
-    t3 = county.transition().duration(750).style("fill-opacity", .0)
-
-    return [t1.end(), t2.end(), t3.end()]
+    return [t1.end()] 
 }
 
-function mapClearCountyHighlight() {
-    mapSVG.selectAll(".map-county").transition().duration(750).style("fill-opacity", 0)
+function mapClearMapItemHighlight() {
+    updateMapData()
 }
 
 function setZctaInteractions(zcta) {
@@ -169,48 +165,38 @@ function setZctaInteractions(zcta) {
             resetButton.click()
         } else {
             focusZCTA = zctaName
-            
-            if (focusCounty == countyName) {
+            focusCounty = countyName
+            Promise.allSettled(mapHighlightMapItem(zctaPath)).then(() => {
                 handleZCTAClick()
-            } else {
-                focusCounty = countyName
-                mapClearCountyHighlight()
-                Promise.allSettled(mapHighlightCounty(county)).then(() => {
-                    handleZCTAClick()
-                })
-            }
+                updateMapData()
+            })
         }
-
-        
     })
 
     function handleZCTAClick() {
         ttpDiv = ttpFO.select("div")
-                        .style("display", "block")
-                    // Figure out map tooltip dimensions
-                    mapTooltipWidth = Math.max(500, width * .3)
-                    mapTooltipHeight = mapTooltipWidth * .65
-    
-                    // set tooltip title
-                    zctaGroup = d3.select(zctaPathDom.parentNode)
-                    thisData = zctaGroup.datum()
-    
-                    p = ttpDiv.select("p").node()
-                    p.innerHTML = `County: ${thisData.county[0].toUpperCase()+thisData.county.substring(1)}<br>ZCTA: ${thisData.zcta}`
-    
-                    // draw tooltip
-                    drawTooltip(thisData, ttpDiv, mapTooltipHeight, mapTooltipWidth, mapRateSwitch.value == "rate")
-    
-                    // place tooltip and set container dimensions
-                    zctaPathData = zctaPath.datum().properties
-                    coords = mapProjection([zctaPathData.INTPTLON20, zctaPathData.INTPTLAT20])
-                    divBorder = parseFloat(ttpDiv.style("border-width").replace("px",""))
-                    ttpFO
-                        .datum({"geo-coords": [zctaPathData.INTPTLON20, zctaPathData.INTPTLAT20], "cartesian-coords": coords})
-                        .attr("x", coords[0]*zoom + xSkew)
-                        .attr("y", coords[1]*zoom + ySkew)
-                        .attr("width", ttpDiv.node().offsetWidth+divBorder*2)
-                        .attr("height", ttpDiv.node().offsetHeight+divBorder*2)
+            .style("display", "block")
+        // Figure out map tooltip dimensions
+        mapTooltipWidth = Math.max(500, width * .3)
+        mapTooltipHeight = mapTooltipWidth * .65
+
+        // set tooltip title
+        zctaGroup = d3.select(zctaPathDom.parentNode)
+        thisData = zctaGroup.datum()        
+
+        // draw tooltip
+        drawTooltip(thisData, ttpDiv, mapTooltipHeight, mapTooltipWidth, mapRateSwitch.value == "rate")
+
+        // place tooltip and set container dimensions
+        zctaPathData = zctaPath.datum().properties
+        coords = mapProjection([zctaPathData.INTPTLON20, zctaPathData.INTPTLAT20])
+        divBorder = parseFloat(ttpDiv.style("border-width").replace("px",""))
+        ttpFO
+            .datum({"geo-coords": [zctaPathData.INTPTLON20, zctaPathData.INTPTLAT20], "cartesian-coords": coords})
+            .attr("x", coords[0]*zoom + xSkew)
+            .attr("y", coords[1]*zoom + ySkew)
+            .attr("width", ttpDiv.node().offsetWidth+divBorder*2)
+            .attr("height", ttpDiv.node().offsetHeight+divBorder*2)
     }
 
 }

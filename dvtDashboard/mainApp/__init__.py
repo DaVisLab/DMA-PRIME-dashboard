@@ -20,7 +20,7 @@ from .auth import login_required
 #            prediction history vs actual
 
 
-def create_app(development=False):
+def create_app(development=False, updatedData=True):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
@@ -47,7 +47,8 @@ def create_app(development=False):
     except OSError:
         pass
 
-    load_data()
+    if updatedData:
+        load_data()
 
     # # # routes # # #
 
