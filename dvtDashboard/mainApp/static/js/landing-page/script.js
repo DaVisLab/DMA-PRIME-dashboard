@@ -62,8 +62,15 @@ function getZCTAData(disease) {
     if (disease in zctaData) {
         return Promise.resolve(data[disease])
     } else {
-        return d3.json(`/data/hospitalizations/${disease}`).then(function(zcta_data) {
-            zctaData[disease] = zcta_data
+        return d3.json(`/data/hospitalizations/${disease}`).then(function(data) {
+            startDate = parseDate(data["metadata"]["start_date"])
+            thisWeekMonday = parseDate(data["metadata"]["current_monday"])
+            endDate = parseDate(data["metadata"]["end_date"])
+
+            historicalDates = d3.timeMonday.range(startDate, new Date(thisWeekMonday).setDate(thisWeekMonday.getDate()+1), 1)
+            predictionDates = d3.timeMonday.range(thisWeekMonday, new Date(endDate).setDate(endDate.getDate()+1), 1)
+
+            zctaData[disease] = data["data"]
             return Promise.resolve(zctaData[disease])
         })
     }
@@ -88,6 +95,9 @@ function getDataAsArray(disease, dataSource, rate, imputations=true) {
 }
 
 // helper functions
+function parseDate(dateString) {
+    return dayjs.tz(dateString, "YYYY-MM-DD", "America/New_York").toDate()
+}
 function fixName(name) {
     // replace spaces with dashes
     // remove apostrophe's 
@@ -246,10 +256,10 @@ async function displayAggregateChart(
             maxCount = d3.max(Object.entries(stats.max), (entry) => {
                 return visibleDiseases.includes(entry[0]) ? entry[1] : NaN
             })
-            dateMin = d3.min(Object.entries(stats['date-min']), (entry) => {
+            dateMin = d3.min(Object.entries(stats["date-min"]), (entry) => {
                 return visibleDiseases.includes(entry[0]) ? entry[1] : NaN
             })
-            dateMax = d3.max(Object.entries(stats['date-max']), (entry) => {
+            dateMax = d3.max(Object.entries(stats["date-max"]), (entry) => {
                 return visibleDiseases.includes(entry[0]) ? entry[1] : NaN
             })
         }
@@ -377,7 +387,7 @@ async function displayDonut(
         // if this group exists, set group equal to the d3 selection, otherwise create the group
         group = d3.select(`#${panelName}-${entry[0]}-bed-usage-group`).node() ? 
             d3.select(`#${panelName}-${entry[0]}-bed-usage-group`) : 
-            aggregationDonutGroup.append('g').attr("id", `#${panelName}-${entry[0]}-bed-usage-group`)
+            aggregationDonutGroup.append("g").attr("id", `#${panelName}-${entry[0]}-bed-usage-group`)
 
         // move arc to the left and centered vertically
         group.attr("transform", `translate(${radius}, ${aggregateHeight/2})`)
@@ -619,7 +629,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
         thisData = data[dataSource]
         historicalLabels = graphSVG.append("g")
 
-        thisStartDate = dayjs.tz(thisData["start-date"], "YYYY-MM-DD", "America/New_York").toDate()
+        thisStartDate = parseDate(thisData["start-date"])
         thisEndDate = new Date(thisStartDate);
         thisEndDate.setDate(thisEndDate.getDate() + thisData.data.length*7);
         datesReconstructed = d3.timeMonday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)

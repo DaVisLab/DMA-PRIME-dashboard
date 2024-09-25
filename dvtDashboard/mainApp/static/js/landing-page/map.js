@@ -96,7 +96,7 @@ function mapInitialVisualization() {
                 element = group.datum()
                 thisData = element[mapDataSourceSelector.value].data
 
-                thisStartDate = dayjs.tz(element[mapDataSourceSelector.value]["start-date"], "YYYY-MM-DD", "America/New_York").toDate()
+                thisStartDate = parseDate(element[mapDataSourceSelector.value]["start-date"])
                 thisEndDate = new Date(thisStartDate);
                 thisEndDate.setDate(thisEndDate.getDate() + thisData.length*7);
                 datesReconstructed = d3.timeMonday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
@@ -335,7 +335,7 @@ function updateMapData() {
         d3.selectAll(".map-zcta-container").each(function(d) {
             thisData = d[mapDataSourceSelector.value].data
     
-            thisStartDate = dayjs.tz(d[mapDataSourceSelector.value]["start-date"], "YYYY-MM-DD", "America/New_York").toDate()
+            thisStartDate = parseDate(d[mapDataSourceSelector.value]["start-date"])
             thisEndDate = new Date(thisStartDate);
             thisEndDate.setDate(thisEndDate.getDate() + thisData.length*7);
             datesReconstructed = d3.timeMonday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)

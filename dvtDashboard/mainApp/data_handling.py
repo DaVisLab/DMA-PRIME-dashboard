@@ -48,18 +48,8 @@ def load_zcta_hospitalization():
             'state-data': 'Statewide hospitalizations',
             }
 
-    date = pd.Timestamp(year=2024, month=9, day=9) # pd.Timestamp.now().round(freq='d')
-
-    start_date = date - pd.DateOffset(months=18)
-    historical_dates = pd.date_range(end=date, start=start_date, freq='W-MON')
-    historical_dates = historical_dates.to_list()
-
-    end_date = date + pd.DateOffset(weeks=5)
-    pred_dates = pd.date_range(start=date, end=end_date, freq='W-MON', inclusive='both')
-    pred_dates = pred_dates.to_list()
-
-
-    zcta_data = pd.read_csv(main_dir+'/static/data/zcta_summary.csv', index_col=0)
+    dataframes = {}
+    max_date = pd.to_datetime(0)
 
     for disease, file in files.items():
         
@@ -75,13 +65,30 @@ def load_zcta_hospitalization():
             df['imputation'] = False
 
         df.rename({'Zip code': 'zcta', 'Date': 'date'}, axis=1, inplace=True)
-        df['date'] = pd.to_datetime(df['date'])
+        df['date'] = pd.to_datetime(df['date']) + pd.Timedelta(days=7)
+        max_date = max(max_date, df['date'].max())
+
         df['Health System hospitalizations'] = df['Health System hospitalizations'] #.fillna(value=0)
         value_columns = df.columns.difference(index_names)
-        df = pd.pivot_table(df, values=value_columns, index=index_names)
+        dataframes[disease] = pd.pivot_table(df, values=value_columns, index=index_names)
 
-        zctas = zcta_data['zcta'].unique()
+    date = max_date - pd.DateOffset(weeks=5)
 
+    start_date = date - pd.DateOffset(months=18)
+    historical_dates = pd.date_range(end=date, start=start_date, freq='W-MON')
+    historical_dates = historical_dates.to_list()
+
+    end_date = max_date
+    pred_dates = pd.date_range(start=date, end=end_date, freq='W-MON', inclusive='both')
+    pred_dates = pred_dates.to_list()
+
+
+    zcta_data = pd.read_csv(main_dir+'/static/data/zcta_summary.csv', index_col=0)
+    zctas = zcta_data['zcta'].unique()
+
+    shaped_data = {}
+
+    for disease, df in dataframes.items():
         zcta_list = []
 
         for zcta in zctas:
@@ -128,6 +135,17 @@ def load_zcta_hospitalization():
                 zcta_dict['state-training']['data'].append(zcta_dict['state-testing']['data'][0])
             
             zcta_list.append(zcta_dict)
+        
+        shaped_data[disease] = zcta_list
+
+    for disease, zcta_list in shaped_data.items():
+        data = {
+            'metadata': {
+                'start_date': start_date.strftime("%Y-%m-%d"),
+                'current_monday': date.strftime("%Y-%m-%d"),
+                'end_date': end_date.strftime("%Y-%m-%d")},
+            'data': zcta_list
+        }
 
         with open( main_dir+'/static/data/'+disease+'_zcta_hospitalization_data.json', 'w') as f:
-            json.dump(zcta_list, f)
+            json.dump(data, f)
