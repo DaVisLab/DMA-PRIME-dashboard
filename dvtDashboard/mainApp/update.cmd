@@ -1,7 +1,7 @@
 @REM Update
+cd C:\DMA-PRIME-dashboard\dvtDashboard
 git checkout main
 git pull
-cd C:\DMA-PRIME-dashboard\dvtDashboard
 python -m build --wheel
 cp C:\DMA-PRIME-dashboard\dvtDashboard\dist\*.whl C:\DMA-PRIME\wheels
 cd C:\DMA-PRIME
