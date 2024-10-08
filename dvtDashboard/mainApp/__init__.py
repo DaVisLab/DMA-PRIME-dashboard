@@ -89,10 +89,10 @@ def create_app(development=False, updatedData=True):
         if(request.is_json):
             data = request.get_json()
             if data['ref'] == 'refs/heads/main':
-                subprocess.call(script, shell=True, timeout=30)
+                subprocess.call(script, shell=True, timeout=90)
 
         else:
-            print(subprocess.call(script, shell=True, timeout=30))
+            print(subprocess.call(script, shell=True, timeout=90))
             pass
 
         return '', 200
