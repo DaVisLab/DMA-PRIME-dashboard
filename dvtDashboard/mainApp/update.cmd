@@ -3,7 +3,10 @@
 @REM pull new code from git
 cd C:\DMA-PRIME-dashboard\dvtDashboard
 git checkout main
-git pull
+start "PullMain" git pull
+timeout 10
+taskkill /f /fi "WindowTitle eq PullMain"
+taskkill /f /fi "ImageName eq git.exe"
 
 @REM build new wheel and move it for safe keeping
 python -m build --wheel

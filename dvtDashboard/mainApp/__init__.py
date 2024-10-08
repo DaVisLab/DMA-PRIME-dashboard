@@ -20,7 +20,7 @@ from .auth import login_required
 #        past, current, prediction
 #            prediction history vs actual
 
-
+logging.basicConfig(filename=main_dir+'/logs.log',level=logging.DEBUG)
 def create_app(development=False, updatedData=True):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
@@ -33,10 +33,6 @@ def create_app(development=False, updatedData=True):
     )
 
     app.config.from_pyfile('config.py', silent=True)
-
-    if not development:
-        logger = logging.getLogger()
-        logging.basicConfig(filename=main_dir+'/logs.log', format='%(levelname)s:%(name)%:%(message)s')
 
     if not development:
         from . import db
@@ -93,10 +89,10 @@ def create_app(development=False, updatedData=True):
         if(request.is_json):
             data = request.get_json()
             if data['ref'] == 'refs/heads/main':
-                subprocess.call(script, shell=True)
+                subprocess.call(script, shell=True, timeout=30)
 
         else:
-            subprocess.call(script, shell=True)
+            print(subprocess.call(script, shell=True, timeout=30))
             pass
 
         return '', 200
