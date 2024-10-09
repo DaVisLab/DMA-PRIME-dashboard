@@ -3,11 +3,7 @@
 # pull new code from git main branch
 cd C:\DMA-PRIME-dashboard\dvtDashboard
 git checkout main
-$proc = Start-Process -FilePath "C:\Program Files\Git\cmd\git.exe" -ArgumentList 'pull' -WorkingDirectory "C:\DMA-PRIME-dashboard" -PassThru
-# wait up to 15 seconds for pull to execute
-$proc | Wait-Process -Timeout 15 -ErrorAction SilentlyContinue -ErrorVariable TimedOut
-if ($TimedOut) { $ proc | kill } # terminate if it hangs
-
+Start-Job -ScriptBlock { cd C:\DMA-PRIME-dashboard; git pull } | Receive-Job -AutoRemoveJob -Wait
 # build new wheel and move it for safe keeping
 python -m build --wheel
 Move-Item -Path "C:\DMA-PRIME-dashboard\dvtDashboard\dist\*.whl" -Destination "C:\DMA-PRIME\wheels" -Force
