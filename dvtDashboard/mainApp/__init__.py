@@ -85,7 +85,7 @@ def create_app(development=False, updatedData=True):
     
     @app.route('/update', methods=['POST', 'GET'])
     def webhook():
-        script = ""+main_dir+"/update.cmd"
+        script = ""+main_dir+"/update.ps1"
         if(request.is_json):
             data = request.get_json()
             if data['ref'] == 'refs/heads/main':
