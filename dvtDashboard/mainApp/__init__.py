@@ -92,7 +92,7 @@ def create_app(development=False, updatedData=True):
                 subprocess.call(script, shell=True, timeout=300)
 
         else:
-            print(subprocess.call(script, shell=True, timeout=300))
+            subprocess.call(["powershell.exe", script], shell=True, timeout=300)
             pass
 
         return '', 200
