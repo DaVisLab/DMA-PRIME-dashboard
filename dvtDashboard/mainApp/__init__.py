@@ -83,6 +83,28 @@ def create_app(development=False, updatedData=True):
         ]
         return render_template('index.html', panels=panels)
     
+    @app.route('/modeling')
+    @login_required
+    def modeling():
+        panels = [
+            {
+                'name': 'main',
+                'displayName': 'DMA-PRIME',
+            },
+            {
+                'name': 'map',
+                'displayName': 'Map View',
+                'active': True,
+                'html': 'modeling/map-panel.html'
+            },
+            # {
+            #     'name': 'comparison',
+            #     'displayName': 'Map Comparison View',
+            #     'html': 'landing-page/comparison-panel.html'
+            # }
+        ]
+        return render_template('modeling/modeling-base.html', panels=panels)
+    
     @app.route('/update', methods=['POST', 'GET'])
     def webhook():
         script = ""+main_dir+"/update.cmd"

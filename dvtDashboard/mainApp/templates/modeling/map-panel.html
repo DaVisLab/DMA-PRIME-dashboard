@@ -1,0 +1,46 @@
+{% extends "subtemplates/panel.html" %}
+
+{% block options %}
+<div id="map-options" class="sidebar-container">
+  <!-- reset map button (zoom & zcta selection) -->
+  <sl-button pill id="map-reset-button" class="center-self">Reset Map</sl-button>
+  <sl-divider class="options-divider"></sl-divider>
+
+  <!-- Add mobile health clinic button -->
+<sl-button id="map-add-mobile-health-clinic">
+    <sl-icon slot="prefix" name="plus-lg"></sl-icon>
+    Mobile Clinic
+</sl-button>
+</div>
+
+{% endblock %}
+
+{% block contents %}
+<sl-split-panel position="100" disabled id="{{panel.name}}-main-content" class="fill-height main-content-split-panel">
+    <sl-resize-observer slot="start" id="map-resizer" class="fill-height">
+        <div id="map-div" class="scroll fill-height fill-width"></div>
+    </sl-resize-observer>
+
+    <!-- Content -->
+    <div slot="end" id="secondary-map-sidebar" class="fill-height fill-width hide-overflow">
+    </div>
+</sl-split-panel>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    mapResetButton = document.getElementById("map-reset-button")
+    mapAddMobileHealthClinic = document.getElementById("map-add-mobile-health-clinic")
+    // const data = [
+    // //   [7.7405,46.0125]
+    //     // {position: [-122.45, 37.8], color: [255, 0, 0], radius: 100},
+    // ]
+    set{{panel.name}}Panel()
+</script>
+
+<script src="{{ url_for('static', filename='js/modeling/map.js') }}"></script>
+<script src="{{ url_for('static', filename='js/modeling/map-interactions.js') }}"></script>
+
+{% endblock %}

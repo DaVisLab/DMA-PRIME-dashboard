@@ -35,8 +35,8 @@
 
 {% block linkout %}
 <!-- Link to prediction modelling/model exploration page -->
-<!-- <sl-button slot="nav" id="prediction-modelling-button-link" href="{ url_for('modelExploration') }}" target="_blank"
-    variant="text">Prediction Modelling <sl-icon name="box-arrow-up-right"></sl-icon></sl-button> -->
+<sl-button slot="nav" id="prediction-modelling-button-link" href="{{ url_for('modeling') }}" target="_blank"
+    variant="text">Prediction Modelling <sl-icon name="box-arrow-up-right"></sl-icon></sl-button>
 {% endblock %}
 
 {% block bodyScripts %}

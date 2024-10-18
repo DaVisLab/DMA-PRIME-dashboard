@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta property="og:description" content="Initialize a map in an HTML element with MapLibre GL JS." />
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- maplibre gl -->
+    <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css' />
+    <script src='https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'></script>
+    
+    
+    <!-- deck gl -->
+    <script src="https://unpkg.com/deck.gl@latest/dist.min.js"></script>
+
+    <style>
+        body {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+        }
+        html, #map { height: 100%; }
+    </style>
+<body>
+<div id="map"></div>
+<script>
+
+/*
+* https://deck.gl/docs/api-reference/extensions/terrain-extension
+*/
+const {DeckGL, IconLayer} = deck;
+
+const data = [
+//   [7.7405,46.0125]
+    {position: [-122.45, 37.8], color: [255, 0, 0], radius: 100}
+
+]
+
+let dataVersion = 0
+
+const deckgl = new DeckGL({
+    container: document.getElementById("map"),
+    mapStyle: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json',
+  initialViewState: {
+    longitude: -122.45,
+    latitude: 37.8,
+    zoom: 15
+    // pitch: 55,
+    // bearing: 110
+  },
+  controller: true, //{maxPitch: 89, dragPan: false},
+  pickingRadius: 10,
+});
+
+redraw();
+
+function redraw() {
+  deckgl.setProps({
+    layers: [
+    new IconLayer({
+      id: 'icons-layer',
+      data: data,
+      iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
+      iconMapping: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.json',
+      getPosition: d => d.position,
+      getColor: d => d.color,
+      getIcon: d => 'marker',
+      sizeScale: 15,
+      pickable: true,
+      parameters: {
+        depthTest: false
+      },
+      autoHighlight: true,
+      highlightColor: [255, 200, 0],
+      onDragStart: (info, event) => { deckgl.setProps({controller: {dragPan: false}}) },
+      onDrag: (info, event) => {
+        data[info.index].position = info.coordinate
+        dataVersion++
+
+        return redraw()
+
+        // const pick = deckgl.pickObject({
+        //   x: event.center.x,
+        //   y: event.center.y,
+        //   unproject3D: true,
+        //   radius: 50,
+        // })
+        // if (pick != null) {
+        //     data[info.index].position = [pick.coordinate[0], pick.coordinate[1]]
+        //     dataVersion++
+        //     return redraw()
+        // }
+      },
+      onDragEnd: (info, event) => { deckgl.setProps({controller: true}) },
+      updateTriggers: {
+        getPosition: {dataVersion}
+      },
+      
+    })
+      ]})
+    return true
+}
+
+
+</script>
+</body>
+</html>

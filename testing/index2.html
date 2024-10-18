@@ -1,0 +1,58 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Display a map</title>
+    <meta property="og:description" content="Initialize a map in an HTML element with MapLibre GL JS." />
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- maplibre gl -->
+    <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css' />
+    <script src='https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'></script>
+    
+    
+    <!-- deck gl -->
+    <script src="https://unpkg.com/deck.gl@latest/dist.min.js"></script>
+    <!-- optional if maplibre base map is needed -->
+    <script src="https://unpkg.com/maplibre-gl@3.0.0/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@3.0.0/dist/maplibre-gl.css" rel="stylesheet" />
+
+    <style>
+        body {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+        }
+        html, #map { height: 100%; }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+
+    //This example renders a scatterplot with DeckGL, on top of a basemap rendered with maplibre-gl, using a map style JSON from Carto.
+    const {DeckGL, ScatterplotLayer} = deck;
+
+    new DeckGL({
+    mapStyle: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json',
+    initialViewState: {
+        longitude: -122.45,
+        latitude: 37.8,
+        zoom: 15
+    },
+    controller: true,
+    layers: [
+        new ScatterplotLayer({
+        data: [
+            {position: [-122.45, 37.8], color: [255, 0, 0], radius: 100}
+        ],
+        getPosition: d => d.position,
+        getFillColor: d => d.color,
+        getRadius: d => d.radius
+        })
+    ]
+    });
+</script>
+</body>
+</html>
