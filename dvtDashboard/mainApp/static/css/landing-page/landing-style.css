@@ -1,0 +1,71 @@
+#prediction-modelling-button-link {
+  /* Styling for link to the prediction modeling part of the site
+    The link is floating on the right side of the navbar
+  */
+  margin: auto var(--sl-spacing-small) auto auto;
+  display: block;
+}
+
+p.tooltip-title {
+  /* tooltip title object as a whole */
+  margin: 0;
+  padding-top: var(--sl-spacing-x-small);
+  text-align: center;
+}
+
+.tooltip-title {
+  /* title span */
+  font-size: var(--sl-font-size-small);
+}
+
+.tooltip-subtitle {
+  /* subtitle span */
+  font-size: var(--sl-font-size-x-small);
+}
+
+.tooltip.text {
+  /* tooltip svg text */
+  margin: 0;
+  padding: 0;
+  font-size: var(--sl-font-size-x-small);
+  white-space: nowrap;
+}
+
+.tooltip-prediction-separator {
+  /* line indicating the difference between prediction and reality */
+  stroke-width: 1.5;
+  stroke: white;
+}
+
+.tooltip-prediction-highlighter {
+  /* grey rectangle that highlights the prediction in the tooltip */
+  opacity: .5;
+  fill: var(--sl-color-gray-600);
+}
+
+.aggregation-vis {
+  display: none;
+}
+
+
+/* Graveyard... */
+/* .aggregation-vis {
+  width: 100%;
+  overflow: hidden;
+  padding: var(--sl-spacing-x-small);
+  display: none;
+  flex-direction: column;
+}
+
+svg.aggregation-donut {
+  aspect-ratio: 50/20;
+}
+
+.aggregation-svg {
+  aspect-ratio: 50/35;
+}
+
+.aggregation-graph-title {
+  margin: 0;
+  font-size: var(--sl-font-size-x-small);
+} */

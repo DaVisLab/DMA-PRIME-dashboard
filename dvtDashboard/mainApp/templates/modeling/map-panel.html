@@ -16,15 +16,41 @@
 {% endblock %}
 
 {% block contents %}
-<sl-split-panel position="100" disabled id="{{panel.name}}-main-content" class="fill-height main-content-split-panel">
+<sl-split-panel position="100" disabled id="map-and-minor-sidebar" class="fill-height main-content-split-panel">
     <sl-resize-observer slot="start" id="map-resizer" class="fill-height">
         <div id="map-div" class="scroll fill-height fill-width"></div>
     </sl-resize-observer>
 
     <!-- Content -->
-    <div slot="end" id="secondary-map-sidebar" class="fill-height fill-width hide-overflow">
+    <div slot="end" id="map-secondary-sidebar" class="fill-height fill-width hide-overflow">
+        <sl-tab-group id="map-secondary-sidebar-group">
+            <sl-icon-button slot="nav" name="x-lg" id="map-secondary-sidebar-close"></sl-icon-button>
+            <sl-tab-panel id="secondary-sidebar-blank-panel" name="blank"></sl-tab-panel>
+            <sl-tab-panel id="mobile-clinic-info-panel" name="info">
+                <sl-input id="mobile-clinic-address">
+                    <p slot="label">Address</p>
+                </sl-input>
+                <!-- <sl-textarea id="mobile-clinic-address">
+                    <p slot="label">Address</p>
+                </sl-textarea> -->
+                <sl-input id="mobile-clinic-lat" type="number" step="0.0000001">
+                    <p slot="label">Latitude</p>
+                </sl-input>
+                <sl-input id="mobile-clinic-lon" type="number" step="0.0000001">
+                    <p slot="label">Longitude</p>
+                </sl-input>
+                <sl-button id="mobile-clinic-remove"><p>Remove Mobile Clinic</p></sl-button>
+            </sl-tab-panel>
+        </sl-tab-group>
     </div>
 </sl-split-panel>
+<sl-dialog id="address-input-popup">
+    <p slot="label">Add Mobile Clinic</p>
+    <sl-input id="address-input" >
+        <p slot="label">Mobile Clinic Address</p>
+    </sl-input>
+    <sl-menu id="address-input-menu"></sl-menu>
+</sl-dialog>
 
 </div>
 {% endblock %}
@@ -33,6 +59,20 @@
 <script>
     mapResetButton = document.getElementById("map-reset-button")
     mapAddMobileHealthClinic = document.getElementById("map-add-mobile-health-clinic")
+
+    addressInputPopup = document.getElementById("address-input-popup")
+    addressInput = document.getElementById("address-input")
+    addressInputMenu = document.getElementById("address-input-menu")
+
+    mapAndMinorSidebar = document.getElementById("map-and-minor-sidebar")
+    mapSecondarySidebarGroup = document.getElementById("map-secondary-sidebar-group")
+    mapSecondarySidebarClose = document.getElementById("map-secondary-sidebar-close")
+    mobileClinicInfoPanel = document.getElementById("mobile-clinic-info-panel")
+    mobileClinicAddress = document.getElementById("mobile-clinic-address")
+    mobileClinicLat = document.getElementById("mobile-clinic-lat")
+    mobileClinicLon = document.getElementById("mobile-clinic-lon")
+    mobileClinicRemove = document.getElementById("mobile-clinic-remove")
+
     // const data = [
     // //   [7.7405,46.0125]
     //     // {position: [-122.45, 37.8], color: [255, 0, 0], radius: 100},
@@ -40,7 +80,14 @@
     set{{panel.name}}Panel()
 </script>
 
-<script src="{{ url_for('static', filename='js/modeling/map.js') }}"></script>
+<!-- <script type="module">
+    await Promise.allSettled([ // wait for following to be defined/load in
+        customElements.whenDefined('sl-textarea'),
+    ])
+    mobileClinicAddress.shadowRoot.querySelector("textarea").removeAttribute("rows")
+</script> -->
+
 <script src="{{ url_for('static', filename='js/modeling/map-interactions.js') }}"></script>
+<script src="{{ url_for('static', filename='js/modeling/map.js') }}"></script>
 
 {% endblock %}

@@ -1,0 +1,9 @@
+# This file may be used to install required packages via pip:
+# $ pip install -r requirements.txt
+# platform: win-64
+
+flask < 2.4
+flask-bcrypt
+pandas
+numpy
+mysqlclient

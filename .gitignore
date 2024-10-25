@@ -1,3 +1,4 @@
 .vscode/
+.venv/
 **/__pycache__/
 dvtDashboard/mainApp/static/data/covid-19_zcta_hospitalization_data.json

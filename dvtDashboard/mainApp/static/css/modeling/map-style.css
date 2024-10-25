@@ -1,0 +1,18 @@
+
+
+#map-secondary-sidebar-close {
+    margin: auto var(--sl-spacing-small) auto auto;
+    display: block;
+    width: max-content;
+}
+
+#mobile-clinic-address::part(textarea) {
+    display: block;
+    overflow: hidden;
+    resize: none;
+}
+
+/* #address-input-menu sl-menu-item::part(label) {
+    overflow-x: scroll;
+    scrollbar-gutter: stable;
+} */
