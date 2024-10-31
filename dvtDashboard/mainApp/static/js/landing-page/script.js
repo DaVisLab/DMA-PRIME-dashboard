@@ -490,12 +490,16 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
             countMax = Math.max(d3.max(data[dataSource].data), countMax)
         }
     })
-
-    if (rate) {
-        data["state-prediction"].data = d["state-prediction"].data.map(function(item) { return item/d.population * 1000} )
+    
+    predictionData = JSON.parse(JSON.stringify(data["state-prediction"]))
+    if (predictionData.data.length > 0 && mapDiseaseSelector.value == "influenza") {
+        predictionData.data = predictionData.data.splice(start=0, end=2)
     }
-    if (data["state-prediction"].data.length) {
-        countMax = Math.max(d3.max(data["state-prediction"].data), countMax)
+    if (rate) {
+        predictionData.data = d["state-prediction"].data.map(function(item) { return item/d.population * 1000} )
+    }
+    if (predictionData.data.length) {
+        countMax = Math.max(d3.max(predictionData.data), countMax)
     }
 
     // figure out how much space is needed for the y-axis text
@@ -570,20 +574,20 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
     })
 
     stateCurrentLabelPositionAbove = null
-    if (data["state-prediction"].data.length) {
+    if (predictionData.data.length) {
         graphSVG.append("rect")
             .attr("class", "tooltip-prediction-highlighter")
 
         // draw predictive line chart
         predictiveGroup = graphSVG.append("g")
         predictiveGroup.append("path")
-            .attr("d", predictionLine(data["state-prediction"]))
+            .attr("d", predictionLine(predictionData))
             .attr("stroke", dataSourceColorMap["state-prediction"])
             .attr("fill", "none")
             .attr("stroke-width", 2)
 
         // marks each datapoint on prediction line
-        predictiveGroup.selectAll("circle").data(data["state-prediction"].data)
+        predictiveGroup.selectAll("circle").data(predictionData.data)
             .enter()
             .append("circle")
             .attr("r", 3)
@@ -621,7 +625,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
             .attr("font-size", "var(--sl-font-size-small)")
             .text(dataSourceDisplayName["state-prediction"])
 
-        stateCurrentLabelPositionAbove = data["state-prediction"].data[0] > data["state-prediction"].data[1]
+        stateCurrentLabelPositionAbove = predictionData.data[0] > predictionData.data[1]
     }
 
     

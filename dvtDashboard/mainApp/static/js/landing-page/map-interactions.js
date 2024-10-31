@@ -23,6 +23,12 @@ mapDataSourceSelector.addEventListener("sl-change", (event) => {
 
 mapDiseaseSelector.addEventListener("sl-change", (event) => {
     updateMapData()
+
+    if (focusZCTA != null) {
+        mapTooltipWidth = Math.max(500, width * .3)
+        mapTooltipHeight = mapTooltipWidth * .65    
+        drawTooltip(d3.select(`#map-${focusZCTA}-group`).datum(), d3.select("#map-tooltip-div"), mapTooltipHeight, mapTooltipWidth, mapRateSwitch.value == "rate")
+    }
 })
 
 mapIncludeImputations.addEventListener("sl-change", () => {
