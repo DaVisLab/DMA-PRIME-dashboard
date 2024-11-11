@@ -157,7 +157,9 @@ function updateGridData() {
                 .range([0, gridItemWidth*.75]) 
 
     // draw grid graph        
-    gridContainerD3.selectAll("div.grid-container").data(diseaseData).each(function(d, i, dom) {
+    gridContainerD3.selectAll("div.grid-container").data(diseaseData, function(d) {
+        return d.zcta
+    }).each(function(d, i, dom) {
         zcta = d.zcta
         county = d.county
 
