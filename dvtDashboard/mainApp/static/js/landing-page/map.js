@@ -100,7 +100,7 @@ function mapInitialVisualization() {
                 thisStartDate = parseDate(element[mapDataSourceSelector.value]["start-date"])
                 thisEndDate = new Date(thisStartDate);
                 thisEndDate.setDate(thisEndDate.getDate() + thisData.length*7);
-                datesReconstructed = d3.timeMonday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
+                datesReconstructed = d3.timeSaturday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
 
                 index = datesReconstructed.findIndex((d) => d.getTime() == thisWeekMonday.getTime())
                 
@@ -345,7 +345,7 @@ function updateMapData() {
         thisStartDate = parseDate(d[mapDataSourceSelector.value]["start-date"])
         thisEndDate = new Date(thisStartDate);
         thisEndDate.setDate(thisEndDate.getDate() + thisData.length*7);
-        datesReconstructed = d3.timeMonday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
+        datesReconstructed = d3.timeSaturday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
 
         index = datesReconstructed.findIndex((d) => d.getTime() == thisWeekMonday.getTime())
         

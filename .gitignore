@@ -2,3 +2,5 @@
 .venv/
 **/__pycache__/
 dvtDashboard/mainApp/static/data/covid-19_zcta_hospitalization_data.json
+dvtDashboard/mainApp/static/data/influenza-1_zcta_hospitalization_data.json
+dvtDashboard/mainApp/logs.log

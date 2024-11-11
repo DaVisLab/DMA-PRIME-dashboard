@@ -74,11 +74,11 @@ def load_zcta_hospitalization():
     date = max_date - pd.DateOffset(weeks=5)
 
     start_date = date - pd.DateOffset(months=18)
-    historical_dates = pd.date_range(end=date, start=start_date, freq='W-MON')
+    historical_dates = pd.date_range(end=date, start=start_date, freq='W-SAT')
     historical_dates = historical_dates.to_list()
 
     end_date = max_date
-    pred_dates = pd.date_range(start=date, end=end_date, freq='W-MON', inclusive='both')
+    pred_dates = pd.date_range(start=date, end=end_date, freq='W-SAT', inclusive='both')
     pred_dates = pred_dates.to_list()
 
     # get zcta data

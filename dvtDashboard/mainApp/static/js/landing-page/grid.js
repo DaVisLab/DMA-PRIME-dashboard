@@ -191,8 +191,9 @@ function updateGridData() {
                     case "covid-19":
                         value = data[gridDataSourceSortSelector.value].data.at(5)
                         break
-                    case "influenza":
-                        value = data[gridDataSourceSortSelector.value].data.at(1)
+                    case "influenza-1":
+                    case "influenza-2":
+                        value = data[gridDataSourceSortSelector.value].data.at(2)
                         break
                     default:
                         value = data[gridDataSourceSortSelector.value].data.at(5)
@@ -225,7 +226,7 @@ function updateGridData() {
             
         // create the line creation function
         line = function(data) {
-            startDate = d3.timeMonday.round(new Date(data["start-date"]))
+            startDate = d3.timeSaturday.round(new Date(data["start-date"]))
             startIndex = historicalDates.findIndex((d) => d.getTime() == startDate.getTime())
             
             return d3.line()

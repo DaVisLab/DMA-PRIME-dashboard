@@ -27,8 +27,11 @@ gridDiseaseSelector.addEventListener("sl-change", (event) => {
         case "covid-19":
             gridStatePredictionOption.innerHTML = "State (5th week prediction)"
             break
-        case "influenza":
-            gridStatePredictionOption.innerHTML = "State (1st week prediction)"
+        case "influenza-1":
+            console.log("influenza-1")
+        case "influenza-2":
+            console.log("influenza-2")
+            gridStatePredictionOption.innerHTML = "State (2nd week prediction)"
             break
         default:
             gridStatePredictionOption.innerHTML = "State (5th week prediction)"

@@ -47,15 +47,15 @@ document.adoptedStyleSheets = [styleSheet]
 
 // other info
 thisWeekMonday = new Date(2024, 8, 9)
-thisWeekMonday = d3.timeMonday.floor(thisWeekMonday)
+thisWeekMonday = d3.timeSaturday.floor(thisWeekMonday)
 
 startDate = new Date(thisWeekMonday);
 startDate.setMonth(startDate.getMonth() - 18);
-historicalDates = d3.timeMonday.range(startDate, new Date(thisWeekMonday).setDate(thisWeekMonday.getDate()+1), 1)
+historicalDates = d3.timeSaturday.range(startDate, new Date(thisWeekMonday).setDate(thisWeekMonday.getDate()+1), 1)
 
 endDate = new Date(thisWeekMonday);
 endDate.setDate(endDate.getDate() + 5*7);
-predictionDates = d3.timeMonday.range(thisWeekMonday, new Date(endDate).setDate(endDate.getDate()+1), 1)
+predictionDates = d3.timeSaturday.range(thisWeekMonday, new Date(endDate).setDate(endDate.getDate()+1), 1)
 
 // data fetching
 function getZCTAData(disease) {
@@ -67,8 +67,8 @@ function getZCTAData(disease) {
             thisWeekMonday = parseDate(data["metadata"]["current_monday"])
             endDate = parseDate(data["metadata"]["end_date"])
 
-            historicalDates = d3.timeMonday.range(startDate, new Date(thisWeekMonday).setDate(thisWeekMonday.getDate()+1), 1)
-            predictionDates = d3.timeMonday.range(thisWeekMonday, new Date(endDate).setDate(endDate.getDate()+1), 1)
+            historicalDates = d3.timeSaturday.range(startDate, new Date(thisWeekMonday).setDate(thisWeekMonday.getDate()+1), 1)
+            predictionDates = d3.timeSaturday.range(thisWeekMonday, new Date(endDate).setDate(endDate.getDate()+1), 1)
 
             zctaData[disease] = data["data"]
             return Promise.resolve(zctaData[disease])
@@ -492,8 +492,8 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
     })
     
     predictionData = JSON.parse(JSON.stringify(data["state-prediction"]))
-    if (predictionData.data.length > 0 && mapDiseaseSelector.value == "influenza") {
-        predictionData.data = predictionData.data.splice(start=0, end=2)
+    if (predictionData.data.length > 0 && mapDiseaseSelector.value.includes("influenza")) {
+        predictionData.data = predictionData.data.splice(start=0, end=3)
     }
     if (rate) {
         predictionData.data = d["state-prediction"].data.map(function(item) { return item/d.population * 1000} )
@@ -525,7 +525,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
 
     // line generators
     historicalLine = function(data) {
-        thisStartDate = d3.timeMonday.round(new Date(data["start-date"]))
+        thisStartDate = d3.timeSaturday.round(new Date(data["start-date"]))
         startIndex = historicalDates.findIndex((d) => d.getTime() == thisStartDate.getTime())
 
         return d3.line()
@@ -535,7 +535,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
     }
 
     predictionLine = function(data) {
-        thisStartDate = d3.timeMonday.round(new Date(data["start-date"]))
+        thisStartDate = d3.timeSaturday.round(new Date(data["start-date"]))
         startIndex = predictionDates.findIndex((d) => d.getTime() == thisStartDate.getTime())
 
         return d3.line()
@@ -636,7 +636,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
         thisStartDate = parseDate(thisData["start-date"])
         thisEndDate = new Date(thisStartDate);
         thisEndDate.setDate(thisEndDate.getDate() + thisData.data.length*7);
-        datesReconstructed = d3.timeMonday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
+        datesReconstructed = d3.timeSaturday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
 
         refDate = new Date(thisWeekMonday)
         refDate.setDate(refDate.getDate() - 7)
