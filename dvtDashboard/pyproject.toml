@@ -1,6 +1,6 @@
 [project]
 name = "mainApp"
-version = "1.3.1"
+version = "1.3.2"
 description = "DMA-PRIME October 2024"
 dependencies = [
     "flask<2.4",
