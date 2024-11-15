@@ -42,8 +42,8 @@ function redraw() {
     processZctaData().then(function () {
         features = zctaData.features
 
-        var1Data = d3.map(features, d => +d.properties[mapVariable1Selector.value])
-        var2Data = d3.map(features, d => +d.properties[mapVariable2Selector.value])
+        var1Data = d3.map(features, d => +d.properties.data[mapYearSelector.value][mapVariable1Selector.value])
+        var2Data = d3.map(features, d => +d.properties.data[mapYearSelector.value][mapVariable2Selector.value])
 
         bivariateColormap = createBivariateColormap(d3.min(var1Data), d3.max(var1Data), d3.min(var2Data), d3.max(var2Data))
 
@@ -73,8 +73,101 @@ function redraw() {
                 })
             ]
         })
-
+        drawLegend(d3.min(var1Data), d3.max(var1Data), d3.min(var2Data), d3.max(var2Data))
         return true
     })
 
+}
+
+function drawLegend(primaryMin = 0, primaryMax = 3, secondaryMin = 0, secondaryMax = 3) {
+    legendSVG = document.getElementById("choropleth-legend-svg")
+    legendSVG.innerHTML = ""
+    legend = d3.select(legendSVG)
+        .attr("overflow", "visible")
+        .attr("transform", `translate(40,-40) rotate(0) scale(1 -1)`)
+        // .attr("transform", `translate(-${10 + 10 + 12 + 16},-${(10 + 10 + 12 + 16)}) rotate(0) scale(1 -1)`)
+        // .attr("transform", `translate(${10 + 10 + 12 + 16},${height - (10 + 10 + 12 + 16)}) rotate(0) scale(1 -1)`)
+
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 3; j++) {
+            rect = legend.append('rect')
+                .attr("id", `#r${i}${j}`)
+                .attr("fill", bivariateColormap(primaryMin + (primaryMax-primaryMin)*(i+.1)/3)(secondaryMin + (secondaryMax-secondaryMin)*(j+.1)/3))
+                .attr("height", 25)
+                .attr("width", 25)
+                .attr("x", 25 * i)
+                .attr("y", 25 * j)
+        }
+    }
+
+    legendCountAxis = legend.append("g")
+        .attr("id", "legend-count-axis")
+    legendCountAxis.append("line")
+        .attr("x1", 0)
+        .attr("y1", 0)
+        .attr("x2", 75)
+        .attr("y2", 0)
+        .attr("stroke-width", 2)
+        .attr("stroke", "black")
+    legendCountAxis.append("text")
+        .attr("x", 75 / 2)
+        .attr("y", 10 + 10 + 12)
+        .attr("text-anchor", "middle")
+        .attr("font-size", 12)
+        .attr("fill", "black")
+        .attr("transform", "scale(1 -1)")
+        .text(mapVariable1Selector.value)
+    for (i = 1; i < 3; i++) {
+        legendCountAxis.append("line")
+            .attr("x1", 25 * i)
+            .attr("y1", 0)
+            .attr("x2", 25 * i)
+            .attr("y2", -10)
+            .attr("stroke-width", 2)
+            .attr("stroke", "black")
+        legendCountAxis.append("text")
+            .attr("x", 25 * i)
+            .attr("y", 10 + 10)
+            .attr("text-anchor", "middle")
+            .attr("font-size", 10)
+            .attr("fill", "black")
+            .attr("transform", "scale(1 -1)")
+            .text(d3.format(".2f")(bivariateColormap.thresholds()[i-1]))
+    }
+
+    legendCountAxis = legend.append("g")
+        .attr("id", "legend-confidence-axis")
+        .attr("transform", "rotate(90)")
+    legendCountAxis.append("line")
+        .attr("x1", 0)
+        .attr("y1", 0)
+        .attr("x2", 75)
+        .attr("y2", 0)
+        .attr("stroke-width", 2)
+        .attr("stroke", "black")
+    legendCountAxis.append("text")
+        .attr("x", 75 / 2)
+        .attr("y", -(5 + 10 + 12))
+        .attr("text-anchor", "middle")
+        .attr("font-size", 12)
+        .attr("fill", "black")
+        .attr("transform", "scale(1 -1)")
+        .text(mapVariable2Selector.value)
+    for (i = 1; i < 3; i++) {
+        legendCountAxis.append("line")
+            .attr("x1", 25 * i)
+            .attr("y1", 0)
+            .attr("x2", 25 * i)
+            .attr("y2", 10)
+            .attr("stroke-width", 2)
+            .attr("stroke", "black")
+        legendCountAxis.append("text")
+            .attr("x", 25 * i)
+            .attr("y", -(5 + 10))
+            .attr("text-anchor", "middle")
+            .attr("font-size", 10)
+            .attr("fill", "black")
+            .attr("transform", "scale(1 -1)")
+            .text(d3.format(".0f")(bivariateColormap(0).thresholds()[i-1]))
+    }
 }

@@ -1,4 +1,5 @@
 
+var formatInt = d3.format(".0f")
 
 var primaryMin = 0
 var primaryMax = 3
