@@ -1,6 +1,6 @@
 # This is where the main flask code should lie
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file
 from werkzeug.middleware.proxy_fix import ProxyFix
 import logging
 
@@ -143,6 +143,12 @@ def create_app(development=False, updatedData=True):
             },
         ]
         return render_template('opioid/opioid-base.html', panels=panels)
+    
+    @app.route('/icon-pack/<type>', methods=['GET', 'POST'])
+    @login_required
+    def iconData(type):
+        # icon csv files
+        return send_file(f'{main_dir}/static/data/raw/icon-pack.{type}')
     
     @app.route('/update', methods=['POST', 'GET'])
     def webhook():

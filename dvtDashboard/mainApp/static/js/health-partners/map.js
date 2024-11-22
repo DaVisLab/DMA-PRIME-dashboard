@@ -27,11 +27,11 @@ function redraw() {
     new IconLayer({
       id: 'mobile-health-clinic',
       data: d3.json('/data/mobile-health-clinic-events'),
-      iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
-      iconMapping: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.json',
+      iconAtlas: '/icon-pack/png',
+      iconMapping: '/icon-pack/json',
       getPosition: d => {console.log(d); return [+d.site_lon, +d.site_lat]},
       getColor: [255, 0, 0],
-      getIcon: d => 'marker',
+      getIcon: d => 'mobile_health_clinic',
       sizeScale: 15,
       pickable: true,
       parameters: {
