@@ -16,6 +16,7 @@ mapResetButton.addEventListener("click", () => {
 mapSecondarySidebarClose.addEventListener("sl-focus", function(event) {
     mapAndMinorSidebar.setAttribute("position", 100)
     mobileClinicInfoPanel.removeAttribute("active")
+    redraw()
 })
 
 // map functions

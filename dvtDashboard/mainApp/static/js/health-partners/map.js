@@ -19,7 +19,8 @@ const deckgl = new DeckGL({
 
 redraw();
 
-function redraw() {
+function redraw(highlightIndex=-1) {
+  hIndex = highlightIndex == null ? deckgl.layerManager.layers[0].props.highlightedObjectIndex : highlightIndex
   deckgl.setProps({
     layers: [
     new IconLayer({
@@ -28,7 +29,7 @@ function redraw() {
         data.forEach((datum, index) => {
           try {
             if (data[index].event_date.length >= 10) {
-              data[index].event_date = dayjs.tz(data[index].event_date, "America/New_York") 
+              data[index].event_date = dayjs.tz(data[index].event_date) 
             }
           } catch (RangeError) {
             console.log(data[index].event_date, "was not able to be parsed")
@@ -41,19 +42,14 @@ function redraw() {
       getPosition: d => {return [+d.site_lon, +d.site_lat]},
       getColor: [255, 0, 0],
       getIcon: d => 'mobile_health_clinic',
-      sizeScale: 15,
+      getSize: d => dateCutoff.isBefore(dayjs.tz(d.event_date)) ? 15 : 0,
+      highlightedObjectIndex: hIndex,
+      highlightColor: [255, 200, 0],
       pickable: true,
       parameters: {
         depthTest: false
       },
-      autoHighlight: true,
-      highlightColor: [255, 200, 0],
-      // onDragStart: (info, event) => { deckgl.setProps({controller: {dragPan: false}}) },
-      // onDrag: mobileClinicDrag,
-      // onDragEnd: (info, event) => { 
-      //   deckgl.setProps({controller: true}); 
-      //   updateLocationCoords(info.index, lat=mobileHealthClinics[info.index].coords.lat, lon=mobileHealthClinics[info.index].coords.lon) },
-      onClick: (info, event) => mobileClinicClick(info.object),
+      onClick: function(info, event) {redraw(info.index); mobileClinicClick(info.object)},
       updateTriggers: {
         getPosition: {dataVersion}
       },
@@ -61,4 +57,9 @@ function redraw() {
     })
       ]})
     return true
+}
+
+function isVisible(event) {
+  recent = dateCutoff.isBefore(dayjs.tz(event.event_date))
+  hasCoords = event.event_lon 
 }
