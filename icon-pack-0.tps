@@ -169,7 +169,7 @@
             <key>defaultPivotPoint</key>
             <point_f>0.5,0.5</point_f>
             <key>writePivotPoints</key>
-            <false/>
+            <true/>
         </struct>
         <key>individualSpriteSettings</key>
         <map type="IndividualSpriteSettingsMap">
@@ -188,7 +188,7 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
-            <key type="filename">dvtDashboard/mainApp/static/data/raw/hospital.svg</key>
+            <key type="filename">dvtDashboard/mainApp/static/data/raw/hospital_filled.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.5</point_f>
@@ -197,9 +197,9 @@
                 <key>scale9Enabled</key>
                 <false/>
                 <key>scale9Borders</key>
-                <rect>4,4,8,8</rect>
+                <rect>128,128,256,256</rect>
                 <key>scale9Paddings</key>
-                <rect>4,4,8,8</rect>
+                <rect>128,128,256,256</rect>
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
@@ -227,7 +227,7 @@
                 <array>
                     <filename>dvtDashboard/mainApp/static/data/raw/mobile_health_clinic.svg</filename>
                     <filename>dvtDashboard/mainApp/static/data/raw/community_partner.svg</filename>
-                    <filename>dvtDashboard/mainApp/static/data/raw/hospital.svg</filename>
+                    <filename>dvtDashboard/mainApp/static/data/raw/hospital_filled.png</filename>
                 </array>
             </struct>
         </map>

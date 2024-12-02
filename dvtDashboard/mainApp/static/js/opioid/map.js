@@ -1,4 +1,6 @@
-const { DeckGL, GeoJsonLayer } = deck;
+// const { IconLayer } = require("@deck.gl/layers");
+
+const { DeckGL, GeoJsonLayer, IconLayer } = deck;
 
 
 // import {MapboxOverlay as DeckOverlay} from '@deck.gl/mapbox';
@@ -78,7 +80,7 @@ function redraw() {
                     filled: true,
                     pointType: 'circle+text',
                     pickable: true,
-
+                    onClick: function(info, event) {mobileClinicClick(info.object)},
                     getFillColor: d => getColor(d),
                     getStrokeColor: [0, 0, 0],
                     getLineColor: [0, 0, 0],
@@ -88,6 +90,19 @@ function redraw() {
                     getTextSize: 12,
                     updateTriggers: {
                         getFillColor: { dataVersion }
+                    },
+                }),
+                new IconLayer({
+                    id: 'hospital-and-cdap',
+                    data: d3.csv('/data/icon/hospital-cdap_mhc_partners'),
+                    iconAtlas: '/icon-pack/png',
+                    iconMapping: 'icon-pack/json',
+                    getPosition: d => {return [+d.longitude, +d.latitude]},
+                    getIcon: d => {if(checked.includes(d.type)) return d.type},
+                    getSize: 15,
+                    pickable: true,
+                    parameters: {
+                        depthTest: false
                     },
                 })
             ]

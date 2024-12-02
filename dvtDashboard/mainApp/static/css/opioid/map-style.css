@@ -20,7 +20,7 @@
 
 #map-filters-container::part(content) {
     overflow-x: scroll;
-    max-height: 500px;
+    max-height: 350px;
     padding: var(--sl-spacing-x-small);
     display: grid;
 }
@@ -39,4 +39,19 @@
 .map-filter-end-text {
     fill: currentColor;
     font-size: var(--sl-font-size-2x-small);
+}
+
+
+.map-secondary-sidebar-label {
+    font-size: var(--sl-font-size-medium);
+}
+
+.map-secondary-sidebar-value {
+    font-size: var(--sl-font-size-small);
+}
+
+#map-secondary-sidebar-zcta-name {
+    font-size: var(--sl-font-size-large);
+    font-weight: var(--sl-font-weight-bold);
+    text-align: center;
 }
