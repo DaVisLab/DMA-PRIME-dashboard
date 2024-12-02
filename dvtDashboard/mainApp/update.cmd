@@ -3,10 +3,13 @@
 @REM pull new code from git
 cd C:\DMA-PRIME-dashboard\dvtDashboard
 git checkout main
-start "PullMain" /d "C:\DMA-PRIME-dashboard" git pull
-timeout 15
-taskkill /f /fi "WindowTitle eq PullMain"
-taskkill /f /fi "ImageName eq git.exe"
+git stash
+git stash clear
+git pull
+@REM start "PullMain" /d "C:\DMA-PRIME-dashboard" git pull
+@REM timeout 15
+@REM taskkill /f /fi "WindowTitle eq PullMain"
+@REM taskkill /f /fi "ImageName eq git.exe"
 
 @REM build new wheel and move it for safe keeping
 python -m build --wheel
@@ -18,3 +21,6 @@ call .venv\Scripts\activate
 cd C:\DMA-PRIME\wheels
 for /f %%i in ('dir /b/a-d/od/t:c') do set LAST=%%i
 pip install %LAST% --force-reinstall
+
+@REM restart the server so the updated website is served
+shutdown /r /soft
