@@ -38,6 +38,11 @@
         <sl-option value="median_income">Median Income</sl-option>
     </sl-select>
 
+    <sl-checkbox id="map-options-hospital-icons-toggle" class="map-icons-toggle" style="display: initial;">Hospitals</sl-checkbox>
+    <sl-checkbox id="map-options-cdap-toggle" class="map-icons-toggle" style="display: initial;">Center for Drug & Alcohol Program</sl-checkbox>
+    <sl-checkbox id="map-options-mobile-clinic-icons-toggle" class="map-icons-toggle" style="display: initial;">Mobile Health Clinics</sl-checkbox>
+    <sl-checkbox id="map-options-community-partner-icons-toggle" class="map-icons-toggle" style="display: initial;">Community Partners</sl-checkbox>
+
     <sl-details id="map-filters-container" open>
         <p slot="summary">Filters</p>
         <sl-button pill id="map-filter-reset-button" class="center-self" size="small">Clear Filters</sl-button>
@@ -47,17 +52,45 @@
 {% endblock %}
 
 {% block contents %}
-<div class="fill-width fill-height" id="map-div">
+<sl-split-panel position="100" disabled id="map-and-minor-sidebar" class="fill-height main-content-split-panel">
+    <div slot="start">
+        <div class="fill-width fill-height" id="map-div">
+        </div>
+        <div id="choropleth-legend" style="position:absolute; bottom: 0; left:0;">
+        <svg id="choropleth-legend-svg"></svg>
+        </div>
+    </div>
+    <div slot="end">
+        <sl-tab-group id="map-secondary-sidebar-group">
+            <sl-icon-button slot="nav" name="x-lg" id="map-secondary-sidebar-close"></sl-icon-button>
+            <sl-tab-panel id="secondary-sidebar-blank-panel" name="blank"></sl-tab-panel>
+            <sl-tab-panel id="zcta-opioid-info-panel" name="info">
+                <p id="map-secondary-sidebar-zcta-name" class="center-self"></p>
+                <sl-divider></sl-divider>
+                <p class="map-secondary-sidebar-label"><u>Hospitalizations</u></p>
+                <p id="map-secondary-sidebar-hospitalizations" class="map-secondary-sidebar-value"></p>
+                <p class="map-secondary-sidebar-label"><u>Deaths</u></p>
+                <p id="map-secondary-sidebar-deaths" class="map-secondary-sidebar-value"></p>
+                <sl-divider></sl-divider>
+                <p class="map-secondary-sidebar-label"><u>Population</u></p>
+                <p id="map-secondary-sidebar-population" class="map-secondary-sidebar-value"></p>
+                <p class="map-secondary-sidebar-label"><u>Social Vulnerability Index</u></p>
+                <p id="map-secondary-sidebar-SVI" class="map-secondary-sidebar-value"></p>
+                <p class="map-secondary-sidebar-label"><u>Proportion of Uninsured</u></p>
+                <p id="map-secondary-sidebar-proportion-uninsured" class="map-secondary-sidebar-value"></p>
+                <p class="map-secondary-sidebar-label"><u>Median Income</u></p>
+                <p id="map-secondary-sidebar-median-income" class="map-secondary-sidebar-value"></p>
+            </sl-tab-panel>
+        </sl-tab-group>
+    </div>
+</sl-split-panel>
 
-</div>
-<div id="choropleth-legend" style="position:absolute; bottom: 0; left:0;">
-<svg id="choropleth-legend-svg"></svg>
-</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
     zctaData = undefined
+    selectedZCTA = undefined
     
     mapResetButton = document.getElementById("map-reset-button")
 
@@ -66,6 +99,25 @@
     mapVariable2Selector = document.getElementById("map-variable-2-selector")
     mapFiltersContainer = document.getElementById("map-filters-container")
     mapFilterResetButton = document.getElementById("map-filter-reset-button")
+    
+    hospitalIconsToggle = document.getElementById("map-options-hospital-icons-toggle")
+    cdapIconsToggle = document.getElementById("map-options-cdap-toggle")
+    mobileClinicIconsToggle = document.getElementById("map-options-mobile-clinic-icons-toggle")
+    communityPartnerIconsToggle = document.getElementById("map-options-community-partner-icons-toggle")
+    checked = []
+
+    mapAndMinorSidebar = document.getElementById("map-and-minor-sidebar")
+    mapSecondarySidebarGroup = document.getElementById("map-secondary-sidebar-group")
+    mapSecondarySidebarClose = document.getElementById("map-secondary-sidebar-close")
+    mobileClinicInfoPanel = document.getElementById("zcta-opioid-info-panel")
+
+    mapSecondarySidebarZctaName = document.getElementById("map-secondary-sidebar-zcta-name")
+    mapSecondarySidebarHospitalizations = document.getElementById("map-secondary-sidebar-hospitalizations")
+    mapSecondarySidebarDeaths = document.getElementById("map-secondary-sidebar-deaths")
+    mapSecondarySidebarPopulation = document.getElementById("map-secondary-sidebar-population")
+    mapSecondarySidebarSVI = document.getElementById("map-secondary-sidebar-SVI")
+    mapSecondarySidebarProportionUninsured = document.getElementById("map-secondary-sidebar-proportion-uninsured")
+    mapSecondarySidebarMedianIncome = document.getElementById("map-secondary-sidebar-median-income")
 
     brushes = {}
     thresholds = {}
