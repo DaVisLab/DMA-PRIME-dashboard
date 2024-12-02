@@ -32,7 +32,7 @@ function createBivariateColormap(primaryMin = 0, primaryMax = 3, secondaryMin = 
             color.l += .2 * sat
             innerRange.push(color)
         }
-        range.push(d3.scaleQuantize().domain([secondaryMin, secondaryMax]).range(innerRange.reverse()))
+        range.push(d3.scaleQuantize().domain([secondaryMin, secondaryMax]).range(innerRange.reverse()).unknown(unknownColor))
     }
     return d3.scaleQuantize().domain([primaryMin, primaryMax]).range(range).unknown((val) => unknownColor)
 }

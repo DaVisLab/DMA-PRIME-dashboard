@@ -28,7 +28,7 @@
         <sl-option value="median_income">Median Income</sl-option>
     </sl-select>
 
-    <sl-select id="map-variable-2-selector" value="deaths">
+    <sl-select id="map-variable-2-selector" value="none">
         <p slot="label">Variable 2</p>
         <sl-option value="none">None</sl-option>
         <sl-option value="hospitalizations">Hospitalizations</sl-option>
@@ -74,6 +74,14 @@
     mapDiv = document.getElementById("map-div")
 
     choroplethLegendSVG = document.getElementById("choropleth-legend-svg")
+
+    variableOptions = {
+        "hospitalizations": {"displayName": "Hospitalizations"},
+        "deaths": {"displayName": "Deaths"},
+        "SVI": {"displayName": "Social Vulnerability Index"},
+        "proportion_uninsured": {"displayName": "Proportion Uninsured"},
+        "median_income": {"displayName": "Median Income"},
+    }
 
     set{{panel.name}}Panel()
 </script>

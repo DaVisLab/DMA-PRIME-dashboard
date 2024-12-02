@@ -119,7 +119,12 @@ function getColor(zcta) {
     })
 
     c = d3.rgb(colormap(val1)(val2))
-    return [c.r, c.g, c.b]
+    if (c.toString() == unknownColor.toString()) {
+        // ciccio opacity for greyed out zcta
+        c.opacity = 0.5
+    }
+
+    return [c.r, c.g, c.b, c.opacity*255]
 }
 
 function drawLegend(primaryMin = 0, primaryMax = 3, secondaryMin = 0, secondaryMax = 3) {
@@ -190,7 +195,7 @@ function drawLegend(primaryMin = 0, primaryMax = 3, secondaryMin = 0, secondaryM
             .attr("font-size", 12)
             .attr("fill", "black")
             .attr("transform", "scale(1 -1)")
-            .text(mapVariable1Selector.value)
+            .text(variableOptions[mapVariable1Selector.value]["displayName"])
         for (i = 1; i < 3; i++) {
             legendCountAxis.append("line")
                 .attr("x1", 25 * i)
@@ -226,7 +231,7 @@ function drawLegend(primaryMin = 0, primaryMax = 3, secondaryMin = 0, secondaryM
             .attr("font-size", 12)
             .attr("fill", "black")
             .attr("transform", "scale(1 -1)")
-            .text(mapVariable2Selector.value)
+            .text(variableOptions[mapVariable2Selector.value]["displayName"])
         for (i = 1; i < 3; i++) {
             legendCountAxis.append("line")
                 .attr("x1", 25 * i)
@@ -284,7 +289,7 @@ function updateHistogram(column) {
                         .attr("y", 1.75*em)
                         .attr("fill", "currentColor")
                         .attr("text-anchor", "middle")
-                        .text(column))
+                        .text(variableOptions[column]["displayName"]))
 
     yAxis = svg.append("g")
         .attr("transform", `translate(${2*em}, 0)`)
@@ -302,7 +307,6 @@ function updateHistogram(column) {
 
     brush = d3.brushX().extent([[x.range()[0], y.range()[1]],[x.range()[1], y.range()[0]]]).on("end", function(d, event) { 
         if (d.selection && d.mode) {
-            console.log("first")
             x = xScales[column]
 
             lowerVal = Math.floor(x.invert(d.selection[0])*100)/100
