@@ -24,7 +24,9 @@ mapYearSelector.addEventListener("sl-change", function(event) {
     dataVersion++
     updateHistogram("hospitalizations")
     updateHistogram("deaths")
-    mobileClinicClick(selectedZCTA)
+    if (selectedZCTA) {
+        mobileClinicClick(selectedZCTA)
+    }
     redraw()
 })
 

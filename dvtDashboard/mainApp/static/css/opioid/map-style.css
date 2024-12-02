@@ -20,7 +20,7 @@
 
 #map-filters-container::part(content) {
     overflow-x: scroll;
-    max-height: 375px;
+    max-height: 350px;
     padding: var(--sl-spacing-x-small);
     display: grid;
 }
