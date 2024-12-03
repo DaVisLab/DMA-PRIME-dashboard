@@ -8,7 +8,6 @@ import os
 import subprocess
 import pandas as pd
 import numpy as np
-import pandas as pd
 
 from .utility import * 
 from .data_handling import load_data
