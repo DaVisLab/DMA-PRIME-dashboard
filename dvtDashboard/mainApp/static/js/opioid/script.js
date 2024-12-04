@@ -17,11 +17,14 @@ var univariateColormap = createUnivariateColormap()
 
 let dataVersion = 0
 
+
 function createUnivariateColormap(primaryMin = 0, primaryMax = 3) {
+    // creating a linear colormap from cyan to magenta to red
     return d3.scaleLinear().domain([primaryMin, (primaryMin+primaryMax)/2, primaryMax]).range(mainColor).unknown(unknownColor)
 }
 
 function createBivariateColormap(primaryMin = 0, primaryMax = 3, secondaryMin = 0, secondaryMax = 3) {
+    // creating a bivariate colormap from cyan to magent to red on one axis and light to dark on the other 
     var range = []
     for (var hue = 0; hue <= 2; hue++) {
         var innerRange = []
@@ -37,6 +40,12 @@ function createBivariateColormap(primaryMin = 0, primaryMax = 3, secondaryMin = 
     return d3.scaleQuantize().domain([primaryMin, primaryMax]).range(range).unknown((val) => unknownColor)
 }
 
+function capitalizeFirst(string) {
+    // capitalize first character of a string and return the result
+    return string[0].toUpperCase()+string.substring(1)
+}
+
+// trying to make a widget but I need to use deck instead of deckgl and npm imports
 class D3Anchor {
     static #count = 0;
     constructor(props={}) { //should have options.size

@@ -7,22 +7,22 @@
     <sl-divider class="options-divider"></sl-divider>
 
     <!-- Select year of analysis -->
-    <sl-select id="map-year-selector" value="2020">
+    <sl-select id="map-year-selector" value="cumulative">
         <p slot="label">Select a year</p>
+        <sl-option value="cumulative">Cumulative</sl-option>
         <sl-option value="2020">2020</sl-option>
         <sl-option value="2021">2021</sl-option>
         <sl-option value="2022">2022</sl-option>
         <sl-option value="2023">2023</sl-option>
-        <sl-option value="2024" disabled>2024</sl-option>
+        <sl-option value="2024">2024</sl-option>
         <sl-option value="2025">2025</sl-option>
-        <sl-option value="cumulative">Cumulative</sl-option>
     </sl-select>
 
     <!-- Select variables -->
     <sl-select id="map-variable-1-selector" value="hospitalizations">
         <p slot="label">Variable 1</p>
-        <sl-option value="hospitalizations">Hospitalizations</sl-option>
-        <sl-option value="deaths">Deaths</sl-option>
+        <sl-option value="hospitalizations">Hospitalizations (2020-2023)</sl-option>
+        <sl-option value="deaths">Deaths (2020-2022)</sl-option>
         <sl-option value="SVI">Social Vulnerability Index (SVI)</sl-option>
         <sl-option value="proportion_uninsured">Proportion Uninsured</sl-option>
         <sl-option value="median_income">Median Income</sl-option>
@@ -31,8 +31,8 @@
     <sl-select id="map-variable-2-selector" value="none">
         <p slot="label">Variable 2</p>
         <sl-option value="none">None</sl-option>
-        <sl-option value="hospitalizations">Hospitalizations</sl-option>
-        <sl-option value="deaths">Deaths</sl-option>
+        <sl-option value="hospitalizations">Hospitalizations (2020-2023)</sl-option>
+        <sl-option value="deaths">Deaths (2020-2022)</sl-option>
         <sl-option value="SVI">Social Vulnerability Index (SVI)</sl-option>
         <sl-option value="proportion_uninsured">Proportion Uninsured</sl-option>
         <sl-option value="median_income">Median Income</sl-option>
@@ -65,7 +65,8 @@
             <sl-icon-button slot="nav" name="x-lg" id="map-secondary-sidebar-close"></sl-icon-button>
             <sl-tab-panel id="secondary-sidebar-blank-panel" name="blank"></sl-tab-panel>
             <sl-tab-panel id="zcta-opioid-info-panel" name="info">
-                <p id="map-secondary-sidebar-zcta-name" class="center-self"></p>
+                <p id="map-secondary-sidebar-zcta-name" ></p>
+                <p id="map-secondary-sidebar-zcta-county" ></p>
                 <sl-divider></sl-divider>
                 <p class="map-secondary-sidebar-label"><u>Hospitalizations</u></p>
                 <p id="map-secondary-sidebar-hospitalizations" class="map-secondary-sidebar-value"></p>
@@ -89,7 +90,7 @@
 
 {% block scripts %}
 <script>
-    zctaData = undefined
+    features = undefined
     selectedZCTA = undefined
     
     mapResetButton = document.getElementById("map-reset-button")
@@ -112,6 +113,7 @@
     mobileClinicInfoPanel = document.getElementById("zcta-opioid-info-panel")
 
     mapSecondarySidebarZctaName = document.getElementById("map-secondary-sidebar-zcta-name")
+    mapSecondarySidebarZctaCounty = document.getElementById("map-secondary-sidebar-zcta-county")
     mapSecondarySidebarHospitalizations = document.getElementById("map-secondary-sidebar-hospitalizations")
     mapSecondarySidebarDeaths = document.getElementById("map-secondary-sidebar-deaths")
     mapSecondarySidebarPopulation = document.getElementById("map-secondary-sidebar-population")

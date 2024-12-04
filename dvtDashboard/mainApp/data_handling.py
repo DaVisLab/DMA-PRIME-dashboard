@@ -48,25 +48,17 @@ def load_data():
 
 def load_zcta_opioid():
     # read in opioid data
-    df = pd.read_csv(f'{main_dir}/static/data/opioid_data_raw.csv')
+    df = pd.read_csv(f'{main_dir}/static/data/raw/opioid_data.csv')
     new_df = pd.DataFrame()
 
     # reshape 
-    for year in [2020, 2021, 2022, 2025]:
+    years = [2020, 2021, 2022, 2023, 2024, 2025]
+    for year in years:
         temp = pd.DataFrame(df[['zcta', f'opioid_hosp_{year}', f'opioid_death_{year}']].rename({f'opioid_hosp_{year}': 'hospitalizations', f'opioid_death_{year}': 'deaths'}, axis=1))
         temp['year'] = year
         new_df = pd.concat([new_df, temp])
 
-    # year 2023 only has hospital data for some reason and must be handled separately
-    year = 2023
-    temp = pd.DataFrame(df[['zcta', f'opioid_hosp_{year}']].rename({f'opioid_hosp_{year}': 'hospitalizations'}, axis=1))
-    temp['deaths'] = np.nan 
-    temp['year'] = year
-    new_df = pd.concat([new_df, temp])
-
     pivot_df = pd.pivot_table(new_df, values=['hospitalizations', 'deaths'], index=['zcta', 'year'], dropna=False)
-
-    years = [2020, 2021, 2022, 2023, 2025]
 
     zcta_data = pd.read_csv(main_dir+'/static/data/zcta_summary.csv', index_col=0)
 
@@ -82,8 +74,8 @@ def load_zcta_opioid():
             zcta = thing.properties['ZCTA5CE20']
             try:
                 this_zcta_data = zcta_data.loc[int(zcta)]
-                thing.properties['population'] = str(this_zcta_data['population'])
-                thing.properties['county'] = str(this_zcta_data['main_county'])
+                thing.properties['population'] = "NaN" if str(this_zcta_data['population']) == "nan" else str(this_zcta_data['population'])
+                thing.properties['county'] = "NaN" if str(this_zcta_data['main_county']) == "nan" else str(this_zcta_data['main_county'])
             except KeyError:
                 thing.properties['population'] = 'NaN'
                 thing.properties['county'] = 'NaN'
@@ -100,7 +92,8 @@ def load_zcta_opioid():
                             zcta_opioid_data[col][year] = 'NaN'
                         else:
                             zcta_opioid_data[col][year] = value
-                            zcta_opioid_data[col]['cumulative'] += zcta_opioid_data[col][year]
+                            if (int(year) < 2023 or (col == 'hospitalizations' and int(year) == 2023)):
+                                zcta_opioid_data[col]['cumulative'] += zcta_opioid_data[col][year]
                     except KeyError:
                         zcta_opioid_data[col][year] = 'NaN'
 
@@ -143,7 +136,7 @@ def load_mobile_health_clinic_events():
         locations = map(geocode, zip(addresses, counties))
         data = dict(zip(addresses, locations))
 
-        with open(main_dir+'/static/data/mobile_health_clinic_address_translation.json', 'a') as f:
+        with open(main_dir+'/static/data/mobile_health_clinic_address_translation.json', 'w') as f:
             json.dump(data, f)
         
         return data

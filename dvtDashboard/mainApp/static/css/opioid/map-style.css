@@ -1,15 +1,13 @@
 #map-content {
+    /* needed for choropleth legend to be in the correct spot I think */
     position: relative;
 }
 
-#choropleth-legend-svg text {
-    fill: black
+#map-filter-reset-button {
+    width: fit-content;
 }
 
-#choropleth-legend-svg line,path {
-    stroke: black
-}
-
+/* histogram filters container */
 #map-filters-container {
     max-height: 550px;
 }
@@ -25,10 +23,7 @@
     display: grid;
 }
 
-#map-filter-reset-button {
-    width: fit-content;
-}
-
+/* histogram filters */
 .map-histogram-filter {
     width: 100%;
     height: 100px;
@@ -41,6 +36,26 @@
     font-size: var(--sl-font-size-2x-small);
 }
 
+/* choropleth legend */
+#choropleth-legend-svg text {
+    fill: black
+}
+
+#choropleth-legend-svg line,path {
+    stroke: black
+}
+
+/* sidebar with zcta details */
+#map-secondary-sidebar-zcta-name {
+    font-size: var(--sl-font-size-large);
+    font-weight: var(--sl-font-weight-bold);
+    text-align: center;
+}
+
+#map-secondary-sidebar-zcta-county {
+    font-size: var(--sl-font-size-small);
+    text-align: center;
+}
 
 .map-secondary-sidebar-label {
     font-size: var(--sl-font-size-medium);
@@ -48,10 +63,4 @@
 
 .map-secondary-sidebar-value {
     font-size: var(--sl-font-size-small);
-}
-
-#map-secondary-sidebar-zcta-name {
-    font-size: var(--sl-font-size-large);
-    font-weight: var(--sl-font-weight-bold);
-    text-align: center;
 }
