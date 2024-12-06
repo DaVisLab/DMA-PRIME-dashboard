@@ -6,6 +6,16 @@
     <sl-button pill id="map-reset-button" class="center-self">Reset Map</sl-button>
     <sl-divider class="options-divider"></sl-divider>
 
+    <!-- count vs rate switch -->
+    <sl-radio-group value="count" id="map-rate-switch" class="center-self" size="small">
+        <sl-tooltip content="Count of hospitalizations">
+            <sl-radio-button pill value="count">Count</sl-radio-button>
+        </sl-tooltip>
+        <sl-tooltip content="Hospitalizations per 1000 people">
+            <sl-radio-button pill value="rate">Rate</sl-radio-button>
+        </sl-tooltip>
+    </sl-radio-group>
+
     <!-- Select year of analysis -->
     <sl-select id="map-year-selector" value="cumulative">
         <p slot="label">Select a year</p>
@@ -94,6 +104,8 @@
     selectedZCTA = undefined
     
     mapResetButton = document.getElementById("map-reset-button")
+
+    mapRateSwitch = document.getElementById("map-rate-switch")
 
     mapYearSelector = document.getElementById("map-year-selector")
     mapVariable1Selector = document.getElementById("map-variable-1-selector")

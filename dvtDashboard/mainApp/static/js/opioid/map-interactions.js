@@ -13,6 +13,20 @@ mapResetButton.addEventListener("click", () => {
     
 })
 
+mapRateSwitch.addEventListener("sl-change", () => {
+    dataVersion++
+    updateHistogram("hospitalizations")
+    updateHistogram("deaths")
+    Object.entries(brushes).forEach(brush => {
+        column = brush[0]
+        if (["hospitalizations", "deaths"].includes(column)) {
+            d3.select(`#map-${column}-filter-brush`).call(brush[1].clear)
+            thresholds[column] = xScales[column].domain()
+        }
+    })
+    redraw(null)
+})
+
 mapFilterResetButton.addEventListener("click", () => {
     // clear brushes on histograms that act as filters for map zctas
     Object.entries(brushes).forEach(brush => {
@@ -78,9 +92,9 @@ cdapIconsToggle.addEventListener("sl-change", () => {
 mobileClinicIconsToggle.addEventListener("sl-change", () => {
     // toggle mhc icons
     if (mobileClinicIconsToggle.checked) {
-        checked.push("community_partner")
+        checked.push("mobile_health_clinic")
     } else {
-        checked = checked.filter(check => check !== "community_partner")
+        checked = checked.filter(check => check !== "mobile_health_clinic")
     }
     dataVersion++
     redraw(null)
@@ -88,9 +102,9 @@ mobileClinicIconsToggle.addEventListener("sl-change", () => {
 communityPartnerIconsToggle.addEventListener("sl-change", () => {
     // toggle community partner icons
     if (communityPartnerIconsToggle.checked) {
-        checked.push("mobile_health_clinic")
+        checked.push("community_partner")
     } else {
-        checked = checked.filter(check => check !== "mobile_health_clinic")
+        checked = checked.filter(check => check !== "community_partner")
     }
     dataVersion++
     redraw(null)
@@ -111,10 +125,22 @@ function mobileClinicClick(object) {
 
     mapSecondarySidebarZctaName.innerHTML = `ZCTA: ${object.properties.ZCTA5CE20}`
     mapSecondarySidebarZctaCounty.innerHTML = `County: ${object.properties.county == "NaN" ? "Unknown" : capitalizeFirst(object.properties.county)}`
-    mapSecondarySidebarHospitalizations.innerHTML = object.properties.data.hospitalizations[mapYearSelector.value] == "NaN" ? "Unknown" : object.properties.data.hospitalizations[mapYearSelector.value]
-    mapSecondarySidebarDeaths.innerHTML = object.properties.data.deaths[mapYearSelector.value] == "NaN" ? "Unknown" : object.properties.data.deaths[mapYearSelector.value]
-    mapSecondarySidebarPopulation.innerHTML = object.properties.population == "NaN" ? "Unknown" : formatInt(object.properties.population)
-    mapSecondarySidebarSVI.innerHTML = object.properties.data.SVI[mapYearSelector.value] == "NaN" ? "Unknown" : d3.format(".0%")(object.properties.data.SVI[mapYearSelector.value])
-    mapSecondarySidebarProportionUninsured.innerHTML = object.properties.data.proportion_uninsured[mapYearSelector.value] == "NaN" ? "Unknown" : d3.format(".0%")(object.properties.data.proportion_uninsured[mapYearSelector.value])
-    mapSecondarySidebarMedianIncome.innerHTML = object.properties.data.median_income[mapYearSelector.value] == "NaN" ? "Unknown" : d3.format("$,")(object.properties.data.median_income[mapYearSelector.value])
+    mapSecondarySidebarHospitalizations.innerHTML = formatZctaData(object.properties.data["hospitalizations"][mapYearSelector.value], d => formatRateData(d, population=object.properties.population))
+    mapSecondarySidebarDeaths.innerHTML = formatZctaData(object.properties.data["deaths"][mapYearSelector.value], d => formatRateData(d, population=object.properties.population))
+    mapSecondarySidebarPopulation.innerHTML = formatZctaData(object.properties.population, formatInt)
+    mapSecondarySidebarSVI.innerHTML = formatZctaData(object.properties.data["SVI"][mapYearSelector.value], d3.format(".0%"))
+    mapSecondarySidebarProportionUninsured.innerHTML = formatZctaData(object.properties.data["proportion_uninsured"][mapYearSelector.value], d3.format(".0%"))
+    mapSecondarySidebarMedianIncome.innerHTML = formatZctaData(object.properties.data["median_income"][mapYearSelector.value], d3.format("$,"))
+}
+
+function formatRateData(value, population) {
+    return `${value} (${d3.format(".2")((value/population)*1000)} per 1000 people)`
+}
+
+function formatZctaData(value, formatter = (d) => d) {
+    if (value == "NaN") {
+        return "Unknown"
+    } else {
+        return formatter(value)
+    }
 }

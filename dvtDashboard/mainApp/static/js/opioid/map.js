@@ -1,6 +1,6 @@
 // const { IconLayer } = require("@deck.gl/layers");
 
-const { DeckGL, GeoJsonLayer, IconLayer } = deck;
+const { DeckGL, GeoJsonLayer, IconLayer, FlyToInterpolator } = deck;
 
 
 // import {MapboxOverlay as DeckOverlay} from '@deck.gl/mapbox';
@@ -56,13 +56,27 @@ function mapSetup() {
     redraw();
 }
 
+function getDataFromFeatures(feature, column, year, rate) {
+    columnData = feature.properties.data[column]
+    if (columnData) {
+        val = +columnData[year]
+        if (rate & ["hospitalizations", "deaths"].includes(column))  {
+            val = (val/feature.properties.population) * 1000
+        } 
+        return val  
+    } else {
+        return undefined
+    }
+      
+}
+
 function redraw(highlightIndex=-1) {
     hIndex = highlightIndex == null ? deckgl.layerManager.layers[0].props.highlightedObjectIndex : highlightIndex
     d3.json(`/data/hospitalizations/opioid`).then(function (zctaData) {
         features = zctaData.features
 
-        var1Data = d3.map(features, d => +d.properties.data[mapVariable1Selector.value][mapYearSelector.value])
-        var2Data = d3.map(features, d => +(d.properties.data[mapVariable2Selector.value] ? d.properties.data[mapVariable2Selector.value][mapYearSelector.value] : undefined))
+        var1Data = d3.map(features, d => getDataFromFeatures(d, mapVariable1Selector.value, mapYearSelector.value, mapRateSwitch.value=="rate"))
+        var2Data = d3.map(features, d => getDataFromFeatures(d, mapVariable2Selector.value, mapYearSelector.value, mapRateSwitch.value=="rate"))
 
         if (mapVariable2Selector.value == "none") {
             univariateColormap = createUnivariateColormap(d3.min(var1Data), d3.max(var1Data))
@@ -116,12 +130,12 @@ function getColor(zcta) {
     // single or bivariate heatmap
     if (mapVariable2Selector.value == "none") {
         colormap = a => b => univariateColormap(a)
-        val1 = +zcta.properties.data[mapVariable1Selector.value][mapYearSelector.value]
+        val1 = getDataFromFeatures(zcta, mapVariable1Selector.value, mapYearSelector.value, mapRateSwitch.value=="rate")
         val2 = null
     } else {
         colormap = bivariateColormap
-        val1 = +zcta.properties.data[mapVariable1Selector.value][mapYearSelector.value]
-        val2 = +zcta.properties.data[mapVariable2Selector.value][mapYearSelector.value]
+        val1 = getDataFromFeatures(zcta, mapVariable1Selector.value, mapYearSelector.value, mapRateSwitch.value=="rate")
+        val2 = getDataFromFeatures(zcta, mapVariable2Selector.value, mapYearSelector.value, mapRateSwitch.value=="rate")
     }
 
     // filter all thresholds, use colormap = (a, b) => unknownColor
@@ -129,7 +143,7 @@ function getColor(zcta) {
         column = threshold[0]
         min = threshold[1][0]
         max = threshold[1][1]
-        val = +zcta.properties.data[column][mapYearSelector.value]
+        val = getDataFromFeatures(zcta, column, mapYearSelector.value, mapRateSwitch.value=="rate")
         if (val < min || val > max) {
             colormap = a => b => unknownColor
         }
@@ -277,7 +291,7 @@ function updateHistogram(column) {
     svgHeight = svgElement.clientHeight
     svgWidth = svgElement.clientWidth
 
-    data = d3.map(features, d => +d.properties.data[column][mapYearSelector.value])
+    data = d3.map(features, d => getDataFromFeatures(d, column, mapYearSelector.value, mapRateSwitch.value=="rate"))
     bins = d3.bin()(data) // if we want, we could change data to a selector of properties
 
     x = d3.scaleLinear().domain([bins[0].x0, bins[bins.length-1].x1]).range([2*em, svgWidth-em])
