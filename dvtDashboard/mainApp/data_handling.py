@@ -142,7 +142,8 @@ def load_mobile_health_clinic_events():
         return data
     
     # read in mobile health clinic data
-    df = pd.read_excel(main_dir+'/static/data/Clemson Rural Health Outreach.xlsx')
+    # df = pd.read_excel(main_dir+'/static/data/Clemson Rural Health Outreach.xlsx')
+    df = pd.read_csv(main_dir+'/static/data/out.csv')
     
     # rename columns
     df.rename({'Timestamp': 'form_entry_time', 'Date of Event': 'event_date', 
@@ -308,3 +309,25 @@ def load_zcta_respiratory_hospitalizations():
 
         with open( main_dir+'/static/data/'+disease+'_zcta_hospitalization_data.json', 'w') as f:
             json.dump(data, f)
+
+
+def concatAllIcons():
+    df = pd.read_csv("All Health Facilities.csv")
+    df = df.rename({"X": "longitude", "Y": "latitude"}, axis=1)
+
+    hospitalMask = df["Permit Type"] == "HL- Hospital or Institutional General Infirmary"
+    cdapIn = df["Permit Type"] == "HL- CDAP Inpatient"
+    cdapOut = df["Permit Type"] == "HL- CDAP Outpatient"
+
+    df = df.loc[hospitalMask | cdapIn | cdapOut]
+    df["type"] = ""
+    df["type"] = ""
+    df.loc[hospitalMask, "type"] = "hospital"
+    df.loc[cdapIn | cdapOut, "type"] = "CDAP"
+
+    df2 = pd.read_csv("all_community_partners.csv")
+    df2["type"] = "community_partner"
+    df3 = pd.read_csv("mobile_health_clinics.csv")
+    df3["type"] = "mobile_health_clinic"
+
+    pd.concat([df, df2, df3]).to_csv("hospital-cdap_mhc_partners.csv")
