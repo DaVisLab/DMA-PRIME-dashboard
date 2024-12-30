@@ -31,7 +31,7 @@ def create_app(development=False, dataDir=None):
 
     # ignores login requirements
     if not development:
-        from . import db
+        from . import database as db
         db.init_app(app)
     
     # ensure the instance folder exists
@@ -49,6 +49,7 @@ def create_app(development=False, dataDir=None):
     
     # landing page, though now respiratory
     @app.route('/')
+    @login_required
     def index():
         return render_template('index.html')
 
@@ -129,24 +130,6 @@ def create_app(development=False, dataDir=None):
             },
         ]
         return render_template('opioid/opioid-base.html', panels=panels)
-    
-    # supposedly should update and restart computer but doesn't seem to. Gets caught on pull?
-    # TODO figure out why this isn't working and fix it
-    @app.route('/update', methods=['POST', 'GET'])
-    def webhook():
-        script = ""+main_dir+"/update.cmd"
-        if(request.is_json):
-            data = request.get_json()
-            if data['ref'] == 'refs/heads/main':
-                subprocess.call(script, shell=True, timeout=3600)
-                subprocess.call(["powershell.exe", "Restart-Computer -Force"], shell=True, timeout=3600)
-        else:
-            subprocess.call(script, shell=True, timeout=3600)
-            subprocess.call(["powershell.exe", "Restart-Computer -Force"], shell=True, timeout=3600)
-            
-            pass
-
-        return '', 200
 
     if development:
         # Simply for my own convenience
