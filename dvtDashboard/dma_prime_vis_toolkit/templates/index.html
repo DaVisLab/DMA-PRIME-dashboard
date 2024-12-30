@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" class="sl-theme-dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
+
+  <title>DMA-PRIME</title>
+
+  <!-- Shoelace -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/dark.css" />
+  <script type="module"
+    src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/shoelace-autoloader.js"></script>
+
+  <style>
+    body {
+      align-items: center;
+      justify-content: center;
+    }
+
+    .subpage {
+      font-family: var(--sl-font-sans);
+      font-size: var(--sl-font-size-3x-large);
+    }
+
+    /* The following is from  https://dev.to/lennythedev/css-gotcha-how-to-fill-page-with-a-div-270j*/
+    /* override browser default */
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    /* use viewport-relative units to cover page fully */
+    body {
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-flow: column;
+    }
+
+    /* include border and padding in element width and height */
+    * {
+      box-sizing: border-box;
+    }
+  </style>
+
+</head>
+
+<body>
+  <p class="subpage"><a href="{{ url_for('mobile_health_clinics') }}">Mobile Health Clinic</a></p>
+  <p class="subpage"><a href="{{ url_for('opioid') }}">Opioid</a></p>
+  <p class="subpage"><a href="{{ url_for('respiratory') }}">Respiratory</a></p>
+</body>
+
+</html>

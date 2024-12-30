@@ -32,3 +32,6 @@ Note: To automatically reload flask applications on changes, run it with the --d
 - Pandas: https://pandas.pydata.org/docs/index.html
 - Numpy: https://numpy.org/doc/stable/index.html
 
+
+update.cmd: 
+ - https://devblogs.microsoft.com/oldnewthing/20120801-00/?p=6993

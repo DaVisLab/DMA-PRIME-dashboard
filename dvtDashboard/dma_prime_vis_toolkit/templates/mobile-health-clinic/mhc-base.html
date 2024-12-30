@@ -1,0 +1,63 @@
+{% extends "subtemplates/base.html" %}
+{% block title %}DMA-PRIME{% endblock %}
+{% block style %}
+<!-- Linking stylesheets -->
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}" />
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/health-partners/map-style.css') }}" />
+{% endblock %}
+
+{% block headScripts %}
+<!-- maplibre gl -->
+<link rel='stylesheet' href='https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css' />
+<script src='https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'></script>
+
+<!-- deck gl -->
+<script src="https://unpkg.com/deck.gl@latest/dist.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
+
+<script>
+    // Ensuring the timejs additional plugins are linked
+    dayjs.extend(window.dayjs_plugin_utc)
+    dayjs.extend(window.dayjs_plugin_timezone)
+    dayjs.extend(window.dayjs_plugin_customParseFormat)
+    dayjs.tz.setDefault("America/New_York")
+    currentDate = dayjs.tz().startOf("d")
+    // dateCutoff = currentDate.startOf("month")
+    dateCutoff = currentDate.subtract(7, "d")
+</script>
+
+{% endblock %}
+
+{% block linkout %}
+<!-- Link to prediction modelling/model exploration page -->
+<!-- <sl-button slot="nav" id="prediction-modelling-button-link" href="{ url_for('modelExploration') }}" target="_blank"
+    variant="text">Prediction Modelling <sl-icon name="box-arrow-up-right"></sl-icon></sl-button> -->
+{% endblock %}
+
+{% block bodyScripts %}
+
+<script type="module">
+    await Promise.allSettled([ // wait for following to be defined/load in
+        customElements.whenDefined('sl-checkbox'),
+        customElements.whenDefined('sl-select'),
+        customElements.whenDefined('sl-tab-group'),
+
+        // customElements.whenDefined('sl-button'),
+        // customElements.whenDefined('sl-icon'),
+        // customElements.whenDefined('sl-icon-button'),
+        // customElements.whenDefined('sl-option'),
+        // customElements.whenDefined('sl-radio'),
+        // customElements.whenDefined('sl-radio-group'),
+        // customElements.whenDefined('sl-resize-observer'),
+        // customElements.whenDefined('sl-split-panel'),
+        // customElements.whenDefined('sl-switch'),
+        // customElements.whenDefined('sl-tab'),
+    ])
+
+</script>
+
+{% endblock %}

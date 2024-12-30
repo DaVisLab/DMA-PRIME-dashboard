@@ -2,11 +2,20 @@
 # $ pip install -r requirements.txt
 # platform: win-64
 
+waitress
 flask < 2.4
 flask-bcrypt
-pandas
-numpy
+
 mysqlclient
-geojson
-requests
+
+pandas
 openpyxl
+numpy
+geojson
+
+requests
+
+google-api-python-client
+google-auth
+google-auth-oauthlib
+google-auth-httplib2

@@ -1,0 +1,30 @@
+{
+	"community_partner": {
+		"x": 508,
+		"y": 0,
+		"width": 539,
+		"height": 500,
+		"mask": false
+	},
+	"hospital": {
+		"x": 1047,
+		"y": 0,
+		"width": 512,
+		"height": 512,
+		"mask": false
+	},
+	"mobile_health_clinic": {
+		"x": 0,
+		"y": 512,
+		"width": 511,
+		"height": 341,
+		"mask": false
+	},
+	"CDAP": {
+		"x": 0,
+		"y": 0,
+		"width": 508,
+		"height": 512,
+		"mask": false
+	}
+}

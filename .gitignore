@@ -1,5 +1,8 @@
 .vscode/
 .venv/
 **/__pycache__/
-dvtDashboard/mainApp/static/data/*zcta_hospitalization_data.json
-dvtDashboard/mainApp/logs.log
+dvtDashboard/dma_prime_vis_toolkit/logs.log
+resources/GeoJSON/tl_2024_us_county.zip
+resources/GeoJSON/tl_2024_us_zcta520.zip
+
+.npmrc
