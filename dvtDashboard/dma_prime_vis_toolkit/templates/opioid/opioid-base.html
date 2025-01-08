@@ -29,7 +29,7 @@
 {% block bodyScripts %}
 
 <script type="module">
-
+    import { redraw } from "/static/js/opioid/map.js"
     await Promise.allSettled([ // wait for following to be defined/load in
         customElements.whenDefined('sl-select'),
         customElements.whenDefined('sl-option'),
@@ -47,8 +47,7 @@
         // customElements.whenDefined('sl-switch'),
         // customElements.whenDefined('sl-tab'),
     ])
-    
-    redraw(true)
+    redraw(true)    
 
 </script>
 

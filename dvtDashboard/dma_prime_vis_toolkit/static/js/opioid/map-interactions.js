@@ -1,14 +1,11 @@
+import { map, deckOverlay, brushes, thresholds, xScales, selectedZCTA, zctaFeatures, redraw, updateHistogram, mobileClinicClick } from "/static/js/opioid/map.js"
 
 mapResetButton.addEventListener("click", () => {
     // reset map zoom and center
-    deckgl.setProps({
-        initialViewState: {
-            longitude: -80.75,
-            latitude: 33.8,
-            zoom: 7,
-            transitionInterpolator: new FlyToInterpolator({speed: 2}),
-            transitionDuration: 'auto'
-          },
+    map.flyTo({
+        center: [-81, 33.65],
+        zoom: 7,
+        essential: true // this animation is considered essential with respect to prefers-reduced-motion
     })
     
 })
@@ -52,8 +49,8 @@ mapYearSelector.addEventListener("sl-change", function(event) {
     } 
     updateHistogram("hospitalizations")
     updateHistogram("deaths")
-    if (selectedZCTA) {
-        mobileClinicClick(selectedZCTA)
+    if (selectedZCTA.zcta) {
+        mobileClinicClick(selectedZCTA.zcta)
     }
     redraw()
 })
@@ -69,7 +66,7 @@ mapVariable2Selector.addEventListener("sl-change", function(event) {
 })
 
 mapZctaCountySearch.addEventListener("sl-change", function(event) {
-    zctaValue = parseInt(mapZctaCountySearch.value)
+    var zctaValue = parseInt(mapZctaCountySearch.value)
 
     if (zctaValue) {
         mobileClinicClick(zctaFeatures.find(d => zctaValue == d.properties.ZCTA))
@@ -77,7 +74,7 @@ mapZctaCountySearch.addEventListener("sl-change", function(event) {
     } else {
 
     }
-    searchValue = mapZctaCountySearch.value
+    var searchValue = mapZctaCountySearch.value
 })
 
 mapZctaCountySearch.addEventListener("sl-clear", function(event) {
@@ -128,41 +125,8 @@ communityPartnerIconsToggle.addEventListener("sl-change", () => {
 
 // zcta details panel
 mapSecondarySidebarClose.addEventListener("sl-focus", function(event) {
+    selectedZCTA.zcta = undefined
     mapAndMinorSidebar.setAttribute("position", 100)
     mobileClinicInfoPanel.removeAttribute("active")
-    selectedZCTA = undefined
     redraw()
 })
-
-function mobileClinicClick(object) {
-    if (object === undefined) {
-        return
-    }
-    selectedZCTA = object
-    
-    mapAndMinorSidebar.setAttribute("position", 80)
-    mobileClinicInfoPanel.setAttribute("active", "")
-
-    mapSecondarySidebarZctaName.innerHTML = `ZCTA: ${object.properties.ZCTA}`
-    mapSecondarySidebarZctaCounty.innerHTML = `County: ${object.properties.county == "NaN" ? "Unknown" : capitalizeFirst(object.properties.county)}`
-    mapSecondarySidebarHospitalizations.innerHTML = formatZctaData(object.properties.data["hospitalizations"][mapYearSelector.value], d => formatRateData(d, population=object.properties.population))
-    mapSecondarySidebarDeaths.innerHTML = formatZctaData(object.properties.data["deaths"][mapYearSelector.value], d => formatRateData(d, population=object.properties.population))
-    mapSecondarySidebarPopulation.innerHTML = formatZctaData(object.properties.population, formatInt)
-    mapSecondarySidebarSVI.innerHTML = formatZctaData(object.properties.data["SVI"][mapYearSelector.value], d3.format(".0%"))
-    mapSecondarySidebarProportionUninsured.innerHTML = formatZctaData(object.properties.data["proportion_uninsured"][mapYearSelector.value], d3.format(".0%"))
-    mapSecondarySidebarMedianIncome.innerHTML = formatZctaData(object.properties.data["median_income"][mapYearSelector.value], d3.format("$,"))
-    
-    dataVersion++
-}
-
-function formatRateData(value, population) {
-    return `${value} (${d3.format(".2")((value/population)*1000)} per 1000 people)`
-}
-
-function formatZctaData(value, formatter = (d) => d) {
-    if (value == "NaN") {
-        return "Unknown"
-    } else {
-        return formatter(value)
-    }
-}

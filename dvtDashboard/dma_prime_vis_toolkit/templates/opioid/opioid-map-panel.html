@@ -106,15 +106,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-    zctaData = undefined
-    zctaFeatures = undefined
-    countyFeatures = undefined
-    
-    selectedZCTA = undefined
-    selectedCounty = undefined
-    searchValue = undefined
-    
+<script>    
     mapResetButton = document.getElementById("map-reset-button")
 
     mapRateSwitch = document.getElementById("map-rate-switch")
@@ -147,27 +139,15 @@
     mapSecondarySidebarProportionUninsured = document.getElementById("map-secondary-sidebar-proportion-uninsured")
     mapSecondarySidebarMedianIncome = document.getElementById("map-secondary-sidebar-median-income")
 
-    brushes = {}
-    thresholds = {}
-    xScales = {}
-
     mapDiv = document.getElementById("map-div")
 
     choroplethLegendSVG = document.getElementById("choropleth-legend-svg")
-
-    variableOptions = {
-        "hospitalizations": {"displayName": "Hospitalizations"},
-        "deaths": {"displayName": "Deaths"},
-        "SVI": {"displayName": "Social Vulnerability Index"},
-        "proportion_uninsured": {"displayName": "Proportion Uninsured"},
-        "median_income": {"displayName": "Median Income"},
-    }
 
     set{{panel.name}}Panel()
 </script>
 
 <script src="{{ url_for('static', filename='js/opioid/script.js') }}"></script>
-<script src="{{ url_for('static', filename='js/opioid/map.js') }}"></script>
-<script src="{{ url_for('static', filename='js/opioid/map-interactions.js') }}"></script>
+<script src="{{ url_for('static', filename='js/opioid/map.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/opioid/map-interactions.js') }}" type="module"></script>
 
 {% endblock %}

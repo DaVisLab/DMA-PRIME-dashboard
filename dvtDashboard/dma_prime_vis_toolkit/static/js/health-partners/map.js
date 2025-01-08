@@ -35,7 +35,6 @@ function redraw(highlightIndex=-1) {
             console.log(data[index].event_date, "was not able to be parsed")
           }  
         })
-        console.log(data)
         return data
       }),
       iconAtlas: '/data/icon-pack/png',

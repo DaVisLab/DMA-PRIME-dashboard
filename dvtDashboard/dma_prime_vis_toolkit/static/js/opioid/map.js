@@ -1,54 +1,58 @@
 // const { IconLayer } = require("@deck.gl/layers");
 
-const { DeckGL, GeoJsonLayer, IconLayer, FlyToInterpolator } = deck;
+const { GeoJsonLayer, IconLayer, MapboxOverlay } = deck;
 
+export { map, deckOverlay, brushes, thresholds, xScales, selectedZCTA, zctaFeatures, redraw, updateHistogram, mobileClinicClick }
 
-// import {MapboxOverlay as DeckOverlay} from '@deck.gl/mapbox';
-// import {GeoJsonLayer} from '@deck.gl/layers';
-// import maplibregl from 'maplibre-gl';
-// import 'maplibre-gl/dist/maplibre-gl.css';
+var brushes = {}
+var thresholds = {}
+var xScales = {}
 
-// const map = new maplibregl.Map({
-//     container: "map-div",
-//     style: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json',
-//     center: [-80.75, 33.8],
-//     zoom: 7,
-// })
+const variableOptions = {
+    "hospitalizations": {"displayName": "Hospitalizations"},
+    "deaths": {"displayName": "Deaths"},
+    "SVI": {"displayName": "Social Vulnerability Index"},
+    "proportion_uninsured": {"displayName": "Proportion Uninsured"},
+    "median_income": {"displayName": "Median Income"},
+}
 
-// const deckOverlay = new DeckOverlay({
+var zctaData = await d3.json(`/data/hospitalizations/opioid`)
+var zctaFeatures = undefined
+var countyFeatures = undefined
 
-// })
+let selectedZCTA = {
+    zcta: undefined,
+    index: -1
+}
+var selectedCounty = undefined
+var searchValue = undefined
 
-// map.addControl(deckOverlay)
-// map.addControl(new maplibregl.NavigationControl())
+const map = new maplibregl.Map({
+    container: "map-div",
+    style: "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json",
+    center: [-81, 33.65],
+    zoom: 7
+})
 
-const deckgl = new DeckGL({
-    container: document.getElementById("map-div"),
-    mapStyle: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json',
-    initialViewState: {
-        longitude: -80.75,
-        latitude: 33.8,
-        zoom: 7
-    },
-    controller: true,
-    pickingRadius: 10,
-});
+await map.once('load')
 
-// deckgl.addWidget(new D3Anchor({
-//     "id": "choropleth-legend",
-//     "placement": "bottom-left",
-//     "divId": "help"
-// }));
+const deckOverlay = new MapboxOverlay({
+    interleaved: false,
+})
 
-// function mapSetup() {
-//     redraw();
-    
-// }
+map.addControl(deckOverlay)
+map.addControl(new maplibregl.NavigationControl())
+
+await Promise.allSettled([ // wait for following to be defined/load in
+    customElements.whenDefined('sl-select'),
+    customElements.whenDefined('sl-option'),
+    customElements.whenDefined('sl-button'),
+])
 
 function getDataFromFeatures(feature, column, year, rate) {
-    columnData = feature.properties.data[column]
+    var columnData = feature.properties.data[column]
     if (columnData) {
-        val = +columnData[year]
+        var val = +columnData[year]
         if (rate & ["hospitalizations", "deaths"].includes(column))  {
             val = (val/feature.properties.population) * 1000
         } 
@@ -60,33 +64,26 @@ function getDataFromFeatures(feature, column, year, rate) {
 }
 
 function redraw(first=false) {
-    deckgl.setProps({
+    deckOverlay.setProps({
         layers: [
             new GeoJsonLayer({
                 id: 'opioid_choropleth',
                 depthTest: false,
                 data: d3.json(`/data/hospitalizations/opioid`),
-                onDataLoad: (data, context) => {
+                onDataLoad: (data, context) => {          
                     zctaData = data
                     zctaFeatures = data.features
-
-                    if (selectedZCTA) {
-                        currIndex = zctaFeatures.findIndex(d => {return selectedZCTA === d})
+                                        
+                    if (selectedZCTA.zcta) {
+                        zctaFeatures = zctaData.features
+                        zctaFeatures.push(selectedZCTA.zcta)
+                        var currIndex = zctaFeatures.findIndex(d => {return selectedZCTA.zcta.properties.ZCTA == d.properties.ZCTA})
                         zctaFeatures.splice(currIndex, 1)
-                        zctaFeatures.push(selectedZCTA)
-                    }
-
-                    var1Data = d3.map(zctaFeatures, d => getDataFromFeatures(d, mapVariable1Selector.value, mapYearSelector.value, mapRateSwitch.value=="rate"))
-                    var2Data = d3.map(zctaFeatures, d => getDataFromFeatures(d, mapVariable2Selector.value, mapYearSelector.value, mapRateSwitch.value=="rate"))
-
-                    if (mapVariable2Selector.value == "none") {
-                        univariateColormap = createUnivariateColormap(d3.min(var1Data), d3.max(var1Data))
+                        selectedZCTA.index = zctaFeatures.length - 1
                     } else {
-                        bivariateColormap = createBivariateColormap(d3.min(var1Data), d3.max(var1Data), d3.min(var2Data), d3.max(var2Data))
+                        selectedZCTA.index = -1
                     }
-
-                    drawLegend(d3.min(var1Data), d3.max(var1Data), d3.min(var2Data), d3.max(var2Data))
-
+                    drawLegend()
                     if (first == true) {
                         d3.select(mapVariable1Selector).selectAll("sl-option")
                         .each(function(el) {
@@ -96,23 +93,27 @@ function redraw(first=false) {
                                 .attr("class", "map-histogram-filter")
                             updateHistogram(column)
                         })
+                        first = false
                     }
+
                 },
                 stroked: true,
                 filled: true,
                 pointType: 'circle+text',
                 pickable: true,
-                onClick: function(info, event) {mobileClinicClick(info.object); redraw(info.index);},
+                onClick: function(info, event) {mobileClinicClick(info.object); redraw();},
                 getFillColor: d => getColor(d),
                 highlightColor: [255, 255, 255, 0],
                 lineWidthMinPixels: .5,
-                getLineWidth: (d, i) => {return 20 * ( d == selectedZCTA ? 50 :1)},
-                getLineColor: (d, i) => {return d === selectedZCTA ? [255, 255, 255] : [0, 0, 0]},
+                getLineWidth: (d, i) => {return 20 * (d == selectedZCTA.zcta ? 50 :1)},
+                getLineColor: (d, i) => {return d == selectedZCTA.zcta ? [255, 255, 255] : [0, 0, 0]},
                 getPointRadius: 4,
                 getTextSize: 12,
                 updateTriggers: {
+                    data: { dataVersion },
                     getFillColor: { dataVersion },
-                    getLineColor: { dataVersion }
+                    getLineWidth: selectedZCTA["zcta"],
+                    getLineColor: selectedZCTA["zcta"],
                 },
             }),
             new IconLayer({
@@ -134,6 +135,7 @@ function redraw(first=false) {
 
 function getColor(zcta) {
     // single or bivariate heatmap
+    var colormap, val1, val2
     if (mapVariable2Selector.value == "none") {
         colormap = a => b => univariateColormap(a)
         val1 = getDataFromFeatures(zcta, mapVariable1Selector.value, mapYearSelector.value, mapRateSwitch.value=="rate")
@@ -155,7 +157,7 @@ function getColor(zcta) {
         }
     })
 
-    c = d3.rgb(colormap(val1)(val2))
+    var c = d3.rgb(colormap(val1)(val2))
     if (c.toString() == unknownColor.toString()) {
         // ciccio opacity for greyed out zcta
         c.opacity = 0.5
@@ -164,17 +166,31 @@ function getColor(zcta) {
     return [c.r, c.g, c.b, c.opacity*255]
 }
 
-function drawLegend(primaryMin = 0, primaryMax = 3, secondaryMin = 0, secondaryMax = 3) {
+function drawLegend() {
+    var var1Data = d3.map(zctaFeatures, d => getDataFromFeatures(d, mapVariable1Selector.value, mapYearSelector.value, mapRateSwitch.value=="rate"))
+    var var2Data = d3.map(zctaFeatures, d => getDataFromFeatures(d, mapVariable2Selector.value, mapYearSelector.value, mapRateSwitch.value=="rate"))
+
+    primaryMin = d3.min(var1Data)
+    primaryMax = d3.max(var1Data)
+    secondaryMin = d3.min(var2Data)
+    secondaryMax = d3.max(var2Data)
+
+    if (mapVariable2Selector.value == "none") {
+        univariateColormap = createUnivariateColormap(primaryMin, primaryMax)
+    } else {
+        bivariateColormap = createBivariateColormap(primaryMin, primaryMax, secondaryMin, secondaryMax)
+    }
+
     choroplethLegendSVG.innerHTML = ""
-    legend = d3.select(choroplethLegendSVG)
+    var legend = d3.select(choroplethLegendSVG)
         .attr("overflow", "visible")
 
     if (mapVariable2Selector.value == "none") {
         legend.attr("transform", `translate(40, 0)`)
             .attr("width", 450)
             .attr("height", 50)
-        legDefs = legend.append("defs")
-        linearGradient = legDefs.append("linearGradient")
+        var legDefs = legend.append("defs")
+        var linearGradient = legDefs.append("linearGradient")
             .attr("id", "linear-gradient")
             .attr("x1", "0%")
             .attr("y1", "0%")
@@ -195,7 +211,7 @@ function drawLegend(primaryMin = 0, primaryMax = 3, secondaryMin = 0, secondaryM
             .attr("width", 450)
             .attr("height", 15)
 
-        xAxis = legend.append("g")
+        var xAxis = legend.append("g")
             .attr("transform", "translate(0,15)")
             .call(d3.axisBottom(d3.scaleLinear().domain(d3.extent(univariateColormap.domain())).range([0, 450])))
 
@@ -204,9 +220,9 @@ function drawLegend(primaryMin = 0, primaryMax = 3, secondaryMin = 0, secondaryM
             .attr("height", 100)
             .attr("transform", `translate(40,-40) rotate(0) scale(1 -1)`)
 
-        for (i = 0; i < 3; i++) {
-            for (j = 0; j < 3; j++) {
-                rect = legend.append('rect')
+        for (var i = 0; i < 3; i++) {
+            for (var j = 0; j < 3; j++) {
+                var rect = legend.append('rect')
                     .attr("id", `#r${i}${j}`)
                     .attr("fill", bivariateColormap(primaryMin + (primaryMax-primaryMin)*(i+.1)/3)(secondaryMin + (secondaryMax-secondaryMin)*(j+.1)/3))
                     .attr("height", 25)
@@ -216,7 +232,7 @@ function drawLegend(primaryMin = 0, primaryMax = 3, secondaryMin = 0, secondaryM
             }
         }
     
-        legendCountAxis = legend.append("g")
+        var legendCountAxis = legend.append("g")
             .attr("id", "legend-count-axis")
         legendCountAxis.append("line")
             .attr("x1", 0)
@@ -290,22 +306,22 @@ function drawLegend(primaryMin = 0, primaryMax = 3, secondaryMin = 0, secondaryM
 }
 
 function updateHistogram(column) {
-    svgElement = document.getElementById(`map-${column}-filter`)
+    var svgElement = document.getElementById(`map-${column}-filter`)
     svgElement.innerHTML = ""
-    svg = d3.select(svgElement)
+    var svg = d3.select(svgElement)
     
-    svgHeight = svgElement.clientHeight
-    svgWidth = svgElement.clientWidth
+    var svgHeight = svgElement.clientHeight
+    var svgWidth = svgElement.clientWidth
 
-    data = d3.map(zctaFeatures, d => getDataFromFeatures(d, column, mapYearSelector.value, mapRateSwitch.value=="rate"))
-    bins = d3.bin()(data) // if we want, we could change data to a selector of properties
+    var data = d3.map(zctaFeatures, d => getDataFromFeatures(d, column, mapYearSelector.value, mapRateSwitch.value=="rate"))
+    var bins = d3.bin()(data) // if we want, we could change data to a selector of properties
 
-    x = d3.scaleLinear().domain([bins[0].x0, bins[bins.length-1].x1]).range([2*em, svgWidth-em])
-    y = d3.scaleLinear().domain([0, d3.max(bins, d => d.length)]).range([svgHeight-2*em, em])
+    var x = d3.scaleLinear().domain([bins[0].x0, bins[bins.length-1].x1]).range([2*em, svgWidth-em])
+    var y = d3.scaleLinear().domain([0, d3.max(bins, d => d.length)]).range([svgHeight-2*em, em])
 
     xScales[column] = x
 
-    histogram = svg.append("g")
+    var histogram = svg.append("g")
         .attr("id", "map-histogram")
         .attr("fill", unknownColor)
         .selectAll()
@@ -316,9 +332,9 @@ function updateHistogram(column) {
         .attr("width", d => x(d.x1)-x(d.x0)-1)
         .attr("height", d => y(0)-y(d.length))
 
-    bottomTicks = x.domain()[1] < 1000 ? 6 : x.domain()[1] < 10000 ? 5 : 4
+    var bottomTicks = x.domain()[1] < 1000 ? 6 : x.domain()[1] < 10000 ? 5 : 4
 
-    xAxis = svg.append("g")
+    var xAxis = svg.append("g")
         .attr("transform", `translate(0,${svgHeight-2*em})`)
         .call(d3.axisBottom(x).ticks(bottomTicks).tickSizeOuter(0))
         .call((g) => g.append("text")
@@ -328,7 +344,7 @@ function updateHistogram(column) {
                         .attr("text-anchor", "middle")
                         .text(variableOptions[column]["displayName"]))
 
-    yAxis = svg.append("g")
+    var yAxis = svg.append("g")
         .attr("transform", `translate(${2*em}, 0)`)
         .call(d3.axisLeft(y).ticks(4))
 
@@ -342,14 +358,14 @@ function updateHistogram(column) {
         .attr("y", .75*em)
         .attr("text-anchor", "middle")
 
-    brush = d3.brushX().extent([[x.range()[0], y.range()[1]],[x.range()[1], y.range()[0]]]).on("end", function(d, event) { 
+    var brush = d3.brushX().extent([[x.range()[0], y.range()[1]],[x.range()[1], y.range()[0]]]).on("end", function(d, event) { 
         if (d.selection && d.mode) {
-            x = xScales[column]
+            var x = xScales[column]
 
-            lowerVal = Math.floor(x.invert(d.selection[0])*100)/100
-            higherVal = Math.ceil(x.invert(d.selection[1])*100)/100
-            lowerX = x(lowerVal)
-            higherX = x(higherVal)
+            var lowerVal = Math.floor(x.invert(d.selection[0])*100)/100
+            var higherVal = Math.ceil(x.invert(d.selection[1])*100)/100
+            var lowerX = x(lowerVal)
+            var higherX = x(higherVal)
 
             brushes[column].move(d3.select(`#map-${column}-filter-brush`), [lowerX, higherX])
 
@@ -367,4 +383,37 @@ function updateHistogram(column) {
     svg.append("g").attr("id", `map-${column}-filter-brush`).call(brush)
 
     brushes[column] = brush
+}
+
+function mobileClinicClick(object) {
+    if (object === undefined) {
+        return
+    }
+    selectedZCTA.zcta = object
+    
+    mapAndMinorSidebar.setAttribute("position", 80)
+    mobileClinicInfoPanel.setAttribute("active", "")
+
+    mapSecondarySidebarZctaName.innerHTML = `ZCTA: ${object.properties.ZCTA}`
+    mapSecondarySidebarZctaCounty.innerHTML = `County: ${object.properties.county == "NaN" ? "Unknown" : capitalizeFirst(object.properties.county)}`
+    mapSecondarySidebarHospitalizations.innerHTML = formatZctaData(object.properties.data["hospitalizations"][mapYearSelector.value], d => formatRateData(d, object.properties.population))
+    mapSecondarySidebarDeaths.innerHTML = formatZctaData(object.properties.data["deaths"][mapYearSelector.value], d => formatRateData(d, object.properties.population))
+    mapSecondarySidebarPopulation.innerHTML = formatZctaData(object.properties.population, formatInt)
+    mapSecondarySidebarSVI.innerHTML = formatZctaData(object.properties.data["SVI"][mapYearSelector.value], d3.format(".0%"))
+    mapSecondarySidebarProportionUninsured.innerHTML = formatZctaData(object.properties.data["proportion_uninsured"][mapYearSelector.value], d3.format(".0%"))
+    mapSecondarySidebarMedianIncome.innerHTML = formatZctaData(object.properties.data["median_income"][mapYearSelector.value], d3.format("$,"))
+    
+    dataVersion++
+}
+
+function formatRateData(value, population) {
+    return `${value} (${d3.format(".2")((value/population)*1000)} per 1000 people)`
+}
+
+function formatZctaData(value, formatter = (d) => d) {
+    if (value == "NaN") {
+        return "Unknown"
+    } else {
+        return formatter(value)
+    }
 }
