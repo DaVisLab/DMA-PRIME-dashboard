@@ -1,7 +1,7 @@
 [project]
 name = "dma_prime_vis_toolkit"
-version = "1.4.2"
-description = "DMA-PRIME Jan 2025"
+version = "1.4.2b"
+description = "DMA-PRIME Jan 15, 2025 showcase "
 dependencies = [
     "waitress",
     "flask<2.4",
