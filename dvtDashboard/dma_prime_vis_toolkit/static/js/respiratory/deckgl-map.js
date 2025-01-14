@@ -1,23 +1,14 @@
-const { GeoJsonLayer, IconLayer, MapboxOverlay } = deck;
+const { GeoJsonLayer, IconLayer, MapboxOverlay, Widget } = deck;
 
-// export { map, deckOverlay, brushes, thresholds, xScales, selectedZCTA, selectedCounty, zctaFeatures, countyData, redraw, updateHistogram, mobileClinicClick }
+export { map, deckOverlay, zctaData, redraw }
 
 var zctaData = await d3.json(`/data/deckgl-respiratory`)
 var zctaFeatures = undefined
-var countyData = await d3.json(`/data/map/county`)
 
 var choroplethColorMap = d3.scaleLinear()
     .domain([0, 1])
     .range(["white", dataSourceColorMap["state-data"]])
     .unknown("var(--sl-color-gray-600)").nice()
-
-
-let selectedZCTA = {
-    zcta: undefined,
-}
-let selectedCounty = {
-    county: undefined,
-}
 
 const map = new maplibregl.Map({
     container: "map-div",
@@ -32,6 +23,8 @@ const deckOverlay = new MapboxOverlay({
     interleaved: false,
 })
 
+deckOverlay.addWidget(new D3Anchor({}))
+
 map.addControl(deckOverlay)
 map.addControl(new maplibregl.NavigationControl())
 
@@ -43,22 +36,8 @@ await Promise.allSettled([ // wait for following to be defined/load in
 
 redraw()
 
-
-function getDataFromFeatures(feature, column, year, rate) {
-    var columnData = feature.properties.data[column]
-    if (columnData) {
-        var val = +columnData[year]
-        if (rate & ["hospitalizations", "deaths"].includes(column))  {
-            val = (val/feature.properties.population) * 1000
-        } 
-        return val  
-    } else {
-        return undefined
-    }
-      
-}
-
 function redraw(first=false) {
+    console.log("redraw")
     deckOverlay.setProps({
         layers: [
             new GeoJsonLayer({
@@ -69,7 +48,7 @@ function redraw(first=false) {
                     console.log(data)
 
                     createChoropleth(data, mapDiseaseSelector.value, mapDataSourceSelector.value, mapRateSwitch.value == "rate", mapIncludeImputations.checked)
-                    // zctaData = data
+                    zctaData = data
                     // zctaFeatures = data.features
                                         
                     // if (selectedZCTA.zcta) {
@@ -184,3 +163,4 @@ function createChoropleth(data, disease, dataSource, rate, imputations=True) {
         .unknown("var(--sl-color-gray-600)").nice()
 
 }
+

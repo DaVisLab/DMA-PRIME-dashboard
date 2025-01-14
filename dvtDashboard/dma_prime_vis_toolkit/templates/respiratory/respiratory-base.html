@@ -75,7 +75,7 @@
     diseases.forEach((disease) => dataFetching.push(getZCTAData(disease)))
 
     await Promise.all(dataFetching)
-    mapInitialVisualization()
+    // mapInitialVisualization()
     gridInitialVisualization() 
     gridContainerResizer.addEventListener("sl-resize", () => {
         updateGridData()
