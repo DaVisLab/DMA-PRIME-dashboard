@@ -1,9 +1,14 @@
 const { GeoJsonLayer, IconLayer, MapboxOverlay, Widget } = deck;
 
-export { map, deckOverlay, zctaData, redraw }
+export { zctaData, selectedItems, map, deckOverlay, popup, redraw, drawTooltip, drawAggregation }
 
 var zctaData = await d3.json(`/data/state-disease-data`)
 var zctaFeatures = undefined
+
+var selectedItems = {
+    "zcta": undefined,
+    "diseases": mapDiseaseSelector.value
+}
 
 var choroplethColorMap = d3.scaleLinear()
     .domain([0, 1])
@@ -19,50 +24,10 @@ const map = new maplibregl.Map({
 
 await map.once('load')
 
-var popup = new maplibregl.Popup()
+var popup = new maplibregl.Popup({focusAfterOpen: false, closeOnClick: false})
 
 const deckOverlay = new MapboxOverlay({
     interleaved: true,
-})
-
-map.on("click", e => {
-    var temp = {x: e.point.x, y: e.point.y}
-    var dataObject = deckOverlay.pickObject(temp).object
-    
-    var coordinates = [dataObject.properties.INTPTLON, dataObject.properties.INTPTLAT]
-    popup.setLngLat(coordinates)
-        .setHTML("<div id='map-tooltip-div' class='tooltip-div'></div>")
-
-    popup.addTo(map)
-    popup.setMaxWidth(`${mapDiv.clientWidth}px`)
-
-    var ttpDiv = d3.select("#map-tooltip-div")
-
-    ttpDiv.style("display", "initial")
-    ttpDiv.style("border-style", "none")
-        
-    var ttpTitle = ttpDiv.append("p")
-        .attr("class", "tooltip-title")
-    ttpTitle.append("span")
-        .attr("class", "tooltip-title")
-    ttpTitle.append("br")
-    ttpTitle.append("span")
-        .attr("class", "tooltip-subtitle")
-
-    ttpDiv.append("svg")
-        .attr("id", `map-tooltip-svg`)
-        .attr("class", `tooltip-outer-svg`)
-
-    var tooltipData = dataObject.properties.data[mapDiseaseSelector.value]
-    tooltipData["zcta"] = dataObject.properties.ZCTA
-    tooltipData["county"] = dataObject.properties.county
-    tooltipData["population"] = dataObject.properties.population
-
-    var width = mapDiv.clientWidth
-    var mapTooltipWidth = Math.max(500, width * .3)
-    var mapTooltipHeight = mapTooltipWidth * .65
-    drawTooltip(tooltipData, ttpDiv, mapTooltipHeight, mapTooltipWidth, gridRateSwitch.value == "rate")
-
 })
 
 map.addControl(deckOverlay)
@@ -72,13 +37,42 @@ await Promise.allSettled([ // wait for following to be defined/load in
     customElements.whenDefined('sl-select'),
     customElements.whenDefined('sl-option'),
     customElements.whenDefined('sl-button'),
+])
+
+var styleSheet = new CSSStyleSheet()
+styleSheet.insertRule(`
+    .maplibregl-popup-content {
+        /* tooltip's containing div */
+        background-color: hsla(${getComputedStyle(document.head).getPropertyValue("--sl-color-neutral-0").replace("hsl(", "").replace(")", "")}, 0.925);
+    }`
+    ,0)   
+
+addEventListener("keydown", (event) => {
+if (event.key == "m") {
+    function waitForChange() {
+        if(changed != true) {
+            window.setTimeout(waitForChange, 10);
+        } else {
+            styleSheet.deleteRule(0)
+            styleSheet.insertRule(`
+                .maplibregl-popup-content {
+                    /* tooltip's containing div */
+                    background-color: hsla(${getComputedStyle(document.head).getPropertyValue("--sl-color-neutral-0").replace("hsl(", "").replace(")", "")}, 0.925);
+                }`
+                ,0)
+            changed = false
+        }
+    }
+    waitForChange()
+}
+});
+
+document.adoptedStyleSheets = [styleSheet]
+drawAggregation()
 
 redraw(true)
 
-])
-
 function redraw(first=false) {
-    console.log("redraw")
     deckOverlay.setProps({
         layers: [
             new GeoJsonLayer({
@@ -87,10 +81,9 @@ function redraw(first=false) {
                 pickable: true,
                 data: d3.json(`/data/state-disease-data`),
                 onDataLoad: (data, context) => {   
-                    console.log(data)
-
                     createChoropleth(data, mapDiseaseSelector.value, mapRateSwitch.value == "rate")
                     zctaData = data
+                    drawLegend()
                 },
                 stroked: true,
                 filled: true,
@@ -180,3 +173,92 @@ function createChoropleth(data, disease, rate) {
 
 }
 
+function drawLegend() {
+    choroplethLegendSVG.innerHTML = ""
+    var legend = d3.select(choroplethLegendSVG)
+        .attr("overflow", "visible")
+
+    legend.attr("transform", `translate(40, 0)`)
+        .attr("width", 450)
+        .attr("height", 50)
+    var legDefs = legend.append("defs")
+    var linearGradient = legDefs.append("linearGradient")
+        .attr("id", "linear-gradient")
+        .attr("x1", "0%")
+        .attr("y1", "0%")
+        .attr("x2", "100%")
+        .attr("y2", "0%")
+    linearGradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", "white")
+    linearGradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", "maroon")
+
+    legend.append("rect")
+        .style("fill", "url(#linear-gradient)")
+        .attr("width", 450)
+        .attr("height", 15)
+
+    var xAxis = legend.append("g")
+        .attr("transform", "translate(0,15)")
+        .call(d3.axisBottom(d3.scaleLinear().domain(d3.extent(choroplethColorMap.domain())).range([0, 450])))
+
+}
+
+function drawTooltip(dataObject) {
+    // draw in tooltip
+    var ttpWidth = Math.max(400, mapDiv.clientWidth * .25)
+    var ttpHeight = ttpWidth * .35
+
+    var ttpDiv = d3.select("#map-tooltip-div")
+
+    ttpDiv.style("display", "initial")
+    ttpDiv.style("border-style", "none")
+    ttpDiv.html("")
+        
+    var ttpTitle = ttpDiv.append("p")
+        .attr("class", "tooltip-title")
+    ttpTitle.append("span")
+        .attr("class", "tooltip-title")
+        .html(`ZCTA: ${dataObject.properties.ZCTA}`)
+        ttpTitle.append("br")
+    ttpTitle.append("span")
+        .attr("class", "tooltip-subtitle")
+        .html(`County: ${dataObject.properties.county[0].toUpperCase()+dataObject.properties.county.substring(1)}`)
+
+    if (dataObject.properties.data[mapDiseaseSelector.value].data.length < 1) {
+        ttpDiv.append("p").html("No Data")
+        return
+    }
+
+    var ttpSVG = ttpDiv.append("svg")
+        .attr("id", `map-tooltip-svg`)
+        .attr("class", `tooltip-outer-svg`)
+
+    var thisData = {
+        "data": dataObject.properties.data[mapDiseaseSelector.value].data,
+        "population": dataObject.properties.population,
+        "start_date": dataObject.properties.data[mapDiseaseSelector.value].start_date,
+    }
+    
+    createBarGraph(ttpSVG, thisData, ttpHeight, ttpWidth, mapRateSwitch.value == "rate")
+}
+
+function drawAggregation() {
+    var aggWidth = Math.max(300, document.getElementById("map-sidebar").clientWidth)
+    var aggHeight = aggWidth * .5
+
+    var aggSVG = d3.select(aggregatedDiseaseHistory)
+    aggSVG.html("")
+
+    var aggData = zctaData.features.find(e => e.properties.ZCTA == "state")
+
+    var thisData = {
+        "data": aggData.properties.data[mapDiseaseSelector.value].data,
+        "population": aggData.properties.population,
+        "start_date": aggData.properties.data[mapDiseaseSelector.value].start_date,
+    }
+    
+    createBarGraph(aggSVG, thisData, aggHeight, aggWidth, mapRateSwitch.value == "rate")
+}
