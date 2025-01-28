@@ -1,4 +1,6 @@
 
+var unknownColor = d3.hsl("#CCCCCC")
+
 function parseDate(datestring) {
     return dayjs.tz(datestring, "YYYY-MM-DD", "America/New_York").toDate()
 }
@@ -32,7 +34,7 @@ function createBarGraph(svg, data, height, width) {
         .nice()
         .range([height-margins.bottom, margins.top])
 
-    var start_date = parseDate(data.start_date)
+    var start_date = parseDate(zctaData.metadata.start_date)
     var xScale = d3.scaleUtc()
         .domain([start_date, d3.utcDay.offset(start_date, (7 * data.data.length))])
         .nice()

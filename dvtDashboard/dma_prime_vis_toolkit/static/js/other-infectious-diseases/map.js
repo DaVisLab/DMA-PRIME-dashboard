@@ -1,9 +1,9 @@
 const { GeoJsonLayer, IconLayer, MapboxOverlay, Widget } = deck;
 
-export { zctaData, selectedItems, map, deckOverlay, popup, redraw, drawTooltip, drawAggregation, drawLegend, getData }
+export { styleSheet, zctaData, selectedItems, map, deckOverlay, popup, redraw, drawTooltip, drawAggregation, drawLegend, getData }
 
 var zctaData = await d3.json(`/data/other-infectious-diseases`)
-var zctaFeatures = undefined
+var zctaFeatures = zctaData.features
 
 var selectedItems = {
     "zcta": undefined,
@@ -14,7 +14,7 @@ var selectedItems = {
 var choroplethColorMap = d3.scaleLinear()
     .domain([0, 1])
     .range(["white", "maroon"])
-    .unknown(d3.hsl("#7F7F7F")).nice()
+    .unknown(unknownColor).nice()
 
 const map = new maplibregl.Map({
     container: "map-div",
@@ -47,56 +47,31 @@ styleSheet.insertRule(`
     }`
     ,0)   
 
-window.addEventListener("keydown", (event) => {
-    if (event.key == "m") {
-        function waitForChange() {
-            if(changed != true) {
-                window.setTimeout(waitForChange, 10);
-            } else {
-                styleSheet.deleteRule(0)
-                styleSheet.insertRule(`
-                    .maplibregl-popup-content {
-                        /* tooltip's containing div */
-                        background-color: hsla(${getComputedStyle(document.head).getPropertyValue("--sl-color-neutral-0").replace("hsl(", "").replace(")", "")}, 0.925);
-                    }`
-                    ,0)
-                changed = false
-            }
-        }
-        waitForChange()
-    }
-});
-
 document.adoptedStyleSheets = [styleSheet]
 drawAggregation()
 
 redraw(true)
 
 function redraw(first=false) {
+    createChoropleth(zctaData)
+    drawLegend()
     deckOverlay.setProps({
         layers: [
             new GeoJsonLayer({
                 id: 'respiratory_choropleth',
                 depthTest: false,
                 pickable: true,
-                data: d3.json(`/data/other-infectious-diseases`),
-                onDataLoad: (data, context) => {   
-                    createChoropleth(data)
-                    zctaData = data
-                    drawLegend()
-                },
+                data: zctaData,
                 stroked: true,
                 filled: true,
                 pointType: 'circle+text',
                 pickable: true,
                 getFillColor: d => getColor(d),
-                highlightColor: [255, 255, 255, 0],
                 lineWidthMinPixels: .75,
                 getLineWidth: 20,
                 getLineColor: [64, 64, 64],
                 updateTriggers: {
-                    data: [ mapRateSwitch.value, selectedItems.diseases, selectedItems.dataVersion ],
-                    // getFillColor: { dataVersion }
+                    getFillColor: [ mapRateSwitch.value, selectedItems.diseases, selectedItems.dataVersion ]
                 },
             }),
             new GeoJsonLayer({
@@ -110,6 +85,23 @@ function redraw(first=false) {
                 lineWidthMinPixels: 1.5,
                 getLineWidth: 30,
                 getLineColor: [0, 0, 0],
+            }),
+            new GeoJsonLayer({
+                id: 'zcta_highlight',
+                depthTest: false,
+                data: selectedItems.zcta,
+                stroked: true,
+                filled: false,
+                pointType: 'circle+text',
+                pickable: true,
+                lineWidthMinPixels: .5,
+                getLineWidth: 1000,
+                getLineColor: [128, 128, 128],
+                getPointRadius: 4,
+                getTextSize: 12,
+                updateTriggers: {
+                    data: selectedItems.zcta ? selectedItems.zcta.properties.ZCTA : selectedItems.zcta,
+                },
             }),
             // new IconLayer({
             //     id: 'hospital-and-cdap',
@@ -155,7 +147,7 @@ function createChoropleth(data) {
     choroplethColorMap = d3.scaleLinear()
         .domain([0, d3.max(arr)])
         .range(["white", "maroon"])
-        .unknown(d3.hsl("#7F7F7F")).nice()
+        .unknown(unknownColor).nice()
 
 }
 
@@ -222,10 +214,17 @@ function drawTooltip(dataObject) {
         return
     }
 
+    var encounterString = `Encounters in week of ${d3.utcFormat("%B %d, %Y")(parseDate(thisData.end_date))}: `
+    if (mapRateSwitch.value == "rate") {
+        encounterString += `${Math.round(thisData.data.at(-1) * 1000) / 1000} (per 1000 people)`
+    } else {
+        encounterString += thisData.data.at(-1)
+    }
+
     ttpTitle.append("br")
     ttpTitle.append("span")
         .attr("class", "tooltip-subtitle")
-        .html(`Encounters in week of ${d3.utcFormat("%B %d, %Y")(parseDate(thisData.end_date))}: ${thisData.data.at(-1)}`)
+        .html(encounterString)
 
     var ttpSVG = ttpDiv.append("svg")
         .attr("id", `map-tooltip-svg`)
@@ -258,46 +257,45 @@ function getData(feature) {
     }
     if (mapAllDiseaseSelector.checked) {
         // all diseases
-        var dataDicts = Object.values(feature.properties.data)
-        var earliestDate = d3.min(dataDicts.map(d => parseDate(d.start_date)))
-        var latestDate = d3.max(dataDicts.map(d => parseDate(d.end_date)))
+        var dataDicts = Object.values(feature.properties.data).filter(d => d.data.length > 0)
+        var earliestDate = parseDate(zctaData.metadata.start_date)
+        var latestDate = parseDate(zctaData.metadata.end_date)
         thisData.start_date = earliestDate
         thisData.end_date = latestDate
-        var weeks = d3.timeSaturday.range(earliestDate, latestDate)
-        weeks.push(latestDate)
 
-        thisData.data = new Array(weeks.length).fill(0)
-        for (var data of dataDicts) {
-            var startIndex = weeks.findIndex(d => dayjs(d).isSame(data.start_date))
-            if (startIndex > -1) {
+        if (dataDicts.length > 0) {
+            var weeks = d3.timeSaturday.count(earliestDate, latestDate) + 1
+            thisData.data = new Array(weeks).fill(0)
+            for (var data of dataDicts) {
                 for (var i=0; i < data.data.length; i++) {
-                    thisData.data[i+startIndex] += data.data[i]
+                    thisData.data[i] += data.data[i]
                 }
-            }
-        }        
+            }   
+        }
+
     } else {
         if (diseases.length > 0) {
             // one/many diseases
-            var dataDicts = Object.entries(feature.properties.data).filter(d => diseases.includes(d[0]))
+            var dataDicts = Object.entries(feature.properties.data).filter(d => diseases.includes(d[0]) && d[1].data.length > 0)
             dataDicts = dataDicts.map(d => d[1])
 
-            var earliestDate = d3.min(dataDicts.map(d => parseDate(d.start_date)))
-            var latestDate = d3.max(dataDicts.map(d => parseDate(d.end_date)))
+            var earliestDate = parseDate(zctaData.metadata.start_date)
+            var latestDate = parseDate(zctaData.metadata.end_date)
             thisData.start_date = earliestDate
             thisData.end_date = latestDate
-            var weeks = d3.timeSaturday.range(earliestDate, latestDate)
-            weeks.push(latestDate)
 
-            thisData.data = new Array(weeks.length).fill(0)
-            for (var data of dataDicts) {
-                var startIndex = weeks.findIndex(d => dayjs(d).isSame(data.start_date))
-                if (startIndex > -1) {
+            if (dataDicts.length > 0) {
+                var weeks = d3.timeSaturday.count(earliestDate, latestDate) + 1
+                thisData.data = new Array(weeks).fill(0)
+                for (var data of dataDicts) {
                     for (var i=0; i < data.data.length; i++) {
-                        thisData.data[i+startIndex] += data.data[i]
+                        thisData.data[i] += data.data[i]
                     }
                 }
+            } else {
+                thisData.data = []
             }
-            console.log(feature.properties.ZCTA, earliestDate, latestDate, weeks, startIndex, thisData)
+            
         }
     }    
     
@@ -306,6 +304,5 @@ function getData(feature) {
         thisData.data = thisData.data.map((val) => 
             (parseFloat(val) / (thisData.population / 1000.0)) || 0)
     }
-    // console.log(feature.properties.ZCTA, thisData)
     return thisData
 }

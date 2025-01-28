@@ -1,4 +1,4 @@
-import { selectedItems, zctaData, map, deckOverlay, popup, redraw, drawTooltip, drawAggregation, drawLegend, getData } from "/static/js/other-infectious-diseases/map.js"
+import { styleSheet, selectedItems, zctaData, map, deckOverlay, popup, redraw, drawTooltip, drawAggregation, drawLegend, getData } from "/static/js/other-infectious-diseases/map.js"
 
 mapResetButton.addEventListener("click", () => {
     // reset map zoom and center
@@ -33,12 +33,14 @@ map.on("click", e => {
 
     popup.setMaxWidth(`${mapDiv.clientWidth}px`)
     drawTooltip(feature)
+    redraw()
 })
 
 mapRateSwitch.addEventListener("sl-change", function() {
     drawTooltip(selectedItems.zcta)
     drawAggregation()
     drawLegend()
+    redraw()
 })
 
 mapAllDiseaseSelector.addEventListener("sl-change", function() {
@@ -75,3 +77,23 @@ aggregatedDiseaseHistoryResizer.addEventListener("sl-resize", function() {
     drawTooltip(selectedItems.zcta)
     drawAggregation()
 })
+
+window.addEventListener("keydown", (event) => {
+    if (event.key == "m") {
+        function waitForChange() {
+            if(changed != true) {
+                window.setTimeout(waitForChange, 10);
+            } else {
+                styleSheet.deleteRule(0)
+                styleSheet.insertRule(`
+                    .maplibregl-popup-content {
+                        /* tooltip's containing div */
+                        background-color: hsla(${getComputedStyle(document.head).getPropertyValue("--sl-color-neutral-0").replace("hsl(", "").replace(")", "")}, 0.925);
+                    }`
+                    ,0)
+                changed = false
+            }
+        }
+        waitForChange()
+    }
+});
