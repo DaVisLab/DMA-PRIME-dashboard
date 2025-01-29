@@ -4,6 +4,7 @@ export { styleSheet, zctaData, selectedItems, map, deckOverlay, popup, redraw, d
 
 var zctaData = await d3.json(`/data/other-infectious-diseases`)
 var zctaFeatures = zctaData.features
+var stateFeature = zctaData.features.find(e => e.properties.ZCTA == "state")
 
 var selectedItems = {
     "zcta": undefined,
@@ -144,6 +145,9 @@ function createChoropleth(data) {
         }
     })
 
+    var minMaxVal = mapRateSwitch.value == "rate" ? 1000.0/stateFeature.properties.population : 1
+    arr.push(minMaxVal)
+    
     choroplethColorMap = d3.scaleLinear()
         .domain([0, d3.max(arr)])
         .range(["white", "maroon"])
@@ -240,9 +244,7 @@ function drawAggregation() {
     var aggSVG = d3.select(aggregatedDiseaseHistory)
     aggSVG.html("")
 
-    var aggData = zctaData.features.find(e => e.properties.ZCTA == "state")
-
-    var thisData = getData(aggData)
+    var thisData = getData(stateFeature)
     
     createBarGraph(aggSVG, thisData, zctaData.metadata, aggHeight, aggWidth)
 }

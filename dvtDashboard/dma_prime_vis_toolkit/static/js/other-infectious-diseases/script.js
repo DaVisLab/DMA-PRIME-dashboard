@@ -29,8 +29,9 @@ function createBarGraph(svg, data, metadata, height, width) {
         "right": .5*em,
     }
 
+    var minMaxVal = mapRateSwitch.value == "rate" ? 1000.0/data.population : 1
     var yScale = d3.scaleLinear()
-        .domain([0, d3.max(data.data)])
+        .domain([0, d3.max(data.data) ? d3.max(data.data) : minMaxVal])
         .nice()
         .range([height-margins.bottom, margins.top])
 
