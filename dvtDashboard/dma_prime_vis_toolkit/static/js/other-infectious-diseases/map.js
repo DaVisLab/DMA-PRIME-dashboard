@@ -71,7 +71,7 @@ function redraw(first=false) {
                 getLineWidth: 20,
                 getLineColor: [64, 64, 64],
                 updateTriggers: {
-                    getFillColor: [ mapRateSwitch.value, selectedItems.diseases, selectedItems.dataVersion ]
+                    getFillColor: [ mapRateSwitch.value, mapColumnSwitch.value, mapTimeSwitch.value, selectedItems.diseases, selectedItems.dataVersion ]
                 },
             }),
             new GeoJsonLayer({
@@ -122,7 +122,7 @@ function redraw(first=false) {
 }
 
 function getColor(feature) {
-    var thisData = getData(feature)
+    var thisData = getData(feature, mapTimeSwitch.value)
     var value = NaN
     if (thisData.data.length > 0) {
         value = thisData.data.at(-1)
@@ -135,7 +135,7 @@ function getColor(feature) {
 
 function createChoropleth(data) {
     var arr = data.features.map((feature) => {
-        var thisData = getData(feature)
+        var thisData = getData(feature, mapTimeSwitch.value)
 
         if (thisData.data.length > 0 && feature.properties.ZCTA != "state") {
             return thisData.data.at(-1)
@@ -192,7 +192,7 @@ function drawTooltip(dataObject) {
         popup.remove()
         return
     }
-    var thisData = getData(dataObject)
+    var thisData = getData(dataObject, "weekly")
     // draw in tooltip
     var ttpWidth = Math.max(400, mapDiv.clientWidth * .25)
     var ttpHeight = ttpWidth * .35
@@ -218,11 +218,41 @@ function drawTooltip(dataObject) {
         return
     }
 
-    var encounterString = `Encounters in week of ${d3.utcFormat("%B %d, %Y")(parseDate(thisData.end_date))}: `
+    var encounterString = ""
+    switch (mapColumnSwitch.value) {
+        case "encounters":
+            encounterString += "Encounters"
+            break;
+        case "pos_tests":
+            encounterString += "Positive tests"
+            break;
+        case "encounter_plus_test":
+            encounterString += "Encounters and positive tests"
+            break;
+    }
+    encounterString += " in the "
+    var thisWeek = parseDate(thisData.end_date)
+    switch (mapTimeSwitch.value) {
+        case "weekly":
+            var formatDate = d3.utcFormat("%B %d, %Y")
+            encounterString += `week of ${formatDate(thisWeek)}`
+            break;
+        case "monthly":
+            var startWeek = d3.timeSaturday.offset(parseDate('2025-01-04'), -4)
+            var formatDate = d3.utcFormat("%b/%d/%y")
+            encounterString += `weeks ${formatDate(startWeek)}-${formatDate(thisWeek)}`
+            break;
+        case "yearly":
+            var startWeek = d3.timeSaturday.offset(parseDate('2025-01-04'), -52)
+            var formatDate = d3.utcFormat("%b/%d/%y")
+            encounterString += `weeks ${formatDate(startWeek)}-${formatDate(thisWeek)}`
+            break;
+    }
+    encounterString += ":<br/>"
     if (mapRateSwitch.value == "rate") {
-        encounterString += `${Math.round(thisData.data.at(-1) * 1000) / 1000} (per 1000 people)`
+        encounterString += `${Math.round(getData(dataObject, mapTimeSwitch.value).data.at(-1) * 1000) / 1000} (per 1000 people)`
     } else {
-        encounterString += thisData.data.at(-1)
+        encounterString += getData(dataObject, mapTimeSwitch.value).data.at(-1)
     }
 
     ttpTitle.append("br")
@@ -244,7 +274,7 @@ function drawAggregation() {
     var aggSVG = d3.select(aggregatedDiseaseHistory)
     aggSVG.html("")
 
-    var thisData = getData(stateFeature)
+    var thisData = getData(stateFeature, "weekly")
     
     createBarGraph(aggSVG, thisData, zctaData.metadata, aggHeight, aggWidth)
 }
@@ -253,7 +283,7 @@ function updateDiseaseCountDisplay() {
     var diseases = d3.selectAll(".disease-checkbox").nodes().map(d => d.getAttribute("disease")) 
     var allCount = 0
     diseases.forEach(disease => {
-        var val = stateFeature.properties.data[disease].data.at(-1)
+        var val = stateFeature.properties.data[disease][mapTimeSwitch.value].at(-1)
         if (mapRateSwitch.value == "rate") {
             val /= (stateFeature.properties.population / 1000.0)
         }
@@ -263,7 +293,7 @@ function updateDiseaseCountDisplay() {
     d3.select("#map-all-count").html(`(${Math.round(allCount * 1000) / 1000})`)
 }
 
-function getData(feature) {
+function getData(feature, timeFrame="weekly") {
     var diseases = selectedItems.diseases
     var thisData = {
         "data": [],
@@ -273,26 +303,26 @@ function getData(feature) {
     }
     if (diseases.length > 0) {
         // one/many diseases
-        var dataDicts = Object.entries(feature.properties.data).filter(d => diseases.includes(d[0]) && d[1].data.length > 0)
+        var dataDicts = Object.entries(feature.properties.data).filter(d => diseases.includes(d[0]) && d[1][timeFrame].length > 0)
         dataDicts = dataDicts.map(d => d[1])
-
-        var earliestDate = parseDate(zctaData.metadata.start_date)
-        var latestDate = parseDate(zctaData.metadata.end_date)
-        thisData.start_date = earliestDate
-        thisData.end_date = latestDate
-
+        var weeks
         if (dataDicts.length > 0) {
-            var weeks = d3.timeSaturday.count(earliestDate, latestDate) + 1
+            if (timeFrame === "weekly") {
+                var earliestDate = parseDate(zctaData.metadata.start_date)
+                var latestDate = parseDate(zctaData.metadata.end_date)
+                thisData.start_date = earliestDate
+                thisData.end_date = latestDate
+                weeks = d3.timeSaturday.count(earliestDate, latestDate) + 1
+            } else {
+                weeks = 1
+            }
             thisData.data = new Array(weeks).fill(0)
             for (var data of dataDicts) {
-                for (var i=0; i < data.data.length; i++) {
-                    thisData.data[i] += data.data[i]
+                for (var i=0; i < data[timeFrame].length; i++) {
+                    thisData.data[i] += data[timeFrame][i]
                 }
             }
-        } else {
-            thisData.data = []
         }
-        
     }
     
     // rate applied at end
@@ -300,6 +330,7 @@ function getData(feature) {
         thisData.data = thisData.data.map((val) => 
             (parseFloat(val) / (thisData.population / 1000.0)) || 0)
     }
+
     return thisData
 }
 

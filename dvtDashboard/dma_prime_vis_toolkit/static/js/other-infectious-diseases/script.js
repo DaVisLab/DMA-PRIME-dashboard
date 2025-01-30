@@ -19,9 +19,11 @@ function createBarGraph(svg, data, metadata, height, width) {
         .attr("class", "y-axis")
     var xAxis = svg.append("g")
         .attr("class", "x-axis")
-        
+    
+    var minMaxVal = mapRateSwitch.value == "rate" ? 1000.0/data.population : 1
+    var maxVal = d3.max(data.data) ? d3.max(data.data) : minMaxVal
     // figure out how much space is needed for the y-axis text
-    var temp = svg.append("text").text(d3.format(".2r")(d3.max(data.data))).attr("x", 0).attr("y", 0)
+    var temp = svg.append("text").text(d3.format(".2r")(maxVal)).attr("x", 0).attr("y", 0)
     var margins = {
         "top": .5*em, 
         "bottom": 1.5*em,
@@ -29,9 +31,8 @@ function createBarGraph(svg, data, metadata, height, width) {
         "right": .5*em,
     }
 
-    var minMaxVal = mapRateSwitch.value == "rate" ? 1000.0/data.population : 1
     var yScale = d3.scaleLinear()
-        .domain([0, d3.max(data.data) ? d3.max(data.data) : minMaxVal])
+        .domain([0, maxVal])
         .nice()
         .range([height-margins.bottom, margins.top])
 
@@ -56,7 +57,7 @@ function createBarGraph(svg, data, metadata, height, width) {
         .attr("text-anchor", "middle")
         .attr("fill", "var(--sl-color-neutral-1000)")
         .attr("font-size", "var(--sl-font-size-small)")
-        .text("Encounters")
+        .text(d3.select(`sl-radio-button[value=${mapColumnSwitch.value}]`).html())
         
     yAxis.append("g")
         .attr("transform", `translate(${margins.left},0)`)

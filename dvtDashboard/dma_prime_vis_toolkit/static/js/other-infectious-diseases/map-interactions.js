@@ -20,11 +20,6 @@ mapResetButton.addEventListener("click", () => {
     redraw()
 })
 
-mapColumnSwitch.addEventListener("sl-change", async () => {
-    await changeDataColumn()
-    updateDiseaseCountDisplay()
-})
-
 mapRateSwitch.addEventListener("sl-change", function() {
     drawTooltip(selectedItems.zcta)
     drawAggregation()
@@ -33,11 +28,28 @@ mapRateSwitch.addEventListener("sl-change", function() {
     redraw()
 })
 
+mapTimeSwitch.addEventListener("sl-change", async () => {
+    drawTooltip(selectedItems.zcta)
+    drawLegend()
+    updateDiseaseCountDisplay()
+    redraw()
+})
+
+mapColumnSwitch.addEventListener("sl-change", async () => {
+    await changeDataColumn()
+    updateDiseaseCountDisplay()
+})
+
 mapAllDiseaseSelector.addEventListener("sl-change", function(e) {
     selectedItems.dataVersion++
     if (e.target.checked) {
         d3.selectAll(".disease-checkbox").attr("checked", "")
         selectedItems.diseases = d3.selectAll(".disease-checkbox").nodes().map(d => d.getAttribute("disease")) 
+    } else {
+        if (selectedItems.diseases.length == d3.selectAll(".disease-checkbox[checked]").nodes().length) {
+            d3.selectAll(".disease-checkbox").attr("checked", null)
+            selectedItems.diseases = []
+        }
     }
 
     drawTooltip(selectedItems.zcta)

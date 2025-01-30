@@ -16,6 +16,18 @@
     </sl-tooltip>
   </sl-radio-group>
 
+  <sl-radio-group value="weekly" id="map-time-switch" class="center-self" size="small">
+    <sl-tooltip content="Count for the week">
+      <sl-radio-button pill value="weekly">Week</sl-radio-button>
+    </sl-tooltip>
+    <sl-tooltip content="Count for the past 4 weeks">
+      <sl-radio-button pill value="monthly">Month</sl-radio-button>
+    </sl-tooltip>
+    <sl-tooltip content="Count for the past 52 weeks">
+      <sl-radio-button pill value="yearly">Year</sl-radio-button>
+    </sl-tooltip>
+  </sl-radio-group>
+
   <sl-radio-group value="encounters" id="map-column-switch" class="center-self" size="small">
     <sl-tooltip content="Disease encounters">
       <sl-radio-button pill value="encounters">Encounters</sl-radio-button>
@@ -64,6 +76,7 @@
 <script>
 
   mapResetButton = document.getElementById("map-reset-button")
+  mapTimeSwitch = document.getElementById("map-time-switch")
   mapRateSwitch = document.getElementById("map-rate-switch")
   mapColumnSwitch = document.getElementById("map-column-switch")
 
