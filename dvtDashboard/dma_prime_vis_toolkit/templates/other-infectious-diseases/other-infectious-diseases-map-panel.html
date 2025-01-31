@@ -3,7 +3,7 @@
 {% block options %}
 <div id="map-options" class="sidebar-container">
   <!-- reset map button (zoom & zcta selection) -->
-  <sl-button pill id="map-reset-button" class="center-self">Reset Map</sl-button>
+  <sl-button pill id="map-reset-button" class="center-self" size="small">Reset Map</sl-button>
   <sl-divider class="options-divider"></sl-divider>
 
   <!-- count vs rate switch -->
@@ -59,6 +59,7 @@
 <sl-resize-observer id="aggregated-disease-history-resizer">
   <div id="aggregated-disease-history-container" class="fill-width">
     <p id="aggregated-disease-history-title">State Wide Disease Encounters</p>
+    <p id="aggregated-disease-history-subtitle" >N/A</p>
     <svg id="aggregated-disease-history"></svg>
   </div>
 </sl-resize-observer>
@@ -84,6 +85,8 @@
 
   aggregatedDiseaseHistoryResizer = document.getElementById("aggregated-disease-history-resizer")
   aggregatedDiseaseHistoryContainer = document.getElementById("aggregated-disease-history-container")
+  aggregatedDiseaseHistoryTitle = document.getElementById("aggregated-disease-history-title")
+  aggregatedDiseaseHistorySubtitle = document.getElementById("aggregated-disease-history-subtitle")
   aggregatedDiseaseHistory = document.getElementById("aggregated-disease-history")
 
   mapDiv = document.getElementById("map-div")

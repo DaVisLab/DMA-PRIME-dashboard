@@ -1,6 +1,6 @@
 
 #map-main-content {
-    --min: 300px
+    --min: 350px
 }
 
 #map-content {
@@ -28,11 +28,7 @@
 #aggregated-disease-history-container {
     align-self: end;
     overflow-x: scroll;
-}
-
-#aggregated-disease-history-title {
     text-align: center;
-    font-size: var(--sl-font-size-small);
 }
 
 #map-tooltip-svg text, #aggregated-disease-history text {
@@ -64,12 +60,12 @@ p.tooltip-title {
     text-align: center;
   }
   
-.tooltip-title {
+.tooltip-title, #aggregated-disease-history-title {
     /* title span */
     font-size: var(--sl-font-size-small);
 }
 
-.tooltip-subtitle {
+.tooltip-subtitle, #aggregated-disease-history-subtitle {
     /* subtitle span */
     font-size: var(--sl-font-size-x-small);
 }

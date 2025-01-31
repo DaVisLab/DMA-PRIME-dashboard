@@ -1,4 +1,4 @@
-import { styleSheet, selectedItems, zctaData, map, deckOverlay, popup, redraw, drawTooltip, drawAggregation, drawLegend, updateDiseaseCountDisplay, getData, changeDataColumn } from "/static/js/other-infectious-diseases/map.js"
+import { styleSheet, selectedItems, zctaData, map, deckOverlay, popup, redraw, drawTooltip, drawAggregation, drawLegend, updateDiseaseCountDisplay, getData, changeDataColumn, update } from "/static/js/other-infectious-diseases/map.js"
 
 mapResetButton.addEventListener("click", () => {
     // reset map zoom and center
@@ -14,34 +14,16 @@ mapResetButton.addEventListener("click", () => {
     d3.selectAll(".disease-checkbox").attr("checked", null)
     mapAllDiseaseSelector.removeAttribute("checked")
 
-    drawTooltip(selectedItems.zcta)
-    drawAggregation()
-    drawLegend()
-    redraw()
+    update()
 })
 
-mapRateSwitch.addEventListener("sl-change", function() {
-    drawTooltip(selectedItems.zcta)
-    drawAggregation()
-    drawLegend()
-    updateDiseaseCountDisplay()
-    redraw()
-})
+mapRateSwitch.addEventListener("sl-change", update)
 
-mapTimeSwitch.addEventListener("sl-change", async () => {
-    drawTooltip(selectedItems.zcta)
-    drawLegend()
-    updateDiseaseCountDisplay()
-    redraw()
-})
+mapTimeSwitch.addEventListener("sl-change", update)
 
-mapColumnSwitch.addEventListener("sl-change", async () => {
-    await changeDataColumn()
-    updateDiseaseCountDisplay()
-})
+mapColumnSwitch.addEventListener("sl-change", changeDataColumn)
 
 mapAllDiseaseSelector.addEventListener("sl-change", function(e) {
-    selectedItems.dataVersion++
     if (e.target.checked) {
         d3.selectAll(".disease-checkbox").attr("checked", "")
         selectedItems.diseases = d3.selectAll(".disease-checkbox").nodes().map(d => d.getAttribute("disease")) 
@@ -52,10 +34,7 @@ mapAllDiseaseSelector.addEventListener("sl-change", function(e) {
         }
     }
 
-    drawTooltip(selectedItems.zcta)
-    drawAggregation()
-    drawLegend()
-    redraw()
+    update()
 })
 
 d3.selectAll(".disease-checkbox").on("sl-change", function(e) {
@@ -74,11 +53,7 @@ d3.selectAll(".disease-checkbox").on("sl-change", function(e) {
         mapAllDiseaseSelector.removeAttribute("checked")
     }
 
-    selectedItems.dataVersion++
-    drawTooltip(selectedItems.zcta)
-    drawAggregation()
-    drawLegend()
-    redraw()
+    update()
 })
 
 popup.on("close", e => {

@@ -1,6 +1,6 @@
 const { GeoJsonLayer, IconLayer, MapboxOverlay, Widget } = deck;
 
-export { styleSheet, zctaData, selectedItems, map, deckOverlay, popup, redraw, drawTooltip, drawAggregation, drawLegend, updateDiseaseCountDisplay, getData, changeDataColumn }
+export { styleSheet, zctaData, selectedItems, map, deckOverlay, popup, redraw, drawTooltip, drawAggregation, drawLegend, updateDiseaseCountDisplay, getData, changeDataColumn, update }
 
 var zctaData = await d3.json(`/data/other-infectious-diseases/encounters`)
 var stateFeature = zctaData.features.find(d => d.properties.ZCTA == "state")
@@ -268,13 +268,58 @@ function drawTooltip(dataObject) {
 }
 
 function drawAggregation() {
+    var thisData = getData(stateFeature, "weekly")
     var aggWidth = Math.max(300, document.getElementById("map-sidebar").clientWidth)
     var aggHeight = aggWidth * .5
 
+    aggregatedDiseaseHistoryTitle.innerHTML = `State Wide ${d3.select(`sl-radio-button[value=${mapColumnSwitch.value}]`).html()}`
+
+    var encounterString = ""
+    switch (mapColumnSwitch.value) {
+        case "encounters":
+            encounterString += "Encounters"
+            break;
+        case "pos_tests":
+            encounterString += "Positive tests"
+            break;
+        case "encounter_plus_test":
+            encounterString += "Encounters and positive tests"
+            break;
+    }
+    encounterString += " in the "
+    var thisWeek = parseDate(thisData.end_date)
+    switch (mapTimeSwitch.value) {
+        case "weekly":
+            var formatDate = d3.utcFormat("%B %d, %Y")
+            encounterString += `week of ${formatDate(thisWeek)}`
+            break;
+        case "monthly":
+            var startWeek = d3.timeSaturday.offset(parseDate('2025-01-04'), -4)
+            var formatDate = d3.utcFormat("%b/%d/%y")
+            encounterString += `weeks ${formatDate(startWeek)}-${formatDate(thisWeek)}`
+            break;
+        case "yearly":
+            var startWeek = d3.timeSaturday.offset(parseDate('2025-01-04'), -52)
+            var formatDate = d3.utcFormat("%b/%d/%y")
+            encounterString += `weeks ${formatDate(startWeek)}-${formatDate(thisWeek)}`
+            break;
+    }
+    encounterString += ":<br/>"
+    var val = getData(stateFeature, mapTimeSwitch.value).data.at(-1)
+    if (val) {
+        if (mapRateSwitch.value == "rate") {
+            val = Math.round(val * 1000) / 1000
+            encounterString += `${val} (per 1000 people)`
+        } else {
+            encounterString += val
+        }
+    } else {
+        encounterString += "N/A"
+    }
+    aggregatedDiseaseHistorySubtitle.innerHTML = encounterString
+
     var aggSVG = d3.select(aggregatedDiseaseHistory)
     aggSVG.html("")
-
-    var thisData = getData(stateFeature, "weekly")
     
     createBarGraph(aggSVG, thisData, zctaData.metadata, aggHeight, aggWidth)
 }
@@ -343,6 +388,14 @@ async function changeDataColumn() {
         drawTooltip(selectedItems.zcta)
     }
 
+    update()
+}
+
+
+function update() {
+    selectedItems.dataVersion++
+    drawTooltip(selectedItems.zcta)
+    updateDiseaseCountDisplay()
     drawAggregation()
     drawLegend()
     redraw()
