@@ -1,0 +1,94 @@
+{% extends "subtemplates/panel.html" %}
+
+{% block options %}
+<div id="grid-options" class="sidebar-container">
+
+    <!-- disease selector -->
+    <sl-select value="{{ metadata['diseases'][0] }}" id="grid-disease-selector" class="fill-width ">
+        <p slot="label">Select a disease</p>
+        {% for disease in metadata['diseases'] %}
+        <sl-option value="{{ disease }}">{{ disease }}</sl-option>
+        {% endfor %}
+    </sl-select>
+
+</div>
+<sl-resize-observer id="grid-map-resizer">
+    <div id="grid-map">
+        <svg id="grid-map-svg">
+
+        </svg>
+    </div>
+</sl-resize-observer>
+
+{% endblock %}
+
+{% block contents %}
+<sl-resize-observer id="grid-container-resizer">
+    <div id="grid-container">
+        {% for site in metadata['site_info'].items() %}
+        <div id="{{ site[0] }}-div" class="site-div">
+            <p class="site-title">{{ site[1]['display_name'] }}</p>
+            <svg id="{{ site[0] }}-svg" class="site-svg"></svg>
+        </div>
+        {% endfor %}
+    </div>
+</sl-resize-observer>
+<div id="grid-legend">
+    <svg id="grid-legend-svg">
+        <!-- <line id="grid-legend-state-model-line" x1=".5em" x2="3.5em" y1="1em" y2="1em"></line> -->
+        <circle id="grid-legend-disease-concentration-dot" cx="1.5em" cy="1.5em" r="5" fill="black"></circle>
+        <line id="grid-legend-disease-concentration-line" x1=".5em" x2="2.5em" y1="1.5em" y2="1.5em" stroke-width="3" stroke="black"></line>
+        <text id="grid-legend-disease-concentration-text" x="3em" y="1.5em" dominant-baseline="middle">Disease Concentration</text>
+        <!-- <line id="grid-legend-disease-hospitalizations-line" x1=".5em" x2="1.5em" y1="2.5em" y2="2.5em" width="3" stroke="black"></line>
+        <text id="grid-legend-disease-hospitalizations-text" x="2em" y="2.5em" dominant-baseline="middle">Disease Hospitalizations</text> -->
+    </svg>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var metadata = {{ metadata | safe }}
+    metadata['min_date'] = parseDate(metadata['min_date'])
+    metadata['max_date'] = parseDate(metadata['max_date'])
+
+    var collectionColorScheme = {}
+    var colorScheme = d3.schemeTableau10
+    Object.keys(metadata['site_info']).forEach((site, i) => {
+        collectionColorScheme[site] = colorScheme[i]
+    });
+
+    // containing elements
+    var gridContainer = document.getElementById("grid-container")
+    var gridContainerResizer = document.getElementById("grid-container-resizer")
+    var gridMapResizer = document.getElementById("grid-map-resizer")
+
+    // interactive elements
+    var gridDiseaseSelector = document.getElementById("grid-disease-selector")
+
+    var gridMapSvg = document.getElementById("grid-map-svg")
+
+    // var gridBackgroundColors = [1, 2, 3, 4].map(i => d3.schemeReds[9][i])
+
+    set{{ panel.name }}Panel()
+</script>
+
+<script type="module">
+    await Promise.allSettled([ // wait for following to be defined/load in
+        customElements.whenDefined('sl-option'),
+        customElements.whenDefined('sl-select'),
+        customElements.whenDefined('sl-tab-group'),
+    ])
+
+    var arr = Object.keys(metadata['site_info']).map(site =>
+        d3.json(`/data/waste-water/${site}`).then(d => {
+            d3.select(`#${site}-div`).datum(d)
+        }))
+
+    await Promise.all(arr)
+    drawCharts()
+    drawMap()
+</script>
+
+<script src="{{ url_for('static', filename='js/waste-water/grid.js') }}"></script>
+<script src="{{ url_for('static', filename='js/waste-water/grid-interactions.js') }}"></script>
+{% endblock %}

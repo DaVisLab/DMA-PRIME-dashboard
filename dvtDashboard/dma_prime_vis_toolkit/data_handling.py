@@ -44,6 +44,12 @@ def getStateDiseaseHospitalizations(column='encounters'):
     # hospitalization data based on disease
     return send_file(f'{current_app.config['DATADIR']}/processed/other_infectious_diseases_{column}_data.json')
 
+@bp.route('/waste-water/<site>', methods=['GET', 'POST'])
+@login_required
+def getWasteWaterData(site):
+    # hospitalization data based on disease
+    return send_file(f'{current_app.config['DATADIR']}/processed/waste_water/{site}.json')
+
 
 @bp.route('/mobile-health-clinic-events', methods=['GET', 'POST'])
 @login_required

@@ -8,6 +8,7 @@ import os
 import subprocess
 import pandas as pd
 import numpy as np
+import json
 
 from .utility import * 
 from .authenticate import login_required, bp
@@ -160,6 +161,32 @@ def create_app(development=False, dataDir=None):
             },
         ]
         return render_template('other-infectious-diseases/other-infectious-diseases-base.html', panels=panels, diseases=diseases)
+
+    @app.route('/waste-water')
+    @login_required
+    def waste_water():
+        metadata = {
+            'site_info': {},
+            'diseases': [],
+            'min_date': pd.to_datetime('today').strftime('%Y-%m-%d'),
+            'max_date': pd.to_datetime('today').strftime('%Y-%m-%d'),
+        }
+        with open(f'{app.config['DATADIR']}/processed/waste_water/metadata.json') as f:
+            metadata = dict(json.load(f))
+        panels = [
+            {
+                'name': 'main',
+                'displayName': 'DMA-PRIME',
+            },
+            {
+                'name': 'grid',
+                'displayName': 'Grid View',
+                'active': True,
+                'html': 'waste-water/waste-water-grid-panel.html'
+            },
+        ]
+        print(metadata)
+        return render_template('waste-water/waste-water-base.html', panels=panels, metadata=metadata)
 
     if development:
         # Simply for my own convenience
