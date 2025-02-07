@@ -384,13 +384,15 @@ function drawStateHospitalizations() {
     }
     
     mapStateHospitalizationsSvg.innerHTML = ""
-    stateHeight = mapStateHospitalizationsSvg.clientHeight
-    stateWidth = mapStateHospitalizationsSvg.clientWidth
+    var stateHeight = mapStateHospitalizationsSvg.clientHeight
+    var stateWidth = mapStateHospitalizationsSvg.clientWidth
     
     var svg = d3.select(mapStateHospitalizationsSvg)
 
     d3.csv("/data/hospitalizations/state").then(function(stateData) {
-        stateData = stateData.filter(d => dayjs(parseDate(d["Week.Ending.Date"])).isSameOrAfter(startDate))
+        stateData = stateData.filter(d => {
+            var thisDate = dayjs(parseDate(d["Week.Ending.Date"]))
+            return thisDate.isSameOrAfter(startDate) && thisDate.isSameOrBefore(thisWeekMonday)})
         var yAxis = svg.append("g")
             .attr("class", "y-axis")
         var xAxis = svg.append("g")
@@ -401,17 +403,16 @@ function drawStateHospitalizations() {
 
         var temp = svg.append("text").text(d3.format(".2r")(maxVal)).attr("x", 0).attr("y", 0)
         stateMargins = {
-            "top": .5*em, 
+            "top": 1*em, 
             "bottom": 3.25*em,
             "left": Math.max(20, temp.node().getBBox().width) + 1.25*em,
             "right": 1*em,
         }
 
-        stateXScale = d3.scaleUtc()
-                    .domain([startDate, endDate]).range([stateMargins.left, stateWidth - stateMargins.right])    
-                    .nice()
+        var stateXScale = d3.scaleUtc()
+                    .domain([startDate, d3.timeSaturday.offset(thisWeekMonday, 1)]).range([stateMargins.left, stateWidth - stateMargins.right])    
 
-        stateYScale = d3.scaleLinear()
+        var stateYScale = d3.scaleLinear()
             .domain([0, maxVal])
             .nice()
             .range([stateHeight-stateMargins.bottom, stateMargins.top])
@@ -448,9 +449,7 @@ function drawStateHospitalizations() {
             .attr("transform", `translate(0, ${stateHeight - stateMargins.bottom})`)  
             .selectAll("text")
             .style("text-anchor", "end")
-            .attr("transform", `translate(0, 10) rotate(-90)`)
-
-        temp.remove()
+            .attr("transform", `translate(-12, 6) rotate(-90)`)
     })
 }
-drawStateHospitalizations()
+

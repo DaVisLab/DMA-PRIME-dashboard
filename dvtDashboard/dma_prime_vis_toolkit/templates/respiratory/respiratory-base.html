@@ -15,6 +15,7 @@
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/isSameOrAfter.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/isSameOrBefore.js"></script>
 
 <script>
     // Ensuring the timejs additional plugins are linked
@@ -22,6 +23,7 @@
     dayjs.extend(window.dayjs_plugin_timezone)
     dayjs.extend(window.dayjs_plugin_customParseFormat)
     dayjs.extend(window.dayjs_plugin_isSameOrAfter)
+    dayjs.extend(window.dayjs_plugin_isSameOrBefore)
 
     // A value... I forget where I got it from - I think the US census
     // TODO: Find a better place to put this value? maybe script.js?
@@ -79,6 +81,7 @@
     await Promise.all(dataFetching)
     mapInitialVisualization()
     gridInitialVisualization() 
+    drawStateHospitalizations()
     gridContainerResizer.addEventListener("sl-resize", () => {
         updateGridData()
     })

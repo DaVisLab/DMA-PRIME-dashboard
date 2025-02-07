@@ -51,11 +51,17 @@
 
   <!-- Aggregation visualization -->
   <div id="map-state-hospitalizations" >
-    <p id="map-state-hospitalizations-title">State Hospitalizations</p>
+    <p id="map-state-hospitalizations-title" class="map-state-hospitalizations-title">State Hospitalizations</p>
     <sl-resize-observer id="map-state-hospitalizations-resizer">
       <svg id="map-state-hospitalizations-svg"></svg>
     </sl-resize-observer>
   </div>
+  <sl-dialog id="map-state-hospitalizations-large" class="dialog-width" >
+    <p id="map-state-hospitalizations-large-title" slot="label">State Hospitalizations</p>
+    <sl-resize-observer id="map-state-hospitalizations-large-resizer">
+      <svg id="map-state-hospitalizations-large-svg"></svg>
+    </sl-resize-observer>
+  </sl-dialog>
 </div>
 
 <!-- Aggregation visualization -->
@@ -111,6 +117,9 @@
   // aggregation visualization elements
   mapStateHospitalizationsResizer = document.getElementById("map-state-hospitalizations-resizer")
   mapStateHospitalizationsSvg = document.getElementById("map-state-hospitalizations-svg")
+  mapStateHospitalizationsLarge = document.getElementById("map-state-hospitalizations-large")
+  mapStateHospitalizationsLargeResizer = document.getElementById("map-state-hospitalizations-large-resizer")
+  mapStateHospitalizationsLargeSvg = document.getElementById("map-state-hospitalizations-large-svg")
   // var jsmapAggregationDonutSvg = document.getElementById("map-aggregation-donut-svg")
   // var mapAggregationDonutGroup = d3.select("#map-aggregation-donut")
   // var mapAggregationSvg = d3.select("#map-aggregation-svg")
