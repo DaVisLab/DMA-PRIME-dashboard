@@ -9,6 +9,10 @@
     height: 200px;
 }
 
+#map-state-hospitalizations-title {
+    text-align: center;
+}
+
 #map-state-hospitalizations-yaxis-title {
     font-size: var(--sl-font-size-x-small);
 }
