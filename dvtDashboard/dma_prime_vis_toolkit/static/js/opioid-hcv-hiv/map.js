@@ -79,7 +79,7 @@ function redraw(first=false) {
     deckOverlay.setProps({
         layers: [
             new GeoJsonLayer({
-                id: 'opioid_choropleth',
+                id: 'disease_choropleth',
                 depthTest: false,
                 data: zctaData,
                 stroked: true,
@@ -102,7 +102,7 @@ function redraw(first=false) {
                 },
             }),
             new GeoJsonLayer({
-                id: 'opioid_county',
+                id: 'county',
                 depthTest: false,
                 data: d3.json(`/data/map/county`),
                 onDataLoad: (data, context) => {          
@@ -422,7 +422,7 @@ function mobileClinicClick(object) {
     selectedZCTA.zcta = object
     
     mapAndMinorSidebar.setAttribute("position", 80)
-    mobileClinicInfoPanel.setAttribute("active", "")
+    zctaDiseaseInfoPanel.setAttribute("active", "")
 
     mapSecondarySidebarZctaName.innerHTML = `ZCTA: ${object.properties.ZCTA}`
     mapSecondarySidebarZctaCounty.innerHTML = `County: ${object.properties.county == "NaN" ? "Unknown" : capitalizeFirst(object.properties.county)}`

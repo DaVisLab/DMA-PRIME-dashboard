@@ -86,7 +86,7 @@
         <sl-tab-group id="map-secondary-sidebar-group">
             <sl-icon-button slot="nav" name="x-lg" id="map-secondary-sidebar-close"></sl-icon-button>
             <sl-tab-panel id="secondary-sidebar-blank-panel" name="blank"></sl-tab-panel>
-            <sl-tab-panel id="zcta-opioid-info-panel" name="info" class="sidebar-container">
+            <sl-tab-panel id="zcta-disease-info-panel" name="info" class="sidebar-container">
                 <p id="map-secondary-sidebar-zcta-name" ></p>
                 <p id="map-secondary-sidebar-zcta-county" ></p>
                 <sl-divider></sl-divider>
@@ -144,7 +144,7 @@
     mapAndMinorSidebar = document.getElementById("map-and-minor-sidebar")
     mapSecondarySidebarGroup = document.getElementById("map-secondary-sidebar-group")
     mapSecondarySidebarClose = document.getElementById("map-secondary-sidebar-close")
-    mobileClinicInfoPanel = document.getElementById("zcta-opioid-info-panel")
+    zctaDiseaseInfoPanel = document.getElementById("zcta-disease-info-panel")
 
     mapSecondarySidebarZctaName = document.getElementById("map-secondary-sidebar-zcta-name")
     mapSecondarySidebarZctaCounty = document.getElementById("map-secondary-sidebar-zcta-county")
@@ -162,8 +162,8 @@
     set{{panel.name}}Panel()
 </script>
 
-<script src="{{ url_for('static', filename='js/opioid/script.js') }}"></script>
-<script src="{{ url_for('static', filename='js/opioid/map.js') }}" type="module"></script>
-<script src="{{ url_for('static', filename='js/opioid/map-interactions.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/opioid-hcv-hiv/script.js') }}"></script>
+<script src="{{ url_for('static', filename='js/opioid-hcv-hiv/map.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/opioid-hcv-hiv/map-interactions.js') }}" type="module"></script>
 
 {% endblock %}

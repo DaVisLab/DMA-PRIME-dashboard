@@ -116,9 +116,9 @@ def create_app(development=False, dataDir=None):
         ]
         return render_template('modeling/modeling-base.html', panels=panels)
     
-    @app.route('/opioid')
+    @app.route('/opioid-hcv-hiv')
     @login_required
-    def opioid():
+    def opioid_hcv_hiv():
         metadata = {
             'diseases': {
                 'opioid': 'Opioid',
@@ -145,10 +145,10 @@ def create_app(development=False, dataDir=None):
                 'name': 'map',
                 'displayName': 'Map View',
                 'active': True,
-                'html': 'opioid/opioid-map-panel.html'
+                'html': 'opioid-hcv-hiv/opioid-hcv-hiv-map-panel.html'
             },
         ]
-        return render_template('opioid/opioid-base.html', panels=panels, metadata=metadata)
+        return render_template('opioid-hcv-hiv/opioid-hcv-hiv-base.html', panels=panels, metadata=metadata)
 
     @app.route('/other-infectious-diseases')
     @login_required

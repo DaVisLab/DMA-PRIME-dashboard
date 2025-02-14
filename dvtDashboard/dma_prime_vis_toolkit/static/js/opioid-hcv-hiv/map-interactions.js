@@ -1,4 +1,4 @@
-import { map, brushes, thresholds, xScales, selectedZCTA, selectedCounty, zctaFeatures, countyData, redraw, updateHistogram, mobileClinicClick, clearBrushes, changeDisease } from "/static/js/opioid/map.js"
+import { map, brushes, thresholds, xScales, selectedZCTA, selectedCounty, zctaFeatures, countyData, redraw, updateHistogram, mobileClinicClick, clearBrushes, changeDisease } from "/static/js/opioid-hcv-hiv/map.js"
 
 mapResetButton.addEventListener("click", () => {
     // reset map zoom and center
@@ -136,7 +136,7 @@ communityPartnerIconsToggle.addEventListener("sl-change", () => {
 mapSecondarySidebarClose.addEventListener("sl-focus", function(event) {
     selectedZCTA.zcta = undefined
     mapAndMinorSidebar.setAttribute("position", 100)
-    mobileClinicInfoPanel.removeAttribute("active")
+    zctaDiseaseInfoPanel.removeAttribute("active")
     redraw()
 })
 
