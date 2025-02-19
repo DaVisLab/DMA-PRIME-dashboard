@@ -1,31 +1,43 @@
+import { zctaData, historicalDates, currentWeek, dataSourceLineStyle, gridItemDataSources, getDataAsArray, drawTooltip } from "/static/js/respiratory/script.js";
+export { gridWidth, gridHeight, updateGridData, sortGrid }
+
+await Promise.allSettled([ // wait for following to be defined/load in
+    customElements.whenDefined('sl-select'),
+    customElements.whenDefined('sl-option'),
+    customElements.whenDefined('sl-button'),
+])
+gridInitialVisualization()
+
+var gridWidth = gridContainer.clientWidth
+var gridHeight = gridContainer.clientHeight
 
 function gridInitialVisualization() {
-    gridContainerD3 = d3.select(gridContainer)
+    var gridContainerD3 = d3.select(gridContainer)
 
     gridStartDate.html(d3.utcFormat("%B %d, %Y")(historicalDates[0]))
-    gridEndDate.html(d3.utcFormat("%B %d, %Y")(thisWeekMonday))
+    gridEndDate.html(d3.utcFormat("%B %d, %Y")(currentWeek))
 
     gridHeight = gridContainer.clientHeight
     gridWidth = gridContainer.clientWidth
 
-    adjustedHeight = gridHeight - 1*em
-    adjustedWidth = gridWidth - 1*em
+    var adjustedHeight = gridHeight - 1*em
+    var adjustedWidth = gridWidth - 1*em
 
     // calculate how many row and column items of at least specified width/height would fit in the grid container
-    colItems = Math.min(6, Math.max(Math.floor(adjustedHeight/(120-.25*em)), 1))
-    rowItems = Math.min(8, Math.max(Math.floor(adjustedWidth/(150-.25*em)), 1))
+    var colItems = Math.min(6, Math.max(Math.floor(adjustedHeight/(120-.25*em)), 1))
+    var rowItems = Math.min(8, Math.max(Math.floor(adjustedWidth/(150-.25*em)), 1))
 
     // calculate height and width based on that
-    gridItemHeight = (adjustedHeight-((colItems-1)*.25*em))/colItems
-    gridItemWidth = (adjustedWidth-((rowItems-1)*.25*em))/rowItems
+    var gridItemHeight = (adjustedHeight-((colItems-1)*.25*em))/colItems
+    var gridItemWidth = (adjustedWidth-((rowItems-1)*.25*em))/rowItems
 
     // create x scale and color scale
-    xScale = d3.scaleUtc()
+    var xScale = d3.scaleUtc()
                 .domain([historicalDates[0], historicalDates.at(-1)])
                 .range([0, gridItemWidth*.75]) 
 
-    diseaseData = zctaData[gridDiseaseSelector.value]
-    gridColor = d3.scaleQuantile()
+    var diseaseData = zctaData.features
+    var gridColor = d3.scaleQuantile()
         .domain(getDataAsArray(gridDiseaseSelector.value, gridDataSourceSortSelector.value, gridRateSwitch.value =="rate", gridIncludeImputations.checked)
             .filter(function(d) {return d != 0})) // TODO : if we decide to leave na values as na, this filter may need to be omited
         .range(gridBackgroundColors)
@@ -38,12 +50,14 @@ function gridInitialVisualization() {
         .append("div") // data is attached here
         .attr("class", "grid-container")
         .each(function(d) {
-            zcta = d.zcta
-            county = d.county
-            gridItemContainer = d3.select(this)
+            var zcta = d.properties.ZCTA
+            var county = d.properties.county
+            var gridItemContainer = d3.select(this)
+
+            var data = d.properties.data[gridDiseaseSelector.value][gridDataSourceSortSelector.value].data
             
             // using sl-tooltip to use shoelace's built in functionality
-            gridTTPContainer = gridItemContainer.append("sl-tooltip")
+            var gridTTPContainer = gridItemContainer.append("sl-tooltip")
                 .attr("trigger", "click")
                 .attr("hoist", "")
 
@@ -51,12 +65,12 @@ function gridInitialVisualization() {
             setGridTooltip(gridTTPContainer)
 
             // tooltip
-            gridTTP = gridTTPContainer.append("div")
+            var gridTTP = gridTTPContainer.append("div")
                 .attr("slot", "content")
                 .attr("id", `grid-${zcta}-tooltip`)
                 .attr("class", `tooltip-div`)
 
-            ttpTitle = gridTTP.append("p") // tooltip title
+            var ttpTitle = gridTTP.append("p") // tooltip title
                 .attr("class", "tooltip-title")
             ttpTitle.append("span")
                 .attr("class", "tooltip-title")
@@ -69,14 +83,14 @@ function gridInitialVisualization() {
                 .attr("class", `tooltip-outer-svg`)
 
             // main visualization
-            gridDiv = gridTTPContainer.append("div")
+            var gridDiv = gridTTPContainer.append("div")
                 .attr("id", `grid-${zcta}`)
                 .attr("class", "quadrant")
                 .attr("zcta", zcta)
                 .attr("county", county)
                 .datum(zcta)
 
-            gridSVG = gridDiv.append("svg")
+            var gridSVG = gridDiv.append("svg")
                 .attr("id", `grid-${zcta}-svg`)
                 .attr("class", "grid-item")
                 .attr("zcta", zcta)
@@ -87,7 +101,7 @@ function gridInitialVisualization() {
                 .attr("class", "grid-background")
                 .attr("width", gridItemWidth)
                 .attr("height", gridItemHeight)
-                .style("fill", d[gridDataSourceSortSelector.value].data.length > 0 ? gridColor(d[gridDataSourceSortSelector.value].data.at(-1)) : "var(--sl-color-gray-200)")
+                .style("fill", data.length > 0 ? gridColor(data.at(-1)) : "var(--sl-color-gray-200)")
 
             // title
             gridSVG.append("text")
@@ -102,7 +116,7 @@ function gridInitialVisualization() {
             // add each line object
             gridItemDataSources.forEach(function(dataSource) {
                 // draw historical line chart
-                historicalGroup = gridSVG.append("g")
+                var historicalGroup = gridSVG.append("g")
                     .attr("class", dataSource)
                 historicalGroup.append("path")
                     .attr("stroke", "black")
@@ -112,7 +126,7 @@ function gridInitialVisualization() {
             })
 
             // add value label and dot
-            valueLabel = gridSVG.append("g") 
+            var valueLabel = gridSVG.append("g") 
                 .attr("class", "grid-item-value")
             valueLabel.append("line")
                 .attr("stroke", "black")
@@ -127,46 +141,45 @@ function gridInitialVisualization() {
 }
 
 function updateGridData() {
-    gridContainerD3 = d3.select(gridContainer)
+    var gridContainerD3 = d3.select(gridContainer)
 
     gridStartDate.html(d3.utcFormat("%B %d, %Y")(historicalDates[0]))
-    gridEndDate.html(d3.utcFormat("%B %d, %Y")(thisWeekMonday))
+    gridEndDate.html(d3.utcFormat("%B %d, %Y")(currentWeek))
 
     gridHeight = gridContainer.clientHeight
     gridWidth = gridContainer.clientWidth
 
-    adjustedHeight = gridHeight - 1*em
-    adjustedWidth = gridWidth - 1*em
+    var adjustedHeight = gridHeight - 1*em
+    var adjustedWidth = gridWidth - 1*em
 
-    colItems = Math.min(6, Math.max(Math.floor(adjustedHeight/(120-.25*em)), 1))
-    rowItems = Math.min(8, Math.max(Math.floor(adjustedWidth/(150-.25*em)), 1))
+    var colItems = Math.min(6, Math.max(Math.floor(adjustedHeight/(120-.25*em)), 1))
+    var rowItems = Math.min(8, Math.max(Math.floor(adjustedWidth/(150-.25*em)), 1))
 
-    gridItemHeight = (adjustedHeight-((colItems-1)*.25*em))/colItems
-    gridItemWidth = (adjustedWidth-((rowItems-1)*.25*em))/rowItems
+    var gridItemHeight = (adjustedHeight-((colItems-1)*.25*em))/colItems
+    var gridItemWidth = (adjustedWidth-((rowItems-1)*.25*em))/rowItems
 
-    diseaseData = zctaData[gridDiseaseSelector.value]
+    var diseaseData = zctaData.features
 
     // create scales
-    gridColor = d3.scaleQuantile()
+    var gridColor = d3.scaleQuantile()
         .domain(getDataAsArray(gridDiseaseSelector.value, gridDataSourceSortSelector.value, gridRateSwitch.value == "rate", gridIncludeImputations.checked)
             .filter(function(d) {return d != 0}))
         .range(gridBackgroundColors)
         .unknown("var(--sl-color-gray-600)")
 
-    xScale = d3.scaleUtc()
+    var xScale = d3.scaleUtc()
                 .domain([historicalDates[0], historicalDates.at(-1)])
                 .range([0, gridItemWidth*.75]) 
 
     // draw grid graph        
     gridContainerD3.selectAll("div.grid-container").data(diseaseData, function(d) {
-        return d.zcta
+        return d.properties.ZCTA
     }).each(function(d, i, dom) {
-        zcta = d.zcta
-        county = d.county
+        var zcta = d.properties.ZCTA
 
-        data = JSON.parse(JSON.stringify(d))
+        var data = JSON.parse(JSON.stringify(d.properties.data[gridDiseaseSelector.value]))
 
-        thisCountMax = 0
+        var thisCountMax = 0
 
         // if not including imputations, skip if data is imputated
         if (!gridIncludeImputations.checked && d.imputation) {
@@ -176,31 +189,32 @@ function updateGridData() {
         // process data
         gridItemDataSources.forEach(function(dataSource) {
             if (gridRateSwitch.value == "rate") {
-                data[dataSource].data = d[dataSource].data.map(function(item) { return item/d.population * 1000} )
+                data[dataSource].data = data[dataSource].data.map(function(item) { return item/d.population * 1000} )
             }
             if (data[dataSource].data.length) {
                 thisCountMax = Math.max(d3.max(data[dataSource].data), thisCountMax)
             }
         })
 
-        if (gridRateSwitch.value == "rate") {
-            data[gridDataSourceSortSelector.value].data = d[gridDataSourceSortSelector.value].data.map(function(item) { return item/d.population * 1000} )
-        }
+        // if (gridRateSwitch.value == "rate") {
+        //     data[gridDataSourceSortSelector.value].data = d[gridDataSourceSortSelector.value].data.map(function(item) { return item/d.population * 1000} )
+        // }
 
-        value = NaN
+        var value = NaN
         if (data[gridDataSourceSortSelector.value].data.length > 0) {
             if (gridDataSourceSortSelector.value == "state-prediction") {
-                switch(gridDiseaseSelector.value) {
-                    case "covid-19":
-                        value = data[gridDataSourceSortSelector.value].data.at(5)
-                        break
-                    case "influenza-1":
-                    case "influenza-2":
-                        value = data[gridDataSourceSortSelector.value].data.at(2)
-                        break
-                    default:
-                        value = data[gridDataSourceSortSelector.value].data.at(5)
-                }
+                value = data[gridDataSourceSortSelector.value].data.at(-1)
+                // switch(gridDiseaseSelector.value) {
+                //     case "covid-19":
+                //         value = data[gridDataSourceSortSelector.value].data.at(5)
+                //         break
+                //     case "influenza-1":
+                //     case "influenza-2":
+                //         value = data[gridDataSourceSortSelector.value].data.at(2)
+                //         break
+                //     default:
+                //         value = data[gridDataSourceSortSelector.value].data.at(5)
+                // }
                 if (typeof value == "undefined") {
                     value = NaN
                 }
@@ -210,7 +224,7 @@ function updateGridData() {
         }
 
         // update the heights/widths of things
-        gridSVG = d3.select(`#grid-${zcta}-svg`)
+        var gridSVG = d3.select(`#grid-${zcta}-svg`)
             .attr("width", gridItemWidth)
             .attr("height", gridItemHeight)
 
@@ -222,15 +236,15 @@ function updateGridData() {
             .style("fill", gridColor(value))
 
         // create yscale
-        yScale = d3.scaleLinear()
+        var yScale = d3.scaleLinear()
             .domain([0, thisCountMax])        
             .nice()
             .range([gridItemHeight-2, margin.top])
             
         // create the line creation function
-        line = function(data) {
+        var line = function(data) {
             var thisStartDate = d3.timeSaturday.round(new Date(data["start-date"]))
-            startIndex = historicalDates.findIndex((d) => d.getTime() == thisStartDate.getTime())
+            var startIndex = historicalDates.findIndex((d) => d.getTime() == thisStartDate.getTime())
             
             return d3.line()
                 .x((_, i) => xScale(historicalDates[i+startIndex]))
@@ -241,7 +255,7 @@ function updateGridData() {
         // draw the lines!
         gridItemDataSources.forEach(function(dataSource) {
             // draw historical line chart
-            historicalGroup = gridSVG.select("g."+dataSource)
+            var historicalGroup = gridSVG.select("g."+dataSource)
             historicalGroup.select("path")
                 .transition()
                 .duration(1000)
@@ -253,9 +267,10 @@ function updateGridData() {
         })
 
         // place value label and dot 
-        lastDot = gridSVG.select(".grid-item-value") //TODO: rename this, my brain is tired
-        dotPlacementX = gridDataSourceSortSelector.value == "state-prediction" ? gridItemWidth - 3 : xScale.range()[1]
-        valuePlacementX = gridDataSourceSortSelector.value == "state-prediction" ? dotPlacementX : dotPlacementX + 4
+        var lastDot = gridSVG.select(".grid-item-value") //TODO: rename this, my brain is tired
+        var dotPlacementX = gridDataSourceSortSelector.value == "state-prediction" ? gridItemWidth - 3 : xScale.range()[1]
+        var valuePlacementX = gridDataSourceSortSelector.value == "state-prediction" ? dotPlacementX : dotPlacementX + 4
+        var dotPlacementY, valuePlacementY
         if (!isNaN(value)) {
             lastDot.attr("opacity", 1)
             dotPlacementY = Math.max(yScale(value), 0)
@@ -306,11 +321,11 @@ function sortGrid() {
         case "value-high": // sort value high-low
             d3.selectAll("div.grid-container")
                 .sort((a, b) => {
-                    aValue = a[gridDataSourceSortSelector.value].data.length > 0 ? a[gridDataSourceSortSelector.value].data.at(-1) : 0
-                    bValue = b[gridDataSourceSortSelector.value].data.length > 0 ? b[gridDataSourceSortSelector.value].data.at(-1) : 0
+                    var aValue = a.properties.data[gridDiseaseSelector.value][gridDataSourceSortSelector.value].data.length > 0 ? a.properties.data[gridDiseaseSelector.value][gridDataSourceSortSelector.value].data.at(-1) : 0
+                    var bValue = b.properties.data[gridDiseaseSelector.value][gridDataSourceSortSelector.value].data.length > 0 ? b.properties.data[gridDiseaseSelector.value][gridDataSourceSortSelector.value].data.at(-1) : 0
                     if (gridRateSwitch.value == "rate") {
-                        aValue /= a.population / 1000
-                        bValue /= b.population / 1000
+                        aValue /= a.properties.population / 1000
+                        bValue /= b.properties.population / 1000
                     }
 
                     return bValue - aValue
@@ -319,11 +334,11 @@ function sortGrid() {
         case "value-low": // sort value low-high
             d3.selectAll("div.grid-container")
             .sort((a, b) => {
-                aValue = a[gridDataSourceSortSelector.value].data.length > 0 ? a[gridDataSourceSortSelector.value].data.at(-1) : 0
-                bValue = b[gridDataSourceSortSelector.value].data.length > 0 ? b[gridDataSourceSortSelector.value].data.at(-1) : 0
+                var aValue = a.properties.data[gridDiseaseSelector.value][gridDataSourceSortSelector.value].data.length > 0 ? a.properties.data[gridDiseaseSelector.value][gridDataSourceSortSelector.value].data.at(-1) : 0
+                var bValue = b.properties.data[gridDiseaseSelector.value][gridDataSourceSortSelector.value].data.length > 0 ? b.properties.data[gridDiseaseSelector.value][gridDataSourceSortSelector.value].data.at(-1) : 0
                 if (gridRateSwitch.value == "rate") {
-                    aValue /= a.population / 1000
-                    bValue /= b.population / 1000
+                    aValue /= a.properties.population / 1000
+                    bValue /= b.properties.population / 1000
                 }
 
                 return aValue - bValue
@@ -331,24 +346,49 @@ function sortGrid() {
             break;
         case "alphabetical-low": // sort value a-z-0-9
             d3.selectAll("div.grid-container")
-                .sort((a, b) => a.zcta - b.zcta)
+                .sort((a, b) => a.properties.ZCTA - b.properties.ZCTA)
             break;
         case "alphabetical-high": // sort value 9-0-a-z
             d3.selectAll("div.grid-container")
-                .sort((a, b) => b.zcta - a.zcta)
+                .sort((a, b) => b.properties.ZCTA - a.properties.ZCTA)
             break;
         default: // sort value high-low
             d3.selectAll("div.grid-container")
                 .sort((a, b) => {
-                    aValue = a[gridDataSourceSortSelector.value].data.length > 0 ? a[gridDataSourceSortSelector.value].data.at(-1) : 0
-                    bValue = b[gridDataSourceSortSelector.value].data.length > 0 ? b[gridDataSourceSortSelector.value].data.at(-1) : 0
+                    var aValue = a.properties.data[gridDiseaseSelector.value][gridDataSourceSortSelector.value].data.length > 0 ? a.properties.data[gridDiseaseSelector.value][gridDataSourceSortSelector.value].data.at(-1) : 0
+                    var bValue = b.properties.data[gridDiseaseSelector.value][gridDataSourceSortSelector.value].data.length > 0 ? b.properties.data[gridDiseaseSelector.value][gridDataSourceSortSelector.value].data.at(-1) : 0
                     if (gridRateSwitch.value == "rate") {
-                        aValue /= a.population / 1000
-                        bValue /= b.population / 1000
+                        aValue /= a.properties.population / 1000
+                        bValue /= b.properties.population / 1000
                     }
                     
                     return bValue - aValue
                 })
             break;
     }
+}
+
+function setGridTooltip(gridTooltip) {
+    // draw the tooltip for each grid item
+    gridTooltip.on("sl-show", function(event) {
+        // get data/parameters together for drawing the tooltip         
+        var gridTooltipWidth = Math.max(500, gridWidth * .3)
+        var gridTooltipHeight = gridTooltipWidth * .65
+
+        var slTTPDOM = event.target
+        var slTTP = d3.select(slTTPDOM)
+            .style("--max-width", gridTooltipWidth*1.2)
+        var thisGridContainer = d3.select(slTTPDOM.parentNode)
+
+        var thisData = thisGridContainer.datum().properties
+
+        var tooltipData = thisData.data[mapDiseaseSelector.value]
+        tooltipData["zcta"] = thisData.ZCTA
+        tooltipData["county"] = thisData.county
+        tooltipData["population"] = thisData.population
+
+        // actually draw tooltip
+        drawTooltip(tooltipData, slTTP.select("div[slot='content']"), gridTooltipHeight, gridTooltipWidth, gridRateSwitch.value == "rate")
+    })
+    
 }

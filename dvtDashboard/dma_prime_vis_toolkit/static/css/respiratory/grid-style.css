@@ -1,3 +1,12 @@
+#grid-options {
+  display: flex;
+  flex-direction: column;
+}
+
+#grid-rate-switch {
+  align-self: center;
+}
+
 /* grid item container */
 #grid-container {
   /* div containing all the grid items */

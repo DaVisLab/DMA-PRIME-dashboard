@@ -41,9 +41,13 @@
 <!-- deck gl -->
 <script src="https://unpkg.com/deck.gl@latest/dist.min.js"></script>
 
-
 <!-- Contains helper functions/data/constants -->
-<script src="{{ url_for('static', filename='js/respiratory/script.js') }}"></script>
+<script>
+    metadata = {{ metadata | safe }}
+</script>
+<script src="{{ url_for('static', filename='js/respiratory/script.js') }}" type="module"></script>
+
+
 {% endblock %}
 
 {% block linkout %}
@@ -55,37 +59,6 @@
 {% block bodyScripts %}
 
 <script type="module">
-    await Promise.allSettled([ // wait for following to be defined/load in
-        customElements.whenDefined('sl-checkbox'),
-        customElements.whenDefined('sl-select'),
-        customElements.whenDefined('sl-tab-group'),
-        customElements.whenDefined('sl-option'),
-
-        // customElements.whenDefined('sl-button'),
-        // customElements.whenDefined('sl-icon'),
-        // customElements.whenDefined('sl-icon-button'),
-        // customElements.whenDefined('sl-radio'),
-        // customElements.whenDefined('sl-radio-group'),
-        // customElements.whenDefined('sl-resize-observer'),
-        // customElements.whenDefined('sl-split-panel'),
-        // customElements.whenDefined('sl-switch'),
-        // customElements.whenDefined('sl-tab'),
-    ])
-
-    // get zcta data, then visualize for each panel
-    var diseases =d3.selectAll("#map-disease-selector sl-option:not([disabled])").nodes().map(d => {return d.value})
-
-    var dataFetching = []
-    diseases.forEach((disease) => dataFetching.push(getZCTAData(disease)))
-
-    await Promise.all(dataFetching)
-    mapInitialVisualization()
-    gridInitialVisualization() 
-    drawStateHospitalizations()
-    gridContainerResizer.addEventListener("sl-resize", () => {
-        updateGridData()
-    })
-
     // toggle tooltip labels
     document.addEventListener("keyup", function(e) {
         if (e.key == "l") {
@@ -96,54 +69,6 @@
                 })
         }
     })
-    
-        // display map for map panel, then resize
-        // mapInitialVisualization()
-        // displayMap().then(function() {
-        //     updateMap()
-        //     mapSVG.call(mapZoom)
-        //     mapResizer.addEventListener("sl-resize", () => {
-        //         updateMap()
-        //     })
-
-
-        // Display aggregate visualizations for map
-        //     Promise.all([displayMapAggregateChart(), displayMapDonut()]).then(() => {
-        //         mapAggregationResizer.addEventListener("sl-resize", () => {
-        //             displayMapAggregateChart()
-        //             // displayMapDonut()
-        //         })
-        //     })
-        // })
-        
-        // Create grid visualization
-        // gridDiseaseSelector.updateComplete.then(() => {
-        //     gridInitialVisualization() 
-        //     gridContainerResizer.addEventListener("sl-resize", () => {
-        //         updateGridData()
-        //     })
-        // })
-        
-        
-        // // Display aggregate visualizations for grid
-        // Promise.all([displayGridAggregateChart(), displayGridDonut()]).then(() => {
-        //     gridAggregationResizer.addEventListener("sl-resize", () => {
-        //         displayGridAggregateChart()
-        //         // displayGridDonut()
-        //     })        
-        // })
-
-        // // Create 4 map comparison visualization
-        // comparisonInitialVisualization()
-
-        // // Display aggregate visualizations for comparison
-        // Promise.all([displayComparisonAggregateChart(), displayComparisonDonut()]).then(() => {
-        //     comparisonAggregationResizer.addEventListener("sl-resize", () => {
-        //         displayComparisonAggregateChart()
-        //         // displayComparisonDonut()
-        //     })        
-        // })
-    
 </script>
 
 {% endblock %}

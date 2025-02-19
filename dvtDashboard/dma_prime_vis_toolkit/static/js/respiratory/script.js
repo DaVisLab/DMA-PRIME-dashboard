@@ -1,4 +1,19 @@
 
+export { zctaData, startDate, currentWeek, historicalDates, predictionDates, dataSourceColorMap, dataSourceLineStyle, gridItemDataSources, parseDate, parseHospDate, getDataAsArray, drawTooltip }
+
+
+// data
+var currentWeek = parseDate(metadata.current_week)
+
+var startDate = parseDate(metadata.start_date)
+var historicalDates = d3.timeSaturday.range(startDate, new Date(currentWeek).setDate(currentWeek.getDate()+1), 1)
+
+var endDate = parseDate(metadata.end_date)
+var predictionDates = d3.timeSaturday.range(currentWeek, new Date(endDate).setDate(endDate.getDate()+1), 1)
+
+
+var zctaData = await d3.json(`/data/deckgl-respiratory`)
+
 // visualization variables
 var formatInt = d3.format(".0f")
 
@@ -33,13 +48,6 @@ var dataSourceLineStyle = {
     "state-data-tooltip": null,
     "state-training-tooltip": "5,5",
     "state-testing-tooltip": null,
-}
-
-margins = {
-    top: 8,
-    right: 8,
-    bottom: 8,
-    left: 8,
 }
 
 var ttpHistoryWidthPercentage = 3/4
@@ -80,46 +88,15 @@ window.addEventListener("keydown", (event) => {
 
 document.adoptedStyleSheets = [styleSheet]
 
-// other info
-thisWeekMonday = new Date(2024, 8, 9)
-thisWeekMonday = d3.timeSaturday.floor(thisWeekMonday)
-
-startDate = new Date(thisWeekMonday);
-startDate.setMonth(startDate.getMonth() - 18);
-historicalDates = d3.timeSaturday.range(startDate, new Date(thisWeekMonday).setDate(thisWeekMonday.getDate()+1), 1)
-
-endDate = new Date(thisWeekMonday);
-endDate.setDate(endDate.getDate() + 4*7);
-predictionDates = d3.timeSaturday.range(thisWeekMonday, new Date(endDate).setDate(endDate.getDate()+1), 1)
-
 // data fetching
-function getZCTAData(disease) {
-    if (disease in zctaData) {
-        return Promise.resolve(zctaData[disease])
-    } else {
-        return d3.json(`/data/hospitalizations/${disease}`).then(function(data) {
-            startDate = parseDate(data["metadata"]["start_date"])
-            thisWeekMonday = parseDate(data["metadata"]["current_monday"])
-            endDate = parseDate(data["metadata"]["end_date"])
-
-            historicalDates = d3.timeSaturday.range(startDate, new Date(thisWeekMonday).setDate(thisWeekMonday.getDate()+1), 1)
-            predictionDates = d3.timeSaturday.range(thisWeekMonday, new Date(endDate).setDate(endDate.getDate()+1), 1)
-
-            zctaData[disease] = data["data"]
-            return Promise.resolve(zctaData[disease])
-        })
-    }
-}
-
 function getDataAsArray(disease, dataSource, rate, imputations=true) {
-    data = zctaData[disease]
-
-    arr = data.map((d) => {
-        if (d[dataSource].data.length > 0 && (imputations || !d.imputation)) {
+    var arr = zctaData.features.map((d) => {
+        var data = d.properties.data[disease]
+        if (data[dataSource].data.length > 0 && (imputations || !data.imputation)) {
             if (rate) {
-                return d[dataSource].data.at(-1) / d.population * 1000
+                return data[dataSource].data.at(-1) / d.population * 1000
             } else {
-                return d[dataSource].data.at(-1)
+                return data[dataSource].data.at(-1)
             }
         } else {
             return 0
@@ -269,258 +246,39 @@ function makeCommunityPartner(id) {
     return stringy
 }
 
-async function displayAggregateChart(
-    panelName,
-    aggregationSVG,
-    diseaseAggregated=true,
-    populationNormalized=false,
-    visibleDiseases=[],
-) {
-    // creates chart of hospitalizations across all time
-
-    aggregationSVG.node().innerHTML = "" //removes old visualization
-
-    d3.json("/get-hospital-zcta-aggregation", { // hospital zcta data
-        "method": "POST",
-        "headers": {"Content-Type": "application/json"},
-        "body": JSON.stringify({
-            "aggregate": diseaseAggregated,
-    })}).then((result) => {
-
-        data = result.data
-        stats = result.stats
-        maxCount = stats.max
-        dateMin = stats["date-min"]
-        dateMax = stats["date-max"]
-        if (!diseaseAggregated) {
-            maxCount = d3.max(Object.entries(stats.max), (entry) => {
-                return visibleDiseases.includes(entry[0]) ? entry[1] : NaN
-            })
-            dateMin = d3.min(Object.entries(stats["date-min"]), (entry) => {
-                return visibleDiseases.includes(entry[0]) ? entry[1] : NaN
-            })
-            dateMax = d3.max(Object.entries(stats["date-max"]), (entry) => {
-                return visibleDiseases.includes(entry[0]) ? entry[1] : NaN
-            })
-        }
-
-        if (populationNormalized) {
-            maxCount /= scPopulation
-        }
-
-        dateMin = dayjs.tz(dateMin, "YYYY-MM", "America/New_York").toDate()
-        dateMax = dayjs.tz(dateMax, "YYYY-MM", "America/New_York").toDate()
-
-        aggregateWidth = aggregationSVG.node().width.baseVal.value
-        aggregateHeight = aggregationSVG.node().height.baseVal.value
-
-        // add title
-        aggregationSVG.append("foreignObject")
-            .attr("x", 0)
-            .attr("y", 0)
-            .attr("width", "100%")
-            .attr("height", em)
-            .append("xhtml:p")
-            .attr("class", "aggregation-graph-title")
-            .attr("xmlns", "http://www.w3.org/1999/xhtml")
-            .attr("align", "center")
-            .html(`${diseaseAggregated ? "Aggregated" : ""} Disease Count Over Time`)
-
-        // add y axis
-        yScale = d3.scaleLinear()
-                    .domain([0, maxCount]).range([aggregateHeight - 2*em, margins.bottom + em])    
-                    .nice()
-
-        aggregationSVG.append("g")
-            .attr("transform", `translate(${margins.left + 2*em},0)`)
-            .call(d3.axisLeft(yScale).ticks(5).tickSize(0))
-
-        // add x axis
-        xScale = d3.scaleUtc()
-                    .domain([dateMin, dateMax]).range([margins.left + 2*em, aggregateWidth - margins.right*2])    
-                    .nice()
-        aggregationSVG.append("g")
-            .attr("transform", `translate(0, ${aggregateHeight - 2*em})`)
-            .call(d3.axisBottom(xScale)) 
-
-        // add graph
-        line = d3.line()
-            .x((d) => xScale(dayjs.tz(d.date, "YYYY-MM", "America/New_York").toDate()))
-            .y((d) => yScale(populationNormalized ? d.count/scPopulation : d.count))
-        
-        aggregateChart = aggregationSVG.append("g")
-
-        if (diseaseAggregated) {
-            // aggregated so single line
-            aggregateChart.append("path")
-            .attr("id", panelName+"-aggregate-chart")
-            .attr("d", line(data))
-            .attr("stroke", "saddlebrown")
-            .style("fill", "none")
-            .attr("stroke-width", 2)
-        } else {
-            // separate diseases so multiple lines
-            Object.entries(data).forEach((entry) => {
-                if(visibleDiseases.includes(entry[0])){
-                    aggregateChart.append("path")
-                        .attr("id", panelName+"-aggregate-chart-"+entry[0])
-                        .attr("d", line(entry[1]))
-                        .attr("stroke", diseaseColorMap(entry[0]))
-                        .style("fill", "none")
-                        .style("stroke-width", 2)
-                }
-            })
-        }
-    })
-} 
-
-async function displayDonut(
-    panelName,
-    jsaggregationDonutSVG,
-    aggregationDonutGroup
-) {
-    // creates chart of current bed capacity
-    aggregationDonutGroup.node().innerHTML = ""
-    data = {
-        // "type of bed": [beds full, beds empty]
-        "regular": [8, 2],
-        "icu": [undefined, undefined]
-    }
-
-    aggregateHeight = jsaggregationDonutSVG.height.baseVal.value
-
-    radius = (aggregateHeight - margins.top) / 2
-    radiusInner = radius * .25
-    radiusRange = radius * .75
-
-    const pie = d3.pie()
-        .sort(null)
-
-    bedTypes = Object.keys(data).length
-
-    bedsColorMap = d3.scaleOrdinal().domain(Object.keys(data)).range(d3.schemeSet2)
-
-    // background in case the bed data is undefined, this makes the lined unknown donut stand out more
-    aggregationDonutGroup.append("path")
-        .attr("transform", `translate(${radius},${aggregateHeight/2})`)
-        .attr("d", d3.arc()({
-            innerRadius: radiusInner,
-            outerRadius: radius,
-            startAngle: 0,
-            endAngle: Math.PI * 2
-        }))
-        .style("fill", "currentColor")
-
-        // adding group to add legend data to
-    aggregationDonutLegend = aggregationDonutGroup.append("g")
-        .attr("id", panelName+"-aggregation-donut-legend")
-        .attr("transform", `translate(${radius*2+em/2}, ${aggregateHeight/2 - (bedTypes*1.5-.5)*em/2})`)
-
-    Object.entries(data).forEach((entry, index) => {
-        // display donut for each bed type
-
-        // define arc creator
-        const arc = d3.arc()
-            .innerRadius(radiusInner + radiusRange * (bedTypes - index - 1)/bedTypes)
-            .outerRadius(radiusInner + radiusRange * (bedTypes - index)/bedTypes);
-
-        // if this group exists, set group equal to the d3 selection, otherwise create the group
-        group = d3.select(`#${panelName}-${entry[0]}-bed-usage-group`).node() ? 
-            d3.select(`#${panelName}-${entry[0]}-bed-usage-group`) : 
-            aggregationDonutGroup.append("g").attr("id", `#${panelName}-${entry[0]}-bed-usage-group`)
-
-        // move arc to the left and centered vertically
-        group.attr("transform", `translate(${radius}, ${aggregateHeight/2})`)
-        
-        // add legend color square for this bed type
-        aggregationDonutLegend.append("rect")
-            .attr("id", `${panelName}-${entry[0]}-bed-usage-legend-color`)
-            .attr("x", 0)
-            .attr("y", index*1.5*em)
-            .attr("height", em/2)
-            .attr("width", em/2)
-            .style("fill", bedsColorMap(entry[0]))
-
-        // add first line of text to legend (bed type)
-        aggregationDonutLegend.append("text")
-            .attr("id", `${panelName}-${entry[0]}-bed-usage-legend-text1`)
-            .attr("x", em*.75)
-            .attr("y", (index*1.5-.0625)*em)
-            .style("fill", "currentColor")
-            .style("dominant-baseline", "middle")
-            .style("font-size", em*.75 + "px")
-            .text(`${entry[0]} bed utilization:`)
-
-        // add second line of text to legend (actual utilization)
-        aggregationDonutLegend.append("text")
-            .attr("id", `${panelName}-${entry[0]}-bed-usage-legend-text2`)
-            .attr("x", em*.75)
-            .attr("y", (index*1.5+.75)*em)
-            .style("fill", "currentColor")
-            .style("dominant-baseline", "middle")
-            .style("font-size", em*.75 + "px")
-
-        if (entry[1].includes(undefined)) {
-            // If the bed utilization is undefined, make the arc a full circle that is striped to indicate unknown value
-            group.selectAll("path")
-                .data(pie([1, 1]))
-                .enter()
-                .append("path")
-                .attr("mask", "url(#nan-pattern-mask)")
-                .attr("fill", bedsColorMap(entry[0]))
-                .attr("d", arc)
-
-            aggregationDonutLegend.select(`#${panelName}-${entry[0]}-bed-usage-legend-text2`)
-                .text(`unknown`)
-        } else {
-            // Make the arc proportional to the amount of beds utilized
-            group.selectAll("path")
-                .data(pie(entry[1]))
-                .enter()
-                .append("path")
-                .attr("fill", (d, i) => i ? "currentColor" : bedsColorMap(entry[0]) )
-                .attr("d", arc)
-
-            aggregationDonutLegend.select(`#${panelName}-${entry[0]}-bed-usage-legend-text2`)
-                .text(`${d3.format(".0%")(entry[1][0]/(entry[1][0]+entry[1][1]))}`)
-                
-        }
-    })
-}
-
 function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
-    data = JSON.parse(JSON.stringify(d))
+    var data = JSON.parse(JSON.stringify(d))
 
-    p = div.select("p")
+    var p = div.select("p")
     p.select(".tooltip-title").html(`ZCTA: ${data.zcta}`)
     p.select(".tooltip-subtitle").html(`County: ${data.county[0].toUpperCase()+data.county.substring(1)}`)
 
-    ttpLegendTop = ttpHeight - 2.5*em
+    var ttpLegendTop = ttpHeight - 2.5*em
 
-    ttpSVG = div.select(".tooltip-outer-svg")
+    var ttpSVG = div.select(".tooltip-outer-svg")
         .attr("height", ttpHeight)
         .attr("width", ttpWidth)
 
     // reset tooltip contents for new data
     ttpSVG.node().innerHTML = ""
 
-    graphSVG = ttpSVG.append("svg")
+    var graphSVG = ttpSVG.append("svg")
         .attr("class", "tooltip-graph-svg")
         .attr("height", ttpHeight)
         .attr("width", ttpWidth)
     graphSVG.append("line")
         .attr("class", "tooltip-prediction-separator")
 
-    yAxis = ttpSVG.append("g")
+    var yAxis = ttpSVG.append("g")
         .attr("class", "y-axis")
-    xAxisHistorical = ttpSVG.append("g")
+    var xAxisHistorical = ttpSVG.append("g")
         .attr("class", "x-axis-historical")
-    xAxisPrediction = ttpSVG.append("g")
+    var xAxisPrediction = ttpSVG.append("g")
         .attr("class", "x-axis-prediction")
 
-    ttpLegend = ttpSVG.append("g").attr("class", "tooltip-legend")
+    var ttpLegend = ttpSVG.append("g").attr("class", "tooltip-legend")
 
-    countMax = 0
+    var countMax = 0
 
     ttpDataSources.forEach(function(dataSource) {
         if (rate) {
@@ -531,7 +289,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
         }
     })
     
-    predictionData = JSON.parse(JSON.stringify(data["state-prediction"]))
+    var predictionData = JSON.parse(JSON.stringify(data["state-prediction"]))
     if (predictionData.data.length > 0 && mapDiseaseSelector.value.includes("influenza")) {
         predictionData.data = predictionData.data.splice(start=0, end=3)
     }
@@ -543,30 +301,30 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
     }
 
     // figure out how much space is needed for the y-axis text
-    temp = ttpSVG.append("text").text(d3.format(".2r")(countMax)).attr("x", 0).attr("y", 0)
-    ttpMargins = {
+    var temp = ttpSVG.append("text").text(d3.format(".2r")(countMax)).attr("x", 0).attr("y", 0)
+    var ttpMargins = {
         "top": 1*em, 
         "bottom": 2.5*em + 3*em,
         "left": Math.max(20, temp.node().getBBox().width) + 2*em,
         "right": em,
     }
 
-    yScale = d3.scaleLinear()
+    var yScale = d3.scaleLinear()
         .domain([0, countMax])        
         .nice()
         .range([ttpHeight-ttpMargins.bottom, ttpMargins.top])
 
-    xScaleHistorical = d3.scaleUtc()
+    var xScaleHistorical = d3.scaleUtc()
         .domain(d3.extent(historicalDates))
         .range([ttpMargins.left, ttpMargins.left + (ttpWidth - ttpMargins.right - ttpMargins.left)*ttpHistoryWidthPercentage]) 
-    xScalePrediction = d3.scaleUtc()
+    var xScalePrediction = d3.scaleUtc()
         .domain(d3.extent(predictionDates))
         .range([ttpMargins.left + (ttpWidth - ttpMargins.right - ttpMargins.left)*ttpHistoryWidthPercentage, ttpWidth - ttpMargins.right]) 
 
     // line generators
-    historicalLine = function(data) {
+    var historicalLine = function(data) {
         var thisStartDate = d3.timeSaturday.round(new Date(data["start-date"]))
-        startIndex = historicalDates.findIndex((d) => d.getTime() == thisStartDate.getTime())
+        var startIndex = historicalDates.findIndex((d) => d.getTime() == thisStartDate.getTime())
 
         return d3.line()
             .x((_, i) => xScaleHistorical(historicalDates[i+startIndex]))
@@ -574,9 +332,9 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
             .curve(d3.curveMonotoneX)(data.data)
     }
 
-    predictionLine = function(data) {
+    var predictionLine = function(data) {
         var thisStartDate = d3.timeSaturday.round(new Date(data["start-date"]))
-        startIndex = predictionDates.findIndex((d) => d.getTime() == thisStartDate.getTime())
+        var startIndex = predictionDates.findIndex((d) => d.getTime() == thisStartDate.getTime())
 
         return d3.line()
             .x((_, i) => xScalePrediction(predictionDates[i+startIndex]))
@@ -585,9 +343,9 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
     }
 
     ttpDataSources.forEach(function(dataSource, i) {
-        thisData = data[dataSource]
+        var thisData = data[dataSource]
         // draw historical line chart
-        historicalGroup = graphSVG.append("g")
+        var historicalGroup = graphSVG.append("g")
         historicalGroup.append("path")
             .attr("d", historicalLine(thisData))
             .attr("stroke", dataSourceColorMap[dataSource])
@@ -595,7 +353,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
             .attr("stroke-width", 2)
             .style("stroke-dasharray", dataSourceLineStyle[`${dataSource}-tooltip`])
         
-        labelGroup = ttpLegend.append("g")
+        var labelGroup = ttpLegend.append("g")
             .attr("class", "tooltip-label-group")
         labelGroup.append("line")
             .attr("x1", 1*em + ((ttpWidth-2*em)/3 * (i%2)))
@@ -604,7 +362,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
             .attr("y2", ttpLegendTop + .75*em + em * parseInt(i/2))
             .style("stroke-dasharray", dataSourceLineStyle[`${dataSource}-tooltip`])
             .attr("stroke", dataSourceColorMap[dataSource])
-        labelText = labelGroup.append("text")
+        var labelText = labelGroup.append("text")
             .attr("class", "tooltip-label")
             .attr("x", 2.5*em + ((ttpWidth-2*em)/3 * (i%2)))
             .attr("y", ttpLegendTop + em + em * parseInt(i/2))
@@ -613,13 +371,13 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
             .text(dataSourceDisplayName[dataSource])
     })
 
-    stateCurrentLabelPositionAbove = null
+    var stateCurrentLabelPositionAbove = null
     if (predictionData.data.length) {
         graphSVG.append("rect")
             .attr("class", "tooltip-prediction-highlighter")
 
         // draw predictive line chart
-        predictiveGroup = graphSVG.append("g")
+        var predictiveGroup = graphSVG.append("g")
         predictiveGroup.append("path")
             .attr("d", predictionLine(predictionData))
             .attr("stroke", dataSourceColorMap["state-prediction"])
@@ -649,7 +407,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
             .attr("x2", xScalePrediction.range()[0])
             .attr("y2", ttpHeight - ttpMargins.bottom)
 
-        labelGroup = ttpLegend.append("g")
+        var labelGroup = ttpLegend.append("g")
             .attr("class", "tooltip-label-group")
         labelGroup.append("line")
             .attr("x1", 2.5*em + ((ttpWidth-2*em)/3 * 2))
@@ -657,7 +415,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
             .attr("x2", 3.75*em + ((ttpWidth-2*em)/3 * 2))
             .attr("y2", ttpLegendTop + .75*em + em*.5)
             .attr("stroke", dataSourceColorMap["state-prediction"])
-        labelText = labelGroup.append("text")
+        var labelText = labelGroup.append("text")
             .attr("class", "tooltip-label")
             .attr("x", 4*em + ((ttpWidth-2*em)/3 * 2))
             .attr("y", ttpLegendTop + em + em *.5)
@@ -670,21 +428,21 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
 
     
     ["state-testing", "health-system-data"].forEach(function(dataSource) {
-        thisData = data[dataSource]
-        historicalLabels = graphSVG.append("g")
+        var thisData = data[dataSource]
+        var historicalLabels = graphSVG.append("g")
 
         var thisStartDate = parseDate(thisData["start-date"])
-        thisEndDate = new Date(thisStartDate);
+        var thisEndDate = new Date(thisStartDate);
         thisEndDate.setDate(thisEndDate.getDate() + thisData.data.length*7);
-        datesReconstructed = d3.timeSaturday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
+        var datesReconstructed = d3.timeSaturday.range(thisStartDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 1)
 
-        refDate = new Date(thisWeekMonday)
+        var refDate = new Date(currentWeek)
         refDate.setDate(refDate.getDate() - 7)
 
-        index = datesReconstructed.findIndex((d) => d.getTime() == refDate.getTime())
+        var index = datesReconstructed.findIndex((d) => d.getTime() == refDate.getTime())
 
         if (index > -1) {
-            circleData = thisData.data.slice(index).map(function(d, i) {
+            var circleData = thisData.data.slice(index).map(function(d, i) {
                 return {"count": d, "date": datesReconstructed.slice(index)[i]};
               })
 
@@ -698,7 +456,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
               .attr("stroke", dataSourceColorMap[dataSource])
 
             if (circleData.length > 1) {
-                yPosition = yScale(circleData[1].count)
+                var yPosition = yScale(circleData[1].count)
                 if (dataSource == "state-testing") {
                     if (stateCurrentLabelPositionAbove !== null) {
                         yPosition += stateCurrentLabelPositionAbove ? -6 : 12

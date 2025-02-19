@@ -57,6 +57,20 @@ def create_app(development=False, dataDir=None):
     @app.route('/respiratory')
     @login_required
     def respiratory():
+        today = pd.to_datetime("today").normalize()
+        current_week = today + pd.DateOffset(days=(5 - today.weekday()) % 7)
+        metadata = {
+            'diseases': {
+                'covid-19': 'Covid-19'
+            },
+            'start_date': (current_week - pd.DateOffset(months=18)).strftime('%Y-%m-%d'),
+            'current_week': current_week.strftime('%Y-%m-%d'),
+            'end_date': (current_week + pd.DateOffset(weeks=4)).strftime('%Y-%m-%d')
+        }
+
+        with open(f'{app.config['DATADIR']}/processed/respiratory/metadata.json') as f:
+            metadata = dict(json.load(f))
+
         panels = [
             {
                 'name': 'main',
@@ -80,7 +94,7 @@ def create_app(development=False, dataDir=None):
             #     'html': 'respiratory/deckgl-respiratory-map-panel.html'
             # },
         ]
-        return render_template('respiratory/respiratory-base.html', panels=panels)
+        return render_template('respiratory/respiratory-base.html', panels=panels, metadata=metadata)
     
     @app.route('/mobile-health-clinics')
     @login_required

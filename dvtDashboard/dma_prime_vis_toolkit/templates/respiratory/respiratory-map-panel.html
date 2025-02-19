@@ -17,12 +17,11 @@
   </sl-radio-group>
 
   <!-- disease selector -->
-  <sl-select value="covid-19" id="map-disease-selector" class="fill-width">
+  <sl-select value="{{ metadata['diseases'].keys() | first }}" id="map-disease-selector" class="fill-width">
     <p slot="label">Select a disease or group of diseases</p>
-    <sl-option value="respiratory-diseases" >Respiratory Diseases (COVID-19, Flu, RSV)</sl-option>
-    <sl-option value="covid-19">COVID-19</sl-option>
-    <!-- <sl-option value="influenza-1" >Influenza 1</sl-option>
-    <sl-option value="influenza-2" disabled>Influenza 2</sl-option> -->
+    {% for disease, name in metadata['diseases'].items() %}
+    <sl-option value="{{ disease }}">{{ name }}</sl-option>
+    {% endfor %}
   </sl-select>
 
   <!-- data source/hospitalization level selector -->
@@ -41,77 +40,52 @@
   <sl-checkbox id="map-options-mobile-clinic-icons-toggle" class="map-icons-toggle" style="display: initial;">Mobile Health Clinics</sl-checkbox>
   <sl-checkbox id="map-options-community-partner-icons-toggle" class="map-icons-toggle" style="display: initial;">Community Partners</sl-checkbox>
   
-  <p id="map-summary" class="panel-summary center-self">
+  <!-- TODO Fix the below -->
+  <!-- <p id="map-summary" class="panel-summary center-self">
     Weekly <text>count</text> of hospitalizations due to <text>covid-19, influenza, and respiratory syncytial virus (RSV)</text>.
     <br/>
     Hospitalization cases are aggregated by zip code tabulation area (zcta).
-  </p>
-  </div>
-
-  <!-- Aggregation visualization -->
-  <div id="map-state-hospitalizations" >
-    <p id="map-state-hospitalizations-title" class="map-state-hospitalizations-title">State Hospitalizations</p>
-    <sl-resize-observer id="map-state-hospitalizations-resizer">
-      <svg id="map-state-hospitalizations-svg"></svg>
-    </sl-resize-observer>
-  </div>
-  <sl-dialog id="map-state-hospitalizations-large" class="dialog-width" >
-    <p id="map-state-hospitalizations-large-title" slot="label">State Hospitalizations</p>
-    <sl-resize-observer id="map-state-hospitalizations-large-resizer">
-      <svg id="map-state-hospitalizations-large-svg"></svg>
-    </sl-resize-observer>
-  </sl-dialog>
+  </p> -->
 </div>
 
-<!-- Aggregation visualization -->
-<!-- <div class="options-div aggregation-vis" id="{{panel.name}}-aggregation-vis">
-  <svg id="{{panel.name}}-aggregation-donut-svg" class="fill-width aggregation-donut">
-    <defs>
-      <pattern id="nan-pattern"
-          width="2.5%" height="2.5%"
-          patternUnits="userSpaceOnUse"
-          patternTransform="rotate(45)">
-        <line stroke="white" stroke-width="3%" y2="2.5%"/>
-      </pattern>
-      <mask id="nan-pattern-mask" x="-100%" y="-100%" width="200%" height="200%" >
-        <rect x="-100%" y="-100%" width="200%" height="200%" fill="url(#nan-pattern)" />
-      </mask>
-    </defs>
-    <g id="{{panel.name}}-aggregation-donut"></g>
-  </svg>
-  <sl-resize-observer id="{{panel.name}}-aggregation-resizer">
-    <svg id="{{panel.name}}-aggregation-svg" class="fill-width">
-
-    </svg>
+<div id="map-state-hospitalizations" >
+  <p id="map-state-hospitalizations-title" class="map-state-hospitalizations-title">State Hospitalizations</p>
+  <sl-resize-observer id="map-state-hospitalizations-resizer">
+    <svg id="map-state-hospitalizations-svg"></svg>
   </sl-resize-observer>
-</div> -->
+</div>
+<sl-dialog id="map-state-hospitalizations-large" class="dialog-width" >
+  <p id="map-state-hospitalizations-large-title" slot="label">State Hospitalizations</p>
+  <sl-resize-observer id="map-state-hospitalizations-large-resizer">
+    <svg id="map-state-hospitalizations-large-svg"></svg>
+  </sl-resize-observer>
+</sl-dialog>
 
 {% endblock %}
 
 {% block contents %}
 <div class="fill-width fill-height" id="map-div">
-  <sl-resize-observer id="map-resizer">
+  <!-- <sl-resize-observer id="map-resizer">
     <svg id="map-svg" class="scroll fill-height fill-width"></svg>
-  </sl-resize-observer>
+  </sl-resize-observer> -->
+</div>
+<div id="choropleth-legend">
+  <svg id="choropleth-legend-svg"></svg>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  // containing elements
-  var mapResizer = document.getElementById("map-resizer")
-  var mapAggregationResizer = document.getElementById("map-aggregation-resizer")
-  var mapDiv = document.getElementById("map-div")
+  dataVersion = 0
+  mapResetButton = document.getElementById("map-reset-button")
+  mapRateSwitch = document.getElementById("map-rate-switch")
 
-  // interactive elements
-  var resetButton = document.getElementById("map-reset-button")
-  var mapDiseaseSelector = document.getElementById("map-disease-selector")
-  var mapDataSourceSelector = document.getElementById("map-data-source-selector")
-  var mapRateSwitch = document.getElementById("map-rate-switch")
-  var hospitalIconsToggle = document.getElementById("map-options-hospital-icons-toggle")
-  var mobileClinicIconsToggle = document.getElementById("map-options-mobile-clinic-icons-toggle")
-  var communityPartnerIconsToggle = document.getElementById("map-options-community-partner-icons-toggle")
-  var mapIncludeImputations = document.getElementById("map-include-imputations")
+  mapDiseaseSelector = document.getElementById("map-disease-selector")
+  mapDataSourceSelector = document.getElementById("map-data-source-selector")
+  hospitalIconsToggle = document.getElementById("map-options-hospital-icons-toggle")
+  mobileClinicIconsToggle = document.getElementById("map-options-mobile-clinic-icons-toggle")
+  communityPartnerIconsToggle = document.getElementById("map-options-community-partner-icons-toggle")
+  mapIncludeImputations = document.getElementById("map-include-imputations")
 
   // aggregation visualization elements
   mapStateHospitalizationsResizer = document.getElementById("map-state-hospitalizations-resizer")
@@ -119,59 +93,15 @@
   mapStateHospitalizationsLarge = document.getElementById("map-state-hospitalizations-large")
   mapStateHospitalizationsLargeResizer = document.getElementById("map-state-hospitalizations-large-resizer")
   mapStateHospitalizationsLargeSvg = document.getElementById("map-state-hospitalizations-large-svg")
-  // var jsmapAggregationDonutSvg = document.getElementById("map-aggregation-donut-svg")
-  // var mapAggregationDonutGroup = d3.select("#map-aggregation-donut")
-  // var mapAggregationSvg = d3.select("#map-aggregation-svg")
-
-  // content visualization elements
-  var mapSVG = d3.select("#map-svg")
-  var mapTooltip = document.getElementById("map-tooltip")
-
-  // map visualization variables
-  var width = mapDiv.clientWidth
-  var height = mapDiv.clientHeight
-  var zoom = 1
-  var xSkew = 0
-  var ySkew = 0
-  var focusCounty = null
-  var focusZCTA = null
-  var mapTooltipWidth = 200
-  var mapTooltipHeight = 130
-
-  // visualization data
-  var mapData = null
-  var diseaseStats = null
-  var diseaseMetadata = null
-  var hospitalStats = null
-  var hospitalMetadata = null
-
-  // visualization functions (d3)
-  var mapProjection = null
-  var choroplethColorMap = null
-  var hospitalRadiusMap = null
-
-  async function displayMapAggregateChart() {
-    displayAggregateChart(
-        "map",
-        mapAggregationSvg,
-        mapAggregationSwitch.value == "aggregated",
-        mapPopulationSwitch.value != "total",
-        getVisibleDiseases("hospital")
-    )
-  }
-
-  async function displayMapDonut() {
-      displayDonut(
-          "map",
-          jsmapAggregationDonutSvg,
-          mapAggregationDonutGroup
-      )
-  }
+  
+  
+  mapDiv = document.getElementById("map-div")
+  choroplethLegendSVG = document.getElementById("choropleth-legend-svg")
 
   set{{panel.name}}Panel()
 </script>
 
-<script src="{{ url_for('static', filename='js/respiratory/map.js') }}"></script>
-<script src="{{ url_for('static', filename='js/respiratory/map-interactions.js') }}"></script>
+<script src="{{ url_for('static', filename='js/respiratory/map.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/respiratory/map-interactions.js') }}" type="module"></script>
 
 {% endblock %}

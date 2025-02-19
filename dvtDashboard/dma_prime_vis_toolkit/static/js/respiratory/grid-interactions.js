@@ -1,18 +1,33 @@
+import { zctaData, drawTooltip } from "/static/js/respiratory/script.js";
+import { gridWidth, gridHeight, updateGridData, sortGrid } from "/static/js/respiratory/grid.js";
+
+gridContainerResizer.addEventListener("sl-resize", () => {
+    updateGridData()
+})
 
 gridSort.addEventListener("sl-change", (event) => {
     sortGrid()
 })
 
 gridRateSwitch.addEventListener("sl-change", (event) => {
-    // when population aggregation switch is changed, update the visualization
-    // displayGridAggregateChart()
-
-  d3.select(gridContainer).selectAll("sl-tooltip[open]")
+    d3.select(gridContainer).selectAll("sl-tooltip[open]")
         .each(function(d, i) {
-            slTTP = d3.select(this)
-            gridTooltipWidth = Math.max(500, gridWidth * .3)
-            gridTooltipHeight = gridTooltipWidth * .65
-            drawTooltip(d3.select(this.parentNode).datum(), slTTP.select("div[slot='content']"), gridTooltipHeight, gridTooltipWidth, gridRateSwitch.value == "rate")
+            var gridTooltipWidth = Math.max(500, gridWidth * .3)
+            var gridTooltipHeight = gridTooltipWidth * .65
+    
+            var slTTP = d3.select(this)
+            console.log(slTTP)
+            var slTTPDOM = slTTP.node()
+            var thisGridContainer = d3.select(slTTPDOM.parentNode)
+    
+            var thisData = thisGridContainer.datum().properties
+    
+            var tooltipData = thisData.data[mapDiseaseSelector.value]
+            tooltipData["zcta"] = thisData.ZCTA
+            tooltipData["county"] = thisData.county
+            tooltipData["population"] = thisData.population
+
+            drawTooltip(thisData, slTTP.select("div[slot='content']"), gridTooltipHeight, gridTooltipWidth, gridRateSwitch.value == "rate")
 
         })
     updateGridData()
@@ -41,12 +56,12 @@ gridTextFilter.addEventListener("sl-input", filterZCTAByText)
 
 function filterZCTAByText(event) {
     // get filtration value
-    diseaseData = zctaData[gridDiseaseSelector.value]
+    var diseaseData = zctaData.features
 
     // get all zcta that partially match (case ignored) either zip code or county
-    matchingZCTAData = diseaseData.filter(function(d) {
-        countyMatch = d.county.toLowerCase().includes(gridTextFilter.value.toLowerCase())
-        zctaMatch = d.zcta.toString().toLowerCase().includes(gridTextFilter.value.toLowerCase())
+    var matchingZCTAData = diseaseData.filter(function(d) {
+        var countyMatch = d.properties.county.toLowerCase().includes(gridTextFilter.value.toLowerCase())
+        var zctaMatch = d.properties.ZCTA.toString().toLowerCase().includes(gridTextFilter.value.toLowerCase())
         return countyMatch || zctaMatch
     })
 
@@ -58,9 +73,9 @@ function filterZCTAByText(event) {
     }
 
     // get all grid items corresponding to the selected zcta 
-    objs = d3.selectAll("div.grid-container")
+    var objs = d3.selectAll("div.grid-container")
         .data(matchingZCTAData, function(d) {
-            return d.zcta
+            return d.properties.ZCTA
         })
     objs.style("display", "initial") // show ones that match
     objs.exit()
@@ -83,21 +98,3 @@ gridIncludeImputations.addEventListener("sl-change", () => {
     updateGridData() // update display since the min and max values will change
     filterZCTAByText() // filter again since the if else statement didn't account for that
 })
-
-function setGridTooltip(gridTooltip) {
-    // draw the tooltip for each grid item
-    gridTooltip.on("sl-show", function(event) {
-        // get data/parameters together for drawing the tooltip         
-        gridTooltipWidth = Math.max(500, gridWidth * .3)
-        gridTooltipHeight = gridTooltipWidth * .65
-
-        slTTPDOM = event.target
-        slTTP = d3.select(slTTPDOM)
-            .style("--max-width", gridTooltipWidth*1.2)
-        thisGridContainer = d3.select(slTTPDOM.parentNode)
-
-        // actually draw tooltip
-        drawTooltip(thisGridContainer.datum(), slTTP.select("div[slot='content']"), gridTooltipHeight, gridTooltipWidth, gridRateSwitch.value == "rate")
-    })
-    
-}

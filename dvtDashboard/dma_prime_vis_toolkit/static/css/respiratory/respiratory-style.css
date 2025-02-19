@@ -42,30 +42,3 @@ p.tooltip-title {
   opacity: .5;
   fill: var(--sl-color-neutral-600);
 }
-
-.aggregation-vis {
-  display: none;
-}
-
-
-/* Graveyard... */
-/* .aggregation-vis {
-  width: 100%;
-  overflow: hidden;
-  padding: var(--sl-spacing-x-small);
-  display: none;
-  flex-direction: column;
-}
-
-svg.aggregation-donut {
-  aspect-ratio: 50/20;
-}
-
-.aggregation-svg {
-  aspect-ratio: 50/35;
-}
-
-.aggregation-graph-title {
-  margin: 0;
-  font-size: var(--sl-font-size-x-small);
-} */

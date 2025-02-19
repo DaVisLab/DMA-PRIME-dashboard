@@ -42,7 +42,7 @@ def getHospitalizationsState():
 @login_required
 def getRespiratoryHospitalizations(disease='covid-19'):
     # hospitalization data based on disease
-    return send_file(f'{current_app.config['DATADIR']}/processed/deckgl_respiratory_zcta_hospitalization_data.json')
+    return send_file(f'{current_app.config['DATADIR']}/processed/respiratory/respiratory_zcta_hospitalization_data.json')
 
 @bp.route('/opioid-hcv-hiv/<disease>', methods=['GET', 'POST'])
 @login_required

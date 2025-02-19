@@ -13,12 +13,11 @@
   </sl-radio-group>
 
   <!-- disease selector -->
-  <sl-select value="covid-19" id="grid-disease-selector" class="fill-width ">
+  <sl-select value="{{ metadata['diseases'].keys() | first }}" id="grid-disease-selector" class="fill-width">
     <p slot="label">Select a disease or group of diseases</p>
-    <sl-option value="respiratory-diseases" >Respiratory Diseases (COVID-19, Flu, RSV)</sl-option>
-    <sl-option value="covid-19">COVID-19</sl-option>
-    <!-- <sl-option value="influenza-1" >Influenza 1</sl-option>
-    <sl-option value="influenza-2" disabled>Influenza 2</sl-option> -->
+    {% for disease, name in metadata['diseases'].items() %}
+    <sl-option value="{{ disease }}">{{ name }}</sl-option>
+    {% endfor %}
   </sl-select>
 
   <!-- data source/hospitalization level selector -->
@@ -57,28 +56,6 @@
 
 </div>
 
-<!-- Aggregation visualization -->
-<div class="options-div aggregation-vis" id="{{panel.name}}-aggregation-vis">
-  <svg id="{{panel.name}}-aggregation-donut-svg" class="fill-width aggregation-donut">
-    <defs>
-      <pattern id="nan-pattern"
-          width="2.5%" height="2.5%"
-          patternUnits="userSpaceOnUse"
-          patternTransform="rotate(45)">
-        <line stroke="white" stroke-width="3%" y2="2.5%"/>
-      </pattern>
-      <mask id="nan-pattern-mask" x="-100%" y="-100%" width="200%" height="200%" >
-        <rect x="-100%" y="-100%" width="200%" height="200%" fill="url(#nan-pattern)" />
-      </mask>
-    </defs>
-    <g id="{{panel.name}}-aggregation-donut"></g>
-  </svg>
-  <sl-resize-observer id="{{panel.name}}-aggregation-resizer">
-    <svg id="{{panel.name}}-aggregation-svg" class="fill-width aggregation-svg">
-
-    </svg>
-  </sl-resize-observer>
-</div>
 {% endblock %}
 
 {% block contents %}
@@ -102,7 +79,6 @@
   var gridContent = document.getElementById("grid-content")
   var gridContainer = document.getElementById("grid-container")
   var gridContainerResizer = document.getElementById("grid-container-resizer")
-  var gridAggregationResizer = document.getElementById("grid-aggregation-resizer")
   var gridOptionsHospitalizationsBranch = document.getElementById("grid-options-hospitalizations-branch")
 
   // interactive elements
@@ -113,11 +89,6 @@
   var gridSort = document.getElementById("grid-sort")
   var gridTextFilter = document.getElementById("grid-text-filter")
   var gridIncludeImputations = document.getElementById("grid-include-imputations")
-
-  // aggregation visualization elements
-  var jsgridAggregationDonutSvg = document.getElementById("grid-aggregation-donut-svg")
-  var gridAggregationDonutGroup = d3.select("#grid-aggregation-donut")
-  var gridAggregationSvg = d3.select("#grid-aggregation-svg")
 
   // Text elements
   var gridStartDate = d3.select("#grid-start-date")
@@ -135,27 +106,9 @@
 
   var gridBackgroundColors = [1, 2, 3, 4].map(i => d3.schemeReds[9][i])
 
-  async function displayGridAggregateChart() {
-    displayAggregateChart(
-        "grid",
-        gridAggregationSvg,
-        gridAggregationSwitch.value == "aggregated",
-        gridPopulationSwitch.value != "total",
-        getVisibleDiseases("grid")
-    )
-  }
-
-  async function displayGridDonut() {
-      displayDonut(
-          "grid",
-          jsgridAggregationDonutSvg,
-          gridAggregationDonutGroup
-      )
-  }
-
   set{{panel.name}}Panel()
 </script>
 
-<script src="{{ url_for('static', filename='js/respiratory/grid.js') }}"></script>
-<script src="{{ url_for('static', filename='js/respiratory/grid-interactions.js') }}"></script>
+<script src="{{ url_for('static', filename='js/respiratory/grid.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/respiratory/grid-interactions.js') }}" type="module"></script>
 {% endblock %}
