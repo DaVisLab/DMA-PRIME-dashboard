@@ -68,7 +68,7 @@ function filterZCTAByText(event) {
     // if we're not including imputations, then filter them out so they don't show
     if (!gridIncludeImputations.checked) {
         matchingZCTAData = matchingZCTAData.filter(function(d) {
-            return !d.imputation
+            return !d.properties.data[gridDiseaseSelector.value].imputation
         })
     }
 
