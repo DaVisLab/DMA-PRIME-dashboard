@@ -73,3 +73,8 @@ def getMobileHealthClinicEvents():
 def iconData(type):
     # icon csv files
     return send_file(f'{main_dir}/static/assets/Icons/icon-pack.{type}')
+
+@bp.route('/icon/<type>', methods=['GET', 'POST'])
+def icon(type):
+    # icon csv files
+    return send_file(f'{main_dir}/static/assets/Icons/{type}.svg')

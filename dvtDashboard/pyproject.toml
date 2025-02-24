@@ -1,6 +1,6 @@
 [project]
 name = "dma_prime_vis_toolkit"
-version = "1.5.7"
+version = "1.5.8"
 description = "DMA-PRIME Feb 2025"
 dependencies = [
     "waitress",

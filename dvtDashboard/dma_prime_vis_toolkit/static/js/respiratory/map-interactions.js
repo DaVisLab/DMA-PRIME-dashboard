@@ -174,15 +174,6 @@ hospitalIconsToggle.addEventListener("sl-change", () => {
     dataVersion++
     redraw()
 })
-cdapIconsToggle.addEventListener("sl-change", () => {
-    // toggle cdap icons
-    selectedItems.icons = selectedItems.icons.filter(check => check !== "CDAP")
-    if (cdapIconsToggle.checked) {
-        selectedItems.icons.push("CDAP")
-    }
-    dataVersion++
-    redraw()
-})
 mobileClinicIconsToggle.addEventListener("sl-change", () => {
     // toggle mhc icons
     selectedItems.icons = selectedItems.icons.filter(check => check !== "mobile_health_clinic")
