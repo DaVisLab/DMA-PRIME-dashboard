@@ -1,5 +1,5 @@
 
-export { zctaData, startDate, currentWeek, historicalDates, predictionDates, dataSourceColorMap, dataSourceLineStyle, gridItemDataSources, parseDate, parseHospDate, getDataAsArray, drawTooltip }
+export { zctaData, startDate, currentWeek, endDate, historicalDates, predictionDates, dataSourceColorMap, dataSourceLineStyle, gridItemDataSources, parseDate, getDataAsArray, drawTooltip }
 
 
 // data
@@ -109,10 +109,6 @@ function getDataAsArray(disease, dataSource, rate, imputations=true) {
 // helper functions
 function parseDate(dateString) {
     return dayjs.tz(dateString, "YYYY-MM-DD", "America/New_York").toDate()
-}
-
-function parseHospDate(dateString) {
-    return dayjs.tz(dateString, "M/D/YYYY", "America/New_York").toDate()
 }
 
 function fixName(name) {
