@@ -1,9 +1,9 @@
-import { startDate, currentWeek, drawTooltip } from "/static/js/respiratory/script.js";
+import { regionData, drawTooltip } from "/static/js/respiratory/script.js";
 import { map, popup, deckOverlay, selectedItems, redraw, drawStateHospitalizations, drawLargeStateHospitalizations } from "/static/js/respiratory/map.js"
 
 
 popup.on("close", e => {
-    selectedItems.zcta = undefined
+    selectedItems.feature = undefined
     dataVersion++
     redraw()
 })
@@ -13,12 +13,12 @@ map.on("click", e => {
     var dataObject = deckOverlay.pickObject(temp).object
 
     if (dataObject == null) {
-        selectedItems.zcta = undefined
+        selectedItems.feature = undefined
         popup.remove()
         return
     }
-    if (selectedItems.zcta && selectedItems.zcta.properties.ZCTA == dataObject.properties.ZCTA) {
-        selectedItems.zcta = undefined
+    if (selectedItems.feature && selectedItems.feature.properties.id == dataObject.properties.id) {
+        selectedItems.feature = undefined
         popup.remove()
         map.flyTo({
             center: [-81, 33.65],
@@ -28,7 +28,7 @@ map.on("click", e => {
         return
     }
 
-    selectedItems.zcta = dataObject
+    selectedItems.feature = dataObject
     
     const fullCoords = dataObject.geometry.coordinates;
     const bounds = new maplibregl.LngLatBounds()
@@ -51,6 +51,9 @@ map.on("click", e => {
     });
 
     var coordinates = [dataObject.properties.INTPTLON, dataObject.properties.INTPTLAT]
+    if (!(coordinates[0] || coordinates[1])) {
+        coordinates = bounds.getCenter()
+    }
     popup.setLngLat(coordinates)
         .setHTML("<div id='map-tooltip-div' class='tooltip-div'></div>")
 
@@ -77,8 +80,10 @@ map.on("click", e => {
         .attr("class", `tooltip-outer-svg`)
 
     var tooltipData = dataObject.properties.data[mapDiseaseSelector.value]
-    tooltipData["zcta"] = dataObject.properties.ZCTA
-    tooltipData["county"] = dataObject.properties.county
+    tooltipData["id"] = dataObject.properties.id
+    if (mapRegionSelector.value == "zcta") {
+        tooltipData["county"] = dataObject.properties.county
+    }
     tooltipData["population"] = dataObject.properties.population
 
     var width = mapDiv.clientWidth
@@ -98,7 +103,7 @@ mapResetButton.addEventListener("click", () => {
         essential: true // this animation is considered essential with respect to prefers-reduced-motion
     })
 
-    selectedItems.zcta = undefined
+    selectedItems.feature = undefined
     popup.remove()
     dataVersion++
     redraw()
@@ -108,21 +113,23 @@ mapRateSwitch.addEventListener("sl-change", (event) => {
     // update legend title
     if (mapRateSwitch.value == "rate"){
         d3.select("#map-legend-title")
-            .text("Current Week's Hospitalization Rates by ZCTA")
+            .text(`Current Week's Hospitalization Rates by ${metadata.region_sizes[mapRegionSelector.value]}`)
     } else {
         d3.select("#map-legend-title")
-            .text("Current Week's Hospitalizations by ZCTA")
+            .text(`Current Week's Hospitalizations by ${metadata.region_sizes[mapRegionSelector.value]}`)
     }
 
     // update tooltip
     drawStateHospitalizations()
-    if (selectedItems.zcta) {
+    if (selectedItems.feature) {
         var ttpDiv = d3.select("#map-tooltip-div")
 
-        var tooltipData = selectedItems.zcta.properties.data[mapDiseaseSelector.value]
-        tooltipData["zcta"] = selectedItems.zcta.properties.ZCTA
-        tooltipData["county"] = selectedItems.zcta.properties.county
-        tooltipData["population"] = selectedItems.zcta.properties.population
+        var tooltipData = selectedItems.feature.properties.data[mapDiseaseSelector.value]
+        tooltipData["id"] = selectedItems.feature.properties.id
+        if (mapRegionSelector.value == "zcta") {
+            tooltipData["county"] = dataObject.properties.county
+        }
+        tooltipData["population"] = selectedItems.feature.properties.population
 
         var width = mapDiv.clientWidth
         var mapTooltipWidth = Math.max(500, width * .3)
@@ -141,29 +148,27 @@ mapDataSourceSelector.addEventListener("sl-change", (event) => {
 
 mapDiseaseSelector.addEventListener("sl-change", (event) => {
     drawStateHospitalizations()
+    selectedItems.feature = undefined
+    popup.remove()
     dataVersion++
     redraw()
+})
 
-    if (selectedItems.zcta) {
-        var ttpDiv = d3.select("#map-tooltip-div")
-
-        var tooltipData = selectedItems.zcta.properties.data[mapDiseaseSelector.value]
-        tooltipData["zcta"] = selectedItems.zcta.properties.ZCTA
-        tooltipData["county"] = selectedItems.zcta.properties.county
-        tooltipData["population"] = selectedItems.zcta.properties.population
-
-        var width = mapDiv.clientWidth
-        var mapTooltipWidth = Math.max(500, width * .3)
-        var mapTooltipHeight = mapTooltipWidth * .65
-        drawTooltip(tooltipData, ttpDiv, mapTooltipHeight, mapTooltipWidth, mapRateSwitch.value == "rate")
-    }
+mapRegionSelector.addEventListener("sl-change", (event) => {
+    d3.json(`/data/deckgl-respiratory/${mapRegionSelector.value}`).then((data) => {
+        regionData.features = data.features
+    }).then(() => {
+        dataVersion++
+        redraw()
+    })
+    selectedItems.feature = undefined
+    popup.remove()
 })
 
 mapIncludeImputations.addEventListener("sl-change", () => {
     dataVersion++
     redraw()
 })
-
 
 // adding/removing icons
 hospitalIconsToggle.addEventListener("sl-change", () => {

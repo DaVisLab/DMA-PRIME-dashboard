@@ -16,7 +16,6 @@ gridRateSwitch.addEventListener("sl-change", (event) => {
             var gridTooltipHeight = gridTooltipWidth * .65
     
             var slTTP = d3.select(this)
-            console.log(slTTP)
             var slTTPDOM = slTTP.node()
             var thisGridContainer = d3.select(slTTPDOM.parentNode)
     

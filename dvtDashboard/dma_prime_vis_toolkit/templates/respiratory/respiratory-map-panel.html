@@ -24,6 +24,14 @@
     {% endfor %}
   </sl-select>
 
+  <!-- disease selector -->
+  <sl-select value="{{ metadata['region_sizes'].keys() | first }}" id="map-region-selector" class="fill-width">
+    <p slot="label">Select a region size</p>
+    {% for region, name in metadata['region_sizes'].items() %}
+    <sl-option value="{{ region }}">{{ name }}</sl-option>
+    {% endfor %}
+  </sl-select>
+
   <!-- data source/hospitalization level selector -->
   <sl-select value="state-testing" id="map-data-source-selector" class="fill-width">
     <p slot="label">Select hospitalization level</p>
@@ -81,6 +89,7 @@
   mapRateSwitch = document.getElementById("map-rate-switch")
 
   mapDiseaseSelector = document.getElementById("map-disease-selector")
+  mapRegionSelector = document.getElementById("map-region-selector")
   mapDataSourceSelector = document.getElementById("map-data-source-selector")
   hospitalIconsToggle = document.getElementById("map-options-hospital-icons-toggle")
   mobileClinicIconsToggle = document.getElementById("map-options-mobile-clinic-icons-toggle")

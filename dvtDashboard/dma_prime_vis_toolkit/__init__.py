@@ -63,6 +63,11 @@ def create_app(development=False, dataDir=None):
             'diseases': {
                 'covid-19': 'Covid-19'
             },
+            'region_sizes': {
+                'zcta': 'ZCTA',
+                'county': 'County',
+                'region': 'Region'
+            },
             'start_date': (current_week - pd.DateOffset(months=18)).strftime('%Y-%m-%d'),
             'current_week': current_week.strftime('%Y-%m-%d'),
             'end_date': (current_week + pd.DateOffset(weeks=4)).strftime('%Y-%m-%d')

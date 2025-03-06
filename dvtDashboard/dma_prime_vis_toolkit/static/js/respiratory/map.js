@@ -1,9 +1,9 @@
 const { GeoJsonLayer, IconLayer, MapboxOverlay, Widget } = deck;
-import { startDate, currentWeek, endDate, zctaData,  dataSourceColorMap, parseDate } from "/static/js/respiratory/script.js";
+import { startDate, currentWeek, endDate, regionData,  dataSourceColorMap, parseDate } from "/static/js/respiratory/script.js";
 export { map, popup, selectedItems, deckOverlay, redraw, drawStateHospitalizations, drawLargeStateHospitalizations }
 
 var selectedItems = {
-    "zcta": undefined,
+    "feature": undefined,
     "icons": []
 }
 
@@ -39,7 +39,7 @@ redraw(true)
 drawStateHospitalizations()
 
 function redraw(first=false) {
-    createChoropleth(zctaData, mapDiseaseSelector.value, mapDataSourceSelector.value, mapRateSwitch.value == "rate", mapIncludeImputations.checked)
+    createChoropleth(regionData, mapDiseaseSelector.value, mapDataSourceSelector.value, mapRateSwitch.value == "rate", mapIncludeImputations.checked)
     drawLegend()
     deckOverlay.setProps({
         layers: [
@@ -47,7 +47,7 @@ function redraw(first=false) {
                 id: 'respiratory_choropleth',
                 depthTest: false,
                 pickable: true,
-                data: zctaData,
+                data: d3.json(`/data/deckgl-respiratory/${mapRegionSelector.value}`),
                 stroked: false,
                 stroked: true,
                 filled: true,
@@ -58,6 +58,7 @@ function redraw(first=false) {
                 getLineWidth: 20,
                 getLineColor: [127, 127, 127],
                 updateTriggers: {
+                    data: { dataVersion },
                     getFillColor: { dataVersion },
                 },
             }),
@@ -80,8 +81,7 @@ function redraw(first=false) {
 }
 
 function getColor(feature) {
-    if (!selectedItems.zcta || selectedItems.zcta.properties.ZCTA == feature.properties.ZCTA) {
-    // if (!selectedItems.zcta) {
+    if (!selectedItems.feature || selectedItems.feature.properties.id == feature.properties.id) {
         var disease = mapDiseaseSelector.value
         var dataSource = mapDataSourceSelector.value
         var rate = mapRateSwitch.value == "rate"
@@ -184,7 +184,7 @@ function drawLegend() {
         .attr("class", `map-legend title`)
         .attr("x", legendWidth/2 + legendMargins.left)
         .attr("y", 3*em + legendMargins.top)
-        .text("Current Week's Hospitalizations by ZCTA")
+        .text(`Current Week's Hospitalizations by ${metadata.region_sizes[mapRegionSelector.value]}`)
 }
 
 
@@ -293,7 +293,7 @@ function drawLargeStateHospitalizations() {
     drawStateBarChart(mapStateHospitalizationsLargeSvg, stateMargins, yAxisDisplayFunc, xAxisDisplayFunc)
 }
 
-function drawStateBarChart(svgDOM, stateMargins, yAxisDisplayFunc, xAxisDisplayFunc) {
+async function drawStateBarChart(svgDOM, stateMargins, yAxisDisplayFunc, xAxisDisplayFunc) {
     var diseaseDisplayNames = {
         "covid-19": "COVID-19",
         "influenza-1": "Influenza",
@@ -307,54 +307,67 @@ function drawStateBarChart(svgDOM, stateMargins, yAxisDisplayFunc, xAxisDisplayF
     var stateWidth = svgDOM.clientWidth
     
     var svg = d3.select(svgDOM)
+    var yAxis = svg.append("g")
+        .attr("class", "y-axis")
+    var xAxis = svg.append("g")
+        .attr("class", "x-axis")
 
-    d3.csv(`/data/hospitalizations/state/${mapDiseaseSelector.value}`).then(function(stateData) {
-        stateData = stateData.filter(d => {
-            var thisDate = dayjs(parseDate(d["Date"]))
-            return thisDate.isSameOrAfter(startDate) && thisDate.isSameOrBefore(endDate)})
-        var yAxis = svg.append("g")
-            .attr("class", "y-axis")
-        var xAxis = svg.append("g")
-            .attr("class", "x-axis")
-
-        stateData = stateData.map(d => {
-            temp = {"Date": d["Date"], "count": parseFloat(d["Projected Cases(post training)"]+d["Statewide hospitalizations"])}
-            if (mapRateSwitch.value == "rate") {
-                temp["count"] /= (scPopulation / 1000)
-            }
-            return temp
-        })
+    var stateData = [{
+        Date: "2020-01-01",
+        "Percent Agreement": "1",
+        "Projected Cases(post training)": 1,
+        "Projected Cases(train)": 1,
+        "Statewide hospitalizations": 1,
+    }]
+    try {
+        stateData = await d3.csv(`/data/hospitalizations/state/${mapDiseaseSelector.value}`) 
+    } catch (error) {
         
-        var maxVal = d3.max(stateData.map(d => d.count))
-
-        var temp = svg.append("text").text(d3.format(".2r")(maxVal)).attr("x", 0).attr("y", 0)
-        stateMargins.left += Math.max(20, temp.node().getBBox().width)
-
-        var stateXScale = d3.scaleUtc()
-                    .domain([startDate, d3.timeSaturday.offset(endDate, 1)]).range([stateMargins.left, stateWidth - stateMargins.right])    
-
-        var stateYScale = d3.scaleLinear()
-            .domain([0, maxVal])
-            .nice()
-            .range([stateHeight-stateMargins.bottom, stateMargins.top])
-
-        svg.append("g")
-            .selectAll("rect")
-            .data(stateData)
-            .enter()
-            .append("rect")
-            .attr("x", (d) => stateXScale(parseDate(d["Date"])))
-            .attr("y", d => stateYScale(d["count"]))
-            .attr("height", d => stateYScale(0) - stateYScale(d["count"]))
-            .attr("width", (stateWidth - (stateMargins.left + stateMargins.right)) / stateData.length)
-            .attr("stroke", "var(--sl-color-neutral-1000)")
-            .attr("stroke-width", 1)
-            .attr("fill", d => dayjs(parseDate(d["Date"])).isAfter(currentWeek) ? "var(--sl-color-neutral-600)" : "var(--sl-color-neutral-100)")
-
-        yAxisDisplayFunc(svg, stateYScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames)
-        xAxisDisplayFunc(svg, stateXScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames)
-        
-        temp.remove()
+    }
+    stateData = stateData.filter(d => {
+        var thisDate = dayjs(parseDate(d["Date"]))
+        return thisDate.isSameOrAfter(startDate) && thisDate.isSameOrBefore(endDate)})
+    
+    stateData = stateData.map(d => {
+        temp = {"Date": d["Date"], "count": parseFloat(d["Projected Cases(post training)"]+d["Statewide hospitalizations"])}
+        if (mapRateSwitch.value == "rate") {
+            temp["count"] /= (scPopulation / 1000)
+        }
+        return temp
     })
+    
+    var maxVal = d3.max(stateData.map(d => d.count)) || 1
+
+    var temp = svg.append("text").text(d3.format(".2r")(maxVal)).attr("x", 0).attr("y", 0)
+    stateMargins.left += Math.max(20, temp.node().getBBox().width)
+
+    var stateXScale = d3.scaleUtc()
+                .domain([startDate, d3.timeSaturday.offset(endDate, 1)]).range([stateMargins.left, stateWidth - stateMargins.right])    
+
+    var stateYScale = d3.scaleLinear()
+        .domain([0, maxVal])
+        .nice()
+        .range([stateHeight-stateMargins.bottom, stateMargins.top])
+
+    svg.append("g")
+        .selectAll("rect")
+        .data(stateData)
+        .enter()
+        .append("rect")
+        .attr("x", (d) => stateXScale(parseDate(d["Date"])))
+        .attr("y", d => stateYScale(d["count"]))
+        .attr("height", d => stateYScale(0) - stateYScale(d["count"]))
+        .attr("width", (stateWidth - (stateMargins.left + stateMargins.right)) / stateData.length)
+        .attr("stroke", "var(--sl-color-neutral-1000)")
+        .attr("stroke-width", 1)
+        .attr("fill", d => dayjs(parseDate(d["Date"])).isAfter(currentWeek) ? "var(--sl-color-neutral-600)" : "var(--sl-color-neutral-100)")
+
+    yAxisDisplayFunc(svg, stateYScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames)
+    xAxisDisplayFunc(svg, stateXScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames)
+    
+    temp.remove()
+    // d3.csv(`/data/hospitalizations/state/${mapDiseaseSelector.value}`).then(function(stateData) {
+        
+    // })
 }
 

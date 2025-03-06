@@ -1,5 +1,5 @@
 
-export { zctaData, startDate, currentWeek, endDate, historicalDates, predictionDates, dataSourceColorMap, dataSourceLineStyle, gridItemDataSources, parseDate, getDataAsArray, drawTooltip }
+export { regionData, zctaData, startDate, currentWeek, endDate, historicalDates, predictionDates, dataSourceColorMap, dataSourceLineStyle, gridItemDataSources, parseDate, getDataAsArray, drawTooltip }
 
 
 // data
@@ -12,7 +12,12 @@ var endDate = parseDate(metadata.end_date)
 var predictionDates = d3.timeSaturday.range(currentWeek, new Date(endDate).setDate(endDate.getDate()+1), 1)
 
 
-var zctaData = await d3.json(`/data/deckgl-respiratory`)
+var zctaData = await d3.json(`/data/deckgl-respiratory/zcta`)
+await Promise.allSettled([ // wait for following to be defined/load in
+    customElements.whenDefined('sl-select'),
+    customElements.whenDefined('sl-option'),
+])
+var regionData = await d3.json(`/data/deckgl-respiratory/${mapRegionSelector.value}`)
 
 // visualization variables
 var formatInt = d3.format(".0f")
@@ -90,7 +95,7 @@ document.adoptedStyleSheets = [styleSheet]
 
 // data fetching
 function getDataAsArray(disease, dataSource, rate, imputations=true) {
-    var arr = zctaData.features.map((d) => {
+    var arr = regionData.features.map((d) => {
         var data = d.properties.data[disease]
         if (data[dataSource].data.length > 0 && (imputations || !data.imputation)) {
             if (rate) {
@@ -246,8 +251,12 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
     var data = JSON.parse(JSON.stringify(d))
 
     var p = div.select("p")
-    p.select(".tooltip-title").html(`ZCTA: ${data.zcta}`)
-    p.select(".tooltip-subtitle").html(`County: ${data.county[0].toUpperCase()+data.county.substring(1)}`)
+    p.select(".tooltip-title").html(`${metadata.region_sizes[mapRegionSelector.value]}: ${data.id}`)
+    if (mapRegionSelector.value == "zcta") {
+        p.select(".tooltip-subtitle").html(`County: ${data.county[0].toUpperCase()+data.county.substring(1)}`)
+    } else {
+        p.select(".tooltip-subtitle").html('')
+    }
 
     var ttpLegendTop = ttpHeight - 2.5*em
 
@@ -287,7 +296,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
     
     var predictionData = JSON.parse(JSON.stringify(data["state-prediction"]))
     if (predictionData.data.length > 0 && mapDiseaseSelector.value.includes("influenza")) {
-        predictionData.data = predictionData.data.splice(start=0, end=3)
+        predictionData.data = predictionData.data.splice(0, 3)
     }
     if (rate) {
         predictionData.data = d["state-prediction"].data.map(function(item) { return item/d.population * 1000} )

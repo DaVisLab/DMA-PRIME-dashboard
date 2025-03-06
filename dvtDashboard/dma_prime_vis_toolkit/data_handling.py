@@ -38,11 +38,11 @@ def getHospitalizationsState(disease):
     # hospitalization data based on disease
     return send_file(f'{current_app.config['DATADIR']}/raw/respiratory/statewide_{disease}_prediction.csv')
 
-@bp.route('/deckgl-respiratory', methods=['GET', 'POST'])
+@bp.route('/deckgl-respiratory/<region_size>', methods=['GET', 'POST'])
 @login_required
-def getRespiratoryHospitalizations(disease='covid-19'):
+def getRespiratoryHospitalizations(region_size='zcta'):
     # hospitalization data based on disease
-    return send_file(f'{current_app.config['DATADIR']}/processed/respiratory/respiratory_zcta_hospitalization_data.json')
+    return send_file(f'{current_app.config['DATADIR']}/processed/respiratory/respiratory_{region_size}_hospitalization_data.json')
 
 @bp.route('/opioid-hcv-hiv/<disease>', methods=['GET', 'POST'])
 @login_required
