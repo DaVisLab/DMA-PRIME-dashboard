@@ -312,29 +312,19 @@ async function drawStateBarChart(svgDOM, stateMargins, yAxisDisplayFunc, xAxisDi
     var xAxis = svg.append("g")
         .attr("class", "x-axis")
 
-    var stateData = [{
-        Date: "2020-01-01",
-        "Percent Agreement": "1",
-        "Projected Cases(post training)": 1,
-        "Projected Cases(train)": 1,
-        "Statewide hospitalizations": 1,
-    }]
+    var stateData
     try {
-        stateData = await d3.csv(`/data/hospitalizations/state/${mapDiseaseSelector.value}`) 
+        stateData = await d3.json(`/data/deckgl-respiratory/state`) 
+        stateData = Object.entries(stateData[mapDiseaseSelector.value]).map(d => {
+            temp = {"Date": d[0], "count": d[1]}
+            if (mapRateSwitch.value == "rate") {
+                temp["count"] /= (scPopulation / 1000)
+            }
+            return temp
+        })
     } catch (error) {
-        
+        stateData = [{"Date": "2020-01-01", "count": 1}]
     }
-    stateData = stateData.filter(d => {
-        var thisDate = dayjs(parseDate(d["Date"]))
-        return thisDate.isSameOrAfter(startDate) && thisDate.isSameOrBefore(endDate)})
-    
-    stateData = stateData.map(d => {
-        temp = {"Date": d["Date"], "count": parseFloat(d["Projected Cases(post training)"]+d["Statewide hospitalizations"])}
-        if (mapRateSwitch.value == "rate") {
-            temp["count"] /= (scPopulation / 1000)
-        }
-        return temp
-    })
     
     var maxVal = d3.max(stateData.map(d => d.count)) || 1
 
@@ -366,8 +356,5 @@ async function drawStateBarChart(svgDOM, stateMargins, yAxisDisplayFunc, xAxisDi
     xAxisDisplayFunc(svg, stateXScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames)
     
     temp.remove()
-    // d3.csv(`/data/hospitalizations/state/${mapDiseaseSelector.value}`).then(function(stateData) {
-        
-    // })
 }
 

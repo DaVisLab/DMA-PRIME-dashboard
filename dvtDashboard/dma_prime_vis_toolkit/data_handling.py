@@ -25,18 +25,6 @@ def health_care_facility(type):
         return send_file(f'{main_dir}/static/assets/temp/{type}.csv')
 # def health_care_facility(type):
 #     return send_file(f'{main_dir}/static/assets/Health Care Facilities/hospital-cdap_mhc_partners.csv')
-    
-@bp.route('/hospitalizations/<disease>', methods=['GET', 'POST'])
-@login_required
-def getHospitalizations(disease='covid-19'):
-    # hospitalization data based on disease
-    return send_file(f'{current_app.config['DATADIR']}/processed/{disease}_zcta_hospitalization_data.json')
-
-@bp.route('/hospitalizations/state/<disease>', methods=['GET', 'POST'])
-@login_required
-def getHospitalizationsState(disease):
-    # hospitalization data based on disease
-    return send_file(f'{current_app.config['DATADIR']}/raw/respiratory/statewide_{disease}_prediction.csv')
 
 @bp.route('/deckgl-respiratory/<region_size>', methods=['GET', 'POST'])
 @login_required
