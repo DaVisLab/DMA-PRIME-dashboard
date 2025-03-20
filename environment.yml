@@ -3,9 +3,11 @@
 # platform: win-64
 
 name: test
+
 dependencies:
   - flask < 2.4
   - flask-bcrypt
   - pandas
   - numpy
   - mysqlclient
+  - python == 3.9

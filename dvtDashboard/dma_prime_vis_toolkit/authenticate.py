@@ -41,6 +41,26 @@ def login():
 
     return render_template('login.html')
 
+@bp.route("/signup", methods=["GET", "POST"])
+def signup():
+    """Signup user by adding the user to the database."""
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+        email = request.form["email"]
+        db = get_db()
+        db.execute(
+            """INSERT INTO user (username, email, password) VALUES (%s, %s, %s)""", 
+            [username, email, password]
+        ) # Bcrypt().generate_password_hash('')
+
+        # store the user id in a new session and return to the index
+        session.clear()
+        return redirect("/auth/login")
+        
+
+    return render_template('sign_up.html')
+
 @bp.before_app_request
 def load_logged_in_user():
     # if user is logged in, store in python side of session
