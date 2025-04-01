@@ -37,11 +37,18 @@ def login():
             # store the user id in a new session and return to the index
             session.clear()
             session["user_id"] = int(user_data["id"])
+            session["access_level"] = int(user_data["access_level"])
             return redirect("/")
 
         flash(error)
 
     return render_template('login.html')
+
+@bp.route("/logout", methods=["GET"])
+def logout():
+    session.clear()
+    return redirect("/auth/login")
+
 
 @bp.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -54,7 +61,7 @@ def signup():
         
         try:
             db.cursor().execute(
-                """INSERT INTO user (username, email, password) VALUES (%s, %s, %s)""", 
+                """INSERT INTO user (username, email, password, access_level) VALUES (%s, %s, %s, 0)""", 
                 [username, email, Bcrypt().generate_password_hash(password)]
             ) # Bcrypt().generate_password_hash('')
             db.commit()
@@ -65,9 +72,9 @@ def signup():
         # store the user id in a new session and return to the index
         session.clear()
         return redirect("/auth/login")
-        
-
     return render_template('sign_up.html')
+
+
 
 @bp.before_app_request
 def load_logged_in_user():
@@ -85,8 +92,23 @@ def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         # if not in development mode, route page to login if not logged in
-        if not current_app.config['DEVELOPMENT'] and g.user is None:
+        if g.user is None:
+        # if not current_app.config['DEVELOPMENT'] and g.user is None:
             return redirect(url_for('auth.login'))
+
+        return view(**kwargs)
+
+    return wrapped_view
+
+
+def admin_required(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        # if not in development mode, route page to login if not logged in
+        if session["access_level"] != 1:
+        # if not current_app.config['DEVELOPMENT'] and session["access_level"] != 1:
+            flash("Access Denied: Admin access required")
+            return redirect(url_for('index'))
 
         return view(**kwargs)
 

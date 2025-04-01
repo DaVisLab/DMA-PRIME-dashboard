@@ -11,7 +11,7 @@ import numpy as np
 import json
 
 from .utility import * 
-from .authenticate import login_required, bp
+from .authenticate import login_required, admin_required, bp
 
 logging.basicConfig(filename=main_dir+'/logs.log',level=logging.DEBUG)
 def create_app(development=False, dataDir=None):
@@ -47,12 +47,21 @@ def create_app(development=False, dataDir=None):
 
     from . import data_handling
     app.register_blueprint(data_handling.bp)
+
+    from . import admin
+    app.register_blueprint(admin.bp)
     
     # landing page, though now respiratory
     @app.route('/')
     @login_required
     def index():
         return render_template('index.html')
+
+    @app.route('/admin')
+    @login_required
+    @admin_required
+    def admin_controls():
+        return render_template("admin.html")
 
     @app.route('/respiratory')
     @login_required
