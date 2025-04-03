@@ -27,7 +27,7 @@
 
   <!-- region selector -->
   <!-- <sl-select value="zcta" id="map-region-selector" class="fill-width"> -->
-  <sl-select value="{{ metadata['region_sizes'].keys() | first }}" id="map-region-selector" class="fill-width">
+  <sl-select value="region" id="map-region-selector" class="fill-width">
     <p slot="label">Geographic unit</p>
     {% for region, name in metadata['region_sizes'].items() %}
     <sl-option value="{{ region }}">{{ name }}</sl-option>
