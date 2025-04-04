@@ -15,6 +15,7 @@
   <!-- D3 -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3-geo@3"></script>
+  
 
   <!-- Style that should load before the rest of the page -->
   {% block style %}
@@ -172,11 +173,14 @@
       <h1 id="admin-user-title">Change User</h1>
       <form  method="post" id="user-change-form" >
         <sl-input label="Email" id="email_id" name="email" required></sl-input>
-        <sl-select label="Field to Change" name="field" required>
-          <sl-option value="username">Username</sl-option>
+        <sl-select label="Field to Change" id="field_id" name="field" required>
+          <sl-option value="username" selected>Username</sl-option>
           <sl-option value="password">Password</sl-option>
           <sl-option value="access_level">Upgrade Access Level</sl-option>
         </sl-select>
+        
+        <sl-input label="New Value" id="change_entry" name="changed_field" required></sl-input>
+        
         
         <p id="signup-error"> 
           <!-- if there is an error passed through flask, display it -->

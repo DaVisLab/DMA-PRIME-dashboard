@@ -72,18 +72,20 @@ def change_user():
     if request.method == "POST":
         email = request.form["email"]
         field = request.form["field"]
+        new_value = request.form["changed_field"]
+        
         # db = get_db()
-
+        the_user = User.query.filter_by(email=email).first()
         try:
             if field == "username":
-                return redirect("/admin")
+                the_user.username = new_value
+                db.session.commit()
             elif field == "password":
-                return redirect("/admin")
+                the_user.password = Bcrypt().generate_password_hash(new_value)
+                db.session.commit()
             elif field == "access_level":
-                db.cursor().execute("""UPDATE user
-                                SET access_level = 1 
-                                WHERE email = %s;""", [email])
-                db.commit()
+                the_user.access_level = 1
+                db.session.commit()
 
         except Exception as e:
             flash(e)

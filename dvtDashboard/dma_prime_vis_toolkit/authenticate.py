@@ -19,12 +19,11 @@ bp = Blueprint('auth', __name__, url_prefix='/auth') # allow __init__.py to impo
 def login():
     """Log in a registered user by adding the user id to the session."""
     if request.method == "POST":
-        username = request.form["username"]
+        email = request.form["email"]
         password = request.form["password"]
-        db = get_db().cursor()
         error = None
 
-        curr_user = User.query.filter_by(username=username).first()
+        curr_user = User.query.filter_by(email=email).first()
         # db.execute('SELECT * FROM user WHERE username = %s', [username])
         # user = db.fetchone()
 
@@ -107,12 +106,14 @@ def reset_password(token):
     if request.method == "GET":
         return render_template("reset_password.html")
     password = request.form["password"]
+    # password_reset_token = request.form["pwd_reset_token"]
     data = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
     email = data["email"]
 
     curr_user = User.query.filter_by(email=email).first()
     curr_user.password = Bcrypt().generate_password_hash(password)
-    db.session.coomit()
+    curr_user.verified_user = True
+    db.session.commit()
 
     flash("Password Changed Succesfully. Please Log in")
     session.clear()
