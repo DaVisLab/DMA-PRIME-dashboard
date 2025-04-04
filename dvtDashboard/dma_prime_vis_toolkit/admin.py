@@ -5,9 +5,10 @@ from flask import (
 )
 from flask_bcrypt import Bcrypt
 
-from .database import get_db
+from .database import db, User
 from .authenticate import login_required, admin_required
-
+import jwt
+from flask_mailman import EmailMessage
 import time
 import MySQLdb
 
@@ -21,12 +22,21 @@ def add_user():
     if request.method == "POST":
         email = request.form["email"]
   
-        db = get_db()
-
         try:
-            db.cursor().execute(
-                """INSERT INTO user (email, username, password, access_level) VALUES (%s, "uname101", "pwd101", 1);""", [email]) 
-            db.commit()
+            temp_user = User(email, email[:4]+"123", Bcrypt().generate_password_hash(email[:4]+"789"), access_level=1, verified_user=False)
+            db.session.add(temp_user)
+            db.session.commit()
+
+            token = jwt.encode({"email": email}, current_app.config["SECRET_KEY"], algorithm='HS256')
+
+            # Send verification email
+            subject, from_email, to = 'Reset Password', 'nickjohnson1207@gmail.com', email
+            html_content = render_template('email/reset_pwd_email.html', token=token)
+
+
+            msg = EmailMessage(subject, str(html_content), from_email, [to])
+            msg.content_subtype = "html"  # Main content is now text/html
+            msg.send()
         except Exception as e:
             flash(e)
             return redirect("/admin")
@@ -43,12 +53,10 @@ def delete_user():
     if request.method == "POST":
         username = request.form["username"]
   
-        db = get_db()
-
         try:
-            db.cursor().execute(
-                """DELETE FROM user WHERE username = %s""", [username]) 
-            db.commit()
+            User.query.filter_by(username=username).delete()
+            db.session.commit()
+
         except Exception as e:
             flash(e)
             return redirect("/admin")
@@ -64,7 +72,7 @@ def change_user():
     if request.method == "POST":
         email = request.form["email"]
         field = request.form["field"]
-        db = get_db()
+        # db = get_db()
 
         try:
             if field == "username":

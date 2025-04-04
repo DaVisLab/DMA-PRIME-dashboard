@@ -102,6 +102,22 @@ def verify_email(token):
     flash("Email confirmed successfully")
     return redirect("/auth/login")
 
+@bp.route("/reset_password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    if request.method == "GET":
+        return render_template("reset_password.html")
+    password = request.form["password"]
+    data = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
+    email = data["email"]
+
+    curr_user = User.query.filter_by(email=email).first()
+    curr_user.password = Bcrypt().generate_password_hash(password)
+    db.session.coomit()
+
+    flash("Password Changed Succesfully. Please Log in")
+    session.clear()
+    return redirect("/auth/login")
+
 @bp.before_app_request
 def load_logged_in_user():
     # if user is logged in, store in python side of session
