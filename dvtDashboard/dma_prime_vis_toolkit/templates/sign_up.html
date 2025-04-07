@@ -61,7 +61,7 @@
       margin-bottom: var(--sl-spacing-2x-large)
     }
 
-    #email {
+    #username {
       margin-bottom: var(--sl-spacing-small)
     }
 
@@ -69,7 +69,11 @@
       margin-bottom: var(--sl-spacing-2x-small)
     }
 
-    #login-error {
+    #password_message {
+      margin-bottom: var(--sl-spacing-2x-small);
+    }
+
+    #signup-error {
       height: 1em;
       margin-top: 0;
       margin-bottom: var(--sl-spacing-x-large)
@@ -87,20 +91,28 @@
 <body>
   <header>
     <nav>
-      <a href="{{ url_for('auth.signup') }}">
-        <sl-button id="signup" style="float: right; font-size: 2rem; margin-top: 3px; margin-right: 6px; align-items: center;" size="medium">
-        Sign Up
+      <a href="{{ url_for('auth.login') }}">
+        <sl-button id="log_in" style="float: right; font-size: 2rem; margin-top: 3px; margin-right: 6px; align-items: center;" size="medium">
+        Login
         </sl-button>
       </a>
     </nav>
   </header>
 
   <div id="form-div">
-    <h1 id="login-title">Log In</h1>
-    <form method="post" id="login-form">
-      <sl-input label="Email" id="email" name="email" required></sl-input>
-      <sl-input label="Password" type="password" name="password" id="password-input" password-toggle required></sl-input>
-      <p id="login-error"> 
+    <h1 id="login-title">Sign Up</h1>
+    <form method="post" id="signup-form">
+      <sl-input label="Username" id="username" name="username" required></sl-input>
+      <sl-input label="Email" type="email" id="email" name="email" required></sl-input>
+      <sl-input label="Password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" type="password" name="password" id="password-input" password-toggle required></sl-input>
+      <div id="pwd_message">
+        <h3>Password must contain the following:</h3>
+        <p id="letter" class="invalid">A <b>lowercase</b> letter</p>
+        <p id="capital" class="invalid">A <b>capital (uppercase)</b> letter</p>
+        <p id="number" class="invalid">A <b>number</b></p>
+        <p id="length" class="invalid">Minimum <b>8 characters</b></p>
+      </div>
+      <p id="signup-error"> 
         <!-- if there is an error passed through flask, display it -->
         {% for message in get_flashed_messages() %}
         <text>{{ message }}</text>
@@ -110,14 +122,8 @@
     </form>
   </div>
 
-  <footer>
-    {% for message in get_flashed_messages() %}
-        <sl-alert duration="2000" closable open>
-            <sl-icon slot="icon" name="info-circle"></sl-icon>
-            {{ message }}
-        </sl-alert>
-    {% endfor %}
-  </footer>
+  
+
 </body>
 
 </html>

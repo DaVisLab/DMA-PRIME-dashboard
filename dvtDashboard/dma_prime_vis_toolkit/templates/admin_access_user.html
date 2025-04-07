@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" class="sl-theme-dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
+
+  <title>{% block title %}DMA-PRIME{% endblock %}</title>
+
+  <!-- Shoelace -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/dark.css" />
+  <script type="module"
+    src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/shoelace-autoloader.js"></script>
+
+  <!-- D3 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-geo@3"></script>
+  
+
+  <!-- Style that should load before the rest of the page -->
+  {% block style %}
+  <style>
+    header {
+      background-color: #333; /* Dark background */
+      position: fixed; /* Sticks to the top */
+      top: 0;
+      left: 0;
+      width: 100%; /* Full width */
+      display: flex;
+      align-items: center; /* Align icons vertically /*
+      z-index: 1000; /* Keeps it above other content */
+      height: 60px; /* Define a fixed height */
+    }
+
+    nav {
+      /* display: flex; */
+      width: 100%;
+      align-items: center;
+    }
+
+    sl-icon-button{
+      font-size: 2rem;
+    }
+
+
+    body {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0px;
+        padding: 0px;
+    }
+
+    #form-div {
+        height: fit-content;
+        width: 30%;
+        font-family: var(--sl-font-sans); 
+    }
+
+    #admin-user-title{
+      margin-bottom: var(--sl-spacing-2x-large)
+    }
+
+    #username {
+      margin-bottom: var(--sl-spacing-small)
+    }
+
+    #email_id {
+      margin-bottom: var(--sl-spacing-small)
+    }
+
+    #password {
+      margin-bottom: var(--sl-spacing-2x-small)
+    }
+
+    #password_message {
+      margin-bottom: var(--sl-spacing-2x-small);
+    }
+
+    #signup-error #signup-error-2 {
+      height: 1em;
+      margin-top: 0;
+      margin-bottom: var(--sl-spacing-x-large)
+    }
+    /* sl-menu-item, sl-menu, sl-select */
+    /* sl-menu {
+        width: auto;
+    } */
+
+    sl-dropdown {
+        width: 100%;
+        /* container-type: inline-size;
+        
+        .custom-content {
+            width: 100cqw;
+        }
+         justify-self: left; */
+    }
+
+
+    #drop-btn {
+        width: 100%;
+    }
+
+  </style>
+  {% endblock %}
+
+  <!-- code that should run before the rest of the page -->
+  {% block headScripts %}
+  {% endblock %}
+
+</head>
+
+<body>
+    <header>
+        <nav>
+            <a style="float: left;" href="{{ url_for('index') }}">
+            <sl-icon-button name="house"></sl-icon-button>
+            </a>
+
+            {% if session["access_level"] == 1 %}
+            <a style="float: right ;" href="{{ url_for('admin_controls') }}">
+            <sl-icon-button name="database-gear"></sl-icon-button>
+            </a>
+            {% endif %}
+
+            {% if session["user_id"] %}
+            <sl-button id="log_out" style="float: right; font-size: 2rem; margin-top: 3px; align-items: center;" size="medium">
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+            </sl-button>
+            {% endif %}
+        </nav>
+    </header>
+
+
+    {% if action == "add" %}
+    <div id="form-div">
+      <h1 id="admin-user-title">Add User</h1>
+      <form onsubmit="return confirm('Do you really want to add this user as admin?');" method="post" id="user-add-form">
+        <sl-input label="Email" id="email" name="email" required></sl-input>
+        
+        <p id="signup-error"> 
+          <!-- if there is an error passed through flask, display it -->
+          {% for message in get_flashed_messages() %}
+          <text>{{ message }}</text>
+          {% endfor %}
+        </p>
+        <sl-button type="submit" variant="primary">Add User</sl-button>
+      </form>
+    </div>
+
+
+    {% elif action == "delete" %}
+    <div id="form-div">
+      <h1 id="admin-user-title">Delete User</h1>
+      <form onsubmit="return confirm('Do you really want to delete this user?');" method="post" id="user-delete-form">
+        <sl-input label="Username" id="username" name="username" required></sl-input>
+        
+        <p id="signup-error"> 
+          <!-- if there is an error passed through flask, display it -->
+          {% for message in get_flashed_messages() %}
+          <text>{{ message }}</text>
+          {% endfor %}
+        </p>
+        <sl-button type="submit" variant="primary">Delete User</sl-button>
+      </form>
+    </div>
+
+  {% elif action == "change" %}
+    <div id="form-div">
+      <h1 id="admin-user-title">Change User</h1>
+      <form  method="post" id="user-change-form" >
+        <sl-input label="Email" id="email_id" name="email" required></sl-input>
+        <sl-select label="Field to Change" id="field_id" name="field" required>
+          <sl-option value="username" selected>Username</sl-option>
+          <sl-option value="password">Password</sl-option>
+          <sl-option value="access_level">Upgrade Access Level</sl-option>
+        </sl-select>
+        
+        <sl-input label="New Value" id="change_entry" name="changed_field" required></sl-input>
+        
+        
+        <p id="signup-error"> 
+          <!-- if there is an error passed through flask, display it -->
+          {% for message in get_flashed_messages() %}
+          <text>{{ message }}</text>
+          {% endfor %}
+        </p>
+        <sl-button type="submit" variant="primary">Change User</sl-button>
+      </form>
+    </div>
+    {% endif %}
+
+  <footer>
+    {% for message in get_flashed_messages() %}
+        <sl-alert duration="2000" closable open>
+            <sl-icon slot="icon" name="info-circle"></sl-icon>
+            {{ message }}
+        </sl-alert>
+    {% endfor %}
+  </footer>
+  
+
+</body>
+
+</html>

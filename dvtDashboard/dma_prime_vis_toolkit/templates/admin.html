@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
 
-  <title>DMA-PRIME</title>
+  <title>Admin - DMA-PRIME</title>
 
   <!-- Shoelace -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/dark.css" />
@@ -79,69 +79,56 @@
       box-sizing: border-box;
     }
   </style>
+
 </head>
 
 <body>
-  <header>
+    <header>
     <nav>
-      <a style="float: left;" href="{{ url_for('index') }}">
+        <a style="float: left;" href="{{ url_for('index') }}">
         <sl-icon-button name="house"></sl-icon-button>
-      </a>
+        </a>
 
-      {% if session["access_level"] == 1 %}
-      <a style="float: right ;" href="{{ url_for('admin_controls') }}">
+        {% if session["access_level"] == 1 %}
+        <a style="float: right ;" href="{{ url_for('admin_controls') }}">
         <sl-icon-button name="database-gear"></sl-icon-button>
-      </a>
-      {% endif %}
+        </a>
+        {% endif %}
 
-      {% if session["user_id"] %}
-      <sl-button id="log_out" style="float: right; font-size: 2rem; margin-top: 3px; align-items: center;" size="medium">
+        {% if session["user_id"] %}
+        <sl-button id="log_out" style="float: right; font-size: 2rem; margin-top: 3px; align-items: center;" size="medium">
         <a href="{{ url_for('auth.logout') }}">Logout</a>
-      </sl-button>
-      {% endif %}
+        </sl-button>
+        {% endif %}
     </nav>
-  </header>
+    </header>
 
+    <div class="subpage">
+      <a href="{{ url_for('admin.add_user') }}">
+        <sl-icon name="database-add"></sl-icon>
+        <p>Add User</p>
+      </a>
+    </div>
   <div class="subpage">
-    <a href="{{ url_for('respiratory') }}">
-      <sl-icon name="lungs"></sl-icon>
-      <p>Respiratory Virus Forecasting: Covid-19, Influenza, RSV</p>
+    <a href="{{ url_for('admin.delete_user') }}">
+      <sl-icon name="database-dash"></sl-icon>
+      <p>Delete User</p>
     </a>
   </div>
   <div class="subpage">
-    <a href="{{ url_for('waste_water') }}">
-      <sl-icon name="droplet-half"></sl-icon>
-      <p>Wastewater Monitoring</p>
+    <a href="{{ url_for('admin.change_user') }}">
+      <sl-icon name="database-gear"></sl-icon>
+      <p>Change User data</p>
     </a>
   </div>
-  <div class="subpage">
-    <a href="{{ url_for('other_infectious_diseases') }}">
-      <sl-icon name="virus2"></sl-icon>
-      <p>Outbreak Detection: All infectious diseases</p>
-    </a>
-    
-  </div>
-  <div class="subpage">
-    <a href="{{ url_for('opioid_hcv_hiv') }}">
-      <img src="{{ url_for('static', filename='assets/Icons/syringe-1309-svgrepo-com.svg') }}"></img>
-      <p>Opioid Overdose and HCV and HIV Hospitalizations</p>
-    </a>
-  </div>
-  <div class="subpage">
-    <a href="{{ url_for('mobile_health_clinics') }}">
-      <img src="{{ url_for('static', filename='assets/Icons/mobile_health_clinic.svg') }}"></img>
-      <p>Mobile Health Clinic Tracking</p>    
-    </a>
-  </div>
+  <footer>
+    {% for message in get_flashed_messages() %}
+        <sl-alert duration="2000" closable open>
+            <sl-icon slot="icon" name="info-circle"></sl-icon>
+            {{ message }}
+        </sl-alert>
+    {% endfor %}
+  </footer>
 </body>
 
-
-<footer>
-  {% for message in get_flashed_messages() %}
-      <sl-alert duration="2000" closable open>
-          <sl-icon slot="icon" name="info-circle"></sl-icon>
-          {{ message }}
-      </sl-alert>
-  {% endfor %}
-</footer>
 </html>

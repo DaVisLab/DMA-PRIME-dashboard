@@ -36,7 +36,7 @@ def getRespiratoryHospitalizations(region_size='zcta'):
 @login_required
 def getOpioidHcvHiv(disease='opioid'):
     # hospitalization data based on disease
-    return send_file(f'{current_app.config['DATADIR']}/processed/opioid_hcv_hiv/{disease}_zcta_hospitalization_data.json')
+    return send_file(f"{current_app.config['DATADIR']}/processed/opioid_hcv_hiv/{disease}_zcta_hospitalization_data.json")
 
 @bp.route('/other-infectious-diseases/<region_size>/<column>', methods=['GET', 'POST'])
 @login_required
@@ -48,7 +48,7 @@ def getStateDiseaseHospitalizations(region_size='region',column='encounters'):
 @login_required
 def getWasteWaterData(site):
     # hospitalization data based on disease
-    return send_file(f'{current_app.config['DATADIR']}/processed/waste_water/{site}.json')
+    return send_file(f"{current_app.config['DATADIR']}/processed/waste_water/{site}.json")
 
 
 @bp.route('/mobile-health-clinic-events', methods=['GET', 'POST'])
