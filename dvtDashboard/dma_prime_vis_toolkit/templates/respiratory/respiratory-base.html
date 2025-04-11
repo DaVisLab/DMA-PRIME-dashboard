@@ -12,7 +12,6 @@
 <!-- Adding datetime package timejs (allows timezone date instantiation) -->
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/isSameOrAfter.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/isSameOrBefore.js"></script>
@@ -20,7 +19,6 @@
 <script>
     // Ensuring the timejs additional plugins are linked
     dayjs.extend(window.dayjs_plugin_utc)
-    dayjs.extend(window.dayjs_plugin_timezone)
     dayjs.extend(window.dayjs_plugin_customParseFormat)
     dayjs.extend(window.dayjs_plugin_isSameOrAfter)
     dayjs.extend(window.dayjs_plugin_isSameOrBefore)

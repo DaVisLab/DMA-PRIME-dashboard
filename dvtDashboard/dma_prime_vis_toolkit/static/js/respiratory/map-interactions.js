@@ -74,6 +74,9 @@ map.on("click", e => {
     ttpTitle.append("br")
     ttpTitle.append("span")
         .attr("class", "tooltip-subtitle")
+    ttpTitle.append("br")
+    ttpTitle.append("span")
+        .attr("class", "tooltip-subtitle-2")
 
     ttpDiv.append("svg")
         .attr("id", `map-tooltip-svg`)
@@ -127,7 +130,7 @@ mapRateSwitch.addEventListener("sl-change", (event) => {
         var tooltipData = selectedItems.feature.properties.data[mapDiseaseSelector.value]
         tooltipData["id"] = selectedItems.feature.properties.id
         if (mapRegionSelector.value == "zcta") {
-            tooltipData["county"] = dataObject.properties.county
+            tooltipData["county"] = selectedItems.feature.properties.county
         }
         tooltipData["population"] = selectedItems.feature.properties.population
 

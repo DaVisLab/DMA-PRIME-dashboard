@@ -6,10 +6,10 @@ export { regionData, zctaData, startDate, currentWeek, endDate, historicalDates,
 var currentWeek = parseDate(metadata.current_week)
 
 var startDate = parseDate(metadata.start_date)
-var historicalDates = d3.timeDay.range(startDate, new Date(currentWeek).setDate(currentWeek.getDate()+1), 7)
+var historicalDates = d3.utcDay.range(startDate, new Date(currentWeek).setDate(currentWeek.getDate()+1), 7)
 
 var endDate = parseDate(metadata.end_date)
-var predictionDates = d3.timeDay.range(currentWeek, new Date(endDate).setDate(endDate.getDate()+1), 7)
+var predictionDates = d3.utcDay.range(currentWeek, new Date(endDate).setDate(endDate.getDate()+1), 7)
 
 
 var zctaData = await d3.json(`/data/deckgl-respiratory/zcta`)
@@ -59,12 +59,12 @@ var ttpHistoryWidthPercentage = 3/4
 
 var styleSheet = new CSSStyleSheet()
 
-styleSheet.insertRule(`
-    .tooltip-div {
-        /* tooltip's containing div */
-        background-color: hsla(${getComputedStyle(document.head).getPropertyValue("--sl-color-neutral-0").replace("hsl(", "").replace(")", "")}, 0.925);
-    }`
-    ,0)   
+// styleSheet.insertRule(`
+//     .tooltip-div {
+//         /* tooltip's containing div */
+//         background-color: hsla(${getComputedStyle(document.head).getPropertyValue("--sl-color-neutral-0").replace("hsl(", "").replace(")", "")}, 0.925);
+//     }`
+//     ,0)   
 
 d3.selectAll('sl-tooltip').nodes().forEach((n, i) => {
     d3.select(n.shadowRoot).select("div[part='body']")
@@ -113,7 +113,7 @@ function getDataAsArray(disease, dataSource, rate, imputations=true) {
 
 // helper functions
 function parseDate(dateString) {
-    return dayjs.tz(dateString, "YYYY-MM-DD", "America/New_York").toDate()
+    return dayjs.utc(dateString, "YYYY-MM-DD").toDate()
 }
 
 function fixName(name) {
@@ -247,19 +247,51 @@ function makeCommunityPartner(id) {
     return stringy
 }
 
-function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
+function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false) {
     var data = JSON.parse(JSON.stringify(d))
 
     var p = div.select("p")
-    if (mapRegionSelector.value != "state") {
-        p.select(".tooltip-title").html(`${metadata.region_sizes[mapRegionSelector.value]}: ${data.id}`)
+    if (grid) {
+        p.select(".tooltip-title").html(`Zip Code: ${data.zcta}`)
     } else {
-        p.select(".tooltip-title").html("State")
+        if (mapRegionSelector.value != "state") {
+            p.select(".tooltip-title").html(`${metadata.region_sizes[mapRegionSelector.value]}: ${data.id}`)
+        } else {
+            p.select(".tooltip-title").html("State")
+        }
     }
-    if (mapRegionSelector.value == "zcta") {
+    if (mapRegionSelector.value == "zcta" || grid) {
         p.select(".tooltip-subtitle").html(`County: ${data.county[0].toUpperCase()+data.county.substring(1)}`)
+        
+        if (data['state-testing'].data.length > 0) {
+            let tempDate = parseDate(data['state-testing']['start-date'])
+            let tempEndDate = d3.utcDay.offset(tempDate, (data['state-testing'].data.length-1)*7)
+            let tempStartDate = d3.utcDay.offset(tempEndDate, -6)
+            var formatDate = d3.utcFormat("%b %d, %Y")
+            let tempVal = data['state-testing'].data.at(-1)
+            if (rate) {
+                tempVal = tempVal/d.population * 1000
+            }
+            p.select(".tooltip-subtitle-2").html(`Cases from ${formatDate(tempStartDate)} to ${formatDate(tempEndDate)}: ${parseFloat(tempVal.toFixed(1))}`)  
+
+        } else {
+            p.select(".tooltip-subtitle-2").html('')
+        }
     } else {
-        p.select(".tooltip-subtitle").html('')
+        if (data['state-testing'].data.length > 0) {
+            let tempDate = parseDate(data['state-testing']['start-date'])
+            let tempEndDate = d3.utcDay.offset(tempDate, (data['state-testing'].data.length-1)*7)
+            let tempStartDate = d3.utcDay.offset(tempEndDate, -6)
+            var formatDate = d3.utcFormat("%b %d, %Y")
+            let tempVal = data['state-testing'].data.at(-1)
+            if (rate) {
+                tempVal = tempVal/d.population * 1000
+            }
+            p.select(".tooltip-subtitle").html(`Cases from ${formatDate(tempStartDate)} to ${formatDate(tempEndDate)}: ${parseFloat(tempVal.toFixed(1))}`)  
+
+        } else {
+            p.select(".tooltip-subtitle").html('')
+        }
     }
 
     var ttpLegendTop = ttpHeight - 2.5*em
@@ -287,7 +319,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
 
     var ttpLegend = ttpSVG.append("g").attr("class", "tooltip-legend")
 
-    var countMax = 0
+    var countMax = rate ? 1/d.population : 1
 
     ttpDataSources.forEach(function(dataSource) {
         if (rate) {
@@ -299,9 +331,9 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
     })
     
     var predictionData = JSON.parse(JSON.stringify(data["state-prediction"]))
-    if (predictionData.data.length > 0 && mapDiseaseSelector.value.includes("influenza")) {
-        predictionData.data = predictionData.data.splice(0, 3)
-    }
+    // if (predictionData.data.length > 0 && mapDiseaseSelector.value.includes("influenza")) {
+    //     predictionData.data = predictionData.data.splice(0, 3)
+    // }
     if (rate) {
         predictionData.data = d["state-prediction"].data.map(function(item) { return item/d.population * 1000} )
     }
@@ -443,7 +475,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
         var thisStartDate = parseDate(thisData["start-date"])
         var thisEndDate = new Date(thisStartDate);
         thisEndDate.setDate(thisEndDate.getDate() + thisData.data.length*7);
-        var datesReconstructed = d3.timeDay.range(startDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 7)
+        var datesReconstructed = d3.utcDay.range(startDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 7)
 
         var refDate = new Date(currentWeek)
         refDate.setDate(refDate.getDate() - 7)
@@ -485,7 +517,6 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false) {
             }
             
         }
-
         
     })
 

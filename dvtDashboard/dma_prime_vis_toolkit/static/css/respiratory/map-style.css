@@ -27,6 +27,14 @@
     text-align: center;
 }
 
+#map-state-hospitalizations-subtitle {
+    font-size: var(--sl-font-size-x-small);
+}
+
+#map-state-hospitalizations-large-subtitle {
+    font-size: var(--sl-font-size-small);
+}
+
 #map-state-hospitalizations-yaxis-title {
     font-size: var(--sl-font-size-x-small);
 }

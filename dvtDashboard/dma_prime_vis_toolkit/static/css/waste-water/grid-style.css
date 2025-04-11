@@ -14,12 +14,25 @@
     width: 100%;
 }
 
+.last-point-label {
+    font-size: var(--sl-font-size-2x-small);
+    white-space: preserve;
+    dominant-baseline: middle;
+    fill: currentColor;
+}
+
+.last-point-label-line {
+    stroke: currentColor;
+    width: 1px;
+}
+
 #grid-legend{
     position: relative;
     left: 0px;
     bottom: 0px;
     background-color: rgba(255, 255, 255, .35);
 }
+
 #grid-legend-svg{
     height: 2em;
 }
@@ -33,6 +46,7 @@
     width: 100%;
     aspect-ratio: 13/10;
 }
+
 .grid-map-zcta {
     stroke-width: 1;
     stroke: black;

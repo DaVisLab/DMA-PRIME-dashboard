@@ -388,7 +388,7 @@ function setGridTooltip(gridTooltip) {
         tooltipData["population"] = thisData.population
 
         // actually draw tooltip
-        drawTooltip(tooltipData, slTTP.select("div[slot='content']"), gridTooltipHeight, gridTooltipWidth, gridRateSwitch.value == "rate")
+        drawTooltip(tooltipData, slTTP.select("div[slot='content']"), gridTooltipHeight, gridTooltipWidth, gridRateSwitch.value == "rate", true)
     })
     
 }

@@ -2,7 +2,7 @@ const { GeoJsonLayer, IconLayer, MapboxOverlay, Widget } = deck;
 
 export { styleSheet, selectedItems, map, deckOverlay, popup, redraw, drawTooltip, drawAggregation, drawLargeAggregation, drawLegend, updateDiseaseCountDisplay, getData, changeDataColumn, update }
 
-var regionData = await d3.json(`/data/other-infectious-diseases/region/encounters`)
+var regionData = await d3.json(`/data/other-infectious-diseases/zcta/pos_tests`)
 var stateFeature = regionData.features.find(d => d.properties.identifier == "state")
 
 var selectedItems = {
@@ -223,21 +223,21 @@ function drawTooltip(dataObject) {
             break;
     }
     encounterString += " from "
-    var thisWeek = parseDate(thisData.end_date)
+    var thisWeek = thisData.end_date
     switch (mapTimeSwitch.value) {
         case "weekly":
-            var formatDate = d3.utcFormat("%b %d, %Y")
+            var formatDate = d3.timeFormat("%b %d, %Y")
             encounterString += `${formatDate(thisWeek)}<br/>to ${formatDate(d3.timeDay.offset(thisWeek, 6))}`
             break;
         case "monthly":
-            var startWeek = d3.timeDay.offset(thisWeek, -4*7)
+            var startWeek = d3.utcDay.offset(thisWeek, -4*7)
             var formatDate = d3.utcFormat("%b %d, %y")
-            encounterString += `${formatDate(startWeek)}<br/>to ${formatDate(d3.timeDay.offset(thisWeek, 6))}`
+            encounterString += `${formatDate(startWeek)}<br/>to ${formatDate(d3.utcDay.offset(thisWeek, 6))}`
             break;
         case "yearly":
-            var startWeek = d3.timeDay.offset(thisWeek, -52*7)
+            var startWeek = d3.utcDay.offset(thisWeek, -52*7)
             var formatDate = d3.utcFormat("%b %d, %y")
-            encounterString += `${formatDate(startWeek)}<br/>to ${formatDate(d3.timeDay.offset(thisWeek, 6))}`
+            encounterString += `${formatDate(startWeek)}<br/>to ${formatDate(d3.utcDay.offset(thisWeek, 6))}`
             break;
     }
     encounterString += ": "
@@ -279,21 +279,21 @@ function drawAggregation() {
             break;
     }
     encounterString += " from "
-    var thisWeek = parseDate(thisData.end_date)
+    var thisWeek = thisData.end_date
     switch (mapTimeSwitch.value) {
         case "weekly":
             var formatDate = d3.utcFormat("%b %d, %Y")
-            encounterString += `${formatDate(thisWeek)} to<br/>${formatDate(d3.timeDay.offset(thisWeek, 6))}`
+            encounterString += `${formatDate(thisWeek)} to<br/>${formatDate(d3.utcDay.offset(thisWeek, 6))}`
             break;
         case "monthly":
-            var startWeek = d3.timeDay.offset(thisWeek, -4*7)
+            var startWeek = d3.utcDay.offset(thisWeek, -4*7)
             var formatDate = d3.utcFormat("%b %d, %y")
-            encounterString += `${formatDate(startWeek)} to<br/>${formatDate(d3.timeDay.offset(thisWeek, 6))}`
+            encounterString += `${formatDate(startWeek)} to<br/>${formatDate(d3.utcDay.offset(thisWeek, 6))}`
             break;
         case "yearly":
-            var startWeek = d3.timeDay.offset(thisWeek, -52*7)
+            var startWeek = d3.utcDay.offset(thisWeek, -52*7)
             var formatDate = d3.utcFormat("%b %d, %y")
-            encounterString += `${formatDate(startWeek)} to<br/>${formatDate(d3.timeDay.offset(thisWeek, 6))}`
+            encounterString += `${formatDate(startWeek)} to<br/>${formatDate(d3.utcDay.offset(thisWeek, 6))}`
             break;
     }
     encounterString += ": "
@@ -336,8 +336,8 @@ function getData(feature, timeFrame="weekly") {
         "data": [],
         "other": [],
         "population": feature.properties.population,
-        "start_date": dayjs(),
-        "end_date": dayjs(),
+        "start_date": dayjs().utc().toDate(),
+        "end_date": dayjs.utc().toDate(),
     }
     if (diseases.length > 0) {
         // one/many diseases
@@ -352,7 +352,7 @@ function getData(feature, timeFrame="weekly") {
                 var latestDate = parseDate(regionData.metadata.end_date)
                 thisData.start_date = earliestDate
                 thisData.end_date = latestDate
-                weeks = (d3.timeDay.count(earliestDate, latestDate)/7) + 1
+                weeks = (d3.utcDay.count(earliestDate, latestDate)/7) + 1
             } else {
                 weeks = 1
             }
@@ -398,21 +398,21 @@ function drawLargeAggregation() {
             break;
     }
     encounterString += " from "
-    var thisWeek = parseDate(thisData.end_date)
+    var thisWeek = thisData.end_date
     switch (mapTimeSwitch.value) {
         case "weekly":
             var formatDate = d3.utcFormat("%b %d, %Y")
-            encounterString += `${formatDate(thisWeek)} to ${formatDate(d3.timeDay.offset(thisWeek, 6))}`
+            encounterString += `${formatDate(thisWeek)} to ${formatDate(d3.utcDay.offset(thisWeek, 6))}`
             break;
         case "monthly":
-            var startWeek = d3.timeDay.offset(thisWeek, -4*7)
+            var startWeek = d3.utcDay.offset(thisWeek, -4*7)
             var formatDate = d3.utcFormat("%b %d, %y")
-            encounterString += `${formatDate(startWeek)} to ${formatDate(d3.timeDay.offset(thisWeek, 6))}`
+            encounterString += `${formatDate(startWeek)} to ${formatDate(d3.utcDay.offset(thisWeek, 6))}`
             break;
         case "yearly":
-            var startWeek = d3.timeDay.offset(thisWeek, -52*7)
+            var startWeek = d3.utcDay.offset(thisWeek, -52*7)
             var formatDate = d3.utcFormat("%b %d, %y")
-            encounterString += `${formatDate(startWeek)} to ${formatDate(d3.timeDay.offset(thisWeek, 6))}`
+            encounterString += `${formatDate(startWeek)} to ${formatDate(d3.utcDay.offset(thisWeek, 6))}`
             break;
     }
     encounterString += ": "
@@ -511,7 +511,7 @@ function drawLargeAggregation() {
         .attr("class", "tooltip-label")
         .attr("fill", "var(--sl-color-neutral-1000)")
 
-    xAxis.call(d3.axisBottom(xScale).tickArguments([d3.timeYear.every(1), d3.timeFormat("%Y")]))
+    xAxis.call(d3.axisBottom(xScale).tickArguments([d3.utcYear.every(1), d3.timeFormat("%Y")]))
         .attr("transform", `translate(0, ${height - margins.bottom})`)
 
     if (mapColumnSwitch.value == "pos_tests") {

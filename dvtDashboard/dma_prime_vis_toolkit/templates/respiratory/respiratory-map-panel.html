@@ -58,16 +58,20 @@
   </p> -->
 </div>
 
-<div id="map-state-hospitalizations" >
+<div id="map-state-hospitalizations">
   <p id="map-state-hospitalizations-title" class="map-state-hospitalizations-title">CDC-Reported State Hospitalizations</p>
+  <p id="map-state-hospitalizations-subtitle" class="map-state-hospitalizations-title">N/A</p>
   <sl-resize-observer id="map-state-hospitalizations-resizer">
-    <svg id="map-state-hospitalizations-svg"></svg>
+    <svg id="map-state-hospitalizations-svg" class="map-state-hospitalizations"></svg>
   </sl-resize-observer>
 </div>
 <sl-dialog id="map-state-hospitalizations-large" class="dialog-width" >
-  <p id="map-state-hospitalizations-large-title" slot="label">CDC-Reported State Hospitalizations</p>
+  <div slot="label">
+    <p id="map-state-hospitalizations-large-title">CDC-Reported State Hospitalizations</p>
+    <p id="map-state-hospitalizations-large-subtitle">N/A</p>
+  </div>
   <sl-resize-observer id="map-state-hospitalizations-large-resizer">
-    <svg id="map-state-hospitalizations-large-svg"></svg>
+    <svg id="map-state-hospitalizations-large-svg" class="map-state-hospitalizations"></svg>
   </sl-resize-observer>
 </sl-dialog>
 
@@ -99,12 +103,13 @@
   mapIncludeImputations = document.getElementById("map-include-imputations")
 
   // aggregation visualization elements
+  mapStateHospitalizationsSubtitle = document.getElementById("map-state-hospitalizations-subtitle")
   mapStateHospitalizationsResizer = document.getElementById("map-state-hospitalizations-resizer")
   mapStateHospitalizationsSvg = document.getElementById("map-state-hospitalizations-svg")
   mapStateHospitalizationsLarge = document.getElementById("map-state-hospitalizations-large")
+  mapStateHospitalizationsLargeSubtitle = document.getElementById("map-state-hospitalizations-large-subtitle")
   mapStateHospitalizationsLargeResizer = document.getElementById("map-state-hospitalizations-large-resizer")
   mapStateHospitalizationsLargeSvg = document.getElementById("map-state-hospitalizations-large-svg")
-  
   
   mapDiv = document.getElementById("map-div")
   choroplethLegendSVG = document.getElementById("choropleth-legend-svg")

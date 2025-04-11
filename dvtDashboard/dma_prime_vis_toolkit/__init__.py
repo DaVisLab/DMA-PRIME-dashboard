@@ -13,7 +13,6 @@ import json
 
 from .utility import * 
 from .authenticate import login_required, admin_required
-from .database import db
 
 logging.basicConfig(filename=main_dir+'/logs.log',level=logging.DEBUG)
 def create_app(development=False, dataDir=None):
@@ -51,7 +50,7 @@ def create_app(development=False, dataDir=None):
 
     # ignores login requirements
     if not development:
-        from . import database as db
+        from .database import db
         db.init_app(app)
 
         with app.app_context():

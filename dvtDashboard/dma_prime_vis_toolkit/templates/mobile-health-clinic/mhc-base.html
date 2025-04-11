@@ -15,13 +15,11 @@
 <script src="https://unpkg.com/deck.gl@latest/dist.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
 
 <script>
     // Ensuring the timejs additional plugins are linked
-    dayjs.extend(window.dayjs_plugin_utc)
     dayjs.extend(window.dayjs_plugin_timezone)
     dayjs.extend(window.dayjs_plugin_customParseFormat)
     dayjs.tz.setDefault("America/New_York")

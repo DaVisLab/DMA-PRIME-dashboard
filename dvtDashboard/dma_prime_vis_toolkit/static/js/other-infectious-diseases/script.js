@@ -2,7 +2,7 @@
 var unknownColor = d3.hsl("#CCCCCC")
 
 function parseDate(datestring) {
-    return dayjs.tz(datestring, "YYYY-MM-DD", "America/New_York").toDate()
+    return dayjs.utc(datestring, "YYYY-MM-DD").toDate()
 }
 
 function createBarGraph(svg, data, metadata, height, width, altMargins) {
@@ -86,7 +86,7 @@ function createBarGraph(svg, data, metadata, height, width, altMargins) {
         .attr("class", "tooltip-label")
         .attr("fill", "var(--sl-color-neutral-1000)")
 
-    xAxis.call(d3.axisBottom(xScale).tickArguments([d3.timeYear.every(1), d3.timeFormat("%Y")]))
+    xAxis.call(d3.axisBottom(xScale).tickArguments([d3.utcYear.every(1), d3.timeFormat("%Y")]))
         .attr("transform", `translate(0, ${height - margins.bottom})`)
 
     if (mapColumnSwitch.value == "pos_tests") {

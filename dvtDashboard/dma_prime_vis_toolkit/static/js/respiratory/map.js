@@ -228,13 +228,13 @@ function drawStateHospitalizations() {
     }
 
     function xAxisDisplayFunc(svg, stateXScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames) {
-        svg.select(".x-axis").call(d3.axisBottom(stateXScale).tickArguments([d3.timeMonth.every(1), d3.timeFormat("%b %Y")]))
+        svg.select(".x-axis").call(d3.axisBottom(stateXScale).tickArguments([d3.utcMonth.every(1), d3.timeFormat("%b %Y")]))
             .attr("transform", `translate(0, ${stateHeight - stateMargins.bottom})`)  
             .selectAll("text")
             .style("text-anchor", "end")
             .attr("transform", `translate(-12, 6) rotate(-90)`)
     }
-    drawStateBarChart(mapStateHospitalizationsSvg, stateMargins, yAxisDisplayFunc, xAxisDisplayFunc)
+    drawStateBarChart(mapStateHospitalizationsSvg, mapStateHospitalizationsSubtitle, stateMargins, yAxisDisplayFunc, xAxisDisplayFunc)
     
 }
 
@@ -271,7 +271,7 @@ function drawLargeStateHospitalizations() {
     }
 
     function xAxisDisplayFunc(svg, stateXScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames) {
-        var allWeeks = d3.timeDay.range(startDate, d3.timeDay.offset(endDate, 7), 7)
+        var allWeeks = d3.utcDay.range(startDate, d3.utcDay.offset(endDate, 7), 7)
         var xAxis = svg.select(".x-axis")
         var svgMajorXAxis = xAxis.append("g")
             .attr("id", "map-state-hospitalizations-large-major-xaxis")
@@ -301,14 +301,14 @@ function drawLargeStateHospitalizations() {
 
         xAxis.append("g")
             .attr("id", "map-state-hospitalizations-large-minor-xaxis")
-            .call(d3.axisBottom(stateXScale).tickArguments([d3.timeDay.every(7), d3.timeFormat("")]))
+            .call(d3.axisBottom(stateXScale).tickArguments([d3.utcDay.every(7), d3.timeFormat("")]))
             .attr("transform", `translate(0, ${stateHeight - stateMargins.bottom})`)
 
     }
-    drawStateBarChart(mapStateHospitalizationsLargeSvg, stateMargins, yAxisDisplayFunc, xAxisDisplayFunc)
+    drawStateBarChart(mapStateHospitalizationsLargeSvg, mapStateHospitalizationsLargeSubtitle, stateMargins, yAxisDisplayFunc, xAxisDisplayFunc)
 }
 
-async function drawStateBarChart(svgDOM, stateMargins, yAxisDisplayFunc, xAxisDisplayFunc) {
+async function drawStateBarChart(svgDOM, subtitleDOM, stateMargins, yAxisDisplayFunc, xAxisDisplayFunc) {
     var diseaseDisplayNames = {
         "covid-19": "COVID-19",
         "influenza-1": "Influenza",
@@ -337,8 +337,10 @@ async function drawStateBarChart(svgDOM, stateMargins, yAxisDisplayFunc, xAxisDi
             }
             return temp
         })
+        subtitleDOM.innerHTML = `Data from ${d3.utcFormat("%b %d, %Y")(parseDate(d3.max(stateData, d => d.Date)))} to ${d3.utcFormat("%b %d, %Y")(parseDate(d3.min(stateData, d => d.Date)))}`
     } catch (error) {
         stateData = [{"Date": "2020-01-01", "count": 1}]
+        subtitleDOM.innerHTML = "N/A"
     }
     
     var maxVal = d3.max(stateData.map(d => d.count)) || 1
@@ -347,7 +349,7 @@ async function drawStateBarChart(svgDOM, stateMargins, yAxisDisplayFunc, xAxisDi
     stateMargins.left += Math.max(20, temp.node().getBBox().width)
 
     var stateXScale = d3.scaleUtc()
-                .domain([startDate, d3.timeDay.offset(endDate, 7)]).range([stateMargins.left, stateWidth - stateMargins.right])    
+                .domain([startDate, d3.utcDay.offset(endDate, 7)]).range([stateMargins.left, stateWidth - stateMargins.right])    
 
     var stateYScale = d3.scaleLinear()
         .domain([0, maxVal])
@@ -365,7 +367,7 @@ async function drawStateBarChart(svgDOM, stateMargins, yAxisDisplayFunc, xAxisDi
         .attr("width", (stateWidth - (stateMargins.left + stateMargins.right)) / stateData.length)
         .attr("stroke", "var(--sl-color-neutral-1000)")
         .attr("stroke-width", 1)
-        .attr("fill", d => dayjs(parseDate(d["Date"])).isAfter(currentWeek) ? "var(--sl-color-neutral-600)" : "var(--sl-color-neutral-100)")
+        .attr("fill", d => dayjs.utc(parseDate(d["Date"])).isAfter(currentWeek) ? "var(--sl-color-neutral-600)" : "var(--sl-color-neutral-100)")
 
     yAxisDisplayFunc(svg, stateYScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames)
     xAxisDisplayFunc(svg, stateXScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames)
