@@ -276,7 +276,7 @@ function drawLargeStateHospitalizations() {
         var svgMajorXAxis = xAxis.append("g")
             .attr("id", "map-state-hospitalizations-large-major-xaxis")
             .call(d3.axisBottom(stateXScale)
-                .tickValues(allWeeks.filter(d => d.getDate() < 7))
+                .tickValues(allWeeks.filter(d => d.getDate() <= 7))
                 .tickFormat(d3.timeFormat("")))
             .attr("transform", `translate(0, ${stateHeight - stateMargins.bottom})`)  
         
