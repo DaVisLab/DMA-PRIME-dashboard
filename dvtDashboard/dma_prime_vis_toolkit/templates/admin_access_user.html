@@ -63,7 +63,7 @@
       margin-bottom: var(--sl-spacing-2x-large)
     }
 
-    #username {
+    #email {
       margin-bottom: var(--sl-spacing-small)
     }
 
@@ -103,7 +103,12 @@
     #drop-btn {
         width: 100%;
     }
-
+    a {
+      font-family: var(--sl-font-sans);
+      font-size: var(--sl-font-size-x-large);
+      text-decoration: none;
+      color: white;
+    }
   </style>
   {% endblock %}
 
@@ -121,7 +126,7 @@
             </a>
 
             {% if session["access_level"] == 1 %}
-            <a style="float: right ;" href="{{ url_for('admin_controls') }}">
+            <a style="float: right; margin-right: 17px;" href="{{ url_for('admin_controls') }}">
             <sl-icon-button name="database-gear"></sl-icon-button>
             </a>
             {% endif %}
@@ -160,7 +165,7 @@
     <div id="form-div">
       <h1 id="admin-user-title">Delete User</h1>
       <form onsubmit="return confirm('Do you really want to delete this user?');" method="post" id="user-delete-form">
-        <sl-input label="Username" id="username" name="username" required></sl-input>
+        <sl-input label="Email" id="email" name="email" required></sl-input>
         
         <p id="signup-error"> 
           <!-- if there is an error passed through flask, display it -->

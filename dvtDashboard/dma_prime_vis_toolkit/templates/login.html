@@ -61,7 +61,7 @@
       margin-bottom: var(--sl-spacing-2x-large)
     }
 
-    #email {
+    #email_username {
       margin-bottom: var(--sl-spacing-small)
     }
 
@@ -87,18 +87,14 @@
 <body>
   <header>
     <nav>
-      <a href="{{ url_for('auth.signup') }}">
-        <sl-button id="signup" style="float: right; font-size: 2rem; margin-top: 3px; margin-right: 6px; align-items: center;" size="medium">
-        Sign Up
-        </sl-button>
-      </a>
+      
     </nav>
   </header>
 
   <div id="form-div">
     <h1 id="login-title">Log In</h1>
     <form method="post" id="login-form">
-      <sl-input label="Email" id="email" name="email" required></sl-input>
+      <sl-input type="text" label="Email/Username" id="email_username" name="email_username" required></sl-input>
       <sl-input label="Password" type="password" name="password" id="password-input" password-toggle required></sl-input>
       <p id="login-error"> 
         <!-- if there is an error passed through flask, display it -->

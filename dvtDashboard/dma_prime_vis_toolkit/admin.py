@@ -24,6 +24,12 @@ def add_user():
         access_level = int(request.form["access_level"])
   
         try:
+            # Check if the user already exists
+            existing_user = User.query.filter_by(email=email).first()
+            if existing_user:
+                flash("User already exists")
+                return redirect("/admin")
+
             temp_user = User(email, email[:4]+"123", Bcrypt().generate_password_hash(email[:4]+"789"), access_level=access_level, verified_user=False)
             db.session.add(temp_user)
             db.session.commit()
@@ -54,10 +60,16 @@ def add_user():
 @admin_required
 def delete_user():
     if request.method == "POST":
-        username = request.form["username"]
-  
+        email = request.form["email"]
+
         try:
-            User.query.filter_by(username=username).delete()
+            # Check if the user exists
+            existing_user = User.query.filter_by(email=email).first()
+            if not existing_user:
+                flash("User does not exist")
+                return redirect("/admin")
+
+            User.query.filter_by(email=email).delete()
             db.session.commit()
 
         except Exception as e:
