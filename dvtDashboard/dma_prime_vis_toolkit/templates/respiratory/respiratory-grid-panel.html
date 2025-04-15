@@ -23,9 +23,15 @@
   <!-- data source/hospitalization level selector -->
   <sl-select value="state-testing" id="{{panel.name}}-data-source-sort-selector" class="fill-width ">
     <p slot="label">Select hospitalization level</p>
-    <sl-option value="state-testing" >State (current week)</sl-option>
-    <sl-option value="state-prediction" id="grid-state-prediction-option">State (5th week prediction)</sl-option>
-    <sl-option value="health-system-data">Health System</sl-option>
+    <sl-tooltip content="Hospitalizations based on statewide projections" trigger="hover" hoist>
+      <sl-option value="state-testing" >State (current week)</sl-option>
+    </sl-tooltip>
+    <sl-tooltip content="Hospitalizations based on statewide projections" trigger="hover" hoist>
+      <sl-option value="state-prediction" id="grid-state-prediction-option">State (2nd week prediction)</sl-option>
+    </sl-tooltip>
+    <sl-tooltip content="Hospitalizations based on Prisma Health and MUSC EHR" trigger="hover" hoist>
+      <sl-option value="health-system-data">Health System</sl-option>
+    </sl-tooltip>
   </sl-select>
 
   <!-- grid item sort selection -->

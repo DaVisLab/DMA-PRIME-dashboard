@@ -28,9 +28,7 @@ function redraw(highlightIndex=-1) {
       data: d3.json('/data/mobile-health-clinic-events').then(data => {
         data.forEach((datum, index) => {
           try {
-            if (data[index].event_date.length >= 10) {
-              data[index].event_date = dayjs.tz(data[index].event_date) 
-            }
+            data[index].event_date = dayjs.tz(data[index].event_date) 
           } catch (RangeError) {
             console.log(data[index].event_date, "was not able to be parsed")
           }  

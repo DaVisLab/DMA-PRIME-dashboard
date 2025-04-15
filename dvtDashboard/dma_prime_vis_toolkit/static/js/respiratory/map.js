@@ -337,7 +337,7 @@ async function drawStateBarChart(svgDOM, subtitleDOM, stateMargins, yAxisDisplay
             }
             return temp
         })
-        subtitleDOM.innerHTML = `Data from ${d3.utcFormat("%b %d, %Y")(parseDate(d3.max(stateData, d => d.Date)))} to ${d3.utcFormat("%b %d, %Y")(parseDate(d3.min(stateData, d => d.Date)))}`
+        subtitleDOM.innerHTML = `Data from ${d3.utcFormat("%b %d, %Y")(parseDate(d3.min(stateData, d => d.Date)))} to ${d3.utcFormat("%b %d, %Y")(parseDate(d3.max(stateData, d => d.Date)))}`
     } catch (error) {
         stateData = [{"Date": "2020-01-01", "count": 1}]
         subtitleDOM.innerHTML = "N/A"

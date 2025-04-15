@@ -37,17 +37,6 @@ gridDataSourceSortSelector.addEventListener("sl-change", (event) => {
 })
 
 gridDiseaseSelector.addEventListener("sl-change", (event) => {
-    switch(gridDiseaseSelector.value) {
-        case "covid-19":
-            gridStatePredictionOption.innerHTML = "State (5th week prediction)"
-            break
-        case "influenza-1":
-        case "influenza-2":
-            gridStatePredictionOption.innerHTML = "State (2nd week prediction)"
-            break
-        default:
-            gridStatePredictionOption.innerHTML = "State (5th week prediction)"
-    }
     updateGridData()
 })
 

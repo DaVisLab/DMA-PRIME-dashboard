@@ -272,7 +272,11 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false) {
             if (rate) {
                 tempVal = tempVal/d.population * 1000
             }
-            p.select(".tooltip-subtitle-2").html(`Cases from ${formatDate(tempStartDate)} to ${formatDate(tempEndDate)}: ${parseFloat(tempVal.toFixed(1))}`)  
+            var tooltipString = `Cases from ${formatDate(tempStartDate)} to ${formatDate(tempEndDate)}: ${parseFloat(tempVal.toFixed(1))}`
+            if (rate) {
+                tooltipString = 'Rate of ' + tooltipString + ' (per 1000 people)'
+            }
+            p.select(".tooltip-subtitle-2").html(tooltipString)  
 
         } else {
             p.select(".tooltip-subtitle-2").html('')
