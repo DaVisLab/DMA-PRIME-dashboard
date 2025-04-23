@@ -15,16 +15,11 @@ def map_data(type):
     # map geojson files
     return send_file(f'{main_dir}/static/assets/GeoJSON/tl_2024_sc_{type}_simplified.json')
 
-@bp.route('/health-care-facility/<type>', methods=['GET'])
+@bp.route('/health-care-facility', methods=['GET'])
 @login_required
-def health_care_facility(type):
+def health_care_facility():
     # health care facilities - hospitals, center for drug and alcohol programs, mobile health clinics, community partners
-    if type == "all":
-        return send_file(f'{main_dir}/static/assets/Health Care Facilities/hospital-cdap_mhc_partners.csv')
-    else:
-        return send_file(f'{main_dir}/static/assets/temp/{type}.csv')
-# def health_care_facility(type):
-#     return send_file(f'{main_dir}/static/assets/Health Care Facilities/hospital-cdap_mhc_partners.csv')
+    return send_file(f'{current_app.config['DATADIR']}/supplementary/Health Care Facilities/hospital-cdap_mhc_partners.csv')
 
 @bp.route('/deckgl-respiratory/<region_size>', methods=['GET', 'POST'])
 @login_required

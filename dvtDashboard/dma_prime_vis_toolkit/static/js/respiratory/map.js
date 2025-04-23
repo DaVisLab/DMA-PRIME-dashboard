@@ -64,7 +64,7 @@ function redraw(first=false) {
             }),
             new IconLayer({
                 id: 'hospital-and-cdap',
-                data: d3.csv('/data/health-care-facility/all'),
+                data: d3.csv('/data/health-care-facility'),
                 iconAtlas: '/data/icon-pack/png',
                 iconMapping: '/data/icon-pack/json',
                 getPosition: d => {return [+d.longitude, +d.latitude]},

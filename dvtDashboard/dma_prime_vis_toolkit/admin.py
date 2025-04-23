@@ -8,7 +8,6 @@ from flask_bcrypt import Bcrypt
 from .database import db, User
 from .authenticate import login_required, admin_required
 import jwt
-from flask_mailman import EmailMessage
 import time
 import MySQLdb
 
@@ -36,14 +35,6 @@ def add_user():
 
             token = jwt.encode({"email": email}, current_app.config["SECRET_KEY"], algorithm='HS256')
 
-            # Send verification email
-            # subject, from_email, to = 'Reset Password', 'nickjohnson1207@gmail.com', email
-            # html_content = render_template('email/reset_pwd_email.html', token=token)
-
-
-            # msg = EmailMessage(subject, str(html_content), from_email, [to])
-            # msg.content_subtype = "html"  # Main content is now text/html
-            # msg.send()
             reset_password_url = url_for("auth.reset_password", token=token, _external=True)
             # flash(f"User added successfully. Verification link: {reset_password_url}")
             flash(f"User added successfully. Verification link: {'https://dmaprime.clemson.edu/auth' + reset_password_url.split("/auth")[-1]}")

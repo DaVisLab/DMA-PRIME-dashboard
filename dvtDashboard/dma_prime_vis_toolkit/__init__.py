@@ -21,18 +21,16 @@ def create_app(development=False, dataDir=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
-        SECRET_KEY='***REMOVED***',
+        # SECRET_KEY='***REMOVED***',
         DEVELOPMENT=development,
         DATADIR=dataDir,
 
-        MAIL_SERVER = "smtp.gmail.com",
-        MAIL_PORT = "587",
-        MAIL_USERNAME = "nickjohnson1207@gmail.com",
-        MAIL_PASSWORD = "eniw enui zcza szgm",
-        MAIL_USE_TLS = True,
+        PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=7),
+        SESSION_COOKIE_SECURE=True, 
 
-        SQLALCHEMY_DATABASE_URI = '***REMOVED***'
+        # SQLALCHEMY_DATABASE_URI = '***REMOVED***'
     )
+    app.config.from_envvar('DMAPRIME_CONFIG')
     app.wsgi_app = ProxyFix( # allows a reverse proxy
         app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
     )
@@ -44,9 +42,6 @@ def create_app(development=False, dataDir=None):
         os.makedirs(app.instance_path)
     except OSError:
         pass
-
-    mail = Mail()
-    mail.init_app(app)
 
     # ignores login requirements
     if not development:

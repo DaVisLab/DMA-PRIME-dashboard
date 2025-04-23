@@ -1,10 +1,10 @@
 [project]
 name = "dma_prime_vis_toolkit"
-version = "1.6.3"
+version = "1.6.4"
 description = "DMA-PRIME April 2025 - 5 dashboards + user creation"
 dependencies = [
     "waitress",
-    "flask<2.4",
+    "flask",
     "flask-bcrypt",
     "flask_mailman",
     "flask_login",

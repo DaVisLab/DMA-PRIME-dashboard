@@ -5,7 +5,6 @@ from flask import (
 )
 from flask_bcrypt import Bcrypt
 import jwt
-from flask_mailman import EmailMessage
 
 from .database import get_db, User, db
 
@@ -128,6 +127,7 @@ def reset_password(token):
 
 @bp.before_app_request
 def load_logged_in_user():
+    session.permanent = True
     # if user is logged in, store in python side of session
     user_id = session.get('user_id')
 

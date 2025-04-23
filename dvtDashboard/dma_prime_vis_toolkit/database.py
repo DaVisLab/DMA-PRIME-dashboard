@@ -12,9 +12,6 @@ from dataclasses import dataclass
 
 db = SQLAlchemy()
 
-# @login_manager.user_loader
-# def load_user(user_id):
-#     return User.query.filter_by(id=user_id).first()
 @dataclass
 class User(UserMixin, db.Model):
     __tablename__ = "user"
@@ -31,14 +28,11 @@ class User(UserMixin, db.Model):
         self.username = username
         self.password = password
         self.access_level = access_level
-    # def serialized(self):
-    #     return({"id": self.id, "email": self.email, "username": self.username})
 
 def get_db():
     # create connection to database if it doesn't exist
     if 'db' not in g:
-        g.db = MySQLdb.connect(user="***REMOVED***", password="***REMOVED***", database="")
-        #g.db = MySQLdb.connect(user="root", password="superuser", database="")
+        g.db = MySQLdb.connect(user=current_app.config['DB_USERNAME'], password=current_app.config['DB_PASSWORD'], database=current_app.config['DB_NAME'])
     return g.db
 
 
