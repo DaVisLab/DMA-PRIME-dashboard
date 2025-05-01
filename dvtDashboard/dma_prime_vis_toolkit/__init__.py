@@ -100,9 +100,8 @@ def create_app(development=False, dataDir=None):
             'current_week': current_week.strftime('%Y-%m-%d'),
             'end_date': (current_week + pd.DateOffset(weeks=4)).strftime('%Y-%m-%d')
         }
-        # Change
-        with open(f"{app.config['DATADIR']}/processed/respiratory/metadata.json") as f:
-            metadata = dict(json.load(f))
+
+        metadata = dict(decrypt(f"{app.config['DATADIR']}/processed/respiratory/metadata.json"))
 
         panels = [
             {
@@ -181,8 +180,9 @@ def create_app(development=False, dataDir=None):
                 'median_income': 'Median Income',
             }
         }
-        with open(f"{app.config['DATADIR']}/processed/opioid_hcv_hiv/metadata.json") as f:
-            metadata = dict(json.load(f))
+        
+        metadata = dict(decrypt(f"{app.config['DATADIR']}/processed/opioid_hcv_hiv/metadata.json"))
+        
         panels = [
             {
                 'name': 'main',
@@ -200,8 +200,8 @@ def create_app(development=False, dataDir=None):
     @app.route('/other-infectious-diseases')
     @login_required
     def other_infectious_diseases():
-        with open(f'{app.config['DATADIR']}/processed/other_infectious_diseases/metadata.json') as f:
-            diseases = list(json.load(f))
+        
+        diseases = list(decrypt(f"{app.config['DATADIR']}/processed/opioid_hcv_hiv/metadata.json"))
 
         panels = [
             {
@@ -228,8 +228,9 @@ def create_app(development=False, dataDir=None):
             'min_display_date': pd.to_datetime('today').strftime('%A, %B %d, %Y'),
             'max_display_date': pd.to_datetime('today').strftime('%A, %B %d, %Y'),
         }
-        with open(f"{app.config['DATADIR']}/processed/waste_water/metadata.json") as f:
-            metadata = dict(json.load(f))
+        
+        metadata = dict(decrypt(f"{app.config['DATADIR']}/processed/waste_water/metadata.json"))
+        
         panels = [
             {
                 'name': 'main',
