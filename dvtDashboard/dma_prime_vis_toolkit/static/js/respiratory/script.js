@@ -6,10 +6,10 @@ export { regionData, zctaData, startDate, currentWeek, endDate, historicalDates,
 var currentWeek = parseDate(metadata.current_week)
 
 var startDate = parseDate(metadata.start_date)
-var historicalDates = d3.utcDay.range(startDate, new Date(currentWeek).setDate(currentWeek.getDate()+1), 7)
+var historicalDates = d3.timeDay.range(startDate, new Date(currentWeek).setDate(currentWeek.getDate()+1), 7)
 
 var endDate = parseDate(metadata.end_date)
-var predictionDates = d3.utcDay.range(currentWeek, new Date(endDate).setDate(endDate.getDate()+1), 7)
+var predictionDates = d3.timeDay.range(currentWeek, new Date(endDate).setDate(endDate.getDate()+1), 7)
 
 
 var zctaData = await d3.json(`/data/deckgl-respiratory/zcta`)
@@ -106,7 +106,7 @@ function getDataAsArray(disease, dataSource, rate, imputations=true) {
 
 // helper functions
 function parseDate(dateString) {
-    return dayjs.utc(dateString, "YYYY-MM-DD").toDate()
+    return dayjs(dateString, "YYYY-MM-DD").toDate()
 }
 
 function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false) {
@@ -127,9 +127,9 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false) {
         
         if (data['state-testing'].data.length > 0) {
             let tempDate = parseDate(data['state-testing']['start-date'])
-            let tempEndDate = d3.utcDay.offset(tempDate, (data['state-testing'].data.length-1)*7)
-            let tempStartDate = d3.utcDay.offset(tempEndDate, -6)
-            var formatDate = d3.utcFormat("%b %d, %Y")
+            let tempEndDate = d3.timeDay.offset(tempDate, (data['state-testing'].data.length-1)*7)
+            let tempStartDate = d3.timeDay.offset(tempEndDate, -6)
+            var formatDate = d3.timeFormat("%b %d, %Y")
             let tempVal = data['state-testing'].data.at(-1)
             if (rate) {
                 tempVal = tempVal/d.population * 1000
@@ -146,9 +146,9 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false) {
     } else {
         if (data['state-testing'].data.length > 0) {
             let tempDate = parseDate(data['state-testing']['start-date'])
-            let tempEndDate = d3.utcDay.offset(tempDate, (data['state-testing'].data.length-1)*7)
-            let tempStartDate = d3.utcDay.offset(tempEndDate, -6)
-            var formatDate = d3.utcFormat("%b %d, %Y")
+            let tempEndDate = d3.timeDay.offset(tempDate, (data['state-testing'].data.length-1)*7)
+            let tempStartDate = d3.timeDay.offset(tempEndDate, -6)
+            var formatDate = d3.timeFormat("%b %d, %Y")
             let tempVal = data['state-testing'].data.at(-1)
             if (rate) {
                 tempVal = tempVal/d.population * 1000
@@ -218,10 +218,10 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false) {
         .nice()
         .range([ttpHeight-ttpMargins.bottom, ttpMargins.top])
 
-    var xScaleHistorical = d3.scaleUtc()
+    var xScaleHistorical = d3.scaleTime()
         .domain(d3.extent(historicalDates))
         .range([ttpMargins.left, ttpMargins.left + (ttpWidth - ttpMargins.right - ttpMargins.left)*ttpHistoryWidthPercentage]) 
-    var xScalePrediction = d3.scaleUtc()
+    var xScalePrediction = d3.scaleTime()
         .domain(d3.extent(predictionDates))
         .range([ttpMargins.left + (ttpWidth - ttpMargins.right - ttpMargins.left)*ttpHistoryWidthPercentage, ttpWidth - ttpMargins.right]) 
 
@@ -338,7 +338,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false) {
         var thisStartDate = parseDate(thisData["start-date"])
         var thisEndDate = new Date(thisStartDate);
         thisEndDate.setDate(thisEndDate.getDate() + thisData.data.length*7);
-        var datesReconstructed = d3.utcDay.range(startDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 7)
+        var datesReconstructed = d3.timeDay.range(startDate, new Date(thisEndDate).setDate(thisEndDate.getDate()+1), 7)
 
         var refDate = new Date(currentWeek)
         refDate.setDate(refDate.getDate() - 7)
@@ -386,7 +386,9 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false) {
     // display x-axis on the bottom
     xAxisHistorical // historical
         .attr("transform", `translate(0,${ttpHeight - ttpMargins.bottom})`)
-        .call(d3.axisBottom(xScaleHistorical).tickSize(4).tickFormat(d3.timeFormat("%b %Y")))
+        .call(d3.axisBottom(xScaleHistorical)
+            .tickSize(4)
+            .tickFormat((d, i) => xScaleHistorical.range()[1] - xScaleHistorical(d) > 2*em ? d3.timeFormat("%b %Y")(d) : ""))
         .selectAll("text") 
         .attr("class", "tooltip-label")
         .style("text-anchor", "end")

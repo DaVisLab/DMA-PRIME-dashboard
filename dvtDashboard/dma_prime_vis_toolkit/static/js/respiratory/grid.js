@@ -14,8 +14,8 @@ var gridHeight = gridContainer.clientHeight
 function gridInitialVisualization() {
     var gridContainerD3 = d3.select(gridContainer)
 
-    gridStartDate.html(d3.utcFormat("%B %d, %Y")(historicalDates[0]))
-    gridEndDate.html(d3.utcFormat("%B %d, %Y")(currentWeek))
+    gridStartDate.html(d3.timeFormat("%B %d, %Y")(historicalDates[0]))
+    gridEndDate.html(d3.timeFormat("%B %d, %Y")(currentWeek))
 
     gridHeight = gridContainer.clientHeight
     gridWidth = gridContainer.clientWidth
@@ -32,7 +32,7 @@ function gridInitialVisualization() {
     var gridItemWidth = (adjustedWidth-((rowItems-1)*.25*em))/rowItems
 
     // create x scale and color scale
-    var xScale = d3.scaleUtc()
+    var xScale = d3.scaleTime()
                 .domain([historicalDates[0], historicalDates.at(-1)])
                 .range([0, gridItemWidth*.75]) 
 
@@ -143,8 +143,8 @@ function gridInitialVisualization() {
 function updateGridData() {
     var gridContainerD3 = d3.select(gridContainer)
 
-    gridStartDate.html(d3.utcFormat("%B %d, %Y")(historicalDates[0]))
-    gridEndDate.html(d3.utcFormat("%B %d, %Y")(currentWeek))
+    gridStartDate.html(d3.timeFormat("%B %d, %Y")(historicalDates[0]))
+    gridEndDate.html(d3.timeFormat("%B %d, %Y")(currentWeek))
 
     gridHeight = gridContainer.clientHeight
     gridWidth = gridContainer.clientWidth
@@ -167,7 +167,7 @@ function updateGridData() {
         .range(gridBackgroundColors)
         .unknown("var(--sl-color-gray-600)")
 
-    var xScale = d3.scaleUtc()
+    var xScale = d3.scaleTime()
                 .domain([historicalDates[0], historicalDates.at(-1)])
                 .range([0, gridItemWidth*.75]) 
 

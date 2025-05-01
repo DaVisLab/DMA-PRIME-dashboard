@@ -230,14 +230,14 @@ function drawTooltip(dataObject) {
             encounterString += `${formatDate(thisWeek)}<br/>to ${formatDate(d3.timeDay.offset(thisWeek, 6))}`
             break;
         case "monthly":
-            var startWeek = d3.utcDay.offset(thisWeek, -4*7)
-            var formatDate = d3.utcFormat("%b %d, %y")
-            encounterString += `${formatDate(startWeek)}<br/>to ${formatDate(d3.utcDay.offset(thisWeek, 6))}`
+            var startWeek = d3.timeDay.offset(thisWeek, -4*7)
+            var formatDate = d3.timeFormat("%b %d, %y")
+            encounterString += `${formatDate(startWeek)}<br/>to ${formatDate(d3.timeDay.offset(thisWeek, 6))}`
             break;
         case "yearly":
-            var startWeek = d3.utcDay.offset(thisWeek, -52*7)
-            var formatDate = d3.utcFormat("%b %d, %y")
-            encounterString += `${formatDate(startWeek)}<br/>to ${formatDate(d3.utcDay.offset(thisWeek, 6))}`
+            var startWeek = d3.timeDay.offset(thisWeek, -52*7)
+            var formatDate = d3.timeFormat("%b %d, %y")
+            encounterString += `${formatDate(startWeek)}<br/>to ${formatDate(d3.timeDay.offset(thisWeek, 6))}`
             break;
     }
     encounterString += ": "
@@ -282,18 +282,18 @@ function drawAggregation() {
     var thisWeek = thisData.end_date
     switch (mapTimeSwitch.value) {
         case "weekly":
-            var formatDate = d3.utcFormat("%b %d, %Y")
-            encounterString += `${formatDate(thisWeek)} to<br/>${formatDate(d3.utcDay.offset(thisWeek, 6))}`
+            var formatDate = d3.timeFormat("%b %d, %Y")
+            encounterString += `${formatDate(thisWeek)} to<br/>${formatDate(d3.timeDay.offset(thisWeek, 6))}`
             break;
         case "monthly":
-            var startWeek = d3.utcDay.offset(thisWeek, -4*7)
-            var formatDate = d3.utcFormat("%b %d, %y")
-            encounterString += `${formatDate(startWeek)} to<br/>${formatDate(d3.utcDay.offset(thisWeek, 6))}`
+            var startWeek = d3.timeDay.offset(thisWeek, -4*7)
+            var formatDate = d3.timeFormat("%b %d, %y")
+            encounterString += `${formatDate(startWeek)} to<br/>${formatDate(d3.timeDay.offset(thisWeek, 6))}`
             break;
         case "yearly":
-            var startWeek = d3.utcDay.offset(thisWeek, -52*7)
-            var formatDate = d3.utcFormat("%b %d, %y")
-            encounterString += `${formatDate(startWeek)} to<br/>${formatDate(d3.utcDay.offset(thisWeek, 6))}`
+            var startWeek = d3.timeDay.offset(thisWeek, -52*7)
+            var formatDate = d3.timeFormat("%b %d, %y")
+            encounterString += `${formatDate(startWeek)} to<br/>${formatDate(d3.timeDay.offset(thisWeek, 6))}`
             break;
     }
     encounterString += ": "
@@ -336,8 +336,8 @@ function getData(feature, timeFrame="weekly") {
         "data": [],
         "other": [],
         "population": feature.properties.population,
-        "start_date": dayjs().utc().toDate(),
-        "end_date": dayjs.utc().toDate(),
+        "start_date": dayjs().toDate(),
+        "end_date": dayjs.toDate(),
     }
     if (diseases.length > 0) {
         // one/many diseases
@@ -352,7 +352,7 @@ function getData(feature, timeFrame="weekly") {
                 var latestDate = parseDate(regionData.metadata.end_date)
                 thisData.start_date = earliestDate
                 thisData.end_date = latestDate
-                weeks = (d3.utcDay.count(earliestDate, latestDate)/7) + 1
+                weeks = (d3.timeDay.count(earliestDate, latestDate)/7) + 1
             } else {
                 weeks = 1
             }
@@ -401,18 +401,18 @@ function drawLargeAggregation() {
     var thisWeek = thisData.end_date
     switch (mapTimeSwitch.value) {
         case "weekly":
-            var formatDate = d3.utcFormat("%b %d, %Y")
-            encounterString += `${formatDate(thisWeek)} to ${formatDate(d3.utcDay.offset(thisWeek, 6))}`
+            var formatDate = d3.timeFormat("%b %d, %Y")
+            encounterString += `${formatDate(thisWeek)} to ${formatDate(d3.timeDay.offset(thisWeek, 6))}`
             break;
         case "monthly":
-            var startWeek = d3.utcDay.offset(thisWeek, -4*7)
-            var formatDate = d3.utcFormat("%b %d, %y")
-            encounterString += `${formatDate(startWeek)} to ${formatDate(d3.utcDay.offset(thisWeek, 6))}`
+            var startWeek = d3.timeDay.offset(thisWeek, -4*7)
+            var formatDate = d3.timeFormat("%b %d, %y")
+            encounterString += `${formatDate(startWeek)} to ${formatDate(d3.timeDay.offset(thisWeek, 6))}`
             break;
         case "yearly":
-            var startWeek = d3.utcDay.offset(thisWeek, -52*7)
-            var formatDate = d3.utcFormat("%b %d, %y")
-            encounterString += `${formatDate(startWeek)} to ${formatDate(d3.utcDay.offset(thisWeek, 6))}`
+            var startWeek = d3.timeDay.offset(thisWeek, -52*7)
+            var formatDate = d3.timeFormat("%b %d, %y")
+            encounterString += `${formatDate(startWeek)} to ${formatDate(d3.timeDay.offset(thisWeek, 6))}`
             break;
     }
     encounterString += ": "
@@ -472,7 +472,7 @@ function drawLargeAggregation() {
         .range([height-margins.bottom, margins.top])
 
     var start_date = parseDate(metadata.start_date)
-    var xScale = d3.scaleUtc()
+    var xScale = d3.scaleTime()
         .domain([start_date, parseDate(metadata.end_date)])
         .nice()
         .range([margins.left, width - margins.right])
@@ -481,7 +481,7 @@ function drawLargeAggregation() {
         .data(data.other)
         .enter()
         .append("rect")
-        .attr("x", (d, i) => xScale(d3.utcDay.offset(start_date, (7 * i))))
+        .attr("x", (d, i) => xScale(d3.timeDay.offset(start_date, (7 * i))))
         .attr("y", d => yScale(d))
         .attr("height", d => yScale(0) - yScale(d))
         .attr("width", (width - (margins.left + margins.right)) / data.data.length)
@@ -491,7 +491,7 @@ function drawLargeAggregation() {
         .data(data.data)
         .enter()
         .append("rect")
-        .attr("x", (d, i) => xScale(d3.utcDay.offset(start_date, (7 * i))))
+        .attr("x", (d, i) => xScale(d3.timeDay.offset(start_date, (7 * i))))
         .attr("y", d => yScale(d))
         .attr("height", d => yScale(0) - yScale(d))
         .attr("width", (width - (margins.left + margins.right)) / data.data.length)
@@ -511,7 +511,7 @@ function drawLargeAggregation() {
         .attr("class", "tooltip-label")
         .attr("fill", "var(--sl-color-neutral-1000)")
 
-    xAxis.call(d3.axisBottom(xScale).tickArguments([d3.utcYear.every(1), d3.timeFormat("%Y")]))
+    xAxis.call(d3.axisBottom(xScale).tickArguments([d3.timeYear.every(1), d3.timeFormat("%Y")]))
         .attr("transform", `translate(0, ${height - margins.bottom})`)
 
     if (mapColumnSwitch.value == "pos_tests") {
@@ -526,7 +526,7 @@ function drawLargeAggregation() {
         var percentageGroup = graphSVG.append("g")
 
           const line = d3.line()
-            .x((_, i) => xScale(d3.utcDay.offset(start_date, (7 * i))))
+            .x((_, i) => xScale(d3.timeDay.offset(start_date, (7 * i))))
             .y((d) => yScale2(d))
 
         percentageGroup.append("path")

@@ -31,7 +31,7 @@ function mobileClinicClick(object) {
     mobileClinicInfoPanel.setAttribute("active", "")
     
     mapSecondarySidebarOrgName.innerHTML = object.org_name
-    mapSecondarySidebarEventDate.value = typeof(object.event_date) == "object" ? d3.utcFormat("%a, %b %d, %Y")(object.event_date.toDate()) : object.event_date
+    mapSecondarySidebarEventDate.value = typeof(object.event_date) == "object" ? d3.timeFormat("%a, %b %d, %Y")(object.event_date.toDate()) : object.event_date
     mapSecondarySidebarEventAddress.value = object.site_address
     mapSecondarySidebarEventType.value = object.type
     mapSecondarySidebarEventPatients.value = object.num_epic_patients

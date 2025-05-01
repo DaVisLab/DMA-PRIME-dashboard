@@ -37,7 +37,7 @@ function drawCharts() {
             .nice()
             .range([height-margins.bottom, margins.top])
 
-        xScale = d3.scaleUtc()
+        xScale = d3.scaleTime()
             .domain([metadata['min_date'], metadata['max_date']])
             .nice()
             .range([margins.left, width - margins.right])
@@ -75,8 +75,8 @@ function drawCharts() {
             .attr("fill", "var(--sl-color-neutral-1000)")
         
         var extraTicks = data.map(d => d.date)
-        extraTicks = extraTicks.filter(d => dayjs.utc(d).isAfter(d3.utcMonth.offset(xScale.domain()[1], -1)))
-        xAxis.call(d3.axisBottom(xScale).tickArguments([d3.utcMonth.every(1), d3.timeFormat("%b %Y")]))
+        extraTicks = extraTicks.filter(d => dayjs(d).isAfter(d3.timeMonth.offset(xScale.domain()[1], -1)))
+        xAxis.call(d3.axisBottom(xScale).tickArguments([d3.timeMonth.every(1), d3.timeFormat("%b %Y")]))
             .attr("transform", `translate(0, ${height - margins.bottom})`)
 
         var lastPointLabel = svg.append("g")
