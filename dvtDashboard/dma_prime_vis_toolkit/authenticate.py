@@ -1,7 +1,7 @@
 import functools
 
 from flask import (
-    Blueprint, abort, flash, redirect, render_template, request, session, url_for, current_app, jsonify
+    Blueprint, abort, flash, redirect, render_template, request, session, url_for, current_app
 )
 
 from flask_login import LoginManager, login_user, logout_user, login_url, current_user
@@ -54,22 +54,27 @@ def login():
         curr_user = User.query.filter((User.email == email_username) | (User.username == email_username)).first()
 
         if curr_user is None:
+            current_app.logger.info(f'Login attempt with user {email_username}')
             flash("Incorrect username or email")
 
         if curr_user is not None:
             if Bcrypt().check_password_hash(curr_user.password, password):
                 flash("Logged in successfully. Welcome {}".format(curr_user.username))
                 login_user(curr_user)
+                current_app.logger.info(f'Successful login of user {email_username}')
                 next = request.args.get('next')
                 return redirect(next or url_for('index'))
             else:
+                current_app.logger.info(f'Unsuccessful login attempt of user {email_username}')
                 flash("Incorrect password")
     
     return render_template('login.html')
 
 @bp.route("/logout", methods=["GET"])
 def logout():
+    email = current_user.email
     logout_user()
+    current_app.logger.info(f'Logout of user {email}')
     return redirect("/auth/login")
 
 

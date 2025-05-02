@@ -1,21 +1,18 @@
 # This is where the main flask code should lie
-from flask import Flask, render_template
-from flask_login import login_required
-from werkzeug.middleware.proxy_fix import ProxyFix
-import logging
-
 import os
 import datetime
 import pandas as pd
-import json
 
+from flask import Flask, render_template
+from flask_login import login_required
 from flask_bcrypt import Bcrypt
+
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .utility import * 
 from .authenticate import login_manager, admin_required #login_required,
 from .database import User
 
-logging.basicConfig(filename=main_dir+'/logs.log',level=logging.DEBUG)
 def create_app(development=False, dataDir=None):
     if dataDir is None:
         exit("No data directory")
@@ -32,6 +29,7 @@ def create_app(development=False, dataDir=None):
         # SQLALCHEMY_DATABASE_URI = '***REMOVED***'
     )
     app.config.from_envvar('DMAPRIME_CONFIG')
+    
     app.wsgi_app = ProxyFix( # allows a reverse proxy
         app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
     )
@@ -230,7 +228,7 @@ def create_app(development=False, dataDir=None):
         }
         
         metadata = dict(decrypt(f"{app.config['DATADIR']}/processed/waste_water/metadata.json"))
-        
+
         panels = [
             {
                 'name': 'main',
