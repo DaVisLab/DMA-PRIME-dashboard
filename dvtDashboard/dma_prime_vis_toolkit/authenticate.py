@@ -72,9 +72,10 @@ def login():
 
 @bp.route("/logout", methods=["GET"])
 def logout():
-    email = current_user.email
+    # if isinstance(current_user, User):
+    #     email = current_user.email
+    #     current_app.logger.info(f'Logout of user {email}')
     logout_user()
-    current_app.logger.info(f'Logout of user {email}')
     return redirect("/auth/login")
 
 

@@ -337,7 +337,7 @@ function getData(feature, timeFrame="weekly") {
         "other": [],
         "population": feature.properties.population,
         "start_date": dayjs().toDate(),
-        "end_date": dayjs.toDate(),
+        "end_date": dayjs().toDate(),
     }
     if (diseases.length > 0) {
         // one/many diseases

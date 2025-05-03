@@ -198,8 +198,7 @@ def create_app(development=False, dataDir=None):
     @app.route('/other-infectious-diseases')
     @login_required
     def other_infectious_diseases():
-        
-        diseases = list(decrypt(f"{app.config['DATADIR']}/processed/opioid_hcv_hiv/metadata.json"))
+        diseases = list(decrypt(f"{app.config['DATADIR']}/processed/other_infectious_diseases/metadata.json"))
 
         panels = [
             {
