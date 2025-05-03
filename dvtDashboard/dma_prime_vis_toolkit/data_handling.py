@@ -6,12 +6,7 @@ from flask import (
 
 bp = Blueprint('data', __name__, url_prefix='/data')
 
-import flask_login
 from flask_login import login_required
-
-@bp.before_request
-def log_request():
-    current_app.logger.info(f'{flask_login.current_user.email} accessed {request.url}')
 
 @bp.route('/map/<type>', methods=['GET'])
 @login_required

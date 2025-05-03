@@ -135,17 +135,32 @@
   </div>
 
   <script>
-    let timer;
-    function resetTimer() {
-      clearTimeout(timer);
-      timer = setTimeout(() => {
+    let sessionTimer;
+    let activityTimer;
+
+    function setupTimers() {
+      resetSessionTimer()
+      resetActivityTimer()
+    }
+
+    function resetSessionTimer() {
+      fetch('auth/refresh')
+      clearTimeout(sessionTimer);
+      sessionTimer = setTimeout(() => {
+        resetSessionTimer()
+      }, (15 * 60 - 1) * 1000 + 1);  // 14 minutes, 59 seconds
+    }
+
+    function resetActivityTimer() {
+      clearTimeout(activityTimer);
+      activityTimer = setTimeout(() => {
         window.location.href = "auth/logout";
-      }, 15 * 60 * 1000 + 1);  // 15 minutes, 1 second
+      }, (15 * 60 - 2) * 1000 + 1);  // 14 minutes, 58 seconds
     }
   
-    window.onload = resetTimer;
-    document.onmousemove = resetTimer;
-    document.onkeypress = resetTimer;
+    window.onload = setupTimers;
+    document.onmousemove = resetActivityTimer;
+    document.onkeypress = resetActivityTimer;
   </script>
 </body>
 

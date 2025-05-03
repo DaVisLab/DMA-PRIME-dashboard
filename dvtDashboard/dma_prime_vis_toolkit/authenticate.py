@@ -44,6 +44,10 @@ def unauthorized():
 
     return redirect(redirect_url)
 
+@bp.route("/refresh", methods=["GET"])
+def refresh():
+    login_user(current_user)
+    return '', 204
 
 @bp.route("/login", methods=("GET", "POST"))
 def login():

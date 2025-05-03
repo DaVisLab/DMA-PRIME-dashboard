@@ -5,10 +5,13 @@ from io import StringIO
 import json
 
 from flask import current_app, Response
+from flask_login import current_user
 
 main_dir = "/".join(__file__.split("\\")[:-1])
 
 def decrypt(file_name):
+    current_app.logger.info(f'{current_user.email} accessed {file_name}')
+
     with open(f'{current_app.config['DATADIR']}/supplementary/encrypt_key.bin', 'rb') as f:
         key = f.read()
 
