@@ -12,8 +12,8 @@ var selectedItems = {
 }
 
 var choroplethColorMap = d3.scaleLinear()
-    .domain([0, 1])
-    .range(["white", "maroon"])
+    .domain([-100, -50, -10, 0, 10, 50, 100, 500])
+    .range(d3.reverse(d3.schemeRdYlGn[10]).slice(1))
     .unknown(unknownColor).nice()
 
 const map = new maplibregl.Map({
@@ -53,7 +53,6 @@ updateDiseaseCountDisplay()
 redraw(true)
 
 function redraw(first=false) {
-    createChoropleth(regionData)
     drawLegend()
     deckOverlay.setProps({
         layers: [
@@ -110,68 +109,81 @@ function redraw(first=false) {
 }
 
 function getColor(feature) {
-    var thisData = getData(feature, mapTimeSwitch.value)
-    var value = NaN
-    if (thisData.data.length > 0) {
-        value = thisData.data.at(-1)
+    var thisWeekDatum = getLatestDatum(feature, mapTimeSwitch.value).data
+    var lastWeekDatum = getLastWeekDatum(feature, mapTimeSwitch.value).data
+    var c = d3.rgb(unknownColor)
+    if (isNaN(thisWeekDatum) || lastWeekDatum) {
+        c = d3.rgb(choroplethColorMap((thisWeekDatum - lastWeekDatum) / Math.abs(lastWeekDatum) * 100))
+    } else if (thisWeekDatum == 0) {
+        c = d3.rgb("white")
+    } else {
+        c = d3.rgb("#ffddff")
     }
-
-    var c = d3.rgb(choroplethColorMap(value))
 
     return [c.r, c.g, c.b]
 }
 
-function createChoropleth(data) {
-    var arr = data.features.map((feature) => {
-        var thisData = getData(feature, mapTimeSwitch.value)
-
-        if (thisData.data.length > 0 && feature.properties.identifier != "state") {
-            return thisData.data.at(-1)
-        } else {
-            return 0
-        }
-    })
-
-    var minMaxVal = mapRateSwitch.value == "rate" ? 1000.0/stateFeature.properties.population : 1
-    arr.push(minMaxVal)
-    
-    choroplethColorMap = d3.scaleLinear()
-        .domain([0, d3.max(arr)])
-        .range(["white", "maroon"])
-        .unknown(unknownColor).nice()
-
-}
-
 function drawLegend() {
+    var colors = d3.reverse(d3.schemeRdYlGn[10]).slice(1)
+    var labels = [-100, -50, -10, 0, 10, 50, 100, 500]
+    var legendLength = 350
     choroplethLegendSVG.innerHTML = ""
     var legend = d3.select(choroplethLegendSVG)
         .attr("overflow", "visible")
 
     legend.attr("transform", `translate(40, 0)`)
-        .attr("width", 450)
+        .attr("width", legendLength)
         .attr("height", 50)
-    var legDefs = legend.append("defs")
-    var linearGradient = legDefs.append("linearGradient")
-        .attr("id", "linear-gradient")
-        .attr("x1", "0%")
-        .attr("y1", "0%")
-        .attr("x2", "100%")
-        .attr("y2", "0%")
-    linearGradient.append("stop")
-        .attr("offset", "0%")
-        .attr("stop-color", "white")
-    linearGradient.append("stop")
-        .attr("offset", "100%")
-        .attr("stop-color", "maroon")
 
-    legend.append("rect")
-        .style("fill", "url(#linear-gradient)")
-        .attr("width", 450)
+    legend.append("text")
+        .attr("x", legendLength/2)
+        .attr("y", -em/2)
+        .attr("text-anchor", "middle")
+        .style("font-size", 'var(--sl-font-size-x-small)')
+        .text(`Percent Change of ${d3.select(`sl-option[value=${mapColumnSwitch.value}]`).html()} from Last Period`)
+    
+    legend.append("g").selectAll("rect")
+        .data(colors)
+        .enter()
+        .append("rect")
+        .attr("x", (d, i) => legendLength * i / colors.length)
+        .attr("y", 0)
+        .attr("width", legendLength / colors.length)
         .attr("height", 15)
+        .attr("fill", d => d)
+    
+    legend.append("g").selectAll("text")
+        .data(labels)
+        .enter()
+        .append("text")
+        .attr("x", (d, i) => legendLength * (i + 1) / colors.length)
+        .attr("y", 15 + em*.75)
+        .attr("text-anchor", "middle")
+        .html(d => `${d}%`)
 
-    var xAxis = legend.append("g")
-        .attr("transform", "translate(0,15)")
-        .call(d3.axisBottom(d3.scaleLinear().domain(d3.extent(choroplethColorMap.domain())).range([0, 450])))
+    var otherColors = legend.append("g")
+    var others = [["white", `No ${d3.select(`sl-option[value=${mapColumnSwitch.value}]`).html()}`], 
+    ["#ffddff", `New ${d3.select(`sl-option[value=${mapColumnSwitch.value}]`).html()} from Last Period`],
+    [unknownColor, "Unknown"]]
+
+    others.forEach((d, i) => {
+        let group = otherColors.append("g")
+            .attr("transform", `translate(0, ${(i+1) * -20 - 2*em})`)
+        group.append("rect")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("height", 15)
+            .attr("width", 15)
+            .attr("fill", d[0])
+            .attr("stroke", "black")
+            .attr("stroke-width", 1)
+        group.append("text")
+            .attr("class", "legend-other-colors")
+            .attr("x", 20)
+            .attr("y", 7.5)
+            .attr("dominant-baseline", "middle")
+            .text(d[1])
+    })
 
 }
 
@@ -242,9 +254,9 @@ function drawTooltip(dataObject) {
     }
     encounterString += ": "
     if (mapRateSwitch.value == "rate") {
-        encounterString += `${Math.round(getData(dataObject, mapTimeSwitch.value).data.at(-1) * 1000) / 1000} (per 1000 people)`
+        encounterString += `${Math.round(thisData.data.at(-1) * 1000) / 1000} (per 1000 people)`
     } else {
-        encounterString += getData(dataObject, mapTimeSwitch.value).data.at(-1)
+        encounterString += thisData.data.at(-1)
     }
 
     ttpTitle.append("br")
@@ -297,7 +309,7 @@ function drawAggregation() {
             break;
     }
     encounterString += ": "
-    var val = getData(stateFeature, mapTimeSwitch.value).data.at(-1)
+    var val = thisData.data.at(-1)
     if (val) {
         if (mapRateSwitch.value == "rate") {
             val = Math.round(val * 1000) / 1000
@@ -330,6 +342,91 @@ function updateDiseaseCountDisplay() {
     d3.select("#map-all-count").html(`(${Math.round(allCount * 1000) / 1000})`)
 }
 
+function getLatestDatum(feature, timeFrame="weekly") {
+    var diseases = selectedItems.diseases
+    var thisData = {
+        "data": NaN,
+        "other": NaN,
+        "population": feature.properties.population,
+        "start_date": dayjs().toDate(),
+        "end_date": dayjs().toDate(),
+    }
+
+    if (diseases.length > 0) {
+        // one/many diseases
+        var dataDicts = Object.entries(feature.properties.data).filter(d => diseases.includes(d[0]) && d[1][timeFrame].length > 0)
+        dataDicts = dataDicts.map(d => d[1])
+        var otherDicts = Object.entries(feature.properties.other).filter(d => diseases.includes(d[0]) && d[1][timeFrame].length > 0)
+        otherDicts = otherDicts.map(d => d[1])
+
+        var earliestDate = parseDate(regionData.metadata.start_date)
+        var latestDate = parseDate(regionData.metadata.end_date)
+        thisData.start_date = earliestDate
+        thisData.end_date = latestDate
+        if (dataDicts.length > 0) {
+            thisData.data = 0
+            thisData.other = 0
+            for (var data of dataDicts) {
+                thisData.data += data[timeFrame].at(-1)
+            }
+            for (var other of otherDicts) {
+                thisData.other += other[timeFrame].at(-1)
+            }
+        }
+    }
+    
+    // rate applied at end
+    if (mapRateSwitch.value == "rate") {
+        thisData.data = (parseFloat(thisData.data) / (thisData.population / 1000.0)) || 0
+        thisData.other = (parseFloat(thisData.other) / (thisData.population / 1000.0)) || 0
+    }
+
+    return thisData
+
+}
+
+function getLastWeekDatum(feature, timeFrame="weekly") {
+    var diseases = selectedItems.diseases
+    var thisData = {
+        "data": NaN,
+        "other": NaN,
+        "population": feature.properties.population,
+        "start_date": dayjs().toDate(),
+        "end_date": dayjs().toDate(),
+    }
+
+    if (diseases.length > 0) {
+        // one/many diseases
+        var dataDicts = Object.entries(feature.properties.data).filter(d => diseases.includes(d[0]) && d[1][timeFrame].length > 0)
+        dataDicts = dataDicts.map(d => d[1])
+        var otherDicts = Object.entries(feature.properties.other).filter(d => diseases.includes(d[0]) && d[1][timeFrame].length > 0)
+        otherDicts = otherDicts.map(d => d[1])
+
+        var earliestDate = parseDate(regionData.metadata.start_date)
+        var latestDate = parseDate(regionData.metadata.end_date)
+        thisData.start_date = earliestDate
+        thisData.end_date = latestDate
+        if (dataDicts.length > 0) {
+            thisData.data = 0
+            thisData.other = 0
+            for (var data of dataDicts) {
+                thisData.data += data[timeFrame].at(-2)
+            }
+            for (var other of otherDicts) {
+                thisData.other += other[timeFrame].at(-2)
+            }
+        }
+    }
+    
+    // rate applied at end
+    if (mapRateSwitch.value == "rate") {
+        thisData.data = (parseFloat(thisData.data) / (thisData.population / 1000.0)) || 0
+        thisData.other = (parseFloat(thisData.other) / (thisData.population / 1000.0)) || 0
+    }
+
+    return thisData
+}
+
 function getData(feature, timeFrame="weekly") {
     var diseases = selectedItems.diseases
     var thisData = {
@@ -339,30 +436,38 @@ function getData(feature, timeFrame="weekly") {
         "start_date": dayjs().toDate(),
         "end_date": dayjs().toDate(),
     }
+
     if (diseases.length > 0) {
         // one/many diseases
         var dataDicts = Object.entries(feature.properties.data).filter(d => diseases.includes(d[0]) && d[1][timeFrame].length > 0)
         dataDicts = dataDicts.map(d => d[1])
         var otherDicts = Object.entries(feature.properties.other).filter(d => diseases.includes(d[0]) && d[1][timeFrame].length > 0)
         otherDicts = otherDicts.map(d => d[1])
-        var weeks
+
+        var earliestDate = parseDate(regionData.metadata.start_date)
+        var latestDate = parseDate(regionData.metadata.end_date)
+        thisData.start_date = earliestDate
+        thisData.end_date = latestDate
+        var periods
         if (dataDicts.length > 0) {
-            if (timeFrame === "weekly") {
-                var earliestDate = parseDate(regionData.metadata.start_date)
-                var latestDate = parseDate(regionData.metadata.end_date)
-                thisData.start_date = earliestDate
-                thisData.end_date = latestDate
-                weeks = (d3.timeDay.count(earliestDate, latestDate)/7) + 1
-            } else {
-                weeks = 1
+            switch (timeFrame) {
+                case "weekly":
+                    periods = (d3.timeDay.count(earliestDate, latestDate)/7) + 1
+                    break;
+                case "monthly":
+                    periods = Math.ceil(d3.timeDay.count(earliestDate, latestDate)/28)
+                    break;
+                case "yearly":
+                    periods = Math.ceil(d3.timeDay.count(earliestDate, latestDate)/(52*7))
+                    break;
             }
-            thisData.data = new Array(weeks).fill(0)
+            thisData.data = new Array(periods).fill(0)
             for (var data of dataDicts) {
                 for (var i=0; i < data[timeFrame].length; i++) {
                     thisData.data[i] += data[timeFrame][i]
                 }
             }
-            thisData.other = new Array(weeks).fill(0)
+            thisData.other = new Array(periods).fill(0)
             for (var other of otherDicts) {
                 for (var i=0; i < other[timeFrame].length; i++) {
                     thisData.other[i] += other[timeFrame][i]
@@ -374,6 +479,8 @@ function getData(feature, timeFrame="weekly") {
     // rate applied at end
     if (mapRateSwitch.value == "rate") {
         thisData.data = thisData.data.map((val) => 
+            (parseFloat(val) / (thisData.population / 1000.0)) || 0)
+        thisData.other = thisData.other.map((val) => 
             (parseFloat(val) / (thisData.population / 1000.0)) || 0)
     }
 
@@ -416,7 +523,7 @@ function drawLargeAggregation() {
             break;
     }
     encounterString += ": "
-    var val = getData(stateFeature, mapTimeSwitch.value).data.at(-1)
+    var val = thisData.data.at(-1)
     if (val) {
         if (mapRateSwitch.value == "rate") {
             val = Math.round(val * 1000) / 1000
