@@ -57,7 +57,7 @@
         font-family: var(--sl-font-sans); 
     }
 
-    #login-title {
+    #twofa-title {
       margin-bottom: var(--sl-spacing-2x-large)
     }
 
@@ -92,18 +92,12 @@
   </header>
 
   <div id="form-div">
-    <h1 id="login-title">Log In</h1>
-    <form method="post" id="login-form">
-      <sl-input type="text" label="Email/Username" id="email_username" name="email_username" required></sl-input>
-      <sl-input label="Password" type="password" name="password" id="password-input" password-toggle required></sl-input>
-      <sl-input label="2FA Code" type="text" name="2fa_code" id="2fa-input" required></sl-input>
-      <p id="login-error"> 
-        <!-- if there is an error passed through flask, display it -->
-        {% for message in get_flashed_messages() %}
-        <text>{{ message }}</text>
-        {% endfor %}
-      </p>
-      <sl-button type="submit" variant="primary">Submit</sl-button>
+    <h1 id="twofa-title">Two Factor Authentication</h1>
+    <form method="post" id="twofa-form">
+      <p>You are almost done! Please start Google Auth on your smartphone and scan the following QR Code with it:</p>
+    <p><img id="qrcode" src="static/two_factor_qr.png"></p>
+    <p>Done, go to <a href="{{ url_for('login') }}">Login</a> page!</p>
+
     </form>
   </div>
 

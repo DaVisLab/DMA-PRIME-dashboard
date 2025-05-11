@@ -1,4 +1,7 @@
 import functools
+import time
+import pyotp
+import qrcode
 
 from flask import (
     Blueprint, abort, flash, redirect, render_template, request, session, url_for, current_app, jsonify
@@ -44,18 +47,58 @@ def unauthorized():
 
     return redirect(redirect_url)
 
+@bp.route('/two_factor_setup')
+def two_factor_setup():
+    if 'username' not in session:
+        return redirect(url_for('/'))
+    user = User.query.filter_by(username=session['username']).first()
+    uri = pyotp.totp.TOTP(key_2fa_key = "DMA_2FA_KEY").provisioning_uri(name=user.username, issuer_name="DMA Prime")
+    qrcode.make(uri).save("static/two_factor_qr.png")
+    if user is None:
+        return redirect(url_for('/'))
+    return render_template('two_factor_setup.html'), 200, {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'}
+
+
+@bp.route("/two_factor_auth", methods=["GET", "POST"])
+def two_factor_auth():
+    if request.method == "POST":
+        otp_2fa = request.form["2fa_code"]
+        # curr_user = User.query.filter_by(username=session['username']).first()
+        key = "DMA_2FA_KEY"
+        totp = pyotp.TOTP(key)
+        authenticate_2fa = totp.verify(otp_2fa)
+        if authenticate_2fa:
+            flash("2FA Authentication Successful")
+            return redirect(url_for('index'))
+        else:
+            flash("Incorrect 2FA code")
+            return redirect(url_for('auth.two_factor_auth'))
+    return render_template('two_factor_auth.html')
 
 @bp.route("/login", methods=("GET", "POST"))
 def login():
     if request.method == "POST":
         email_username = request.form["email_username"]
         password = request.form["password"]
+        otp_2fa = request.form["2fa_code"]
 
         curr_user = User.query.filter((User.email == email_username) | (User.username == email_username)).first()
 
         if curr_user is None:
             flash("Incorrect username or email")
+        authenticate_2fa = False
+        key = "DMA_2FA_KEY"
 
+        totp = pyotp.TOTP(key)
+        authenticate_2fa = totp.verify(otp_2fa)
+        if authenticate_2fa:
+            flash("2FA Authentication Successful")
+        else:
+            return redirect(url_for("auth.login"))
+        
         if curr_user is not None:
             if Bcrypt().check_password_hash(curr_user.password, password):
                 flash("Logged in successfully. Welcome {}".format(curr_user.username))
@@ -110,7 +153,8 @@ def logout():
             
 #         # store the user id in a new session and return to the index
 #         session.clear()
-#         return redirect("/auth/login")
+        #   session['username'] = user.username
+        #   return redirect(url_for('two_factor_setup'))
 #     return render_template('sign_up.html')
 
 @bp.route("/verify_email/<token>", methods=["GET", "POST"])

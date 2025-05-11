@@ -28,6 +28,7 @@ def create_app(development=False, dataDir=None):
 
         PERMANENT_SESSION_LIFETIME=datetime.timedelta(minutes=15),
         SESSION_REFRESH_EACH_REQUEST=True, 
+        DMAPRIME_CONFIG = "secrets.cfg"
 
         # SQLALCHEMY_DATABASE_URI = '***REMOVED***'
     )
@@ -200,7 +201,7 @@ def create_app(development=False, dataDir=None):
     @app.route('/other-infectious-diseases')
     @login_required
     def other_infectious_diseases():
-        with open(f'{app.config['DATADIR']}/processed/other_infectious_diseases/metadata.json') as f:
+        with open(f"{app.config['DATADIR']}/processed/other_infectious_diseases/metadata.json") as f:
             diseases = list(json.load(f))
 
         panels = [
