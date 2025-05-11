@@ -25,7 +25,7 @@ function redraw(highlightIndex=-1) {
     layers: [
     new IconLayer({
       id: 'mobile-health-clinic',
-      data: d3.json('/data/mobile-health-clinic-events').then(data => {
+      data: d3.json(`/data/mobile-health-clinic-events?${parseInt(Math.random()*9999999999)}`).then(data => {
         data.forEach((datum, index) => {
           try {
             data[index].event_date = dayjs.tz(data[index].event_date) 

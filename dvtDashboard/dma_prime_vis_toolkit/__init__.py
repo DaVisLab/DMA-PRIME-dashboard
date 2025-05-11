@@ -1,21 +1,18 @@
 # This is where the main flask code should lie
-from flask import Flask, render_template
-from flask_login import login_required
-from werkzeug.middleware.proxy_fix import ProxyFix
-import logging
-
 import os
 import datetime
 import pandas as pd
-import json
 
+from flask import Flask, render_template
+from flask_login import login_required
 from flask_bcrypt import Bcrypt
+
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .utility import * 
 from .authenticate import login_manager, admin_required #login_required,
 from .database import User
 
-logging.basicConfig(filename=main_dir+'/logs.log',level=logging.DEBUG)
 def create_app(development=False, dataDir=None):
     if dataDir is None:
         exit("No data directory")
@@ -33,6 +30,7 @@ def create_app(development=False, dataDir=None):
         # SQLALCHEMY_DATABASE_URI = '***REMOVED***'
     )
     app.config.from_envvar('DMAPRIME_CONFIG')
+    
     app.wsgi_app = ProxyFix( # allows a reverse proxy
         app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
     )
@@ -101,9 +99,8 @@ def create_app(development=False, dataDir=None):
             'current_week': current_week.strftime('%Y-%m-%d'),
             'end_date': (current_week + pd.DateOffset(weeks=4)).strftime('%Y-%m-%d')
         }
-        # Change
-        with open(f"{app.config['DATADIR']}/processed/respiratory/metadata.json") as f:
-            metadata = dict(json.load(f))
+
+        metadata = dict(decrypt(f"{app.config['DATADIR']}/processed/respiratory/metadata.json"))
 
         panels = [
             {
@@ -182,8 +179,9 @@ def create_app(development=False, dataDir=None):
                 'median_income': 'Median Income',
             }
         }
-        with open(f"{app.config['DATADIR']}/processed/opioid_hcv_hiv/metadata.json") as f:
-            metadata = dict(json.load(f))
+        
+        metadata = dict(decrypt(f"{app.config['DATADIR']}/processed/opioid_hcv_hiv/metadata.json"))
+        
         panels = [
             {
                 'name': 'main',
@@ -201,8 +199,7 @@ def create_app(development=False, dataDir=None):
     @app.route('/other-infectious-diseases')
     @login_required
     def other_infectious_diseases():
-        with open(f"{app.config['DATADIR']}/processed/other_infectious_diseases/metadata.json") as f:
-            diseases = list(json.load(f))
+        diseases = list(decrypt(f"{app.config['DATADIR']}/processed/other_infectious_diseases/metadata.json"))
 
         panels = [
             {
@@ -229,8 +226,9 @@ def create_app(development=False, dataDir=None):
             'min_display_date': pd.to_datetime('today').strftime('%A, %B %d, %Y'),
             'max_display_date': pd.to_datetime('today').strftime('%A, %B %d, %Y'),
         }
-        with open(f"{app.config['DATADIR']}/processed/waste_water/metadata.json") as f:
-            metadata = dict(json.load(f))
+        
+        metadata = dict(decrypt(f"{app.config['DATADIR']}/processed/waste_water/metadata.json"))
+
         panels = [
             {
                 'name': 'main',

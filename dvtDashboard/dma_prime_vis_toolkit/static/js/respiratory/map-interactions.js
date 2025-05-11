@@ -158,7 +158,7 @@ mapDiseaseSelector.addEventListener("sl-change", (event) => {
 })
 
 mapRegionSelector.addEventListener("sl-change", (event) => {
-    d3.json(`/data/deckgl-respiratory/${mapRegionSelector.value}`).then((data) => {
+    d3.json(`/data/deckgl-respiratory/${mapRegionSelector.value}?${parseInt(Math.random()*9999999999)}`).then((data) => {
         regionData.features = data.features
     }).then(() => {
         dataVersion++

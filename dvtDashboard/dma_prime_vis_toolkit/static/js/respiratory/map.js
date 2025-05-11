@@ -47,7 +47,7 @@ function redraw(first=false) {
                 id: 'respiratory_choropleth',
                 depthTest: false,
                 pickable: true,
-                data: d3.json(`/data/deckgl-respiratory/${mapRegionSelector.value}`),
+                data: d3.json(`/data/deckgl-respiratory/${mapRegionSelector.value}?${parseInt(Math.random()*9999999999)}`),
                 stroked: false,
                 stroked: true,
                 filled: true,
@@ -228,7 +228,7 @@ function drawStateHospitalizations() {
     }
 
     function xAxisDisplayFunc(svg, stateXScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames) {
-        svg.select(".x-axis").call(d3.axisBottom(stateXScale).tickArguments([d3.utcMonth.every(1), d3.timeFormat("%b %Y")]))
+        svg.select(".x-axis").call(d3.axisBottom(stateXScale).tickArguments([d3.timeMonth.every(1), d3.timeFormat("%b %Y")]))
             .attr("transform", `translate(0, ${stateHeight - stateMargins.bottom})`)  
             .selectAll("text")
             .style("text-anchor", "end")
@@ -271,7 +271,7 @@ function drawLargeStateHospitalizations() {
     }
 
     function xAxisDisplayFunc(svg, stateXScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames) {
-        var allWeeks = d3.utcDay.range(startDate, d3.utcDay.offset(endDate, 7), 7)
+        var allWeeks = d3.timeDay.range(startDate, d3.timeDay.offset(endDate, 7), 7)
         var xAxis = svg.select(".x-axis")
         var svgMajorXAxis = xAxis.append("g")
             .attr("id", "map-state-hospitalizations-large-major-xaxis")
@@ -301,7 +301,7 @@ function drawLargeStateHospitalizations() {
 
         xAxis.append("g")
             .attr("id", "map-state-hospitalizations-large-minor-xaxis")
-            .call(d3.axisBottom(stateXScale).tickArguments([d3.utcDay.every(7), d3.timeFormat("")]))
+            .call(d3.axisBottom(stateXScale).tickArguments([d3.timeDay.every(7), d3.timeFormat("")]))
             .attr("transform", `translate(0, ${stateHeight - stateMargins.bottom})`)
 
     }
@@ -329,7 +329,7 @@ async function drawStateBarChart(svgDOM, subtitleDOM, stateMargins, yAxisDisplay
 
     var stateData
     try {
-        stateData = await d3.json(`/data/deckgl-respiratory/state-cdc`) 
+        stateData = await d3.json(`/data/deckgl-respiratory/state-cdc?${parseInt(Math.random()*9999999999)}`) 
         stateData = Object.entries(stateData[mapDiseaseSelector.value]).map(d => {
             temp = {"Date": d[0], "count": d[1]}
             if (mapRateSwitch.value == "rate") {
@@ -337,7 +337,7 @@ async function drawStateBarChart(svgDOM, subtitleDOM, stateMargins, yAxisDisplay
             }
             return temp
         })
-        subtitleDOM.innerHTML = `Data from ${d3.utcFormat("%b %d, %Y")(parseDate(d3.min(stateData, d => d.Date)))} to ${d3.utcFormat("%b %d, %Y")(parseDate(d3.max(stateData, d => d.Date)))}`
+        subtitleDOM.innerHTML = `Data from ${d3.timeFormat("%b %d, %Y")(parseDate(d3.min(stateData, d => d.Date)))} to ${d3.timeFormat("%b %d, %Y")(parseDate(d3.max(stateData, d => d.Date)))}`
     } catch (error) {
         stateData = [{"Date": "2020-01-01", "count": 1}]
         subtitleDOM.innerHTML = "N/A"
@@ -348,8 +348,8 @@ async function drawStateBarChart(svgDOM, subtitleDOM, stateMargins, yAxisDisplay
     var temp = svg.append("text").text(d3.format(".2r")(maxVal)).attr("x", 0).attr("y", 0)
     stateMargins.left += Math.max(20, temp.node().getBBox().width)
 
-    var stateXScale = d3.scaleUtc()
-                .domain([startDate, d3.utcDay.offset(endDate, 7)]).range([stateMargins.left, stateWidth - stateMargins.right])    
+    var stateXScale = d3.scaleTime()
+                .domain([startDate, d3.timeDay.offset(endDate, 7)]).range([stateMargins.left, stateWidth - stateMargins.right])    
 
     var stateYScale = d3.scaleLinear()
         .domain([0, maxVal])
@@ -367,7 +367,7 @@ async function drawStateBarChart(svgDOM, subtitleDOM, stateMargins, yAxisDisplay
         .attr("width", (stateWidth - (stateMargins.left + stateMargins.right)) / stateData.length)
         .attr("stroke", "var(--sl-color-neutral-1000)")
         .attr("stroke-width", 1)
-        .attr("fill", d => dayjs.utc(parseDate(d["Date"])).isAfter(currentWeek) ? "var(--sl-color-neutral-600)" : "var(--sl-color-neutral-100)")
+        .attr("fill", d => dayjs(parseDate(d["Date"])).isAfter(currentWeek) ? "var(--sl-color-neutral-600)" : "var(--sl-color-neutral-100)")
 
     yAxisDisplayFunc(svg, stateYScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames)
     xAxisDisplayFunc(svg, stateXScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames)

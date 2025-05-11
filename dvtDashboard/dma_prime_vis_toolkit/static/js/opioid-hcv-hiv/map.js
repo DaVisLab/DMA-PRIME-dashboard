@@ -14,7 +14,7 @@ await Promise.allSettled([ // wait for following to be defined/load in
     customElements.whenDefined('sl-button'),
 ])
 
-var zctaData = await d3.json(`/data/opioid-hcv-hiv/${mapDiseaseSelector.value}`)
+var zctaData = await d3.json(`/data/opioid-hcv-hiv/${mapDiseaseSelector.value}?${parseInt(Math.random()*9999999999)}`)
 var zctaFeatures = zctaData.features
 var countyData = await d3.json(`/data/map/county`)
 
@@ -460,7 +460,7 @@ function clearBrushes() {
 
 async function changeDisease() {
     dataVersion++
-    zctaData = await d3.json(`/data/opioid-hcv-hiv/${mapDiseaseSelector.value}`)
+    zctaData = await d3.json(`/data/opioid-hcv-hiv/${mapDiseaseSelector.value}?${parseInt(Math.random()*9999999999)}`)
     zctaFeatures = zctaData.features
     await Promise.allSettled([updateHistogram("hospitalizations"), updateHistogram("deaths") ])
     clearBrushes()

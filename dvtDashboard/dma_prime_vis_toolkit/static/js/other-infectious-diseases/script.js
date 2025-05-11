@@ -2,7 +2,7 @@
 var unknownColor = d3.hsl("#CCCCCC")
 
 function parseDate(datestring) {
-    return dayjs.utc(datestring, "YYYY-MM-DD").toDate()
+    return dayjs(datestring, "YYYY-MM-DD").toDate()
 }
 
 function createBarGraph(svg, data, metadata, height, width, altMargins) {
@@ -47,7 +47,7 @@ function createBarGraph(svg, data, metadata, height, width, altMargins) {
         .range([height-margins.bottom, margins.top])
 
     var start_date = parseDate(metadata.start_date)
-    var xScale = d3.scaleUtc()
+    var xScale = d3.scaleTime()
         .domain([start_date, parseDate(metadata.end_date)])
         .nice()
         .range([margins.left, width - margins.right])
@@ -56,7 +56,7 @@ function createBarGraph(svg, data, metadata, height, width, altMargins) {
         .data(data.other)
         .enter()
         .append("rect")
-        .attr("x", (d, i) => xScale(d3.utcDay.offset(start_date, (7 * i))))
+        .attr("x", (d, i) => xScale(d3.timeDay.offset(start_date, (7 * i))))
         .attr("y", d => yScale(d))
         .attr("height", d => yScale(0) - yScale(d))
         .attr("width", (width - (margins.left + margins.right)) / data.data.length)
@@ -66,7 +66,7 @@ function createBarGraph(svg, data, metadata, height, width, altMargins) {
         .data(data.data)
         .enter()
         .append("rect")
-        .attr("x", (d, i) => xScale(d3.utcDay.offset(start_date, (7 * i))))
+        .attr("x", (d, i) => xScale(d3.timeDay.offset(start_date, (7 * i))))
         .attr("y", d => yScale(d))
         .attr("height", d => yScale(0) - yScale(d))
         .attr("width", (width - (margins.left + margins.right)) / data.data.length)
@@ -86,7 +86,7 @@ function createBarGraph(svg, data, metadata, height, width, altMargins) {
         .attr("class", "tooltip-label")
         .attr("fill", "var(--sl-color-neutral-1000)")
 
-    xAxis.call(d3.axisBottom(xScale).tickArguments([d3.utcYear.every(1), d3.timeFormat("%Y")]))
+    xAxis.call(d3.axisBottom(xScale).tickArguments([d3.timeYear.every(1), d3.timeFormat("%Y")]))
         .attr("transform", `translate(0, ${height - margins.bottom})`)
 
     if (mapColumnSwitch.value == "pos_tests") {
@@ -101,7 +101,7 @@ function createBarGraph(svg, data, metadata, height, width, altMargins) {
         var percentageGroup = graphSVG.append("g")
 
           const line = d3.line()
-            .x((_, i) => xScale(d3.utcDay.offset(start_date, (7 * i))))
+            .x((_, i) => xScale(d3.timeDay.offset(start_date, (7 * i))))
             .y((d) => yScale2(d))
 
         percentageGroup.append("path")

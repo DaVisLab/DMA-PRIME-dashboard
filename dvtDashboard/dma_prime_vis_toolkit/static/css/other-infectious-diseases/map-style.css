@@ -39,7 +39,12 @@
 }
 
 #choropleth-legend-svg text {
-    fill: black
+    fill: black;
+    font-size: var(--sl-font-size-2x-small)
+}
+
+.legend-other-colors {
+    font-size: var(--sl-font-size-x-small)
 }
 
 #choropleth-legend-svg line,path {

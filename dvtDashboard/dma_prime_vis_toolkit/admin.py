@@ -4,7 +4,7 @@ from flask import (
 )
 from flask_bcrypt import Bcrypt
 
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 from .database import db, User
 from .authenticate import admin_required #login_required, 
@@ -25,6 +25,7 @@ def add_user():
             # Check if the user already exists
             existing_user = User.query.filter_by(email=email).first()
             if existing_user:
+                current_app.logger.info(f'{current_user.email} failed to create user {email} (user already exists)')
                 flash("User already exists")
                 return redirect("/admin")
 
@@ -32,12 +33,15 @@ def add_user():
             db.session.add(temp_user)
             db.session.commit()
 
+            current_app.logger.info(f'{current_user.email} created user {email} with access level {access_level}')
+
             token = jwt.encode({"email": email}, current_app.config["SECRET_KEY"], algorithm='HS256')
 
             reset_password_url = url_for("auth.reset_password", token=token, _external=True)
             # flash(f"User added successfully. Verification link: {reset_password_url}")
             flash(f"User added successfully. Verification link: {'https://dmaprime.clemson.edu/auth' + reset_password_url.split("/auth")[-1]}")
         except Exception as e:
+            current_app.logger.info(f'{current_user.email} failed to create user {email} (error)')
             flash(e)
             return redirect("/admin")
             
@@ -58,12 +62,15 @@ def delete_user():
             existing_user = User.query.filter_by(email=email).first()
             if not existing_user:
                 flash("User does not exist")
+                current_app.logger.info(f'{current_user.email} failed to delete user {email} (user does not exist)')
                 return redirect("/admin")
 
             User.query.filter_by(email=email).delete()
             db.session.commit()
 
+            current_app.logger.info(f'{current_user.email} deleted user {email}')
         except Exception as e:
+            current_app.logger.info(f'{current_user.email} failed to delete user {email} (error)')
             flash(e)
             return redirect("/admin")
             
@@ -86,14 +93,18 @@ def change_user():
             if field == "username":
                 the_user.username = new_value
                 db.session.commit()
+                current_app.logger.info(f'{current_user.email} changed username of {email}')
             elif field == "password":
                 the_user.password = Bcrypt().generate_password_hash(new_value)
                 db.session.commit()
+                current_app.logger.info(f'{current_user.email} changed password of {email}')
             elif field == "access_level":
                 the_user.access_level = int(new_value)
                 db.session.commit()
+                current_app.logger.info(f'{current_user.email} changed access_level of {email}')
 
         except Exception as e:
+            current_app.logger.info(f'{current_user.email} attempted to change {field} of {email}')
             flash(e)
             return redirect("/admin")
   

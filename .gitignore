@@ -8,4 +8,8 @@ resources/GeoJSON/tl_2024_us_zcta520.zip
 dvtDashboard/dist*
 dvtDashboard/instance
 
+testing/logs/*
+testing/processed/*
+testing/supplementary/*
+
 .npmrc

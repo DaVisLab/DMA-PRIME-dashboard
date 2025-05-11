@@ -86,7 +86,7 @@
     ])
 
     var arr = Object.keys(metadata['site_info']).map(site =>
-        d3.json(`/data/waste-water/${site}`).then(d => {
+        d3.json(`/data/waste-water/${site}?${parseInt(Math.random()*9999999999)}`).then(d => {
             d3.select(`#${site}-div`).datum(d)
         }))
 
