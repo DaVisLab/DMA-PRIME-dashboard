@@ -52,32 +52,38 @@ def refresh():
     login_user(current_user)
     return '', 204
 
-@bp.route('/two_factor_setup')
+@bp.route('/two_factor_setup', methods=["GET"])
 def two_factor_setup():
-    if 'username' not in session:
-        return redirect(url_for('/'))
     user = User.query.filter_by(username=session['username']).first()
-    uri = pyotp.totp.TOTP(key_2fa_key = "DMA_2FA_KEY").provisioning_uri(name=user.username, issuer_name="DMA Prime")
-    qrcode.make(uri).save("static/two_factor_qr.png")
-    if user is None:
-        return redirect(url_for('/'))
-    return render_template('two_factor_setup.html'), 200, {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'}
+    unique_key = pyotp.random_base32()
+    user.two_factor_auth = unique_key
+    db.session.commit()
+    uri = pyotp.totp.TOTP(unique_key).provisioning_uri(name=user.username, issuer_name="DMA_Prime")
+    print(uri) #"DMA2FAKEY"
+    qrcode.make(uri).save("dma_prime_vis_toolkit/static/two_factor_qr.png")
+    return render_template("two_factor_setup.html")
+    # return render_template('two_factor_setup.html'), 200, {
+    #     'Cache-Control': 'no-cache, no-store, must-revalidate',
+    #     'Pragma': 'no-cache',
+    #     'Expires': '0'}
 
 
 @bp.route("/two_factor_auth", methods=["GET", "POST"])
 def two_factor_auth():
     if request.method == "POST":
         otp_2fa = request.form["2fa_code"]
+        # username = request.get["username"]
         # curr_user = User.query.filter_by(username=session['username']).first()
-        key = "DMA_2FA_KEY"
+        curr_user = User.query.filter(User.username == session['username']).first()
+        key = curr_user.two_factor_auth #"DMA_2FA_KEY"
         totp = pyotp.TOTP(key)
         authenticate_2fa = totp.verify(otp_2fa)
         if authenticate_2fa:
             flash("2FA Authentication Successful")
-            return redirect(url_for('index'))
+            login_user(curr_user)
+            current_app.logger.info(f'Successful login of user {curr_user.username}')
+            next = request.args.get('next')
+            return redirect(next or url_for('index'))
         else:
             flash("Incorrect 2FA code")
             return redirect(url_for('auth.two_factor_auth'))
@@ -88,30 +94,22 @@ def login():
     if request.method == "POST":
         email_username = request.form["email_username"]
         password = request.form["password"]
-        otp_2fa = request.form["2fa_code"]
+        # otp_2fa = request.form["2fa_code"]
 
         curr_user = User.query.filter((User.email == email_username) | (User.username == email_username)).first()
 
         if curr_user is None:
             current_app.logger.info(f'Login attempt with user {email_username}')
             flash("Incorrect username or email")
-        authenticate_2fa = False
-        key = "DMA_2FA_KEY"
-
-        totp = pyotp.TOTP(key)
-        authenticate_2fa = totp.verify(otp_2fa)
-        if authenticate_2fa:
-            flash("2FA Authentication Successful")
-        else:
-            return redirect(url_for("auth.login"))
         
         if curr_user is not None:
             if Bcrypt().check_password_hash(curr_user.password, password):
                 flash("Logged in successfully. Welcome {}".format(curr_user.username))
-                login_user(curr_user)
-                current_app.logger.info(f'Successful login of user {email_username}')
-                next = request.args.get('next')
-                return redirect(next or url_for('index'))
+                # login_user(curr_user)
+                # current_app.logger.info(f'Successful login of user {email_username}')
+                # next = request.args.get('next')
+                # return redirect(next or url_for('index'))
+                return redirect(url_for('auth.two_factor_auth'))
             else:
                 current_app.logger.info(f'Unsuccessful login attempt of user {email_username}')
                 flash("Incorrect password")
@@ -127,46 +125,46 @@ def logout():
     return redirect("/auth/login")
 
 
-# @bp.route("/signup", methods=["GET", "POST"])
-# def signup():
-#     """Signup user by adding the user to the database."""
-#     if request.method == "POST":
-#         username = request.form["username"]
-#         password = request.form["password"]
-#         email = request.form["email"]
+@bp.route("/signup", methods=["GET", "POST"])
+def signup():
+    """Signup user by adding the user to the database."""
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+        email = request.form["email"]
         
-#         try:
-#             old_user = User.query.filter_by(email=email).first()
-#             if old_user:
-#                 abort(403)
+        try:
+            old_user = User.query.filter_by(email=email).first()
+            if old_user:
+                abort(403)
 
-#             # user_data_dict = {"email":email, "username":username, "password":Bcrypt().generate_password_hash(password), "access_level":0, "verified":False}
-#             temp_user = User(email, username, Bcrypt().generate_password_hash(password), access_level=0, verified_user=False)
+            # user_data_dict = {"email":email, "username":username, "password":Bcrypt().generate_password_hash(password), "access_level":0, "verified":False}
+            temp_user = User(email, username, Bcrypt().generate_password_hash(password), access_level=0, verified_user=False)
 
-#             db.session.add(temp_user)
-#             db.session.commit()
+            db.session.add(temp_user)
+            db.session.commit()
 
-#             # Create a secure token (string) that identifies the user
-#             token = jwt.encode({"email": email}, current_app.config["SECRET_KEY"], algorithm='HS256')
+            # Create a secure token (string) that identifies the user
+            # token = jwt.encode({"email": email}, current_app.config["SECRET_KEY"], algorithm='HS256')
 
-#             # Send verification email
-#             subject, from_email, to = 'Confirm Email', 'nickjohnson1207@gmail.com', email
-#             html_content = render_template('email/verify.html', token=token)
+            # Send verification email
+            # subject, from_email, to = 'Confirm Email', 'nickjohnson1207@gmail.com', email
+            # html_content = render_template('email/verify.html', token=token)
 
 
-#             msg = EmailMessage(subject, str(html_content), from_email, [to])
-#             msg.content_subtype = "html"  # Main content is now text/html
-#             msg.send()
+            # msg = EmailMessage(subject, str(html_content), from_email, [to])
+            # msg.content_subtype = "html"  # Main content is now text/html
+            # msg.send()
 
-#         except Exception as e:
-#             flash(e)
-#             return redirect("/auth/signup")
+        except Exception as e:
+            flash(e)
+            return redirect("/auth/signup")
             
-#         # store the user id in a new session and return to the index
-#         session.clear()
-        #   session['username'] = user.username
-        #   return redirect(url_for('two_factor_setup'))
-#     return render_template('sign_up.html')
+        # store the user id in a new session and return to the index
+        session.clear()
+        session['username'] = username
+        return redirect(url_for('auth.two_factor_setup'))
+    return render_template('sign_up.html')
 
 @bp.route("/verify_email/<token>", methods=["GET", "POST"])
 def verify_email(token):

@@ -17,6 +17,7 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(200), nullable=False)
     access_level = db.Column(db.Integer, default=0)
     verified_user = db.Column(db.Boolean, default=False)
+    two_factor_auth = db.Column(db.String(200), nullable=True)
 
     def __init__(self, email, username, password, access_level, verified_user):
         self.email = email
