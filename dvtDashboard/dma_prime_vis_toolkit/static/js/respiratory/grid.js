@@ -38,7 +38,7 @@ function gridInitialVisualization() {
 
     var diseaseData = zctaData.features
     var gridColor = d3.scaleQuantile()
-        .domain(getDataAsArray(gridDiseaseSelector.value, gridDataSourceSortSelector.value, gridRateSwitch.value =="rate", gridIncludeImputations.checked)
+        .domain(getDataAsArray(zctaData, gridDiseaseSelector.value, gridDataSourceSortSelector.value, gridRateSwitch.value =="rate", gridIncludeImputations.checked)
             .filter(function(d) {return d != 0})) // TODO : if we decide to leave na values as na, this filter may need to be omited
         .range(gridBackgroundColors)
         .unknown("var(--sl-color-gray-600)")
@@ -162,7 +162,7 @@ function updateGridData() {
 
     // create scales
     var gridColor = d3.scaleQuantile()
-        .domain(getDataAsArray(gridDiseaseSelector.value, gridDataSourceSortSelector.value, gridRateSwitch.value == "rate", gridIncludeImputations.checked)
+        .domain(getDataAsArray(zctaData, gridDiseaseSelector.value, gridDataSourceSortSelector.value, gridRateSwitch.value == "rate", gridIncludeImputations.checked)
             .filter(function(d) {return d != 0}))
         .range(gridBackgroundColors)
         .unknown("var(--sl-color-gray-600)")

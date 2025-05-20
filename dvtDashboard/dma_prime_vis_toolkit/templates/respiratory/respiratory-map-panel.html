@@ -50,9 +50,10 @@
 
   <!-- map icon inclusion checkboxes (hospital, mobile health clinic, community partners) -->
   <sl-divider class="options-divider"></sl-divider>
-  <sl-checkbox id="map-options-hospital-icons-toggle" class="map-icons-toggle" style="display: initial;">Hospitals</sl-checkbox>
-  <sl-checkbox id="map-options-mobile-clinic-icons-toggle" class="map-icons-toggle" style="display: initial;">Mobile Health Clinics</sl-checkbox>
-  <sl-checkbox id="map-options-community-partner-icons-toggle" class="map-icons-toggle" style="display: initial;">Community Partners</sl-checkbox>
+  <sl-checkbox id="map-options-geographic-labels-toggle" class="map-toggle" style="display: initial;">Geography Labels</sl-checkbox>
+  <sl-checkbox id="map-options-hospital-icons-toggle" class="map-toggle" style="display: initial;">Hospitals</sl-checkbox>
+  <sl-checkbox id="map-options-mobile-clinic-icons-toggle" class="map-toggle" style="display: initial;">Mobile Health Clinics</sl-checkbox>
+  <sl-checkbox id="map-options-community-partner-icons-toggle" class="map-toggle" style="display: initial;">Community Partners</sl-checkbox>
   
   <!-- TODO Fix the below -->
   <!-- <p id="map-summary" class="panel-summary center-self">
@@ -101,6 +102,7 @@
   mapDiseaseSelector = document.getElementById("map-disease-selector")
   mapRegionSelector = document.getElementById("map-region-selector")
   mapDataSourceSelector = document.getElementById("map-data-source-selector")
+  mapOptionsGeographicLabelsToggle = document.getElementById("map-options-geographic-labels-toggle")
   hospitalIconsToggle = document.getElementById("map-options-hospital-icons-toggle")
   mobileClinicIconsToggle = document.getElementById("map-options-mobile-clinic-icons-toggle")
   communityPartnerIconsToggle = document.getElementById("map-options-community-partner-icons-toggle")

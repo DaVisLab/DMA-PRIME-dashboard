@@ -44,7 +44,7 @@
 }
 
 /* map items */
-.map-icons-toggle::part(control--checked) {
+.map-toggle::part(control--checked) {
     /* Hospital icons toggle color is grey */
     border-color: var(--sl-color-neutral-400);
     background-color: var(--sl-color-neutral-400);

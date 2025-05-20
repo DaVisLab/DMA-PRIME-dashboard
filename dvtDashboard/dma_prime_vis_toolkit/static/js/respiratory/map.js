@@ -1,6 +1,17 @@
-const { GeoJsonLayer, IconLayer, MapboxOverlay, Widget } = deck;
-import { startDate, currentWeek, endDate, regionData,  dataSourceColorMap, parseDate } from "/static/js/respiratory/script.js";
+const { GeoJsonLayer, IconLayer, TextLayer, MapboxOverlay } = deck;
+const { load, ImageLoader } = loaders
+import { startDate, currentWeek, endDate, dataSourceColorMap, parseDate, getCenter } from "/static/js/respiratory/script.js";
 export { map, popup, selectedItems, deckOverlay, redraw, drawStateHospitalizations, drawLargeStateHospitalizations }
+
+loaders.registerLoaders(loaders.ImageLoader);
+
+var regionData
+
+var icons = {
+    "data": await d3.csv('/data/health-care-facility') ,
+    "iconAtlas": await load('/data/icon-pack/png', ImageLoader),
+    "iconMapping": await d3.json('/data/icon-pack/json'),
+}
 
 var selectedItems = {
     "feature": undefined,
@@ -21,6 +32,8 @@ const map = new maplibregl.Map({
 
 await map.once('load')
 
+map.on('zoom', _ => {if (mapRegionSelector.value == "zcta") { redraw() }})
+
 var popup = new maplibregl.Popup({focusAfterOpen: false, closeOnClick: false})
 
 const deckOverlay = new MapboxOverlay({
@@ -38,35 +51,40 @@ await Promise.allSettled([ // wait for following to be defined/load in
 redraw(true)
 drawStateHospitalizations()
 
-function redraw(first=false) {
-    createChoropleth(regionData, mapDiseaseSelector.value, mapDataSourceSelector.value, mapRateSwitch.value == "rate", mapIncludeImputations.checked)
+async function redraw(fetchData=false) {
     drawLegend()
-    deckOverlay.setProps({
-        layers: [
-            new GeoJsonLayer({
-                id: 'respiratory_choropleth',
-                depthTest: false,
-                pickable: true,
-                data: d3.json(`/data/deckgl-respiratory/${mapRegionSelector.value}?${parseInt(Math.random()*9999999999)}`),
-                stroked: false,
-                stroked: true,
-                filled: true,
-                pointType: 'circle+text',
-                pickable: true,
-                getFillColor: d => getColor(d),
-                lineWidthMinPixels: .75,
-                getLineWidth: 20,
-                getLineColor: [127, 127, 127],
-                updateTriggers: {
-                    data: { dataVersion },
-                    getFillColor: { dataVersion },
-                },
-            }),
+    if (fetchData == true) {
+        regionData = await d3.json(`/data/deckgl-respiratory/${mapRegionSelector.value}?${parseInt(Math.random()*9999999999)}`) 
+    }
+    createChoropleth(regionData, mapDiseaseSelector.value, mapDataSourceSelector.value, mapRateSwitch.value == "rate", mapIncludeImputations.checked)
+    var layers = [
+        new GeoJsonLayer({
+            id: 'respiratory_choropleth',
+            depthTest: false,
+            pickable: true,
+            data: regionData,
+            stroked: false,
+            stroked: true,
+            filled: true,
+            pointType: 'circle+text',
+            pickable: true,
+            getFillColor: d => getColor(d),
+            lineWidthMinPixels: .75,
+            getLineWidth: 20,
+            getLineColor: [127, 127, 127],
+            updateTriggers: {
+                data: [mapRegionSelector.value, dataVersion],
+                getFillColor: [ mapRegionSelector.value, dataVersion ],
+            },
+        })
+    ]
+    if (selectedItems.icons.length) {
+        layers.push(
             new IconLayer({
                 id: 'hospital-and-cdap',
-                data: d3.csv('/data/health-care-facility'),
-                iconAtlas: '/data/icon-pack/png',
-                iconMapping: '/data/icon-pack/json',
+                data: icons.data,
+                iconAtlas: icons.iconAtlas,
+                iconMapping: icons.iconMapping,
                 getPosition: d => {return [+d.longitude, +d.latitude]},
                 getIcon: d => {if(selectedItems.icons.includes(d.type)) return d.type},
                 getSize: 15,
@@ -74,8 +92,38 @@ function redraw(first=false) {
                 parameters: {
                     depthTest: false
                 },
+                updateTriggers: {
+                    getIcon: [ hospitalIconsToggle.checked, mobileClinicIconsToggle.checked, communityPartnerIconsToggle.checked ]  
+                }
+            }),
+        )
+    }
+    if (mapRegionSelector.value != "state" && mapOptionsGeographicLabelsToggle.checked) {
+        layers.push(
+            new TextLayer({
+                id: 'labels',
+                data: regionData.features,
+                getPosition: d => getCenter(d),
+                getText: d => d.properties.id.toString(),
+                getAlignmentBaseline: 'center',
+                getTextAnchor: 'middle',
+                getColor: [0, 0, 0],
+                background: true,
+                getBackgroundColor: [255, 255, 255, 32],
+                backgroundBorderRadius: 2,
+                backgroundPadding: [4, 4],
+                getSize: mapRegionSelector.value == "zcta" ? Math.min(Math.max(8, map.getZoom()*1.5), 16) : 16,
+                fontFamily:getComputedStyle(document.head).getPropertyValue("--sl-font-sans").replace(/\s/g,'').split(',') ,
+                collisionGroup: 'labels',
+                collisionTestProps: {sizeScale: 2.5},
+                updateTriggers: {
+                    getSize: [map.getZoom()],
+                },
             })
-        ]
+        )
+    }
+    deckOverlay.setProps({
+        layers: layers
     })
 
 }

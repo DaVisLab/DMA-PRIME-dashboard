@@ -79,7 +79,7 @@ map.on("click", e => {
     selectedItems.region = feature
     
     var coordinates = [feature.properties.INTPTLON, feature.properties.INTPTLAT]
-    if (!(coordinates[0] || coordinates[1])) {
+    if (!(coordinates[0] && coordinates[1])) {
         const fullCoords = feature.geometry.coordinates;
         const bounds = new maplibregl.LngLatBounds()
         function addCoordToBounds(bounds, arr) {

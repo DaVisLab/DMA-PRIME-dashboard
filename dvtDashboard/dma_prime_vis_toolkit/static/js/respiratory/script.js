@@ -1,5 +1,10 @@
 
-export { regionData, zctaData, startDate, currentWeek, endDate, historicalDates, predictionDates, dataSourceColorMap, dataSourceLineStyle, gridItemDataSources, parseDate, getDataAsArray, drawTooltip }
+export { zctaData, 
+    startDate, currentWeek, endDate, historicalDates, predictionDates, 
+    dataSourceColorMap, dataSourceLineStyle, 
+    gridItemDataSources, 
+    parseDate, getDataAsArray, getBoundsOfCoords, getCenter,
+    drawTooltip }
 
 
 // data
@@ -12,12 +17,11 @@ var endDate = parseDate(metadata.end_date)
 var predictionDates = d3.timeDay.range(currentWeek, new Date(endDate).setDate(endDate.getDate()+1), 7)
 
 
-var zctaData = await d3.json(`/data/deckgl-respiratory/zcta?${parseInt(Math.random()*9999999999)}`)
+const zctaData = await d3.json(`/data/deckgl-respiratory/zcta?${parseInt(Math.random()*9999999999)}`)
 await Promise.allSettled([ // wait for following to be defined/load in
     customElements.whenDefined('sl-select'),
     customElements.whenDefined('sl-option'),
 ])
-var regionData = await d3.json(`/data/deckgl-respiratory/${mapRegionSelector.value}?${parseInt(Math.random()*9999999999)}`)
 
 // visualization variables
 var formatInt = d3.format(".0f")
@@ -87,8 +91,8 @@ window.addEventListener("keydown", (event) => {
 document.adoptedStyleSheets = [styleSheet]
 
 // data fetching
-function getDataAsArray(disease, dataSource, rate, imputations=true) {
-    var arr = regionData.features.map((d) => {
+function getDataAsArray(data, disease, dataSource, rate, imputations=true) {
+    var arr = data.features.map((d) => {
         var data = d.properties.data[disease]
         if (data[dataSource].data.length > 0 && (imputations || !data.imputation)) {
             if (rate) {
@@ -107,6 +111,42 @@ function getDataAsArray(disease, dataSource, rate, imputations=true) {
 // helper functions
 function parseDate(dateString) {
     return dayjs(dateString, "YYYY-MM-DD").toDate()
+}
+
+function getBoundsOfCoords(coordinates) {
+    var bounds = new maplibregl.LngLatBounds()
+    function addCoordToBounds(bounds, arr) {
+        if (Array.isArray(arr[0])) {
+            arr.forEach(a => {
+                addCoordToBounds(bounds, a)
+            })
+        } else {
+            bounds.extend(arr)
+            return
+        }
+    }
+    addCoordToBounds(bounds, coordinates)
+    return bounds
+}
+
+function getCenter(feature) {
+    var coordinates = [feature.properties.INTPTLON, feature.properties.INTPTLAT]
+
+    if (!(coordinates[0] && coordinates[1])) {
+        coordinates = getBoundsOfCoords(feature.geometry.coordinates).getCenter()
+        coordinates = [coordinates.lng, coordinates.lat]
+    } else {
+        coordinates[0] = fixCoord(coordinates[0])
+        coordinates[1] = fixCoord(coordinates[1])    
+    }
+    return coordinates
+}
+
+function fixCoord(coord) {
+    while (coord[1] == "0") {
+        coord = coord[0] + coord.slice(2)
+    }
+    return parseFloat(coord)
 }
 
 function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false) {
