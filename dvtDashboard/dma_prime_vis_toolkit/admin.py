@@ -42,7 +42,7 @@ def add_user():
             flash(f"User added successfully. Verification link: {'https://dmaprime.clemson.edu/auth' + reset_password_url.split("/auth")[-1]}")
         except Exception as e:
             current_app.logger.info(f'{current_user.email} failed to create user {email} (error)')
-            flash(e)
+            flash(str(e))
             return redirect("/admin")
             
         # flash("User added successfully")
@@ -71,7 +71,7 @@ def delete_user():
             current_app.logger.info(f'{current_user.email} deleted user {email}')
         except Exception as e:
             current_app.logger.info(f'{current_user.email} failed to delete user {email} (error)')
-            flash(e)
+            flash(str(e))
             return redirect("/admin")
             
         flash("User deleted successfully")
@@ -105,7 +105,7 @@ def change_user():
 
         except Exception as e:
             current_app.logger.info(f'{current_user.email} attempted to change {field} of {email}')
-            flash(e)
+            flash(str(e))
             return redirect("/admin")
   
         flash("User changed successfully")

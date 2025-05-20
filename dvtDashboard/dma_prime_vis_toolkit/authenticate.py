@@ -103,13 +103,19 @@ def login():
         else:
             if Bcrypt().check_password_hash(curr_user.password, password):
                 current_app.logger.info(f'Correct username and password of user {email_username}')
-                if curr_user.two_factor_auth is None:
-                    session['email'] = curr_user.email
-                    next = request.args.get('next') or url_for('index')
-                    return redirect(url_for('auth.two_factor_setup', next=next))
+                session['email'] = curr_user.email
+                if current_app.config['DEVELOPMENT']:
+                    login_user(curr_user)
+                    current_app.logger.info(f'Successful login of user {curr_user.email}')
+                    next = request.args.get('next')
+                    return redirect(next or url_for('index'))
                 else:
-                    next = request.args.get('next') or url_for('index')
-                    return redirect(url_for('auth.two_factor_auth', next=next))
+                    if curr_user.two_factor_auth is None:
+                        next = request.args.get('next') or url_for('index')
+                        return redirect(url_for('auth.two_factor_setup', next=next))
+                    else:
+                        next = request.args.get('next') or url_for('index')
+                        return redirect(url_for('auth.two_factor_auth', next=next))
             else:
                 current_app.logger.info(f'Incorrect password attempt of user {curr_user.email}')
                 flash("Incorrect password")
@@ -141,18 +147,6 @@ def signup():
 
                 db.session.add(temp_user)
                 db.session.commit()
-
-                # Create a secure token (string) that identifies the user
-                # token = jwt.encode({"email": email}, current_app.config["SECRET_KEY"], algorithm='HS256')
-
-                # Send verification email
-                # subject, from_email, to = 'Confirm Email', 'nickjohnson1207@gmail.com', email
-                # html_content = render_template('email/verify.html', token=token)
-
-
-                # msg = EmailMessage(subject, str(html_content), from_email, [to])
-                # msg.content_subtype = "html"  # Main content is now text/html
-                # msg.send()
 
             except Exception as e:
                 flash(e)
