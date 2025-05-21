@@ -180,7 +180,7 @@ def create_app(development=False, dataDir=None):
 
     @app.route('/outbreak-detection')
     @login_required
-    def other_infectious_diseases():
+    def outbreak_detection():
         diseases = list(decrypt(f"{app.config['DATADIR']}/processed/other_infectious_diseases/metadata.json"))
 
         panels = [
