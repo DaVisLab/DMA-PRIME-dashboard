@@ -9,9 +9,12 @@ from flask_bcrypt import Bcrypt
 
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from .utility import * 
-from .authenticate import login_manager, admin_required #login_required,
+from .utility import *
+from .authenticate import login_manager, admin_required  # login_manager & admin_required stay as before
 from .database import User
+
+# ensure the authenticate module itself is available for blueprint registration
+from . import authenticate
 
 def create_app(development=False, dataDir=None):
     if dataDir is None:
@@ -40,8 +43,7 @@ def create_app(development=False, dataDir=None):
     except OSError:
         pass
 
-    # ignores login requirements
-    # if not development:
+    # initializes the database
     from .database import db
     db.init_app(app)
 
@@ -50,9 +52,17 @@ def create_app(development=False, dataDir=None):
     
         if app.config['DEVELOPMENT']:
             User.query.delete()
-            test_user = User("admintest", "admintest", Bcrypt().generate_password_hash("adminpassword"), access_level=1, verified_user=True)
+            test_user = User(
+                "admintest", "admintest", 
+                Bcrypt().generate_password_hash("adminpassword"),
+                access_level=1, verified_user=True
+            )
             db.session.add(test_user)
-            test_user = User("usertest", "usertest", Bcrypt().generate_password_hash("userpassword"), access_level=0, verified_user=True)
+            test_user = User(
+                "usertest", "usertest", 
+                Bcrypt().generate_password_hash("userpassword"),
+                access_level=0, verified_user=True
+            )
             db.session.add(test_user)
             db.session.commit()
 
@@ -186,7 +196,7 @@ def create_app(development=False, dataDir=None):
         panels = [
             {
                 'name': 'main',
-                'displayName': 'DMA-PRIME',
+                'displayName': 'DMA-PRIME'
             },
             {
                 'name': 'map',
@@ -214,7 +224,7 @@ def create_app(development=False, dataDir=None):
         panels = [
             {
                 'name': 'main',
-                'displayName': 'DMA-PRIME',
+                'displayName': 'DMA-PRIME'
             },
             {
                 'name': 'grid',
@@ -232,4 +242,3 @@ def create_app(development=False, dataDir=None):
             return render_template('testing-vis.html')
 
     return app
-
