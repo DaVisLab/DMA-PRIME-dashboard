@@ -1,5 +1,5 @@
 import { getBoundsOfCoords, drawTooltip } from "/static/js/respiratory/script.js";
-import { map, popup, deckOverlay, selectedItems, redraw, drawStateHospitalizations, drawLargeStateHospitalizations } from "/static/js/respiratory/map.js"
+import { map, popup, deckOverlay, selectedItems, redraw, drawStateHospitalizations, drawLargeStateHospitalizations, updateMapTitle } from "/static/js/respiratory/map.js"
 
 
 popup.on("close", e => {
@@ -160,6 +160,10 @@ mapRegionSelector.addEventListener("sl-change", (event) => {
 mapIncludeImputations.addEventListener("sl-change", () => {
     dataVersion++
     redraw()
+})
+
+mapOptionsTitleToggle.addEventListener("sl-change", () => {
+    updateMapTitle()
 })
 
 // adding/removing labels

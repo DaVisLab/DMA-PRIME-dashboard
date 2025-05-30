@@ -1,7 +1,7 @@
 const { GeoJsonLayer, IconLayer, TextLayer, MapboxOverlay } = deck;
 const { load, ImageLoader } = loaders
 import { startDate, currentWeek, endDate, dataSourceColorMap, unknownColor, parseDate, getCenter } from "/static/js/respiratory/script.js";
-export { map, popup, selectedItems, deckOverlay, redraw, drawStateHospitalizations, drawLargeStateHospitalizations }
+export { map, popup, selectedItems, deckOverlay, redraw, drawStateHospitalizations, drawLargeStateHospitalizations, updateMapTitle }
 
 loaders.registerLoaders(loaders.ImageLoader);
 
@@ -50,6 +50,7 @@ redraw(true)
 drawStateHospitalizations()
 
 async function redraw(fetchData=false) {
+    updateMapTitle()
     if (fetchData == true) {
         regionData = await d3.json(`/data/deckgl-respiratory/${mapRegionSelector.value}?${parseInt(Math.random()*9999999999)}`) 
     }
@@ -228,7 +229,7 @@ function drawLegend() {
         var legend = d3.select(choroplethLegendSVG)
             .attr("overflow", "visible")
 
-        legend.attr("transform", `translate(40, 0)`)
+        legend.attr("transform", `translate(0, 16)`)
             .attr("width", legendLength)
             .attr("height", 50)
 
@@ -285,6 +286,7 @@ function drawLegend() {
     } else {
         var legendWidth = Math.max(mapDiv.clientWidth/3, 300)
         var colorLegend = d3.select(choroplethLegendSVG)
+            .attr("transform", null)
             .attr("width", legendWidth + legendMargins.left + legendMargins.right)
             .attr("height", 3*em + legendMargins.top + legendMargins.bottom)
 
@@ -508,3 +510,35 @@ async function drawStateBarChart(svgDOM, subtitleDOM, stateMargins, yAxisDisplay
     temp.remove()
 }
 
+function updateMapTitle() {
+    if (!mapOptionsTitleToggle.checked) {
+        mapTitle.innerHTML = ""
+        return
+    }
+    var titleStart = `${d3.select(mapTypeSwitch).select(`*[value=${mapTypeSwitch.value}]`).html()} `
+    titleStart += `of ${d3.select(mapDiseaseSelector).select(`*[value=${mapDiseaseSelector.value}]`).html()} `
+    titleStart += "Hospitalizations "
+
+    var titleEnd = "in South Carolina "
+    if (mapRegionSelector.value != "state") {
+        titleEnd += "by "
+        titleEnd += d3.select(mapRegionSelector).select(`*[value=${mapRegionSelector.value}]`).html() 
+        
+    } 
+
+    switch (mapTypeSwitch.value) {
+        case "count": 
+            mapTitle.innerHTML = titleStart + titleEnd
+        break;
+        case "rate": 
+            mapTitle.innerHTML = titleStart + "(per 1000 people) " + titleEnd
+        break;
+        case "percentDifference": 
+            mapTitle.innerHTML = titleStart + "from Last Week " + titleEnd
+        break;
+        default: 
+            mapTitle.innerHTML = titleStart + titleEnd
+        break;
+
+    }
+}

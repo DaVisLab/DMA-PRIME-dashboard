@@ -44,6 +44,15 @@
 }
 
 /* map items */
+#map-title-container {
+    position:absolute; 
+    top: var(--sl-spacing-x-large);
+}
+
+#map-title {
+    text-align: center
+}
+
 .map-toggle::part(control--checked) {
     /* Hospital icons toggle color is grey */
     border-color: var(--sl-color-neutral-400);
@@ -68,7 +77,7 @@ path.map-zcta {
 #choropleth-legend {
     position:absolute;
     bottom: var(--sl-spacing-small);
-    left: var(--sl-spacing-small);
+    left: var(--sl-spacing-x-large);
 }
 
 .map-legend-background {
