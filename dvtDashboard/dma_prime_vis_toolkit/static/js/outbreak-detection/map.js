@@ -16,11 +16,35 @@ var choroplethColorMap = d3.scaleLinear()
     .range(d3.reverse(d3.schemeRdYlGn[10]).slice(1))
     .unknown(unknownColor).nice()
 
-var countRateColorMap = d3.scaleSequential()
+// Placeholder: actual domain set later via createCountRateChoropleth()
+let countRateColorMap = d3.scaleSequential()
     .interpolator(d3.interpolateYlOrRd)
-    .domain([0, 100])  // Adjust this upper limit if needed
+    .unknown(unknownColor)
+
+function createCountRateChoropleth(data) {
+  // 1) For every polygon (except “state”), grab its latest value (or 0):
+  const arr = data.features.map(feature => {
+    const thisDt = getData(feature, mapTimeSwitch.value)
+    return (thisDt.data.length > 0 && feature.properties.identifier !== "state")
+      ? thisDt.data.at(-1)
+      : 0
+  })
+
+  // 2) If “Rate” is selected, push a small nonzero so domain covers per-1000 scale:
+  const minMaxVal = (mapRateSwitch.value === "rate")
+    ? 1000.0 / stateFeature.properties.population
+    : 1
+  arr.push(minMaxVal)
+
+  // 3) Rebuild countRateColorMap → [0 → max(arr)] with YlOrRd interpolator:
+  const maxVal = d3.max(arr)
+  countRateColorMap = d3.scaleSequential()
+    .interpolator(d3.interpolateYlOrRd)
+    .domain([0, maxVal])
     .unknown(unknownColor)
     .nice()
+}
+
 
 const map = new maplibregl.Map({
     container: mapDiv,
@@ -58,65 +82,80 @@ drawAggregation()
 updateDiseaseCountDisplay()
 redraw(true)
 
-function redraw(first=false) {
-    drawLegend()
+function redraw(first = false) {
+    // 1) Recompute the Count/Rate color scale from the actual data:
+    createCountRateChoropleth(regionData);
+  
+    // 2) Now redraw the legend (which will use that updated color scale)
+    drawLegend();
+  
+    // 3) Then set the layers
     deckOverlay.setProps({
-        layers: [
-            new GeoJsonLayer({
-                id: 'disease_choropleth',
-                depthTest: false,
-                pickable: true,
-                data: regionData,
-                stroked: true,
-                filled: true,
-                pointType: 'circle+text',
-                pickable: true,
-                getFillColor: d => getColor(d),
-                lineWidthMinPixels: .75,
-                getLineWidth: 20,
-                getLineColor: [64, 64, 64],
-                updateTriggers: {
-                    getFillColor: [ mapRateSwitch.value, mapColumnSwitch.value, mapTimeSwitch.value, selectedItems.diseases, selectedItems.dataVersion ]
-                },
-            }),
-            new GeoJsonLayer({
-                id: 'region_highlight',
-                depthTest: false,
-                data: selectedItems.region,
-                stroked: true,
-                filled: false,
-                pointType: 'circle+text',
-                pickable: true,
-                lineWidthMinPixels: .5,
-                getLineWidth: 1000,
-                getLineColor: [128, 128, 128],
-                getPointRadius: 4,
-                getTextSize: 12,
-                updateTriggers: {
-                    data: selectedItems.region ? selectedItems.region.properties.identifier : selectedItems.region,
-                },
-            }),
-            // new IconLayer({
-            //     id: 'hospital-and-cdap',
-            //     data: d3.csv('/data/health-care-facility/all'),
-            //     iconAtlas: '/data/icon-pack/png',
-            //     iconMapping: '/data/icon-pack/json',
-            //     getPosition: d => {return [+d.longitude, +d.latitude]},
-            //     getIcon: d => {if(checked.includes(d.type)) return d.type},
-            //     getSize: 15,
-            //     pickable: true,
-            //     parameters: {
-            //         depthTest: false
-            //     },
-            // })
-        ]
-    })
-
-}
+      layers: [
+        new GeoJsonLayer({
+          id: 'disease_choropleth',
+          depthTest: false,
+          pickable: true,
+          data: regionData,
+          stroked: true,
+          filled: true,
+          pointType: 'circle+text',
+          pickable: true,
+          getFillColor: d => getColor(d),
+          lineWidthMinPixels: .75,
+          getLineWidth: 20,
+          getLineColor: [64, 64, 64],
+          updateTriggers: {
+            getFillColor: [
+              mapRateSwitch.value,
+              mapColumnSwitch.value,
+              mapTimeSwitch.value,
+              selectedItems.diseases,
+              selectedItems.dataVersion,
+            ],
+          },
+        }),
+        new GeoJsonLayer({
+          id: 'region_highlight',
+          depthTest: false,
+          data: selectedItems.region,
+          stroked: true,
+          filled: false,
+          pointType: 'circle+text',
+          pickable: true,
+          lineWidthMinPixels: .5,
+          getLineWidth: 1000,
+          getLineColor: [128, 128, 128],
+          getPointRadius: 4,
+          getTextSize: 12,
+          updateTriggers: {
+            data: selectedItems.region
+              ? selectedItems.region.properties.identifier
+              : selectedItems.region,
+          },
+        }),
+      ],
+    });
+  }
+  
 
 function getColor(feature) {
     // —— 1) Percent Difference Mode ——
     if (mapRateSwitch.value === 'percent') {
+      // ─── GRACE: If no diseases are selected OR both thisWeek and lastWeek are NaN,
+      //            immediately return grey (unknownColor).
+      if (
+        selectedItems.diseases.length === 0 ||
+        (
+          isNaN(getLatestDatum(feature, mapTimeSwitch.value).data) &&
+          isNaN(getLastWeekDatum(feature, mapTimeSwitch.value).data)
+        )
+      ) {
+        const u = d3.rgb(unknownColor);
+        return [u.r, u.g, u.b];
+      }
+  
+      // Otherwise, proceed exactly as before:
       const thisWeek = getLatestDatum(feature, mapTimeSwitch.value).data;
       const lastWeek = getLastWeekDatum(feature, mapTimeSwitch.value).data;
       let colorObj;
@@ -139,10 +178,12 @@ function getColor(feature) {
     }
   
     // —— 2) Count or Rate Mode ——
+    // getLatestDatum already applies population/1000 if “rate” is selected
     const val = getLatestDatum(feature, mapTimeSwitch.value).data;
     const colorObj = d3.rgb(countRateColorMap(val));
     return [colorObj.r, colorObj.g, colorObj.b];
   }
+  
   
   
 
@@ -214,49 +255,59 @@ function drawLegend() {
                 .text(d[1]);
         });
 
-    } else {
+    }  else {
         // ======== COUNT/RATE CONTINUOUS GRADIENT LEGEND ========
         const gradientId = "countRateGradient";
-
+    
+        // 1) Append a <defs> / <linearGradient> so we can build a dynamic gradient
         const defs = legend.append("defs");
         const gradient = defs.append("linearGradient")
             .attr("id", gradientId)
             .attr("x1", "0%")
             .attr("x2", "100%");
-
+    
+        // 2) Read the actual domain [d0, d1] that createCountRateChoropleth just set
+        const [d0, d1] = countRateColorMap.domain();
+    
+        // 3) Sample evenly across [d0 → d1] for 10 stops
         const stops = 10;
         for (let i = 0; i <= stops; i++) {
             const t = i / stops;
+            const v = d0 + t * (d1 - d0);      // value along the real domain
             gradient.append("stop")
                 .attr("offset", `${t * 100}%`)
-                .attr("stop-color", countRateColorMap(t * 100));
+                .attr("stop-color", countRateColorMap(v));
         }
-
+    
+        // 4) Title in the middle, just like before
         legend.append("text")
             .attr("x", legendLength / 2)
             .attr("y", -em / 2)
             .attr("text-anchor", "middle")
             .style("font-size", 'var(--sl-font-size-x-small)')
             .text(`${mapRateSwitch.value === "rate" ? "Rate (per 1000)" : "Count"} of ${columnLabel}`);
-
+    
+        // 5) The gradient bar itself
         legend.append("rect")
             .attr("x", 0)
             .attr("y", 0)
             .attr("width", legendLength)
             .attr("height", 15)
             .style("fill", `url(#${gradientId})`);
-
+    
+        // 6) Use the actual domain endpoints for the tick labels (instead of “0” and “100”)
         legend.append("text")
             .attr("x", 0)
             .attr("y", 15 + em)
-            .text("0");
-
+            .text(d0);
+    
         legend.append("text")
             .attr("x", legendLength)
             .attr("y", 15 + em)
             .attr("text-anchor", "end")
-            .text("100");
+            .text(d1);
     }
+    
 }
 
 
