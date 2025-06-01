@@ -71,12 +71,7 @@
     font-size: var(--sl-font-size-2x-small);
 }
 
-p.tooltip-title {
-    /* tooltip title element */
-    margin: 0;
-    padding-top: var(--sl-spacing-x-small);
-    text-align: center;
-  }
+
   
 .tooltip-title, #aggregated-disease-history-title {
     /* bar graph title */
@@ -100,3 +95,75 @@ p.tooltip-title {
     /* triangular tip pointing to zcta popup refers to */
     border-top-color: black  !important;
 }
+
+/* ──────────────────────────────────────────────────────────────── 
+   Tooltip Alignment Helpers for “Zip Code / Change / County” 
+   ──────────────────────────────────────────────────────────────── */
+
+/* 1) Remove default <p> margins inside the tooltip container */
+#map-tooltip-div p {
+    margin: 0 !important;
+    font-size: 14px;
+    line-height: 1.4em;
+  }
+  
+  /* 2) Flex container that holds “Zip Code: XXX” on the left and “Change: ±N%” on the right */
+  .tooltip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline; /* keep both items on the same baseline */
+    margin-bottom: 8px;    /* small gap below the header row */
+  }
+  
+  /* 3) Left column: Zip Code text (expands to fill available space) */
+  .tooltip-left-col {
+    flex: 1;             /* expand to fill the leftover width */
+    /* We already set p { margin:0; }, so no additional margin needed */
+  }
+  
+  /* 4) Right column: Percent-Change (fixed width, right-aligned) */
+  .tooltip-right-col {
+    flex: 0 0 120px;   /* fixed 120px width */
+    text-align: right;
+    font-weight: bold;
+  }
+  
+  /* 5) If you have an existing rule centering p.tooltip-title, override it here: */
+  p.tooltip-title {
+    text-align: left;  /* ensure “Zip Code: XXX” is left‐aligned, not centered */
+    padding-top: var(--sl-spacing-x-small); /* if you want the small top padding */
+  }
+  
+  /* 6) Subtitle lines (“County:” and “Encounters …”) should be left-aligned: */
+  p.tooltip-subtitle {
+    text-align: left;
+    font-size: var(--sl-font-size-x-small); /* or just “14px” if you prefer */
+    line-height: 1.4em;
+    margin: 4px 0 8px 0;  /* this margin is already set inline in JS; this is a fallback */
+  }
+
+/* ────────────────────────────────────────────────────────────────
+   TIGHTEN / EQUALIZE VERTICAL SPACING WITHIN THE TOOLTIP
+   ──────────────────────────────────────────────────────────────── */
+
+/* 1) Make the gap under the header row (Zip Code / Change) smaller */
+.tooltip-header {
+    margin-bottom: 1px !important;
+  }
+  
+  /* 2) Ensure each subtitle line has 4px top + bottom, rather than 0/8px */
+  p.tooltip-subtitle {
+    display: block;        /* each line becomes its own block */
+    margin: 4px 0 !important;
+    line-height: 1.4em;    /* keep the existing line-height */
+    text-align: left;      /* force left alignment */
+  }
+  
+  /* 3) Finally, if there’s any default padding or margin on <p> tags inside #map-tooltip-div,
+         zero it out again to avoid conflicts */
+  #map-tooltip-div p {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  

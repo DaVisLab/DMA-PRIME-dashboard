@@ -316,88 +316,164 @@ function drawLegend() {
 
 
 function drawTooltip(dataObject) {
-    if(!dataObject || !popup.isOpen()) {
-        popup.remove()
-        return
+    // 1) If nothing is selected or the popup is closed, remove and bail:
+    if (!dataObject || !popup.isOpen()) {
+      popup.remove();
+      return;
     }
-    var thisData = getData(dataObject, "weekly")
-    // draw in tooltip
-    var ttpWidth = Math.max(400, mapDiv.clientWidth * .25)
-    var ttpHeight = ttpWidth * .35
-
-    var ttpDiv = d3.select("#map-tooltip-div")
-
-    ttpDiv.style("display", "initial")
-    ttpDiv.style("border-style", "none")
-    ttpDiv.html("")
-        
-    var ttpTitle = ttpDiv.append("p")
-        .attr("class", "tooltip-title")
-    ttpTitle.append("span")
-        .attr("class", "tooltip-title")
-        .html(`${d3.select(`sl-option[value=${mapRegionSelector.value}]`).html()}: ${dataObject.properties.identifier}`)
-    ttpTitle.append("br")
-    try {
-        ttpTitle.append("span")
-            .attr("class", "tooltip-subtitle")
-            .html(`County: ${dataObject.properties.county[0].toUpperCase()+dataObject.properties.county.substring(1)}`)
-    } catch (error) {
-        
-    }
-
-    if (thisData.data.length < 1) {
-        ttpDiv.append("p").html("No Data")
-        return
-    }
-
-    var encounterString = ""
-    switch (mapColumnSwitch.value) {
-        case "encounters":
-            encounterString += "Encounters"
-            break;
-        case "pos_tests":
-            encounterString += "Positive tests"
-            break;
-        case "encounter_plus_test":
-            encounterString += "Encounters and positive tests"
-            break;
-    }
-    encounterString += " from "
-    var thisWeek = thisData.end_date
-    switch (mapTimeSwitch.value) {
-        case "weekly":
-            var formatDate = d3.timeFormat("%b %d, %Y")
-            encounterString += `${formatDate(thisWeek)}<br/>to ${formatDate(d3.timeDay.offset(thisWeek, 6))}`
-            break;
-        case "monthly":
-            var startWeek = d3.timeDay.offset(thisWeek, -4*7)
-            var formatDate = d3.timeFormat("%b %d, %y")
-            encounterString += `${formatDate(startWeek)}<br/>to ${formatDate(d3.timeDay.offset(thisWeek, 6))}`
-            break;
-        case "yearly":
-            var startWeek = d3.timeDay.offset(thisWeek, -52*7)
-            var formatDate = d3.timeFormat("%b %d, %y")
-            encounterString += `${formatDate(startWeek)}<br/>to ${formatDate(d3.timeDay.offset(thisWeek, 6))}`
-            break;
-    }
-    encounterString += ": "
-    if (mapRateSwitch.value == "rate") {
-        encounterString += `${Math.round(thisData.data.at(-1) * 1000) / 1000} (per 1000 people)`
+  
+    // 2) Compute “latest” and “previous” values (for percent‐change)
+    const latestDatum = getLatestDatum(dataObject, mapTimeSwitch.value).data;
+    const prevDatum   = getLastWeekDatum(dataObject, mapTimeSwitch.value).data;
+  
+    // 3) Build a percent‐change label
+    let percentLabel;
+    if (isNaN(latestDatum) || isNaN(prevDatum)) {
+      percentLabel = "Change: N/A";
+    } else if (prevDatum === 0 && latestDatum === 0) {
+      percentLabel = "Change: 0 %";
+    } else if (prevDatum === 0 && latestDatum > 0) {
+      percentLabel = "Change: New cases";
     } else {
-        encounterString += thisData.data.at(-1)
+      const rawPct  = ((latestDatum - prevDatum) / Math.abs(prevDatum)) * 100;
+      const rounded = Math.round(rawPct * 10) / 10;   // one decimal place
+      const sign    = rounded >= 0 ? "+" : "";
+      percentLabel  = `Change: ${sign}${rounded} %`;
     }
+  
+    // 4) Grab the entire time series for the bar chart
+    const thisData = getData(dataObject, mapTimeSwitch.value);
+  
+    // 5) Build the “Encounters … from X to Y: N” string
+    let encounterString = "";
+    switch (mapColumnSwitch.value) {
+      case "encounters":
+        encounterString += "Encounters";
+        break;
+      case "pos_tests":
+        encounterString += "Positive tests";
+        break;
+      case "encounter_plus_test":
+        encounterString += "Encounters and positive tests";
+        break;
+    }
+    encounterString += " from ";
+    const endDate = thisData.end_date;
+    const fmt     = d3.timeFormat("%b %d, %Y");
+  
+    if (mapTimeSwitch.value === "weekly") {
+      encounterString += `${fmt(endDate)}<br/>to ${fmt(d3.timeDay.offset(endDate, 6))}`;
+    } else if (mapTimeSwitch.value === "monthly") {
+      const startDate = d3.timeDay.offset(endDate, -4 * 7);
+      encounterString += `${fmt(startDate)}<br/>to ${fmt(d3.timeDay.offset(endDate, 6))}`;
+    } else {
+      const startDate = d3.timeDay.offset(endDate, -52 * 7);
+      encounterString += `${fmt(startDate)}<br/>to ${fmt(d3.timeDay.offset(endDate, 6))}`;
+    }
+    encounterString += ": ";
+    if (mapRateSwitch.value === "rate") {
+      const lastVal = thisData.data.at(-1);
+      encounterString += `${Math.round(lastVal * 1000) / 1000} (per 1000 people)`;
+    } else {
+      encounterString += thisData.data.at(-1);
+    }
+  
+    // 6) Prepare dimensions and clear existing tooltip
+    const ttpWidth  = Math.max(400, mapDiv.clientWidth * 0.25);
+    const ttpHeight = ttpWidth * 0.35;
+  
+    const ttpDiv = d3
+      .select("#map-tooltip-div")
+      .style("display", "initial")
+      .style("border-style", "none")
+      .html(""); // wipe it clean
+  
+    //
+    // ─── HEADER: “Zip Code: XXX”  (on left)  +  “Change: ±N%”  (on right) ───
+    //
+    const headerContainer = ttpDiv
+      .append("div")
+      .attr("class", "tooltip-header")
+      .style("display", "flex")
+      .style("justify-content", "space-between")
+      .style("align-items", "baseline")   // keep left & right on same baseline
+      .style("margin-bottom", "8px");
+  
+    // 7a) LEFT SIDE of header: Zip Code
+    const leftHeaderCol = headerContainer
+      .append("div")
+      .attr("class", "tooltip-left-col")
+      .style("flex", "1")
+      .style("font-size", "14px")
+      .style("line-height", "1.4em");
+  
+    leftHeaderCol
+      .append("p")
+      .attr("class", "tooltip-title")
+      .style("margin", "0px")  // remove default <p> margin
+      .html(
+        `${d3.select(`sl-option[value=${mapRegionSelector.value}]`).html()}: ${dataObject.properties.identifier}`
+      );
+  
+    // 7b) RIGHT SIDE of header: Percent‐change
+    const rightHeaderCol = headerContainer
+      .append("div")
+      .attr("class", "tooltip-right-col")
+      .style("flex", "0 0 120px")    // fixed width for percent‐change column
+      .style("text-align", "right")
+      .style("font-size", "14px")
+      .style("line-height", "1.4em");
+  
+    rightHeaderCol
+      .append("p")
+      .attr("class", "tooltip-percent-change")
+      .style("margin", "0px")
+      .style("font-weight", "bold")
+      .html(percentLabel);
+  
+    //
+    // ─── “County: YYY” on its own line, directly under the header ───
+    //
+    ttpDiv
+      .append("p")
+      .attr("class", "tooltip-subtitle")
+      .style("margin", "0px")
+      .style("font-size", "14px")
+      .style("line-height", "1.4em")
+      .html(
+        `County: ${
+          dataObject.properties.county
+            ? dataObject.properties.county[0].toUpperCase() + dataObject.properties.county.slice(1)
+            : "—"
+        }`
+      );
+  
+    //
+    // ─── Then the “Encounters … to …: N” line ───
+    //
+    ttpDiv
+      .append("p")
+      .attr("class", "tooltip-subtitle")
+      .style("margin", "4px 0 8px 0") // small spacing above/below
+      .style("font-size", "14px")
+      .style("line-height", "1.4em")
+      .html(encounterString);
+  
+    //
+    // ─── Finally, insert the bar chart SVG below those three lines ───
+    //
+    const ttpSVG = ttpDiv
+      .append("svg")
+      .attr("id", "map-tooltip-svg")
+      .attr("class", "tooltip-outer-svg")
+      .attr("width", ttpWidth)
+      .attr("height", ttpHeight);
+  
+    createBarGraph(ttpSVG, thisData, regionData.metadata, ttpHeight, ttpWidth);
+  }
+  
+  
 
-    ttpTitle.append("br")
-    ttpTitle.append("span")
-        .attr("class", "tooltip-subtitle")
-        .html(encounterString)
-
-    var ttpSVG = ttpDiv.append("svg")
-        .attr("id", `map-tooltip-svg`)
-        .attr("class", `tooltip-outer-svg`)
-    
-    createBarGraph(ttpSVG, thisData, regionData.metadata, ttpHeight, ttpWidth)
-}
 
 function drawAggregation() {
     var thisData = getData(stateFeature, "weekly")
