@@ -17,9 +17,13 @@ var choroplethColorMap = d3.scaleLinear()
     .unknown(unknownColor).nice()
 
 // Placeholder: actual domain set later via createCountRateChoropleth()
-let countRateColorMap = d3.scaleSequential()
-    .interpolator(d3.interpolateYlOrRd)
+// Placeholder—will be overwritten by createCountRateChoropleth():
+let countRateColorMap = d3.scaleLinear()
+    .domain([0, 1])
+    .range(["white", "maroon"])
     .unknown(unknownColor)
+    .nice();
+
 
 function createCountRateChoropleth(data) {
   // 1) For every polygon (except “state”), grab its latest value (or 0):
@@ -38,11 +42,11 @@ function createCountRateChoropleth(data) {
 
   // 3) Rebuild countRateColorMap → [0 → max(arr)] with YlOrRd interpolator:
   const maxVal = d3.max(arr)
-  countRateColorMap = d3.scaleSequential()
-    .interpolator(d3.interpolateYlOrRd)
+  countRateColorMap = d3.scaleLinear()
     .domain([0, maxVal])
+    .range(["white", "maroon"])
     .unknown(unknownColor)
-    .nice()
+    .nice();
 }
 
 
@@ -255,58 +259,58 @@ function drawLegend() {
                 .text(d[1]);
         });
 
-    }  else {
-        // ======== COUNT/RATE CONTINUOUS GRADIENT LEGEND ========
+    } else {
+        // ======== COUNT/RATE CONTINUOUS GRADIENT LEGEND (old‐style) ========
         const gradientId = "countRateGradient";
-    
-        // 1) Append a <defs> / <linearGradient> so we can build a dynamic gradient
+
+        // 1) Build a <defs> / <linearGradient> with only two stops (white → maroon)
         const defs = legend.append("defs");
-        const gradient = defs.append("linearGradient")
+        const linearGradient = defs.append("linearGradient")
             .attr("id", gradientId)
             .attr("x1", "0%")
             .attr("x2", "100%");
-    
-        // 2) Read the actual domain [d0, d1] that createCountRateChoropleth just set
-        const [d0, d1] = countRateColorMap.domain();
-    
-        // 3) Sample evenly across [d0 → d1] for 10 stops
-        const stops = 10;
-        for (let i = 0; i <= stops; i++) {
-            const t = i / stops;
-            const v = d0 + t * (d1 - d0);      // value along the real domain
-            gradient.append("stop")
-                .attr("offset", `${t * 100}%`)
-                .attr("stop-color", countRateColorMap(v));
-        }
-    
-        // 4) Title in the middle, just like before
+
+        // 2) Stop at 0% = “white”
+        linearGradient.append("stop")
+            .attr("offset", "0%")
+            .attr("stop-color", "white");
+        // 3) Stop at 100% = “maroon”
+        linearGradient.append("stop")
+            .attr("offset", "100%")
+            .attr("stop-color", "maroon");
+
+        // 4) Title in the middle (same as before)
         legend.append("text")
             .attr("x", legendLength / 2)
             .attr("y", -em / 2)
             .attr("text-anchor", "middle")
             .style("font-size", 'var(--sl-font-size-x-small)')
             .text(`${mapRateSwitch.value === "rate" ? "Rate (per 1000)" : "Count"} of ${columnLabel}`);
-    
-        // 5) The gradient bar itself
+
+        // 5) Draw the gradient rectangle
         legend.append("rect")
             .attr("x", 0)
             .attr("y", 0)
             .attr("width", legendLength)
             .attr("height", 15)
             .style("fill", `url(#${gradientId})`);
-    
-        // 6) Use the actual domain endpoints for the tick labels (instead of “0” and “100”)
+
+        // 6) Put “0” on the left and the actual max value on the right
+        //    We know from createCountRateChoropleth() that domain = [0, maxVal]
+        const [d0, d1] = countRateColorMap.domain();
+
         legend.append("text")
             .attr("x", 0)
             .attr("y", 15 + em)
             .text(d0);
-    
+
         legend.append("text")
             .attr("x", legendLength)
             .attr("y", 15 + em)
             .attr("text-anchor", "end")
             .text(d1);
     }
+
     
 }
 
