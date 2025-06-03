@@ -16,18 +16,18 @@
       <sl-radio-button pill value="rate">Rate</sl-radio-button>
     </sl-tooltip>
     <sl-tooltip content="Percent change from last period">
-      <sl-radio-button pill value="percent">Percent Difference</sl-radio-button>
+      <sl-radio-button pill value="percent">Percent Change</sl-radio-button>
     </sl-tooltip>
   </sl-radio-group>
 
   <sl-radio-group value="weekly" id="map-time-switch" class="center-self" size="small">
-    <sl-tooltip content="Count for the week">
+    <sl-tooltip id="map-weekly-tooltip" content="Count for the week">
       <sl-radio-button pill value="weekly">Week</sl-radio-button>
     </sl-tooltip>
-    <sl-tooltip content="Count for the past 4 weeks">
+    <sl-tooltip id="map-monthly-tooltip" content="Count for the past 4 weeks">
       <sl-radio-button pill value="monthly">Month</sl-radio-button>
     </sl-tooltip>
-    <sl-tooltip content="Count for the past 52 weeks">
+    <sl-tooltip id="map-yearly-tooltip" content="Count for the past 52 weeks">
       <sl-radio-button pill value="yearly">Year</sl-radio-button>
     </sl-tooltip>
   </sl-radio-group>
@@ -97,6 +97,10 @@
   mapRateSwitch = document.getElementById("map-rate-switch")
   mapRegionSelector = document.getElementById("map-region-selector")
   mapColumnSwitch = document.getElementById("map-column-switch")
+
+  mapWeeklyTooltip = document.getElementById("map-weekly-tooltip")
+  mapMonthlyTooltip = document.getElementById("map-monthly-tooltip")
+  mapYearlyTooltip = document.getElementById("map-yearly-tooltip")
 
   mapAllDiseaseSelector = document.getElementById("map-all-disease-selector")
 

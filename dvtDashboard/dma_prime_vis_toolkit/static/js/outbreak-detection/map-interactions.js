@@ -17,13 +17,20 @@ mapResetButton.addEventListener("click", () => {
     update()
 })
 
-mapRateSwitch.addEventListener("sl-change", update)
+mapRateSwitch.addEventListener("sl-change", () => {
+    update()
+    mapWeeklyTooltip.content = `${d3.selectAll(`sl-radio-button[value=${mapRateSwitch.value}]`).html()} for the week`
+    mapMonthlyTooltip.content = `${d3.selectAll(`sl-radio-button[value=${mapRateSwitch.value}]`).html()} for the past 4 weeks`
+    mapYearlyTooltip.content = `${d3.selectAll(`sl-radio-button[value=${mapRateSwitch.value}]`).html()} for the past 52 weeks`
+})
 
 mapTimeSwitch.addEventListener("sl-change", update)
 
 mapRegionSelector.addEventListener("sl-change", changeDataColumn)
 
 mapColumnSwitch.addEventListener("sl-change", changeDataColumn)
+
+
 
 mapAllDiseaseSelector.addEventListener("sl-change", function(e) {
     if (e.target.checked) {
