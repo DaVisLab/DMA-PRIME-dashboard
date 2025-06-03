@@ -168,11 +168,11 @@ function redraw(first = false) {
         const pct = (thisWeek - lastWeek) / Math.abs(lastWeek) * 100;
         colorObj = d3.rgb(choroplethColorMap(pct));
       }
-      // no encounters at all this week → white
+      // no encounters (or tests) at all this week → white
       else if (thisWeek === 0) {
         colorObj = d3.rgb('white');
       }
-      // new encounters (lastWeek = 0 but thisWeek > 0) → light pink
+      // new encounters when lastWeek = 0 but thisWeek > 0 → light pink
       else {
         colorObj = d3.rgb('#ffddff');
       }
@@ -181,31 +181,26 @@ function redraw(first = false) {
     }
   
     // —— 2) Count or Rate Mode ——
-    // If no diseases selected, show grey
+    // A) If no diseases are selected at all, paint every region grey:
     if (selectedItems.diseases.length === 0) {
       const u = d3.rgb(unknownColor);
       return [u.r, u.g, u.b];
     }
   
-    // If this feature has no data for the selected diseases → grey
-    const series = getData(feature, mapTimeSwitch.value).data;
-    if (series.length === 0) {
+    // B) Grab the “latest” value (already population-adjusted if rate)
+    const latest = getLatestDatum(feature, mapTimeSwitch.value).data;
+  
+    // C) If that “latest” is NaN → paint it grey (unknown)
+    if (isNaN(latest)) {
       const u = d3.rgb(unknownColor);
       return [u.r, u.g, u.b];
     }
   
-    // Otherwise, get latest datum (already rate‐adjusted if needed)
-    const val = getLatestDatum(feature, mapTimeSwitch.value).data;
-    // If that value is NaN (i.e. truly unknown), show grey
-    if (isNaN(val)) {
-      const u = d3.rgb(unknownColor);
-      return [u.r, u.g, u.b];
-    }
-  
-    // Finally, map 0→white, >0→maroon‐scale as before
-    const colorObj = d3.rgb(countRateColorMap(val));
+    // D) Otherwise (latest is a real number, possibly zero), map 0→white, >0→maroon:
+    const colorObj = d3.rgb(countRateColorMap(latest));
     return [colorObj.r, colorObj.g, colorObj.b];
   }
+  
   
   
   
@@ -643,89 +638,114 @@ function updateDiseaseCountDisplay() {
 }
 
 function getLatestDatum(feature, timeFrame="weekly") {
-    var diseases = selectedItems.diseases
-    var thisData = {
-        "data": NaN,
-        "other": NaN,
-        "population": feature.properties.population,
-        "start_date": dayjs().toDate(),
-        "end_date": dayjs().toDate(),
+  var diseases = selectedItems.diseases;
+  var thisData = {
+    data: NaN,
+    other: NaN,
+    population: feature.properties.population,
+    start_date: dayjs().toDate(),
+    end_date: dayjs().toDate(),
+  };
+
+  if (diseases.length > 0) {
+    // 1a) Filter to only the selected diseases that actually have data for this timeframe
+    var dataDicts = Object.entries(feature.properties.data)
+      .filter(([disease, obj]) => 
+        diseases.includes(disease) && obj[timeFrame].length > 0
+      )
+      .map(([_, obj]) => obj);
+
+    var otherDicts = Object.entries(feature.properties.other)
+      .filter(([disease, obj]) => 
+        diseases.includes(disease) && obj[timeFrame].length > 0
+      )
+      .map(([_, obj]) => obj);
+
+    // 1b) Grab the metadata dates
+    var earliestDate = parseDate(regionData.metadata.start_date);
+    var latestDate   = parseDate(regionData.metadata.end_date);
+    thisData.start_date = earliestDate;
+    thisData.end_date   = latestDate;
+
+    // 1c) Sum up the “latest” values (last entry in each array)
+    if (dataDicts.length > 0) {
+      thisData.data  = 0;
+      thisData.other = 0;
+      for (var obj of dataDicts) {
+        thisData.data += obj[timeFrame].at(-1);
+      }
+      for (var obj of otherDicts) {
+        thisData.other += obj[timeFrame].at(-1);
+      }
     }
+    // If dataDicts is empty, thisData.data/other remain NaN.
+  }
 
-    if (diseases.length > 0) {
-        // one/many diseases
-        var dataDicts = Object.entries(feature.properties.data).filter(d => diseases.includes(d[0]) && d[1][timeFrame].length > 0)
-        dataDicts = dataDicts.map(d => d[1])
-        var otherDicts = Object.entries(feature.properties.other).filter(d => diseases.includes(d[0]) && d[1][timeFrame].length > 0)
-        otherDicts = otherDicts.map(d => d[1])
+  // 2) Apply “rate” conversion at the very end—but do NOT do “|| 0”
+  if (mapRateSwitch.value === "rate" && !isNaN(thisData.data)) {
+    thisData.data = parseFloat(thisData.data) / (thisData.population / 1000.0);
+  }
+  if (mapRateSwitch.value === "rate" && !isNaN(thisData.other)) {
+    thisData.other = parseFloat(thisData.other) / (thisData.population / 1000.0);
+  }
 
-        var earliestDate = parseDate(regionData.metadata.start_date)
-        var latestDate = parseDate(regionData.metadata.end_date)
-        thisData.start_date = earliestDate
-        thisData.end_date = latestDate
-        if (dataDicts.length > 0) {
-            thisData.data = 0
-            thisData.other = 0
-            for (var data of dataDicts) {
-                thisData.data += data[timeFrame].at(-1)
-            }
-            for (var other of otherDicts) {
-                thisData.other += other[timeFrame].at(-1)
-            }
-        }
-    }
-    
-    // rate applied at end
-    if (mapRateSwitch.value == "rate") {
-        thisData.data = (parseFloat(thisData.data) / (thisData.population / 1000.0)) || 0
-        thisData.other = (parseFloat(thisData.other) / (thisData.population / 1000.0)) || 0
-    }
-
-    return thisData
-
+  return thisData;
 }
+
 
 function getLastWeekDatum(feature, timeFrame="weekly") {
-    var diseases = selectedItems.diseases
-    var thisData = {
-        "data": NaN,
-        "other": NaN,
-        "population": feature.properties.population,
-        "start_date": dayjs().toDate(),
-        "end_date": dayjs().toDate(),
-    }
+  var diseases = selectedItems.diseases;
+  var thisData = {
+    data: NaN,
+    other: NaN,
+    population: feature.properties.population,
+    start_date: dayjs().toDate(),
+    end_date: dayjs().toDate(),
+  };
 
-    if (diseases.length > 0) {
-        // one/many diseases
-        var dataDicts = Object.entries(feature.properties.data).filter(d => diseases.includes(d[0]) && d[1][timeFrame].length > 0)
-        dataDicts = dataDicts.map(d => d[1])
-        var otherDicts = Object.entries(feature.properties.other).filter(d => diseases.includes(d[0]) && d[1][timeFrame].length > 0)
-        otherDicts = otherDicts.map(d => d[1])
+  if (diseases.length > 0) {
+    var dataDicts = Object.entries(feature.properties.data)
+      .filter(([disease, obj]) => 
+        diseases.includes(disease) && obj[timeFrame].length > 0
+      )
+      .map(([_, obj]) => obj);
 
-        var earliestDate = parseDate(regionData.metadata.start_date)
-        var latestDate = parseDate(regionData.metadata.end_date)
-        thisData.start_date = earliestDate
-        thisData.end_date = latestDate
-        if (dataDicts.length > 0) {
-            thisData.data = 0
-            thisData.other = 0
-            for (var data of dataDicts) {
-                thisData.data += data[timeFrame].at(-2)
-            }
-            for (var other of otherDicts) {
-                thisData.other += other[timeFrame].at(-2)
-            }
-        }
-    }
-    
-    // rate applied at end
-    if (mapRateSwitch.value == "rate") {
-        thisData.data = (parseFloat(thisData.data) / (thisData.population / 1000.0)) || 0
-        thisData.other = (parseFloat(thisData.other) / (thisData.population / 1000.0)) || 0
-    }
+    var otherDicts = Object.entries(feature.properties.other)
+      .filter(([disease, obj]) => 
+        diseases.includes(disease) && obj[timeFrame].length > 0
+      )
+      .map(([_, obj]) => obj);
 
-    return thisData
+    var earliestDate = parseDate(regionData.metadata.start_date);
+    var latestDate   = parseDate(regionData.metadata.end_date);
+    thisData.start_date = earliestDate;
+    thisData.end_date   = latestDate;
+
+    if (dataDicts.length > 0) {
+      thisData.data  = 0;
+      thisData.other = 0;
+      for (var obj of dataDicts) {
+        // “last week” means the second‐to‐last entry (index -2)
+        thisData.data += obj[timeFrame].at(-2);
+      }
+      for (var obj of otherDicts) {
+        thisData.other += obj[timeFrame].at(-2);
+      }
+    }
+    // If dataDicts empty, thisData.data/other remain NaN.
+  }
+
+  // Apply rate only if not NaN:
+  if (mapRateSwitch.value === "rate" && !isNaN(thisData.data)) {
+    thisData.data = parseFloat(thisData.data) / (thisData.population / 1000.0);
+  }
+  if (mapRateSwitch.value === "rate" && !isNaN(thisData.other)) {
+    thisData.other = parseFloat(thisData.other) / (thisData.population / 1000.0);
+  }
+
+  return thisData;
 }
+
 
 function getData(feature, timeFrame="weekly") {
     var diseases = selectedItems.diseases
