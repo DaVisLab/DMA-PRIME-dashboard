@@ -143,7 +143,7 @@ function redraw(first = false) {
   }
   
 
-function getColor(feature) {
+  function getColor(feature) {
     // —— 1) Percent Difference Mode ——
     if (mapRateSwitch.value === 'percent') {
       // ─── GRACE: If no diseases are selected OR both thisWeek and lastWeek are NaN,
@@ -182,11 +182,18 @@ function getColor(feature) {
     }
   
     // —— 2) Count or Rate Mode ——
+    // If no diseases are selected at all, show grey (unknownColor)
+    if (selectedItems.diseases.length === 0) {
+      const u = d3.rgb(unknownColor);
+      return [u.r, u.g, u.b];
+    }
+  
     // getLatestDatum already applies population/1000 if “rate” is selected
     const val = getLatestDatum(feature, mapTimeSwitch.value).data;
     const colorObj = d3.rgb(countRateColorMap(val));
     return [colorObj.r, colorObj.g, colorObj.b];
   }
+  
   
   
   
