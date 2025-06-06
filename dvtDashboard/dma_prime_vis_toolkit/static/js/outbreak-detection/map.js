@@ -404,12 +404,12 @@ function drawTooltip(dataObject) {
       popup.remove();
       return;
     }
-  
+
     // 2) Compute “latest” and “previous” values (for percent‐change),
     //    forcing weekly data regardless of the selector.
     const latestDatum = getLatestDatum(dataObject, "weekly").data;
     const prevDatum   = getLastWeekDatum(dataObject, "weekly").data;
-  
+
     // 3) Build a percent‐change label
     let percentLabel;
     if (isNaN(latestDatum) || isNaN(prevDatum)) {
@@ -449,23 +449,23 @@ function drawTooltip(dataObject) {
   
     if (mapTimeSwitch.value === "weekly") {
       // If the user has “Week” selected, show exactly that 7‐day window
-      encounterString += `${fmt(endDate)}<br/>to ${fmt(d3.timeDay.offset(endDate, 6))}`;
+      encounterString += `${fmt(endDate)} to ${fmt(d3.timeDay.offset(endDate, 6))}`;
     } else if (mapTimeSwitch.value === "monthly") {
       // If the user has “Month” selected, still show the last four weeks (28 days)
       const startDate = d3.timeDay.offset(endDate, -4 * 7);
-      encounterString += `${fmt(startDate)}<br/>to ${fmt(d3.timeDay.offset(endDate, 6))}`;
+      encounterString += `${fmt(startDate)} to ${fmt(d3.timeDay.offset(endDate, 6))}`;
     } else {
       // If the user has “Year” selected, still show the last 52 weeks
       const startDate = d3.timeDay.offset(endDate, -52 * 7);
-      encounterString += `${fmt(startDate)}<br/>to ${fmt(d3.timeDay.offset(endDate, 6))}`;
+      encounterString += `${fmt(startDate)} to ${fmt(d3.timeDay.offset(endDate, 6))}`;
     }
     encounterString += ": ";
   
+    var lastVal = parseFloat(getData(dataObject, mapTimeSwitch.value).data.at(-1))
     if (mapRateSwitch.value === "rate") {
-      const lastVal = thisData.data.at(-1);
       encounterString += `${Math.round(lastVal * 1000) / 1000} (per 1000 people)`;
     } else {
-      encounterString += thisData.data.at(-1);
+      encounterString += lastVal;
     }
   
     // 6) Prepare dimensions and clear existing tooltip
@@ -504,6 +504,28 @@ function drawTooltip(dataObject) {
       .html(
         `${d3.select(`sl-option[value=${mapRegionSelector.value}]`).html()}: ${dataObject.properties.identifier}`
       );
+
+    //
+    // ─── “County: YYY” on its own line, directly under the header ───
+    //
+    if (mapRegionSelector.value == "zcta") {
+      ttpDiv
+        .append("p")
+        .attr("class", "tooltip-subtitle")
+        .style("margin", "0px")
+        .style("font-size", "14px")
+        .style("line-height", "1.4em")
+        .html(
+          `County: ${dataObject.properties.county[0].toUpperCase() + dataObject.properties.county.slice(1)}`
+        );
+    }
+    
+
+    // 7a-2) If there's no data on map, say no data and return
+    if (getData(dataObject, mapTimeSwitch.value).data.length < 1) {
+        ttpDiv.append("p").html("No Data")
+        return
+    }
   
     // 7b) RIGHT SIDE of header: Percent‐change
     const rightHeaderCol = headerContainer
@@ -521,22 +543,6 @@ function drawTooltip(dataObject) {
       .style("font-weight", "bold")
       .html(percentLabel);
   
-    //
-    // ─── “County: YYY” on its own line, directly under the header ───
-    //
-    ttpDiv
-      .append("p")
-      .attr("class", "tooltip-subtitle")
-      .style("margin", "0px")
-      .style("font-size", "14px")
-      .style("line-height", "1.4em")
-      .html(
-        `County: ${
-          dataObject.properties.county
-            ? dataObject.properties.county[0].toUpperCase() + dataObject.properties.county.slice(1)
-            : "—"
-        }`
-      );
   
     //
     // ─── Then the “Encounters … to …: N” line ───
