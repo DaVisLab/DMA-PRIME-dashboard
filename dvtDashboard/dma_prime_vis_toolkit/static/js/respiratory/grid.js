@@ -1,5 +1,5 @@
 import { zctaData, historicalDates, currentWeek, dataSourceLineStyle, gridItemDataSources, parseDate, getDataAsArray, drawTooltip } from "/static/js/respiratory/script.js";
-export { gridWidth, gridHeight, updateGridData, sortGrid }
+export { gridWidth, gridHeight, updateGridData, sortGrid, setupGridTooltip }
 
 await Promise.allSettled([ // wait for following to be defined/load in
     customElements.whenDefined('sl-select'),
@@ -58,29 +58,43 @@ function gridInitialVisualization() {
             
             // using sl-tooltip to use shoelace's built in functionality
             var gridTTPContainer = gridItemContainer.append("sl-tooltip")
-                .attr("trigger", "click")
+                .attr("trigger", "manual")
                 .attr("hoist", "")
 
             // set grid tooltip interaction - this happens when grid item is clicked
-            setGridTooltip(gridTTPContainer)
+            gridTTPContainer.on("sl-show", function(event) {
+                setupGridTooltip(d3.select(event.target), false)
+            })
 
             // tooltip
             var gridTTP = gridTTPContainer.append("div")
                 .attr("slot", "content")
                 .attr("id", `grid-${zcta}-tooltip`)
                 .attr("class", `tooltip-div`)
+                .style("padding", "var(--sl-spacing-small) 0")
 
-            var ttpTitle = gridTTP.append("p") // tooltip title
-                .attr("class", "tooltip-title")
-            ttpTitle.append("span")
-                .attr("class", "tooltip-title")
-            ttpTitle.append("br")
-            ttpTitle.append("span")
-                .attr("class", "tooltip-subtitle")
+            gridTTPContainer.node().updateComplete.then(function(a, b) {
+                var slTtpBody = d3.select(gridTTPContainer.node().shadowRoot).select("div[part='body']")
+                slTtpBody.style("pointer-events", "auto")
 
+                slTtpBody.append("sl-icon-button")
+                    .attr("name", "x")
+                    .style("position", "absolute")
+                    .style("right", 0)
+                    .style("top", 0)
+                    .style("color", "black")
+                    .on("click", () => gridTTPContainer.node().open = false)
+            })
+            
+            gridTTP.append("div")
+                .attr("class", "tooltip-region-info")
+            gridTTP.append("div")
+                .attr("class", "tooltip-data-info")
             gridTTP.append("svg") // tooltip graph in svg
                 .attr("id", `grid-${zcta}-tooltip-svg`)
                 .attr("class", `tooltip-outer-svg`)
+            gridTTP.append("div")
+                .attr("class", "tooltip-options")
 
             // main visualization
             var gridDiv = gridTTPContainer.append("div")
@@ -89,6 +103,8 @@ function gridInitialVisualization() {
                 .attr("zcta", zcta)
                 .attr("county", county)
                 .datum(zcta)
+
+            gridDiv.on("click", () => (gridTTPContainer.node().open = !gridTTPContainer.node().open))
 
             var gridSVG = gridDiv.append("svg")
                 .attr("id", `grid-${zcta}-svg`)
@@ -388,7 +404,30 @@ function setGridTooltip(gridTooltip) {
         tooltipData["population"] = thisData.population
 
         // actually draw tooltip
-        drawTooltip(tooltipData, slTTP.select("div[slot='content']"), gridTooltipHeight, gridTooltipWidth, gridRateSwitch.value == "rate", true)
+        drawTooltip(tooltipData, slTTP.select("div[slot='content']"), gridTooltipHeight, gridTooltipWidth, gridRateSwitch.value == "rate", true, [])
     })
+}
+
+function setupGridTooltip(ttpDiv, redraw=false) {
+    var gridTooltipWidth = Math.max(500, gridWidth * .3)
+    var gridTooltipHeight = gridTooltipWidth * .65
+
+    var slTTP = ttpDiv
+    var slTTPDOM = slTTP.node()
+    var ttpDiv = slTTP.select("div[slot='content']")
+    var thisGridContainer = d3.select(slTTPDOM.parentNode)
     
+    var thisData = thisGridContainer.datum().properties
+
+    var tooltipData = thisData.data[mapDiseaseSelector.value]
+    tooltipData["zcta"] = thisData.ZCTA
+    tooltipData["county"] = thisData.county
+    tooltipData["population"] = thisData.population
+
+    var extraDataSources = []
+    if (redraw) {
+        ttpDiv.datum()["extraDataSources"]
+    }
+
+    drawTooltip(tooltipData, ttpDiv, gridTooltipHeight, gridTooltipWidth, gridRateSwitch.value == "rate", true, extraDataSources)
 }

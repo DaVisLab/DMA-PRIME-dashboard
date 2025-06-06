@@ -2,6 +2,9 @@
 
 {% block options %}
 <div id="grid-options" class="sidebar-container">
+
+  <sl-button pill id="grid-close-ttps-button" class="center-self" size="small">Close All</sl-button>
+  <sl-divider class="options-divider"></sl-divider>
   <!-- count vs rate switch -->
   <sl-radio-group value="count" id="{{panel.name}}-rate-switch" class="center-self" size="small">
     <sl-tooltip content="Count of hospitalizations">
@@ -88,6 +91,7 @@
   var gridOptionsHospitalizationsBranch = document.getElementById("grid-options-hospitalizations-branch")
 
   // interactive elements
+  var gridCloseTtpsButton = document.getElementById("grid-close-ttps-button")
   var gridRateSwitch = document.getElementById("grid-rate-switch")
   var gridDiseaseSelector = document.getElementById("grid-disease-selector")
   var gridDataSourceSortSelector = document.getElementById("grid-data-source-sort-selector")

@@ -1,5 +1,9 @@
 import { zctaData, drawTooltip } from "/static/js/respiratory/script.js";
-import { gridWidth, gridHeight, updateGridData, sortGrid } from "/static/js/respiratory/grid.js";
+import { gridWidth, gridHeight, updateGridData, sortGrid, setupGridTooltip } from "/static/js/respiratory/grid.js";
+
+gridCloseTtpsButton.addEventListener("click", () => {
+    d3.selectAll(".grid-container > sl-tooltip").each(function(_) {this.open = false})
+})
 
 gridContainerResizer.addEventListener("sl-resize", () => {
     updateGridData()
@@ -12,22 +16,7 @@ gridSort.addEventListener("sl-change", (event) => {
 gridRateSwitch.addEventListener("sl-change", (event) => {
     d3.select(gridContainer).selectAll("sl-tooltip[open]")
         .each(function(d, i) {
-            var gridTooltipWidth = Math.max(500, gridWidth * .3)
-            var gridTooltipHeight = gridTooltipWidth * .65
-    
-            var slTTP = d3.select(this)
-            var slTTPDOM = slTTP.node()
-            var thisGridContainer = d3.select(slTTPDOM.parentNode)
-    
-            var thisData = thisGridContainer.datum().properties
-    
-            var tooltipData = thisData.data[mapDiseaseSelector.value]
-            tooltipData["zcta"] = thisData.ZCTA
-            tooltipData["county"] = thisData.county
-            tooltipData["population"] = thisData.population
-
-            drawTooltip(thisData, slTTP.select("div[slot='content']"), gridTooltipHeight, gridTooltipWidth, gridRateSwitch.value == "rate")
-
+            setupGridTooltip(d3.select(this), true)
         })
     updateGridData()
 })

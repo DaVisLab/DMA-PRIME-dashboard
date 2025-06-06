@@ -33,6 +33,7 @@ const map = new maplibregl.Map({
 await map.once('load')
 
 var popup = new maplibregl.Popup({focusAfterOpen: false, closeOnClick: false})
+d3.select(popup.getElement()).style("color", "var(--sl-color-neutral-0)")
 
 const deckOverlay = new MapboxOverlay({
     interleaved: true,

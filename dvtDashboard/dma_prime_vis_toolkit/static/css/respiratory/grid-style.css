@@ -84,7 +84,7 @@
 }
 
 .grid-container sl-tooltip::part(body), .grid-container sl-tooltip::part(base__arrow) {
-  background-color: var(--sl-color-neutral-1000);
+  background-color: white;
 }
 
 p, text {

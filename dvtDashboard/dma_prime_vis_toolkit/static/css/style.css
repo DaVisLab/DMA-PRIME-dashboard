@@ -19,6 +19,7 @@
   }
   
   .center-self {
+    align-self: center;
     justify-self: center;
   }
   

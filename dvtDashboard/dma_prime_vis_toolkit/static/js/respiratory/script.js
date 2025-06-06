@@ -29,7 +29,6 @@ var formatInt = d3.format(".0f")
 let dataVersion = 0
 
 var gridItemDataSources = ["health-system-data", "state-training", "state-testing"]
-var ttpDataSources = ["health-system-data", "state-training", "state-testing", "state-data"]
 
 var unknownColor = d3.hsl("#CCCCCC")
 
@@ -38,6 +37,7 @@ var dataSourceColorMap = {
     "state-data": "#785EF0",
     "state-training": "#FFB000",
     "state-testing": "#FFB000",
+    "state-estimation": "#FFB000",
     "state-prediction": "#FE6100",
 }
 
@@ -46,7 +46,8 @@ var dataSourceDisplayName = {
     "state-data": "State Data",
     "state-training": "Prediction (training)",
     "state-testing": "Prediction (test)",
-    "state-prediction": "Future Prediction",
+    "state-estimation": "Estimated",
+    "state-prediction": "Projected",
 }
 
 var dataSourceLineStyle = {
@@ -151,61 +152,87 @@ function fixCoord(coord) {
     return parseFloat(coord)
 }
 
-function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false) {
+function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false, extraDataSources=[]) {
     var data = JSON.parse(JSON.stringify(d))
+    div.datum({"extraDataSources": extraDataSources})
 
-    var p = div.select("p")
+    // creating titles/subtitles
+    var regionInfo = div.select(".tooltip-region-info")
+    regionInfo.node().innerHTML = ""
     if (grid) {
-        p.select(".tooltip-title").html(`Zip Code: ${data.zcta}`)
+        regionInfo.append("p").html(`Zip Code: ${data.zcta}`)
     } else {
         if (mapRegionSelector.value != "state") {
-            p.select(".tooltip-title").html(`${metadata.region_sizes[mapRegionSelector.value]}: ${data.id}`)
+            regionInfo.append("p").html(`${metadata.region_sizes[mapRegionSelector.value]}: ${data.id}`)
         } else {
-            p.select(".tooltip-title").html("State")
+            regionInfo.append("p").html("State")
         }
     }
     if (mapRegionSelector.value == "zcta" || grid) {
-        p.select(".tooltip-subtitle").html(`County: ${data.county[0].toUpperCase()+data.county.substring(1)}`)
-        
-        if (data['state-testing'].data.length > 0) {
-            let tempDate = parseDate(data['state-testing']['start-date'])
-            let tempEndDate = d3.timeDay.offset(tempDate, (data['state-testing'].data.length-1)*7)
-            var formatDate = d3.timeFormat("%b %d, %Y")
-            var tooltipString = `Predicted Hospitalizations from ${formatDate(tempDate)} to ${formatDate(tempEndDate)}`
-            if (data["state-prediction"].data.length) {
-                tempDate = parseDate(data['state-prediction']['start-date'])
-                tempEndDate = d3.timeDay.offset(tempDate, (data['state-prediction'].data.length-1)*7)
-                tooltipString += `<br/>and Projected Hospitalizations from ${formatDate(tempDate)} to ${formatDate(tempEndDate)}`
-            }
-            if (rate) {
-                tooltipString = 'Rate of ' + tooltipString + ' (per 1000 people)'
-            }
-            p.select(".tooltip-subtitle-2").html(tooltipString)  
+        regionInfo.append("p").html(`County: ${data.county[0].toUpperCase()+data.county.substring(1)}`)
+    }
 
-        } else {
-            p.select(".tooltip-subtitle-2").html('')
-        }
+    var dataInfo = div.select(".tooltip-data-info")
+    dataInfo.node().innerHTML = ""
+    if (rate) {
+        dataInfo.append("p").html(`Rate of Hospitalizations (per 1000 people)`)
     } else {
-        if (data['state-testing'].data.length > 0) {
-            let tempDate = parseDate(data['state-testing']['start-date'])
-            let tempEndDate = d3.timeDay.offset(tempDate, (data['state-testing'].data.length-1)*7)
-            var formatDate = d3.timeFormat("%b %d, %Y")
-            var tooltipString = `Predicted Hospitalizations from ${formatDate(tempDate)} to ${formatDate(tempEndDate)}`
-            if (data["state-prediction"].data.length) {
-                tempDate = parseDate(data['state-prediction']['start-date'])
-                tempEndDate = d3.timeDay.offset(tempDate, (data['state-prediction'].data.length-1)*7)
-                tooltipString += `<br/>and Projected Hospitalizations from ${formatDate(tempDate)} to ${formatDate(tempEndDate)}`
-            }
-            if (rate) {
-                tooltipString = 'Rate of ' + tooltipString + ' (per 1000 people)'
-            }
-            p.select(".tooltip-subtitle").html(tooltipString)
-        } else {
-            p.select(".tooltip-subtitle").html('')
+        dataInfo.append("p").html(`Count of Hospitalizations`)
+    }
+    if (data['state-testing'].data.length > 0) {
+        let tempDate = parseDate(data['state-testing']['start-date'])
+        let tempEndDate = d3.timeDay.offset(tempDate, (data['state-testing'].data.length-1)*7)
+        var formatDate = d3.timeFormat("%b %d, %Y")
+        var tooltipString = `Estimated Hospitalizations from ${formatDate(tempDate)} to ${formatDate(tempEndDate)}`
+        dataInfo.append("p").html(tooltipString)
+        if (data["state-prediction"].data.length) {
+            tempDate = parseDate(data['state-prediction']['start-date'])
+            tempEndDate = d3.timeDay.offset(tempDate, (data['state-prediction'].data.length-1)*7)
+            tooltipString = `Projected Hospitalizations from ${formatDate(tempDate)} to ${formatDate(tempEndDate)}`
+            dataInfo.append("p").html(tooltipString)  
         }
     }
 
-    var ttpLegendTop = ttpHeight - 2.5*em
+    // adding data source inclusion buttions
+    var ttpOptions = div.select(".tooltip-options").html("")
+    Array("health-system-data", "state-data").forEach(function(dataSource, i) {
+        var buttonText = dataSourceDisplayName[dataSource]
+        if (extraDataSources.includes(dataSource)) {
+            buttonText = "Remove " + buttonText
+        } else {
+            buttonText = "Add " + buttonText
+        }
+
+        var button = ttpOptions.append("sl-button")
+            .html(buttonText)
+            .attr("size", "small")
+
+        button.node().updateComplete.then(() => {
+            d3.select(button.node().shadowRoot).select("[part=base]")
+                .style("background-color", "white")
+                .style("border-color", dataSourceColorMap[dataSource])
+                .style("color", dataSourceColorMap[dataSource])
+        })
+
+        function ttpOptionsHandler(extraDataSources, dataSource) {
+            if (extraDataSources.includes(dataSource)) {
+                extraDataSources.splice(extraDataSources.indexOf(dataSource), 1)
+            } else {
+                extraDataSources.push(dataSource)
+            }
+            drawTooltip(d, div, ttpHeight, ttpWidth, rate, grid, extraDataSources)
+        }
+        button.on("click", () => {ttpOptionsHandler(extraDataSources, dataSource)})
+
+        var icon = button.append("sl-icon")
+            .attr("slot", "prefix")
+            .attr("name", "graph-up")
+            .style("color", dataSourceColorMap[dataSource])
+
+    })
+
+    // draw graph
+    var ttpLegendTop = ttpHeight - 1*em
 
     var ttpSVG = div.select(".tooltip-outer-svg")
         .attr("height", ttpHeight)
@@ -232,7 +259,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false) {
 
     var countMax = rate ? 1/d.population : 1
 
-    ttpDataSources.forEach(function(dataSource) {
+    Array("state-training", "state-testing", "state-prediction", ...extraDataSources).forEach(function(dataSource) {
         if (rate) {
             data[dataSource].data = d[dataSource].data.map(function(item) { return item/d.population * 1000} )
         }
@@ -253,10 +280,11 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false) {
     var temp = ttpSVG.append("text").text(d3.format(".2r")(countMax)).attr("x", 0).attr("y", 0)
     var ttpMargins = {
         "top": 1*em, 
-        "bottom": 2.5*em + 3*em,
+        "bottom": 1*em + 2*em + 1*em,
         "left": Math.max(20, temp.node().getBBox().width) + 2*em,
         "right": em,
     }
+    var ttpGraphWidth = ttpWidth - ttpMargins.right - ttpMargins.left
 
     var yScale = d3.scaleLinear()
         .domain([0, countMax])        
@@ -265,74 +293,47 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false) {
 
     var xScaleHistorical = d3.scaleTime()
         .domain(d3.extent(historicalDates))
-        .range([ttpMargins.left, ttpMargins.left + (ttpWidth - ttpMargins.right - ttpMargins.left)*ttpHistoryWidthPercentage]) 
+        .range([ttpMargins.left, ttpMargins.left + ttpGraphWidth*ttpHistoryWidthPercentage]) 
     var xScalePrediction = d3.scaleTime()
         .domain(d3.extent(predictionDates))
-        .range([ttpMargins.left + (ttpWidth - ttpMargins.right - ttpMargins.left)*ttpHistoryWidthPercentage, ttpWidth - ttpMargins.right]) 
+        .range([ttpMargins.left + ttpGraphWidth*ttpHistoryWidthPercentage, ttpWidth - ttpMargins.right]) 
 
-    // line generators
-    var historicalLine = function(data) {
-        var thisStartDate = parseDate(data["start-date"])
+    var historicalGroup = graphSVG.append("g")
+    var historicalBarWidth = ttpGraphWidth*ttpHistoryWidthPercentage / historicalDates.length
+
+    Array("state-training", "state-testing").forEach(function(dataSource, i) {
+        var thisData = data[dataSource]
+        var thisStartDate = parseDate(thisData["start-date"])
         var startIndex = historicalDates.findIndex((d) => d.getTime() == thisStartDate.getTime())
 
-        return d3.line()
-            .x((_, i) => xScaleHistorical(historicalDates[i+startIndex]))
-            .y((d, i) => yScale(d))
-            .curve(d3.curveMonotoneX)(data.data)
-    }
-
-    var predictionLine = function(data) {
-        var thisStartDate = parseDate(data["start-date"])
-        var startIndex = predictionDates.findIndex((d) => d.getTime() == thisStartDate.getTime())
-
-        return d3.line()
-            .x((_, i) => xScalePrediction(predictionDates[i+startIndex]))
-            .y((d, i) => yScale(d))
-            .curve(d3.curveMonotoneX)(data.data)
-    }
-
-    ttpDataSources.forEach(function(dataSource, i) {
-        var thisData = data[dataSource]
-        // draw historical line chart
-        var historicalGroup = graphSVG.append("g")
-        historicalGroup.append("path")
-            .attr("d", historicalLine(thisData))
-            .attr("stroke", dataSourceColorMap[dataSource])
-            .attr("fill", "none")
-            .attr("stroke-width", 2)
-            .style("stroke-dasharray", dataSourceLineStyle[`${dataSource}-tooltip`])
-        
-        var labelGroup = ttpLegend.append("g")
-            .attr("class", "tooltip-label-group")
-        labelGroup.append("line")
-            .attr("x1", 1*em + ((ttpWidth-2*em)/3 * (i%2)))
-            .attr("y1", ttpLegendTop + .75*em + em * parseInt(i/2))
-            .attr("x2", 2.25*em + ((ttpWidth-2*em)/3 * (i%2)))
-            .attr("y2", ttpLegendTop + .75*em + em * parseInt(i/2))
-            .style("stroke-dasharray", dataSourceLineStyle[`${dataSource}-tooltip`])
-            .attr("stroke", dataSourceColorMap[dataSource])
-        var labelText = labelGroup.append("text")
-            .attr("class", "tooltip-label")
-            .attr("x", 2.5*em + ((ttpWidth-2*em)/3 * (i%2)))
-            .attr("y", ttpLegendTop + em + em * parseInt(i/2))
+        historicalGroup.append("g")
+            .selectAll("rect")
+            .data(thisData.data)
+            .enter()
+            .append("rect")
+            .attr("x", (_, i) => {return xScaleHistorical(historicalDates[i+startIndex])})
+            .attr("y", d => {return yScale(d)})
+            .attr("height", d => yScale(0) - yScale(d))
+            .attr("width", historicalBarWidth)
             .attr("fill", dataSourceColorMap[dataSource])
-            .attr("font-size", "var(--sl-font-size-small)")
-            .text(dataSourceDisplayName[dataSource])
     })
 
+    var predictionGroup = graphSVG.append("g")
+    var predictionBarWidth = ttpGraphWidth*(1-ttpHistoryWidthPercentage) / predictionDates.length
+
     var stateCurrentLabelPositionAbove = null
-    if (predictionData.data.length) {
-        
+    if (predictionData.data.length) {     
         graphSVG.append("rect")
             .attr("class", "tooltip-prediction-highlighter")
 
         // draw predictive line chart
         var predictiveGroup = graphSVG.append("g")
         predictiveGroup.append("path")
-            .attr("d", predictionLine(predictionData))
-            .attr("stroke", dataSourceColorMap["state-prediction"])
-            .attr("fill", "none")
-            .attr("stroke-width", 2)
+            // .attr("d", predictionLine(predictionData))
+            .attr("d", ttpAreaFunction(predictionData, predictionDates, xScalePrediction, yScale))
+            // .attr("stroke", dataSourceColorMap["state-prediction"])
+            .attr("fill", dataSourceColorMap["state-prediction"])
+            // .attr("stroke-width", 2)
 
         // marks each datapoint on prediction line
         predictiveGroup.selectAll("circle").data(predictionData.data)
@@ -343,7 +344,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false) {
             .attr("cy", (d) => yScale(d))
             .attr("stroke", dataSourceColorMap["state-prediction"])
 
-            // highlights predictive data
+        // highlights predictive data
         graphSVG.select(".tooltip-prediction-highlighter")
             .attr("x", xScalePrediction.range()[0])
             .attr("y", ttpMargins.top)
@@ -357,28 +358,44 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false) {
             .attr("x2", xScalePrediction.range()[0])
             .attr("y2", ttpHeight - ttpMargins.bottom)
 
-        var labelGroup = ttpLegend.append("g")
-            .attr("class", "tooltip-label-group")
-        labelGroup.append("line")
-            .attr("x1", 2.5*em + ((ttpWidth-2*em)/3 * 2))
-            .attr("y1", ttpLegendTop + .75*em + em*.5)
-            .attr("x2", 3.75*em + ((ttpWidth-2*em)/3 * 2))
-            .attr("y2", ttpLegendTop + .75*em + em*.5)
-            .attr("stroke", dataSourceColorMap["state-prediction"])
-        var labelText = labelGroup.append("text")
-            .attr("class", "tooltip-label")
-            .attr("x", 4*em + ((ttpWidth-2*em)/3 * 2))
-            .attr("y", ttpLegendTop + em + em *.5)
-            .attr("fill", dataSourceColorMap["state-prediction"])
-            .attr("font-size", "var(--sl-font-size-small)")
-            .text(dataSourceDisplayName["state-prediction"])
-
         stateCurrentLabelPositionAbove = predictionData.data[0] > predictionData.data[1]
     }
 
-    
-    ["state-testing", "health-system-data"].forEach(function(dataSource) {
+    Array("state-estimation", "state-prediction").forEach(function(dataSource, i) {
+        var labelGroup = ttpLegend.append("g")
+            .attr("class", "tooltip-label-group")
+        labelGroup.append("rect")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("height", .5*em)
+            .attr("width", .5*em)
+            .attr("fill", dataSourceColorMap[dataSource])
+        var labelText = labelGroup.append("text")
+            .attr("class", "tooltip-label")
+            .attr("x", 1*em)
+            .attr("y", .25*em)
+            .attr("fill", dataSourceColorMap[dataSource])
+            .attr("font-size", "var(--sl-font-size-small)")
+            .style("dominant-baseline", "middle")
+            .text(dataSourceDisplayName[dataSource])
+
+        var bbox = labelGroup.node().getBBox()
+        labelGroup.attr("transform", `translate(${1*em + ((ttpWidth-2*em)*(i+1)/3) - bbox.width/2}, ${ttpLegendTop})`)
+
+    })
+        
+
+    extraDataSources.forEach(function(dataSource) {
         var thisData = data[dataSource]
+
+        // draw historical line chart
+        historicalGroup.append("path")
+            .attr("d", ttpLineFunction(thisData, historicalDates, xScaleHistorical, yScale))
+            .attr("stroke", dataSourceColorMap[dataSource])
+            .attr("fill", "none")
+            .attr("stroke-width", 3)
+            .style("stroke-dasharray", dataSourceLineStyle[`${dataSource}-tooltip`])
+        
         var historicalLabels = graphSVG.append("g")
 
         var thisStartDate = parseDate(thisData["start-date"])
@@ -473,4 +490,26 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false) {
 
     temp.remove()
 
+}
+
+var ttpLineFunction = function(data, dates, xScale, yScale) {
+    var thisStartDate = parseDate(data["start-date"])
+    var startIndex = dates.findIndex((d) => d.getTime() == thisStartDate.getTime())
+
+    return d3.line()
+        .x((_, i) => xScale(dates[i+startIndex]))
+        .y((d, i) => yScale(d))
+        .curve(d3.curveMonotoneX)(data.data)
+}
+
+var ttpAreaFunction = function(data, dates, xScale, yScale) {
+    var thisStartDate = parseDate(data["start-date"])
+    var startIndex = dates.findIndex((d) => d.getTime() == thisStartDate.getTime())
+    var y0 = yScale(0)
+
+    return d3.area()
+        .x((_, i) => xScale(dates[i+startIndex]))
+        .y0(y0)
+        .y1((d, i) => yScale(d))
+        .curve(d3.curveMonotoneX)(data.data)
 }

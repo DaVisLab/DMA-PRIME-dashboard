@@ -2,22 +2,21 @@
   background-color: white;
 }
 
-p.tooltip-title {
-  /* tooltip title object as a whole */
-  margin: 0;
-  padding-top: var(--sl-spacing-x-small);
-  text-align: center;
-  color: black;
-}
 
-.tooltip-title {
-  /* title span */
+div.tooltip-region-info, div.tooltip-options {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
   font-size: var(--sl-font-size-small);
 }
 
-.tooltip-subtitle, .tooltip-subtitle-2 {
-  /* subtitle span */
+div.tooltip-data-info {
+  text-align: center;
   font-size: var(--sl-font-size-x-small);
+}
+
+div.tooltip-div p {
+  color: black;
 }
 
 .tooltip.text {
