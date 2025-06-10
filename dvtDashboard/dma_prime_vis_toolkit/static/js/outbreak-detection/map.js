@@ -629,18 +629,56 @@ function drawAggregation() {
 }
 
 function updateDiseaseCountDisplay() {
-    var diseases = d3.selectAll(".disease-checkbox").nodes().map(d => d.getAttribute("disease")) 
-    var allCount = 0
-    diseases.forEach(disease => {
-        var val = stateFeature.properties.data[disease][mapTimeSwitch.value].at(-1)
-        if (mapRateSwitch.value == "rate") {
-            val /= (stateFeature.properties.population / 1000.0)
-        }
-        allCount += val
-        d3.select(`#map-${disease}-count`).html(`(${Math.round(val * 1000) / 1000})`)
-    })
-    d3.select("#map-all-count").html(`(${Math.round(allCount * 1000) / 1000})`)
+  // 1) grab all disease keys
+  const diseases = d3.selectAll(".disease-checkbox").nodes()
+    .map(d => d.getAttribute("disease"));
+
+  let allCount = 0, allPrev = 0;
+
+  // 2) for each disease compute current & previous, then render
+  diseases.forEach(disease => {
+    let val     = stateFeature.properties.data[disease][mapTimeSwitch.value].at(-1);
+    let prevVal = stateFeature.properties.data[disease][mapTimeSwitch.value].at(-2) || 0;
+
+    if (mapRateSwitch.value === "rate") {
+      val     /= (stateFeature.properties.population / 1000);
+      prevVal /= (stateFeature.properties.population / 1000);
+    }
+
+    allCount += val;
+    allPrev  += prevVal;
+
+    if (mapRateSwitch.value === "percent") {
+      // compute and sign the percent‐change
+      const rawPct = prevVal !== 0
+        ? ((val - prevVal) / Math.abs(prevVal)) * 100
+        : 0;
+      const pct  = Math.round(rawPct * 10) / 10;           // one decimal
+      const sign = pct >= 0 ? "+" : "";                    // prefix
+      d3.select(`#map-${disease}-count`)
+        .html(`(${Math.round(val * 1000) / 1000}, ${sign}${pct}%)`);
+    } else {
+      d3.select(`#map-${disease}-count`)
+        .html(`(${Math.round(val * 1000) / 1000})`);
+    }
+  });
+
+  // 3) Update “All Diseases” label likewise
+  if (mapRateSwitch.value === "percent") {
+    const rawAll = allPrev !== 0
+      ? ((allCount - allPrev) / Math.abs(allPrev)) * 100
+      : 0;
+    const pctAll  = Math.round(rawAll * 10) / 10;
+    const signAll = pctAll >= 0 ? "+" : "";
+    d3.select("#map-all-count")
+      .html(`(N=${Math.round(allCount * 1000) / 1000}, % change = ${signAll}${pctAll}%)`);
+  } else {
+    d3.select("#map-all-count")
+      .html(`(${Math.round(allCount * 1000) / 1000})`);
+  }
 }
+
+
 
 function getLatestDatum(feature, timeFrame="weekly") {
   var diseases = selectedItems.diseases;
