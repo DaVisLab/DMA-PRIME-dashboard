@@ -152,12 +152,15 @@ function fixCoord(coord) {
     return parseFloat(coord)
 }
 
-function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false, extraDataSources=[]) {
+function drawTooltip(d, ttpSVG, header, footer, rate=false, grid=false, extraDataSources=[]) {
+    var ttpHeight = ttpSVG.node().clientHeight
+    var ttpWidth = ttpSVG.node().clientWidth
+    
     var data = JSON.parse(JSON.stringify(d))
-    div.datum({"extraDataSources": extraDataSources})
+    ttpSVG.datum({"extraDataSources": extraDataSources})
 
     // creating titles/subtitles
-    var regionInfo = div.select(".tooltip-region-info")
+    var regionInfo = header.select(".tooltip-region-info")
     regionInfo.node().innerHTML = ""
     if (grid) {
         regionInfo.append("p").html(`Zip Code: ${data.zcta}`)
@@ -172,7 +175,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false, extraD
         regionInfo.append("p").html(`County: ${data.county[0].toUpperCase()+data.county.substring(1)}`)
     }
 
-    var dataInfo = div.select(".tooltip-data-info")
+    var dataInfo = header.select(".tooltip-data-info")
     dataInfo.node().innerHTML = ""
     if (rate) {
         dataInfo.append("p").html(`Rate of Hospitalizations (per 1000 people)`)
@@ -194,7 +197,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false, extraD
     }
 
     // adding data source inclusion buttions
-    var ttpOptions = div.select(".tooltip-options").html("")
+    var ttpOptions = footer.select(".tooltip-options").html("")
     Array("health-system-data", "state-data").forEach(function(dataSource, i) {
         var buttonText = dataSourceDisplayName[dataSource]
         if (extraDataSources.includes(dataSource)) {
@@ -220,7 +223,7 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false, extraD
             } else {
                 extraDataSources.push(dataSource)
             }
-            drawTooltip(d, div, ttpHeight, ttpWidth, rate, grid, extraDataSources)
+            drawTooltip(d, ttpSVG, header, footer, rate, grid, extraDataSources)
         }
         button.on("click", () => {ttpOptionsHandler(extraDataSources, dataSource)})
 
@@ -233,10 +236,6 @@ function drawTooltip(d, div, ttpHeight, ttpWidth, rate=false, grid=false, extraD
 
     // draw graph
     var ttpLegendTop = ttpHeight - 1*em
-
-    var ttpSVG = div.select(".tooltip-outer-svg")
-        .attr("height", ttpHeight)
-        .attr("width", ttpWidth)
 
     // reset tooltip contents for new data
     ttpSVG.node().innerHTML = ""

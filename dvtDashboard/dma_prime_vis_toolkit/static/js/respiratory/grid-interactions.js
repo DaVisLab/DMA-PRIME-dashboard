@@ -1,4 +1,4 @@
-import { zctaData, drawTooltip } from "/static/js/respiratory/script.js";
+import { zctaData } from "/static/js/respiratory/script.js";
 import { gridWidth, gridHeight, updateGridData, sortGrid, setupGridTooltip } from "/static/js/respiratory/grid.js";
 
 gridCloseTtpsButton.addEventListener("click", () => {

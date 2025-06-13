@@ -1,3 +1,7 @@
+.dialog-width {
+  --width: 65vw;
+}
+
 .tooltip-div {
   background-color: white;
 }
@@ -45,3 +49,4 @@ div.tooltip-div p {
 .y-axis:not(.map-state-hospitalizations *) :is(path,line), :is(.x-axis-historical, .x-axis-prediction) :is(path,line) {
   stroke: black
 }
+

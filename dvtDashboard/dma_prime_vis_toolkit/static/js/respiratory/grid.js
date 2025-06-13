@@ -62,7 +62,7 @@ function gridInitialVisualization() {
                 .attr("hoist", "")
 
             // set grid tooltip interaction - this happens when grid item is clicked
-            gridTTPContainer.on("sl-show", function(event) {
+            gridTTPContainer.on("sl-after-show", function(event) {
                 setupGridTooltip(d3.select(event.target), false)
             })
 
@@ -86,14 +86,18 @@ function gridInitialVisualization() {
                     .on("click", () => gridTTPContainer.node().open = false)
             })
             
-            gridTTP.append("div")
+            var gridTTPHeader = gridTTP.append("div")
+                .attr("class", "tooltip-header")
+            gridTTPHeader.append("div")
                 .attr("class", "tooltip-region-info")
-            gridTTP.append("div")
+            gridTTPHeader.append("div")
                 .attr("class", "tooltip-data-info")
             gridTTP.append("svg") // tooltip graph in svg
                 .attr("id", `grid-${zcta}-tooltip-svg`)
                 .attr("class", `tooltip-outer-svg`)
-            gridTTP.append("div")
+            var gridTTPFooter = gridTTP.append("div")
+                .attr("class", "tooltip-footer")
+            gridTTPFooter.append("div")
                 .attr("class", "tooltip-options")
 
             // main visualization
@@ -384,38 +388,13 @@ function sortGrid() {
     }
 }
 
-function setGridTooltip(gridTooltip) {
-    // draw the tooltip for each grid item
-    gridTooltip.on("sl-show", function(event) {
-        // get data/parameters together for drawing the tooltip         
-        var gridTooltipWidth = Math.max(500, gridWidth * .3)
-        var gridTooltipHeight = gridTooltipWidth * .65
-
-        var slTTPDOM = event.target
-        var slTTP = d3.select(slTTPDOM)
-            .style("--max-width", gridTooltipWidth*1.2)
-        var thisGridContainer = d3.select(slTTPDOM.parentNode)
-
-        var thisData = thisGridContainer.datum().properties
-
-        var tooltipData = thisData.data[mapDiseaseSelector.value]
-        tooltipData["zcta"] = thisData.ZCTA
-        tooltipData["county"] = thisData.county
-        tooltipData["population"] = thisData.population
-
-        // actually draw tooltip
-        drawTooltip(tooltipData, slTTP.select("div[slot='content']"), gridTooltipHeight, gridTooltipWidth, gridRateSwitch.value == "rate", true, [])
-    })
-}
-
 function setupGridTooltip(ttpDiv, redraw=false) {
     var gridTooltipWidth = Math.max(500, gridWidth * .3)
     var gridTooltipHeight = gridTooltipWidth * .65
 
     var slTTP = ttpDiv
-    var slTTPDOM = slTTP.node()
-    var ttpDiv = slTTP.select("div[slot='content']")
-    var thisGridContainer = d3.select(slTTPDOM.parentNode)
+    var ttpSVG = slTTP.select(".tooltip-outer-svg")
+    var thisGridContainer = d3.select(slTTP.node().parentNode)
     
     var thisData = thisGridContainer.datum().properties
 
@@ -426,8 +405,11 @@ function setupGridTooltip(ttpDiv, redraw=false) {
 
     var extraDataSources = []
     if (redraw) {
-        ttpDiv.datum()["extraDataSources"]
+        ttpSVG.datum()["extraDataSources"]
     }
 
-    drawTooltip(tooltipData, ttpDiv, gridTooltipHeight, gridTooltipWidth, gridRateSwitch.value == "rate", true, extraDataSources)
+    ttpSVG.attr("width", gridTooltipWidth)
+    ttpSVG.attr("height", gridTooltipHeight)
+
+    drawTooltip(tooltipData, ttpSVG, slTTP.select(".tooltip-header"), slTTP.select(".tooltip-footer"), gridRateSwitch.value == "rate", true, extraDataSources)
 }

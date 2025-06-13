@@ -99,51 +99,79 @@
   <p id="map-title">Count of Covid-19 Hospitalizations in South Carolina by Region</p>
 </div>
 
+<sl-dialog id="map-tooltip-large" class="dialog-width" >
+  <div>
+    <div class="tooltip-header">
+      <div class="tooltip-region-info"></div>
+      <div class="tooltip-data-info"></div>
+    </div>
+    <sl-resize-observer id="map-tooltip-large-resizer">
+      <svg id="map-tooltip-large-svg" class="tooltip-outer-svg"></svg>
+    </sl-resize-observer>
+    <div class="tooltip-footer">
+      <div class="tooltip-options"></div>
+    </div>
+  </div>  
+</sl-dialog>
+
 {% endblock %}
 
 {% block scripts %}
-<script>
-  dataVersion = 0
-  mapResetButton = document.getElementById("map-reset-button")
-  mapTypeSwitch = document.getElementById("map-type-switch")
+  <!-- 1) MapLibre GL CSS & JS (required for maplibregl.Map) -->
+  <link
+    href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css"
+    rel="stylesheet"
+  />
+  <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
 
-  mapDiseaseSelector = document.getElementById("map-disease-selector")
-  mapRegionSelector = document.getElementById("map-region-selector")
-  mapDataSourceSelector = document.getElementById("map-data-source-selector")
-  mapOptionsTitleToggle = document.getElementById("map-options-title-toggle")
-  mapOptionsGeographicLabelsToggle = document.getElementById("map-options-geographic-labels-toggle")
-  hospitalIconsToggle = document.getElementById("map-options-hospital-icons-toggle")
-  mobileClinicIconsToggle = document.getElementById("map-options-mobile-clinic-icons-toggle")
-  communityPartnerIconsToggle = document.getElementById("map-options-community-partner-icons-toggle")
-  mapIncludeImputations = document.getElementById("map-include-imputations")
+  <!-- 2) Deck.gl UMD bundle (pin to 8.9.27) -->
+  <script src="https://unpkg.com/deck.gl@8.9.27/dist.min.js"></script>
 
-  // aggregation visualization elements
-  mapStateHospitalizationsSubtitle = document.getElementById("map-state-hospitalizations-subtitle")
-  mapStateHospitalizationsResizer = document.getElementById("map-state-hospitalizations-resizer")
-  mapStateHospitalizationsSvg = document.getElementById("map-state-hospitalizations-svg")
-  mapStateHospitalizationsLarge = document.getElementById("map-state-hospitalizations-large")
-  mapStateHospitalizationsLargeSubtitle = document.getElementById("map-state-hospitalizations-large-subtitle")
-  mapStateHospitalizationsLargeResizer = document.getElementById("map-state-hospitalizations-large-resizer")
-  mapStateHospitalizationsLargeSvg = document.getElementById("map-state-hospitalizations-large-svg")
+  <!-- 3) Loaders.gl core & images (pin to 3.2.0) -->
+  <script src="https://unpkg.com/@loaders.gl/core@3.2.0/dist.min.js"></script>
+  <script src="https://unpkg.com/@loaders.gl/images@3.2.0/dist.min.js"></script>
+    <!-- 4a) Tell loaders.gl about the ImageLoader so deck.gl can decode your atlas -->
+  <script>
+    loaders.registerLoaders(loaders.ImageLoader);
+  </script>
   
-  mapTitle = document.getElementById("map-title")
-  mapDiv = document.getElementById("map-div")
-  choroplethLegendSVG = document.getElementById("choropleth-legend-svg")
 
-</script>
+  <!-- 4) Your initialization + controls (unchanged) -->
+  <script>
+    dataVersion = 0;
 
-<script src="{{ url_for('static', filename='js/respiratory/map.js') }}" type="module"></script>
-<script src="{{ url_for('static', filename='js/respiratory/map-interactions.js') }}" type="module"></script>
+    // Map controls
+    mapResetButton                  = document.getElementById("map-reset-button");
+    mapTypeSwitch                   = document.getElementById("map-type-switch");
+    mapDiseaseSelector              = document.getElementById("map-disease-selector");
+    mapRegionSelector               = document.getElementById("map-region-selector");
+    mapDataSourceSelector           = document.getElementById("map-data-source-selector");
+    mapIncludeImputations           = document.getElementById("map-include-imputations");
 
-<script type="module">
-  await Promise.allSettled([ // wait for following to be defined/load in
-        customElements.whenDefined('sl-tab-group'),
-        customElements.whenDefined('sl-button'),
-        customElements.whenDefined('sl-resize-observer'),
-        customElements.whenDefined('sl-split-panel'),
-        customElements.whenDefined('sl-tab'),
-    ])
-  set{{panel.name}}Panel()
+    // Optional toggles
+    mapOptionsTitleToggle           = document.getElementById("map-options-title-toggle");
+    mapOptionsGeographicLabelsToggle= document.getElementById("map-options-geographic-labels-toggle");
+    hospitalIconsToggle             = document.getElementById("map-options-hospital-icons-toggle");
+    mobileClinicIconsToggle         = document.getElementById("map-options-mobile-clinic-icons-toggle");
+    communityPartnerIconsToggle     = document.getElementById("map-options-community-partner-icons-toggle");
 
-</script>
+    // State–level chart elements
+    mapStateHospitalizationsSubtitle = document.getElementById("map-state-hospitalizations-subtitle");
+    mapStateHospitalizationsResizer  = document.getElementById("map-state-hospitalizations-resizer");
+    mapStateHospitalizationsSvg      = document.getElementById("map-state-hospitalizations-svg");
+    mapStateHospitalizationsLarge    = document.getElementById("map-state-hospitalizations-large");
+    mapStateHospitalizationsLargeSubtitle = document.getElementById("map-state-hospitalizations-large-subtitle");
+    mapStateHospitalizationsLargeResizer  = document.getElementById("map-state-hospitalizations-large-resizer");
+    mapStateHospitalizationsLargeSvg = document.getElementById("map-state-hospitalizations-large-svg");
+
+    // Main map, legend, title & tooltip
+    mapDiv               = document.getElementById("map-div");
+    choroplethLegendSVG  = document.getElementById("choropleth-legend-svg");
+    mapTitle             = document.getElementById("map-title");
+    mapTooltipLarge      = document.getElementById("map-tooltip-large");
+  </script>
+
+  <!-- 5) Your module code—now deck, loaders & maplibregl are ready -->
+  <script src="{{ url_for('static', filename='js/respiratory/map.js') }}" type="module"></script>
+  <script src="{{ url_for('static', filename='js/respiratory/map-interactions.js') }}" type="module"></script>
 {% endblock %}

@@ -9,10 +9,6 @@
     padding: var(--sl-spacing-large) var(--sl-spacing-small);
 }
 
-#map-state-hospitalizations-large {
-    --width: 65vw;
-}
-
 #map-state-hospitalizations-svg {
     width: 100%;
     height: 200px;
@@ -109,4 +105,14 @@ text.map-legend  {
     border-width: var(--sl-border-radius-small);
     border-style: solid;
     border-radius: .25em;
+}
+
+#map-tooltip-large {
+    --header-spacing: var(--sl-spacing-small) var(--sl-spacing-small) var(--sl-spacing-2x-small);
+    --body-spacing: 0 var(--sl-spacing-small) var(--sl-spacing-small);
+}
+
+#map-tooltip-large-svg {
+    width: 100%;
+    aspect-ratio: 2;
 }

@@ -3,15 +3,16 @@ const { load, ImageLoader } = loaders
 import { startDate, currentWeek, endDate, dataSourceColorMap, unknownColor, parseDate, getCenter } from "/static/js/respiratory/script.js";
 export { map, popup, selectedItems, deckOverlay, redraw, drawStateHospitalizations, drawLargeStateHospitalizations, updateMapTitle }
 
-loaders.registerLoaders(loaders.ImageLoader);
+//loaders.registerLoaders(loaders.ImageLoader);
 
 var regionData
 
 var icons = {
-    "data": await d3.csv('/data/health-care-facility') ,
-    "iconAtlas": await load('/data/icon-pack/png', ImageLoader),
-    "iconMapping": await d3.json('/data/icon-pack/json'),
-}
+    data: await d3.csv('/data/health-care-facility'),
+    iconAtlas: '/static/assets/Icons/icon-pack.png',
+    iconMapping: await d3.json('/static/assets/Icons/icon-pack.json'),
+  }
+  
 
 var selectedItems = {
     "feature": undefined,

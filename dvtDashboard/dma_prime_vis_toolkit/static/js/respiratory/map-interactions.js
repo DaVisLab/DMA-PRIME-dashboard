@@ -52,16 +52,50 @@ map.on("click", e => {
     }
     popup.setLngLat(coordinates)
         .setHTML(`<div id='map-tooltip-div' class='tooltip-div'>
-            <div class="tooltip-region-info"></div>
-            <div class="tooltip-data-info"></div>
+            <div class="tooltip-header">
+                <div class="tooltip-region-info"></div>
+                <div class="tooltip-data-info"></div>
+            </div>
             <svg id="map-tooltip-svg" class="tooltip-outer-svg"></svg>
-            <div class="tooltip-options"></div>
+            <div class="tooltip-footer">
+                <div class="tooltip-options"></div>
+            </div>
             </div>`)
 
     if (!popup.isOpen()) {
         popup.addTo(map)
     }
     popup.setMaxWidth(`${mapDiv.clientWidth}px`)
+
+    var expandPopupButton = d3.select("div.maplibregl-popup-content").append("sl-icon-button")
+        .attr("name", "zoom-in")
+        .style("font-size", "9px")
+        .style("cursor", "pointer")
+        .style("position", "absolute")
+        .style("right", "18px")
+        .style("top", 0)
+
+    expandPopupButton.node().updateComplete.then(() => {
+        d3.select(expandPopupButton.node().shadowRoot).select("button").node().style.padding = "4px"
+    })
+
+    expandPopupButton.on("click", () => {
+        var ttpDiv = d3.select("#map-tooltip-div")
+            .style("display", "initial")
+            .style("border-style", "none")
+
+        var tooltipData = dataObject.properties.data[mapDiseaseSelector.value]
+        tooltipData["id"] = dataObject.properties.id
+        if (mapRegionSelector.value == "zcta") {
+            tooltipData["county"] = dataObject.properties.county
+        }
+        tooltipData["population"] = dataObject.properties.population
+
+        var largeTtp = d3.select(mapTooltipLarge)
+        mapTooltipLarge.show().then(() => {
+            drawTooltip(tooltipData, largeTtp.select(".tooltip-outer-svg"), largeTtp.select(".tooltip-header"), largeTtp.select(".tooltip-footer"), mapTypeSwitch.value == "rate", false, [])
+        })
+    })
 
     var ttpDiv = d3.select("#map-tooltip-div")
         .style("display", "initial")
@@ -74,7 +108,11 @@ map.on("click", e => {
     }
     tooltipData["population"] = dataObject.properties.population
 
-    drawTooltip(tooltipData, ttpDiv, mapTooltipHeight, mapTooltipWidth, mapTypeSwitch.value == "rate", false, [])
+    var ttpSVG = ttpDiv.select(".tooltip-outer-svg")
+        .attr("width", mapTooltipWidth)
+        .attr("height", mapTooltipHeight)
+
+    drawTooltip(tooltipData, ttpSVG, ttpDiv.select(".tooltip-header"), ttpDiv.select(".tooltip-footer"), mapTypeSwitch.value == "rate", false, [])
     dataVersion++
     redraw()
 })
@@ -119,7 +157,12 @@ mapTypeSwitch.addEventListener("sl-change", (event) => {
         var width = mapDiv.clientWidth
         var mapTooltipWidth = Math.max(500, width * .3)
         var mapTooltipHeight = mapTooltipWidth * .65
-        drawTooltip(tooltipData, ttpDiv, mapTooltipHeight, mapTooltipWidth, mapTypeSwitch.value == "rate", false, ttpDiv.datum()["extraDataSources"])
+        var ttpSVG = ttpDiv.select(".tooltip-outer-svg")
+            .attr("width", mapTooltipWidth)
+            .attr("height", mapTooltipHeight)
+
+        drawTooltip(tooltipData, ttpSVG, ttpDiv.select(".tooltip-header"), ttpDiv.select(".tooltip-footer"), mapTypeSwitch.value == "rate", false, [])
+        
     }
     dataVersion++
     redraw()
