@@ -298,7 +298,7 @@ function drawTooltip(d, ttpSVG, header, footer, rate=false, grid=false, extraDat
         .range([ttpMargins.left + ttpGraphWidth*ttpHistoryWidthPercentage, ttpWidth - ttpMargins.right]) 
 
     var historicalGroup = graphSVG.append("g")
-    var historicalBarWidth = ttpGraphWidth*ttpHistoryWidthPercentage / historicalDates.length
+    var historicalBarWidth = Math.ceil(ttpGraphWidth*ttpHistoryWidthPercentage / historicalDates.length)
 
     Array("state-training", "state-testing").forEach(function(dataSource, i) {
         var thisData = data[dataSource]
@@ -317,9 +317,6 @@ function drawTooltip(d, ttpSVG, header, footer, rate=false, grid=false, extraDat
             .attr("fill", dataSourceColorMap[dataSource])
     })
 
-    var predictionGroup = graphSVG.append("g")
-    var predictionBarWidth = ttpGraphWidth*(1-ttpHistoryWidthPercentage) / predictionDates.length
-
     var stateCurrentLabelPositionAbove = null
     if (predictionData.data.length) {     
         graphSVG.append("rect")
@@ -328,11 +325,8 @@ function drawTooltip(d, ttpSVG, header, footer, rate=false, grid=false, extraDat
         // draw predictive line chart
         var predictiveGroup = graphSVG.append("g")
         predictiveGroup.append("path")
-            // .attr("d", predictionLine(predictionData))
             .attr("d", ttpAreaFunction(predictionData, predictionDates, xScalePrediction, yScale))
-            // .attr("stroke", dataSourceColorMap["state-prediction"])
             .attr("fill", dataSourceColorMap["state-prediction"])
-            // .attr("stroke-width", 2)
 
         // marks each datapoint on prediction line
         predictiveGroup.selectAll("circle").data(predictionData.data)
