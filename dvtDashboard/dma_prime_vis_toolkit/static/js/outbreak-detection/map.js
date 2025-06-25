@@ -1162,10 +1162,6 @@ function update() {
 }
 
 function updateMapTitle() {
-    if (!mapOptionsTitleToggle.checked) {
-        mapTitle.innerHTML = ""
-        return
-    }
     var titleStart = `${d3.select(mapRateSwitch).select(`*[value=${mapRateSwitch.value}]`).html()} `
     titleStart += `of ${d3.select(mapTimeSwitch).select(`*[value=${mapTimeSwitch.value}]`).html()}ly `
     titleStart += `${d3.select(mapColumnSwitch).select(`*[value=${mapColumnSwitch.value}]`).html()} `
@@ -1189,6 +1185,5 @@ function updateMapTitle() {
         default: 
             mapTitle.innerHTML = titleStart + titleEnd
         break;
-
     }
 }

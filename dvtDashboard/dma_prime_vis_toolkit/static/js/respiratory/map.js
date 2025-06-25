@@ -16,7 +16,7 @@ var icons = {
 
 var selectedItems = {
     "feature": undefined,
-    "icons": ["hospital", "mobile_health_clinic", "community_partner"]
+    "icons": []
 }
 
 var choroplethColorMap = d3.scaleLinear()
