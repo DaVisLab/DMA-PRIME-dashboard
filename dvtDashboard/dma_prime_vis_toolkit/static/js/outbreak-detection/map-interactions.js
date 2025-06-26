@@ -30,10 +30,6 @@ mapRegionSelector.addEventListener("sl-change", changeDataColumn)
 
 mapColumnSwitch.addEventListener("sl-change", changeDataColumn)
 
-mapOptionsTitleToggle.addEventListener("sl-change", () => {
-    updateMapTitle()
-})
-
 // adding/removing labels
 mapOptionsGeographicLabelsToggle.addEventListener("sl-change", () => {
     // toggle geographic unit labels
@@ -94,39 +90,62 @@ map.on("click", e => {
     var feature = thisObject.object
     selectedItems.region = feature
     
+    var width = mapDiv.clientWidth
+    var mapTooltipWidth = Math.max(500, width * .3)
+    var mapTooltipHeight = mapTooltipWidth * .65
+
+    const fullCoords = feature.geometry.coordinates;
+    const bounds = new maplibregl.LngLatBounds()
+    function addCoordToBounds(bounds, arr) {
+        if (Array.isArray(arr[0])) {
+            arr.forEach(a => {
+                addCoordToBounds(bounds, a)
+            })
+        } else {
+            bounds.extend(arr)
+            return
+        }
+    }
+    addCoordToBounds(bounds, fullCoords)
+
+    map.fitBounds(bounds, {
+        padding: Math.min(mapDiv.clientWidth/3, mapDiv.clientHeight/3),
+        maxZoom: 12,
+        screenSpeed: .7,
+        offset: [0, -mapTooltipHeight/3]
+    });
+
     var coordinates = [feature.properties.INTPTLON, feature.properties.INTPTLAT]
     if (!(coordinates[0] && coordinates[1])) {
-        const fullCoords = feature.geometry.coordinates;
-        const bounds = new maplibregl.LngLatBounds()
-        function addCoordToBounds(bounds, arr) {
-            if (Array.isArray(arr[0])) {
-                arr.forEach(a => {
-                    addCoordToBounds(bounds, a)
-                })
-            } else {
-                bounds.extend(arr)
-                return
-            }
-        }
-        addCoordToBounds(bounds, fullCoords)
-
-        map.fitBounds(bounds, {
-            padding: Math.min(mapDiv.clientWidth/3, mapDiv.clientHeight/3),
-            maxZoom: 12,
-            screenSpeed: .7
-        });
-        
         coordinates = bounds.getCenter()
     }
 
     popup.setLngLat(coordinates)
-        .setHTML("<div id='map-tooltip-div' class='tooltip-div'></div>")
+        .setHTML(`<div id='map-tooltip-div' class='tooltip-div'>
+            <div class="tooltip-header">
+                <div class="tooltip-region-info"></div>
+                <div class="tooltip-data-info"></div>
+            </div>
+            <svg id="map-tooltip-svg" class="tooltip-outer-svg"></svg>
+            <div class="tooltip-footer">
+                <div class="tooltip-options"></div>
+            </div>
+            </div>`)
 
     if (!popup.isOpen()) {
         popup.addTo(map)
     }
 
     popup.setMaxWidth(`${mapDiv.clientWidth}px`)
+
+    var ttpDiv = d3.select("#map-tooltip-div")
+        .style("display", "initial")
+        .style("border-style", "none")
+
+    var ttpSVG = ttpDiv.select(".tooltip-outer-svg")
+        .attr("width", mapTooltipWidth)
+        .attr("height", mapTooltipHeight)
+
     drawTooltip(feature)
     redraw()
 })

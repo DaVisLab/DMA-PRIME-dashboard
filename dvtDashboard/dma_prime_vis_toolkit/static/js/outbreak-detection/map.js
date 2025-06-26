@@ -26,7 +26,7 @@ let countRateColorMap = d3.scaleLinear()
 
 
 function createCountRateChoropleth(data) {
-  // 1) For every polygon (except “state”), grab its latest value (or 0):
+  // 1) For every polygon (except "state"), grab its latest value (or 0):
   const arr = data.features.map(feature => {
     const thisDt = getData(feature, mapTimeSwitch.value)
     return (thisDt.data.length > 0 && feature.properties.identifier !== "state")
@@ -34,7 +34,7 @@ function createCountRateChoropleth(data) {
       : 0
   })
 
-  // 2) If “Rate” is selected, push a small nonzero so domain covers per-1000 scale:
+  // 2) If "Rate" is selected, push a small nonzero so domain covers per-1000 scale:
   const minMaxVal = (mapRateSwitch.value === "rate")
     ? 1000.0 / stateFeature.properties.population
     : 1
@@ -213,10 +213,10 @@ function redraw() {
       return [u.r, u.g, u.b];
     }
   
-    // B) Grab the “latest” value (already population-adjusted if rate)
+    // B) Grab the "latest" value (already population-adjusted if rate)
     const latest = getLatestDatum(feature, mapTimeSwitch.value).data;
   
-    // C) If that “latest” is NaN → paint it grey (unknown)
+    // C) If that "latest" is NaN → paint it grey (unknown)
     if (isNaN(latest)) {
       const u = d3.rgb(unknownColor);
       return [u.r, u.g, u.b];
@@ -279,7 +279,7 @@ function redraw() {
             .style("font-size", 'var(--sl-font-size-x-small)')
             .html(d => `${d}%`);
 
-        // 4) “Other colors” group (white, light‐pink, unknown) with explanatory labels
+        // 4) "Other colors" group (white, light‐pink, unknown) with explanatory labels
         const otherColors = legend.append("g");
         const others = [
             ["white", `No ${columnLabel}`],
@@ -350,7 +350,7 @@ function redraw() {
             .domain([d0, d1])
             .range([0, legendLength]);
 
-        // 6) Ask D3 for up to 5 “nice” ticks, then clamp anything > d1
+        // 6) Ask D3 for up to 5 "nice" ticks, then clamp anything > d1
         let rawTicks = linearScale.ticks(5).filter(v => v <= d1);
 
         // 7) Guarantee that d1 (maxVal) appears exactly as the last tick
@@ -364,13 +364,13 @@ function redraw() {
         // Choose a formatter based on the magnitude of d1
         let formatTick;
         if (d1 >= 100) {
-          // large numbers → “1,234”
+          // large numbers → "1,234"
           formatTick = d3.format(",.0f");
         } else if (d1 >= 1) {
-          // moderate numbers → one decimal place, e.g. “12.3”
+          // moderate numbers → one decimal place, e.g. "12.3"
           formatTick = d3.format(",.1f");
         } else {
-          // small numbers → two decimal places, e.g. “0.12”
+          // small numbers → two decimal places, e.g. "0.12"
           formatTick = d3.format(".2f");
         }
 
@@ -394,7 +394,7 @@ function redraw() {
           }
         }
 
-        // 8) Draw a short vertical line (“tick”) at each filtered/clamped tick value
+        // 8) Draw a short vertical line ("tick") at each filtered/clamped tick value
         legend.append("g").selectAll("line.tick")
             .data(filteredTicks)
             .enter()
@@ -406,7 +406,7 @@ function redraw() {
               .attr("y2", 15 + em * 0.25)      // short downward stroke
               .attr("stroke", "black");
 
-        // 9) Draw each tick’s label beneath its tick line, centered
+        // 9) Draw each tick's label beneath its tick line, centered
         legend.append("g").selectAll("text.tick-label")
             .data(filteredTicks)
             .enter()
@@ -431,7 +431,7 @@ function drawTooltip(dataObject) {
       return;
     }
 
-    // 2) Compute “latest” and “previous” values (for percent‐change),
+    // 2) Compute "latest" and "previous" values (for percent‐change),
     const latestDatum = getLatestDatum(dataObject, mapTimeSwitch.value).data;
     const prevDatum   = getLastWeekDatum(dataObject, mapTimeSwitch.value).data;
 
@@ -454,7 +454,7 @@ function drawTooltip(dataObject) {
     //    forcing weekly data regardless of the selector.
     const thisData = getData(dataObject, "weekly");
   
-    // 5) Build the “Encounters … from X to Y: N” string
+    // 5) Build the "Encounters ... from X to Y: N" string
     let encounterString = "";
     switch (mapColumnSwitch.value) {
       case "encounters":
@@ -473,14 +473,14 @@ function drawTooltip(dataObject) {
     const fmt     = d3.timeFormat("%b %d, %Y");
   
     if (mapTimeSwitch.value === "weekly") {
-      // If the user has “Week” selected, show exactly that 7‐day window
+      // If the user has "Week" selected, show exactly that 7‐day window
       encounterString += `${fmt(endDate)} to ${fmt(d3.timeDay.offset(endDate, 6))}`;
     } else if (mapTimeSwitch.value === "monthly") {
-      // If the user has “Month” selected, still show the last four weeks (28 days)
+      // If the user has "Month" selected, still show the last four weeks (28 days)
       const startDate = d3.timeDay.offset(endDate, -4 * 7);
       encounterString += `${fmt(startDate)} to ${fmt(d3.timeDay.offset(endDate, 6))}`;
     } else {
-      // If the user has “Year” selected, still show the last 52 weeks
+      // If the user has "Year" selected, still show the last 52 weeks
       const startDate = d3.timeDay.offset(endDate, -52 * 7);
       encounterString += `${fmt(startDate)} to ${fmt(d3.timeDay.offset(endDate, 6))}`;
     }
@@ -504,7 +504,7 @@ function drawTooltip(dataObject) {
       .html(""); // wipe it clean
   
     //
-    // ─── HEADER: “Zip Code: XXX”  (on left)  +  “Change: ±N%”  (on right) ───
+    // ─── HEADER: "Zip Code: XXX"  (on left)  +  "Change: ±N%"  (on right) ───
     //
     const headerContainer = ttpDiv
       .append("div")
@@ -531,14 +531,14 @@ function drawTooltip(dataObject) {
       );
 
     //
-    // ─── “County: YYY” on its own line, directly under the header ───
+    // ─── "County: YYY" on its own line, directly under the header ───
     //
     if (mapRegionSelector.value == "zcta") {
       ttpDiv
         .append("p")
         .attr("class", "tooltip-subtitle")
         .style("margin", "0px")
-        .style("font-size", "14px")
+        .style("font-size", "20px")
         .style("line-height", "1.4em")
         .html(
           `County: ${dataObject.properties.county[0].toUpperCase() + dataObject.properties.county.slice(1)}`
@@ -556,7 +556,6 @@ function drawTooltip(dataObject) {
     const rightHeaderCol = headerContainer
       .append("div")
       .attr("class", "tooltip-right-col")
-      .style("flex", "0 0 120px")    // fixed width for percent‐change column
       .style("text-align", "right")
       .style("font-size", "14px")
       .style("line-height", "1.4em");
@@ -565,18 +564,18 @@ function drawTooltip(dataObject) {
       .append("p")
       .attr("class", "tooltip-percent-change")
       .style("margin", "0px")
-      .style("font-weight", "bold")
+      
       .html(percentLabel);
   
   
     //
-    // ─── Then the “Encounters … to …: N” line ───
+    // ─── Then the "Encounters ... to ...: N" line ───
     //
     ttpDiv
       .append("p")
       .attr("class", "tooltip-subtitle")
       .style("margin", "4px 0 8px 0") // small spacing above/below
-      .style("font-size", "14px")
+      .style("font-size", "20px")
       .style("line-height", "1.4em")
       .html(encounterString);
   
@@ -591,6 +590,36 @@ function drawTooltip(dataObject) {
       .attr("height", ttpHeight);
   
     createBarGraph(ttpSVG, thisData, regionData.metadata, ttpHeight, ttpWidth);
+
+    // Add expand button to popup (like respiratory)
+    var expandPopupButton = d3.select("div.maplibregl-popup-content").append("sl-icon-button")
+        .attr("name", "zoom-in")
+        .style("font-size", "9px")
+        .style("cursor", "pointer")
+        .style("position", "absolute")
+        .style("right", "18px")
+        .style("top", 0);
+    expandPopupButton.node().updateComplete.then(() => {
+        d3.select(expandPopupButton.node().shadowRoot).select("button").node().style.padding = "4px";
+    });
+    expandPopupButton.on("click", () => {
+      const tooltipHTML = document.getElementById("map-tooltip-div").innerHTML;
+      const largeDiv   = document.getElementById("map-tooltip-large-div");
+    
+      // 1) copy in the same inner HTML…
+      largeDiv.innerHTML = tooltipHTML;
+    
+      // 2) …then nuke any inline width/height on its SVG so CSS can override
+      const svgEl = largeDiv.querySelector("svg");
+      if (svgEl) {
+        svgEl.removeAttribute("width");
+        svgEl.removeAttribute("height");
+      }
+    
+      // 3) now show the dialog
+      document.getElementById("map-tooltip-large").show();
+    });
+    
 }
 
   
@@ -661,13 +690,13 @@ function updateDiseaseCountDisplay() {
 
   let allCount = 0, allPrev = 0;
 
-  // 2) compute & render each disease’s count/rate plus percent-change
+  // 2) compute & render each disease's count/rate plus percent-change
   diseases.forEach(disease => {
     // current & previous raw totals
     let val     = stateFeature.properties.data[disease][mapTimeSwitch.value].at(-1);
     let prevVal = stateFeature.properties.data[disease][mapTimeSwitch.value].at(-2) || 0;
 
-    // apply “per 1000” if in rate mode
+    // apply "per 1000" if in rate mode
     if (mapRateSwitch.value === "rate") {
       val     /= (stateFeature.properties.population / 1000);
       prevVal /= (stateFeature.properties.population / 1000);
@@ -686,12 +715,12 @@ function updateDiseaseCountDisplay() {
     // round display of val
     const dispVal = Math.round(val * 1000) / 1000;
 
-    // show “(value, +pct%)” in every mode
+    // show "(value, +pct%)" in every mode
     d3.select(`#map-${disease}-count`)
       .html(`(${dispVal}, ${sign}${pct}%)`);
   });
 
-  // 3) Same for “All Diseases”
+  // 3) Same for "All Diseases"
   const rawAll = allPrev !== 0
     ? ((allCount - allPrev) / Math.abs(allPrev)) * 100
     : 0;
@@ -736,7 +765,7 @@ function getLatestDatum(feature, timeFrame="weekly") {
     thisData.start_date = earliestDate;
     thisData.end_date   = latestDate;
 
-    // 1c) Sum up the “latest” values (last entry in each array)
+    // 1c) Sum up the "latest" values (last entry in each array)
     if (dataDicts.length > 0) {
       thisData.data  = 0;
       thisData.other = 0;
@@ -750,7 +779,7 @@ function getLatestDatum(feature, timeFrame="weekly") {
     // If dataDicts is empty, thisData.data/other remain NaN.
   }
 
-  // 2) Apply “rate” conversion at the very end—but do NOT do “|| 0”
+  // 2) Apply "rate" conversion at the very end—but do NOT do "|| 0"
   if (mapRateSwitch.value === "rate" && !isNaN(thisData.data)) {
     thisData.data = parseFloat(thisData.data) / (thisData.population / 1000.0);
   }
@@ -794,7 +823,7 @@ function getLastWeekDatum(feature, timeFrame="weekly") {
       thisData.data  = 0;
       thisData.other = 0;
       for (var obj of dataDicts) {
-        // “last week” means the second‐to‐last entry (index -2)
+        // "last week" means the second‐to‐last entry (index -2)
         thisData.data += obj[timeFrame].at(-2);
       }
       for (var obj of otherDicts) {
@@ -1133,10 +1162,6 @@ function update() {
 }
 
 function updateMapTitle() {
-    if (!mapOptionsTitleToggle.checked) {
-        mapTitle.innerHTML = ""
-        return
-    }
     var titleStart = `${d3.select(mapRateSwitch).select(`*[value=${mapRateSwitch.value}]`).html()} `
     titleStart += `of ${d3.select(mapTimeSwitch).select(`*[value=${mapTimeSwitch.value}]`).html()}ly `
     titleStart += `${d3.select(mapColumnSwitch).select(`*[value=${mapColumnSwitch.value}]`).html()} `
@@ -1160,6 +1185,5 @@ function updateMapTitle() {
         default: 
             mapTitle.innerHTML = titleStart + titleEnd
         break;
-
     }
 }

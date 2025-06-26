@@ -50,8 +50,8 @@
 
   <!-- data variable -->
   <sl-select value="encounters" id="map-data-variable-selector" class="fill-width" size="small">
-    <p slot="label">Select data variable</p>
-    <sl-tooltip content="Hospitalizations" trigger="hover" hoist>
+    <p slot="label">Select outcome variable</p>
+    <sl-tooltip content="In-patient hospitalizations and emergency department" trigger="hover" hoist>
       <sl-option value="encounters" >Encounters</sl-option>
     </sl-tooltip>
     <sl-tooltip content="Positive tests" trigger="hover" hoist>
@@ -65,13 +65,14 @@
   <!-- imputation inclusion checkbox -->
   <sl-checkbox id="map-include-imputations" checked>Include imputated data</sl-checkbox>
 
-  <!-- map icon inclusion checkboxes (hospital, mobile health clinic, community partners) -->
+  <!-- Map Resources section -->
+  <p style="margin-top: 1em; margin-bottom: 0.5em; font-weight: bold;">Map Resources</p>
+  <sl-checkbox id="map-options-hospital-icons-toggle" class="map-icons-toggle">Hospitals</sl-checkbox>
+  <sl-checkbox id="map-options-mobile-clinic-icons-toggle" class="map-icons-toggle">Mobile Health Clinics</sl-checkbox>
+  <sl-checkbox id="map-options-community-partner-icons-toggle" class="map-icons-toggle">Community Partners</sl-checkbox>
   <sl-divider class="options-divider"></sl-divider>
-  <sl-checkbox id="map-options-title-toggle" class="map-toggle" checked>Map Title</sl-checkbox>
-  <sl-checkbox id="map-options-geographic-labels-toggle" class="map-toggle">Geography Labels</sl-checkbox>
-  <sl-checkbox id="map-options-hospital-icons-toggle" class="map-toggle">Hospitals</sl-checkbox>
-  <sl-checkbox id="map-options-mobile-clinic-icons-toggle" class="map-toggle">Mobile Health Clinics</sl-checkbox>
-  <sl-checkbox id="map-options-community-partner-icons-toggle" class="map-toggle">Community Partners</sl-checkbox>
+  <!-- map options -->
+  <sl-checkbox id="map-options-geographic-labels-toggle" class="map-toggle">Geographic Labels</sl-checkbox>
   
 </div>
 
@@ -125,50 +126,62 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-  dataVersion = 0
-  mapResetButton = document.getElementById("map-reset-button")
-  mapTypeSwitch = document.getElementById("map-type-switch")
+  <!-- 1) MapLibre GL CSS & JS (required for maplibregl.Map) -->
+  <link
+    href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css"
+    rel="stylesheet"
+  />
+  <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
 
-  mapDiseaseSelector = document.getElementById("map-disease-selector")
-  mapRegionSelector = document.getElementById("map-region-selector")
-  mapDataSourceSelector = document.getElementById("map-data-source-selector")
-  mapDataVariableSelector = document.getElementById("map-data-variable-selector")
-  mapOptionsTitleToggle = document.getElementById("map-options-title-toggle")
-  mapOptionsGeographicLabelsToggle = document.getElementById("map-options-geographic-labels-toggle")
-  hospitalIconsToggle = document.getElementById("map-options-hospital-icons-toggle")
-  mobileClinicIconsToggle = document.getElementById("map-options-mobile-clinic-icons-toggle")
-  communityPartnerIconsToggle = document.getElementById("map-options-community-partner-icons-toggle")
-  mapIncludeImputations = document.getElementById("map-include-imputations")
+  <!-- 2) Deck.gl UMD bundle (pin to 8.9.27) -->
+  <script src="https://unpkg.com/deck.gl@8.9.27/dist.min.js"></script>
+  <script>
+    mapDiseaseSelector = document.getElementById("map-disease-selector")
+    mapRegionSelector = document.getElementById("map-region-selector")
+    mapDataSourceSelector = document.getElementById("map-data-source-selector")
+    mapDataVariableSelector = document.getElementById("map-data-variable-selector")
+    mapOptionsGeographicLabelsToggle = document.getElementById("map-options-geographic-labels-toggle")
+    hospitalIconsToggle = document.getElementById("map-options-hospital-icons-toggle")
+    mobileClinicIconsToggle = document.getElementById("map-options-mobile-clinic-icons-toggle")
+    communityPartnerIconsToggle = document.getElementById("map-options-community-partner-icons-toggle")
+    mapIncludeImputations = document.getElementById("map-include-imputations")
+  </script>
 
-  // aggregation visualization elements
-  mapStateHospitalizationsSubtitle = document.getElementById("map-state-hospitalizations-subtitle")
-  mapStateHospitalizationsResizer = document.getElementById("map-state-hospitalizations-resizer")
-  mapStateHospitalizationsSvg = document.getElementById("map-state-hospitalizations-svg")
-  mapStateHospitalizationsLarge = document.getElementById("map-state-hospitalizations-large")
-  mapStateHospitalizationsLargeSubtitle = document.getElementById("map-state-hospitalizations-large-subtitle")
-  mapStateHospitalizationsLargeResizer = document.getElementById("map-state-hospitalizations-large-resizer")
-  mapStateHospitalizationsLargeSvg = document.getElementById("map-state-hospitalizations-large-svg")
+  <!-- 3) Your initialization + controls (unchanged) -->
+  <script>
+    dataVersion = 0;
 
-  mapTitle = document.getElementById("map-title")
-  mapDiv = document.getElementById("map-div")
-  choroplethLegendSVG = document.getElementById("choropleth-legend-svg")
-  mapTooltipLarge = document.getElementById("map-tooltip-large")
+    // Map controls
+    mapResetButton                  = document.getElementById("map-reset-button");
+    mapTypeSwitch                   = document.getElementById("map-type-switch");
+    mapDiseaseSelector              = document.getElementById("map-disease-selector");
+    mapRegionSelector               = document.getElementById("map-region-selector");
+    mapDataSourceSelector           = document.getElementById("map-data-source-selector");
+    mapIncludeImputations           = document.getElementById("map-include-imputations");
 
-</script>
+    // Optional toggles
+    mapOptionsGeographicLabelsToggle= document.getElementById("map-options-geographic-labels-toggle");
+    hospitalIconsToggle             = document.getElementById("map-options-hospital-icons-toggle");
+    mobileClinicIconsToggle         = document.getElementById("map-options-mobile-clinic-icons-toggle");
+    communityPartnerIconsToggle     = document.getElementById("map-options-community-partner-icons-toggle");
 
-<script src="{{ url_for('static', filename='js/respiratory/map.js') }}" type="module"></script>
-<script src="{{ url_for('static', filename='js/respiratory/map-interactions.js') }}" type="module"></script>
+    // State–level chart elements
+    mapStateHospitalizationsSubtitle = document.getElementById("map-state-hospitalizations-subtitle");
+    mapStateHospitalizationsResizer  = document.getElementById("map-state-hospitalizations-resizer");
+    mapStateHospitalizationsSvg      = document.getElementById("map-state-hospitalizations-svg");
+    mapStateHospitalizationsLarge    = document.getElementById("map-state-hospitalizations-large");
+    mapStateHospitalizationsLargeSubtitle = document.getElementById("map-state-hospitalizations-large-subtitle");
+    mapStateHospitalizationsLargeResizer  = document.getElementById("map-state-hospitalizations-large-resizer");
+    mapStateHospitalizationsLargeSvg = document.getElementById("map-state-hospitalizations-large-svg");
 
-<script type="module">
-  await Promise.allSettled([ // wait for following to be defined/load in
-        customElements.whenDefined('sl-tab-group'),
-        customElements.whenDefined('sl-button'),
-        customElements.whenDefined('sl-resize-observer'),
-        customElements.whenDefined('sl-split-panel'),
-        customElements.whenDefined('sl-tab'),
-    ])
-  set{{panel.name}}Panel()
+    // Main map, legend, title & tooltip
+    mapDiv               = document.getElementById("map-div");
+    choroplethLegendSVG  = document.getElementById("choropleth-legend-svg");
+    mapTitle             = document.getElementById("map-title");
+    mapTooltipLarge      = document.getElementById("map-tooltip-large");
+  </script>
 
-</script>
+  <!-- 5) Your module code—now deck, loaders & maplibregl are ready -->
+  <script src="{{ url_for('static', filename='js/respiratory/map.js') }}" type="module"></script>
+  <script src="{{ url_for('static', filename='js/respiratory/map-interactions.js') }}" type="module"></script>
 {% endblock %}

@@ -199,10 +199,6 @@ mapIncludeImputations.addEventListener("sl-change", () => {
     redraw()
 })
 
-mapOptionsTitleToggle.addEventListener("sl-change", () => {
-    updateMapTitle()
-})
-
 // adding/removing labels
 mapOptionsGeographicLabelsToggle.addEventListener("sl-change", () => {
     // toggle geographic unit labels

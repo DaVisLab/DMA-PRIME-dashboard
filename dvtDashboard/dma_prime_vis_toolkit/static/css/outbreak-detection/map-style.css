@@ -12,10 +12,10 @@
 
 #map-sidebar {
     /* scroll vertically if the state aggregation overflows vertically */
-    overflow-y: scroll
-}
-
-#map-content {
+    overflow-y: scroll;
+  }
+  
+  #map-content {
     /* needed for choropleth legend to be in the correct spot */
     position: relative;
 }
@@ -39,147 +39,187 @@
 /* agg disease large */
 #aggregated-disease-history-large {
     --width: 65vw;
-}
-#aggregated-disease-history-large-svg {
+  }
+  
+  #aggregated-disease-history-large-svg {
     width: 100%;
     aspect-ratio: 2;
-}
-#aggregated-disease-history-large-subtitle {
+  }
+  
+  #aggregated-disease-history-large-subtitle {
     font-size: var(--sl-font-size-small);
-}
-
-/* choropleth legend */
-#choropleth-legend {
-    /* makes sure the legend renders above the map */
+  }
+  
+  
+  /* ==========================================================================
+     3) Choropleth Legend
+     ========================================================================== */
+  #choropleth-legend {
+    /* ensure legend sits above the base map */
     z-index: 10;
-}
-
-#choropleth-legend-svg text {
+  }
+  
+  #choropleth-legend-svg text {
     fill: black;
-    font-size: var(--sl-font-size-2x-small)
-}
-
-.legend-other-colors {
-    font-size: var(--sl-font-size-x-small)
-}
-
-#choropleth-legend-svg line,path {
-    stroke: black
-}
-
-/* map tooltip and state aggregation bar graph */
-#aggregated-disease-history-container {
-    /* places state aggregation graph at the bottom of the sidebar */
+    font-size: var(--sl-font-size-2x-small);
+  }
+  
+  #choropleth-legend-svg line,
+  #choropleth-legend-svg path {
+    stroke: black;
+  }
+  
+  .legend-other-colors {
+    font-size: var(--sl-font-size-x-small);
+  }
+  
+  
+  /* ==========================================================================
+     4) Inline State-Wide Chart (Sidebar Bottom)
+     ========================================================================== */
+  #aggregated-disease-history-container {
+    /* push it to the bottom of the sidebar */
     align-self: end;
     text-align: center;
-}
-
-#map-tooltip-svg text, #aggregated-disease-history text {
-    /* bar graph svg text */
+  }
+  
+  #map-tooltip-svg text,
+  #aggregated-disease-history text {
+    /* axis & tick labels */
     margin: 0;
     padding: 0;
     font-size: var(--sl-font-size-x-small);
     white-space: nowrap;
-}
-
-#map-tooltip-svg .tick text, #aggregated-disease-history .tick text {
-    /* makes axes font smaller */
-    font-size: var(--sl-font-size-2x-small);
-}
-
-
+  }
   
-.tooltip-title, #aggregated-disease-history-title {
-    /* bar graph title */
+  #map-tooltip-svg .tick text,
+  #aggregated-disease-history .tick text {
+    font-size: var(--sl-font-size-2x-small);
+  }
+  
+  .tooltip-title,
+  #aggregated-disease-history-title {
     font-size: var(--sl-font-size-small);
-}
-
-.tooltip-subtitle, #aggregated-disease-history-subtitle {
-    /* bar graph subtitles */
+  }
+  
+  .tooltip-subtitle,
+  #aggregated-disease-history-subtitle {
     font-size: var(--sl-font-size-x-small);
-}
-
-/* tooltip popup item */
-.maplibregl-popup-content {
-    /* popup content div */
+  }
+  
+  
+  /* ==========================================================================
+     5) MapLibre Popup Styling
+     ========================================================================== */
+  .maplibregl-popup-content {
     border-width: var(--sl-border-radius-small);
     border-style: solid;
     border-color: var(--sl-color-neutral-1000);
-}
-
-.maplibregl-popup-tip {
-    /* triangular tip pointing to zcta popup refers to */
-    border-top-color: black  !important;
-}
-
-/* ──────────────────────────────────────────────────────────────── 
-   Tooltip Alignment Helpers for “Zip Code / Change / County” 
-   ──────────────────────────────────────────────────────────────── */
-
-/* 1) Remove default <p> margins inside the tooltip container */
-#map-tooltip-div p {
+  }
+  
+  .maplibregl-popup-tip {
+    border-top-color: black !important;
+  }
+  
+  
+  /* ==========================================================================
+     6) Small (Inline) Tooltip Layout
+     ========================================================================== */
+  #map-tooltip-div p {
     margin: 0 !important;
-    font-size: 14px;
-    line-height: 1.4em;
+    padding: 0 !important;
+    font-size: 14px !important;
+    line-height: 1.4em !important;
   }
   
-  /* 2) Flex container that holds “Zip Code: XXX” on the left and “Change: ±N%” on the right */
-  .tooltip-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline; /* keep both items on the same baseline */
-    margin-bottom: 8px;    /* small gap below the header row */
+  #map-tooltip-div .tooltip-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: baseline !important;
+    margin-bottom: 1px !important;
   }
   
-  /* 3) Left column: Zip Code text (expands to fill available space) */
-  .tooltip-left-col {
-    flex: 1;             /* expand to fill the leftover width */
-    /* We already set p { margin:0; }, so no additional margin needed */
+  #map-tooltip-div .tooltip-left-col {
+    flex: 1;
   }
   
-  /* 4) Right column: Percent-Change (fixed width, right-aligned) */
-  .tooltip-right-col {
-    flex: 0 0 120px;   /* fixed 120px width */
+  #map-tooltip-div .tooltip-right-col {
+    flex: 0 0 120px;
     text-align: right;
     font-weight: bold;
   }
   
-  /* 5) If you have an existing rule centering p.tooltip-title, override it here: */
-  p.tooltip-title {
-    text-align: left;  /* ensure “Zip Code: XXX” is left‐aligned, not centered */
-    padding-top: var(--sl-spacing-x-small); /* if you want the small top padding */
-  }
-  
-  /* 6) Subtitle lines (“County:” and “Encounters …”) should be left-aligned: */
-  p.tooltip-subtitle {
+  #map-tooltip-div p.tooltip-title {
     text-align: left;
-    font-size: var(--sl-font-size-x-small); /* or just “14px” if you prefer */
-    line-height: 1.4em;
-    margin: 4px 0 8px 0;  /* this margin is already set inline in JS; this is a fallback */
-  }
-
-/* ────────────────────────────────────────────────────────────────
-   TIGHTEN / EQUALIZE VERTICAL SPACING WITHIN THE TOOLTIP
-   ──────────────────────────────────────────────────────────────── */
-
-/* 1) Make the gap under the header row (Zip Code / Change) smaller */
-.tooltip-header {
-    margin-bottom: 1px !important;
+    padding-top: var(--sl-spacing-x-small);
   }
   
-  /* 2) Ensure each subtitle line has 4px top + bottom, rather than 0/8px */
-  p.tooltip-subtitle {
-    display: block;        /* each line becomes its own block */
+  #map-tooltip-div p.tooltip-subtitle {
+    display: block;
     margin: 4px 0 !important;
-    line-height: 1.4em;    /* keep the existing line-height */
-    text-align: left;      /* force left alignment */
+    line-height: 1.4em !important;
+    text-align: left;
+    font-size: var(--sl-font-size-x-small);
   }
   
-  /* 3) Finally, if there’s any default padding or margin on <p> tags inside #map-tooltip-div,
-         zero it out again to avoid conflicts */
-  #map-tooltip-div p {
-    margin: 0 !important;
+  
+  /* ==========================================================================
+     7) Large (Expanded) Tooltip Dialog Layout
+     ========================================================================== */
+  /* Make the dialog panel itself a column-flex container */
+  sl-dialog#map-tooltip-large::part(panel) {
+    display: flex !important;
+    flex-direction: column !important;
     padding: 0 !important;
+    width: 75vw !important;
+    max-width: none !important;
+    height: 75vh !important;
+    max-height: none !important;
   }
   
+  /* Force its body slot to flex:1 so it fills the panel */
+  sl-dialog#map-tooltip-large::part(body) {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+  
+  /* Container for your header + chart */
+  #map-tooltip-large-div.map-tooltip-large-content {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    padding: 8px 16px 16px !important;
+    box-sizing: border-box !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    overflow: hidden !important;
+  }
+  
+  /* Grow the SVG to fill the remaining space */
+  #map-tooltip-large-div.map-tooltip-large-content > svg {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin-top: 16px !important;
+  }
+  
+  /* Stack Zip Code + Change vertically */
+  #map-tooltip-large-div.map-tooltip-large-content .tooltip-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.2em !important;
+    margin-bottom: 0.3em !important;
+  }
+  
+  /* Uniform header font‐size and centering */
+  #map-tooltip-large-div.map-tooltip-large-content .tooltip-header p {
+    margin: 0 !important;
+    font-size: 1.3rem !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+  }
   
