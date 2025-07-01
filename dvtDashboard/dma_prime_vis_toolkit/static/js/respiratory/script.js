@@ -274,7 +274,7 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
                     // toggle data source-var combo
                     if (extraSourcesAndVariables[dataSource] !== undefined) {
                         if (extraSourcesAndVariables[dataSource].includes(dataVariable)) {
-                            extraSourcesAndVariables[dataSource].splice(extraSourcesAndVariables.indexOf(dataVariable), 1)
+                            extraSourcesAndVariables[dataSource].splice(extraSourcesAndVariables[dataSource].indexOf(dataVariable), 1)
                         } else {
                             extraSourcesAndVariables[dataSource].push(dataVariable)
                         }

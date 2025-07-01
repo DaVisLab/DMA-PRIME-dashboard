@@ -157,14 +157,14 @@
       clearTimeout(sessionTimer);
       sessionTimer = setTimeout(() => {
         resetSessionTimer()
-      }, (15 * 60 - 1) * 1000 + 1);  // 14 minutes, 59 seconds
+      }, (15 * 60) * 1000);  // 15 minutes
     }
 
     function resetActivityTimer() {
       clearTimeout(activityTimer);
       activityTimer = setTimeout(() => {
         window.location.href = "/auth/logout";
-      }, (15 * 60 - 2) * 1000 + 1);  // 14 minutes, 58 seconds
+      }, (15 * 60 - 5) * 1000);  // 14 minutes, 55 seconds
     }
   
     window.onload = setupTimers;
