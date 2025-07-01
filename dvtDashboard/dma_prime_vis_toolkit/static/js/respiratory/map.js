@@ -1,17 +1,15 @@
 const { GeoJsonLayer, IconLayer, TextLayer, MapboxOverlay } = deck;
-const { load, ImageLoader } = loaders
 import { startDate, currentWeek, endDate, dataSourceColorMap, dataVariableColorMap, unknownColor, parseDate, getCenter, drawTooltip } from "/static/js/respiratory/script.js";
 export { map, popup, selectedItems, deckOverlay, redraw, drawStateHospitalizations, drawLargeStateHospitalizations, updateMapTitle, updateMapTooltip }
-
-loaders.registerLoaders(loaders.ImageLoader);
 
 var regionData
 
 var icons = {
-    "data": await d3.csv('/data/health-care-facility') ,
-    "iconAtlas": await load('/data/icon-pack/png', ImageLoader),
-    "iconMapping": await d3.json('/data/icon-pack/json'),
-}
+    data: await d3.csv('/data/health-care-facility'),
+    iconAtlas: '/static/assets/Icons/icon-pack.png',
+    iconMapping: await d3.json('/static/assets/Icons/icon-pack.json'),
+  }
+  
 
 var selectedItems = {
     "feature": undefined,
@@ -332,7 +330,7 @@ function drawLegend() {
             .attr("class", `map-legend title`)
             .attr("x", legendWidth/2 + legendMargins.left)
             .attr("y", 3*em + legendMargins.top)
-            .text(`Current Week's Hospitalizations by ${metadata.region_sizes[mapRegionSelector.value]}`)
+            .text(`Current Week's ${dataVariableStringMap[mapDataVariableSelector.value]} by ${metadata.region_sizes[mapRegionSelector.value]}`)
 
     }
 }
@@ -512,10 +510,6 @@ async function drawStateBarChart(svgDOM, subtitleDOM, stateMargins, yAxisDisplay
 }
 
 function updateMapTitle() {
-    if (!mapOptionsTitleToggle.checked) {
-        mapTitle.innerHTML = ""
-        return
-    }
     var titleStart = `${d3.select(mapTypeSwitch).select(`*[value=${mapTypeSwitch.value}]`).html()} `
     titleStart += `of ${d3.select(mapDiseaseSelector).select(`*[value=${mapDiseaseSelector.value}]`).html()} `
     titleStart += `${d3.select(mapDataVariableSelector).select(`*[value=${mapDataVariableSelector.value}]`).html()} `
@@ -529,17 +523,16 @@ function updateMapTitle() {
     switch (mapTypeSwitch.value) {
         case "count": 
             mapTitle.innerHTML = titleStart + titleEnd
-        break;
+            break;
         case "rate": 
             mapTitle.innerHTML = titleStart + "(per 1000 people) " + titleEnd
-        break;
+            break;
         case "percentDifference": 
             mapTitle.innerHTML = titleStart + "from Last Week " + titleEnd
-        break;
+            break;
         default: 
             mapTitle.innerHTML = titleStart + titleEnd
-        break;
-
+            break;
     }
 }
 
@@ -558,3 +551,9 @@ function updateMapTooltip(featureProperties) {
         mapTypeSwitch.value == "rate", false, false)
         
 }
+
+const dataVariableStringMap = {
+    "encounters": "Encounters",
+    "positive-tests": "Positive Tests",
+    "rt": "Transmission",
+};

@@ -42,18 +42,18 @@ function fixCoord(coord) {
 
 function createBarGraph(svg, data, metadata, height, width, altMargins) {
     svg
-        .attr("height", height)
-        .attr("width", width)
+    .attr("class", "tooltip-graph-svg")
+    .attr("preserveAspectRatio", "none")
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("preserveAspectRatio", "xMidYMid meet"); 
+    
 
-    var graphSVG = svg.append("svg")
-        .attr("class", "tooltip-graph-svg")
-        .attr("height", height)
-        .attr("width", width)
+  // 2) Use the same svg as your drawing surface
+    const graphSVG = svg;
 
-    var yAxis = svg.append("g")
-        .attr("class", "y-axis")
-    var xAxis = svg.append("g")
-        .attr("class", "x-axis")
+  // 3) Now append your axes and bars onto graphSVG:
+    const yAxis = graphSVG.append("g").attr("class", "y-axis");
+    const xAxis = graphSVG.append("g").attr("class", "x-axis");
     
     var minMaxVal = mapRateSwitch.value == "rate" ? 1000.0/data.population : 1
     var maxVal = d3.max(data.data) ? d3.max(data.data) : minMaxVal

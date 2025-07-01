@@ -56,7 +56,6 @@
     </sl-details>  
   
   <sl-divider class="options-divider"></sl-divider>
-  <sl-checkbox id="map-options-title-toggle" class="map-toggle" checked size="small">Map Title</sl-checkbox>
   <sl-checkbox id="map-options-geographic-labels-toggle" class="map-toggle" size="small">Geography Labels</sl-checkbox>
   
   <!-- map icon inclusion checkboxes (hospital, mobile health clinic, community partners) -->
@@ -93,6 +92,9 @@
 <div id="map-title-container" class="fill-width">
   <p id="map-title">Count of Weekly Positive Tests in South Carolina by Zip Code</p>
 </div>
+<sl-dialog id="map-tooltip-large" class="dialog-width map-tooltip-large-dialog">
+  <div id="map-tooltip-large-div" class="tooltip-div map-tooltip-large-content"></div>
+</sl-dialog>
 {% endblock %}
 
 {% block scripts %}
@@ -109,7 +111,6 @@
   mapYearlyTooltip = document.getElementById("map-yearly-tooltip")
 
   mapAllDiseaseSelector = document.getElementById("map-all-disease-selector")
-  mapOptionsTitleToggle = document.getElementById("map-options-title-toggle")
   mapOptionsGeographicLabelsToggle = document.getElementById("map-options-geographic-labels-toggle")
 
   aggregatedDiseaseHistoryResizer = document.getElementById("aggregated-disease-history-resizer")
@@ -155,5 +156,4 @@
 
 <script src="{{ url_for('static', filename='js/outbreak-detection/map.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/outbreak-detection/map-interactions.js') }}" type="module"></script>
-
 {% endblock %}
