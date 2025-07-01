@@ -65,8 +65,8 @@ function createBarGraph(svg, data, metadata, height, width, altMargins) {
     var margins = {
         "top": .5*em, 
         "bottom": 1.5*em,
-        "left": 1.25*em,
-        "right": .5*em,
+        "left": 1.7*em,
+        "right": 1.7*em,
     }
     margins.left += Math.max(20, temp.node().getBBox().width)
 
@@ -119,17 +119,17 @@ function createBarGraph(svg, data, metadata, height, width, altMargins) {
     // Replace the single-axis call with filtering-out duplicate labels:
     // ────────────────────────────────────────────────
 
-    // 1) Ask D3 for up to 5 “nice” tick values
+    // 1) Ask D3 for up to 5 "nice" tick values
     let rawTicks = yScale.ticks(5) // e.g. [0, 0.005, 0.01, 0.015, 0.02]
     
     // 2) Choose a formatting function based on how large maxVal is
     let formatTick
     if (maxVal >= 100) {
-      formatTick = d3.format(",.0f")  // e.g. “1,234”
+      formatTick = d3.format(",.0f")  // e.g. "1,234"
     } else if (maxVal >= 1) {
-      formatTick = d3.format(",.1f")  // e.g. “12.3”
+      formatTick = d3.format(",.1f")  // e.g. "12.3"
     } else {
-      formatTick = d3.format(".2f")   // e.g. “0.12”
+      formatTick = d3.format(".2f")   // e.g. "0.12"
     }
 
     // 3) Filter out any tick whose formatted label duplicates the previous
@@ -152,9 +152,12 @@ function createBarGraph(svg, data, metadata, height, width, altMargins) {
         .selectAll("text")
         .attr("class", "tooltip-label")
         .attr("fill", "var(--sl-color-neutral-1000)")
+        .style("font-size", "10px !important");
 
     xAxis.call(d3.axisBottom(xScale).tickArguments([d3.timeYear.every(1), d3.timeFormat("%Y")]))
         .attr("transform", `translate(0, ${height - margins.bottom})`)
+        .selectAll("text")
+        .style("font-size", "10px !important");
 
     if (mapColumnSwitch.value == "pos_tests") {
         var yScale2 = d3.scaleLinear()
@@ -178,7 +181,7 @@ function createBarGraph(svg, data, metadata, height, width, altMargins) {
             .attr("stroke-width", 1)
 
         yAxis2.append("text")
-            .attr("transform", `translate(${width-em},${yScale(d3.mean(yScale.domain()))})rotate(90)`)
+            .attr("transform", `translate(${width-0.5*em},${yScale(d3.mean(yScale.domain()))})rotate(90)`)
             .attr("text-anchor", "middle")
             .attr("fill", "blue")
             .attr("font-size", "var(--sl-font-size-small)")
@@ -207,26 +210,11 @@ function createBarGraph(svg, data, metadata, height, width, altMargins) {
             .attr("y", em/2)
             .attr("dominant-baseline", "middle")
             .attr("fill", "var(--sl-color-neutral-1000)")
-            .style("font-size", "var(--sl-font-size-small)")
+            .style("font-size", "10px !important")
             .text("Positive Tests")
         var test = legend.append("g")
-        // test.attr("transform", `translate(0, ${em})`)
-        // test.append("rect")
-        //     .attr("height", .5*em)
-        //     .attr("width", .5*em)
-        //     .attr("x", 0)
-        //     .attr("y", .5*em/4)
-        //     .attr("fill", "var(--sl-color-neutral-400)")
-        // test.append("text")
-        //     .attr("x", .5*1.5*em)
-        //     .attr("y", em/2)
-        //     .attr("dominant-baseline", "middle")
-        //     .attr("fill", "var(--sl-color-neutral-1000)")
-        //     .style("font-size", "var(--sl-font-size-small)")
-        //     .text("Tests")
         var percentPosTest = legend.append("g")
         percentPosTest.attr("transform", `translate(0, ${em})`)
-        // percentPosTest.attr("transform", `translate(0, ${2*em})`)
         percentPosTest.append("line")
             .attr("x1", 0)
             .attr("x2", .5*em)
@@ -238,7 +226,7 @@ function createBarGraph(svg, data, metadata, height, width, altMargins) {
             .attr("y", em/2)
             .attr("dominant-baseline", "middle")
             .attr("fill", "blue")
-            .style("font-size", "var(--sl-font-size-small)")
+            .style("font-size", "10px !important")
             .text("Percent Positive Tests")
         
     }

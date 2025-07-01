@@ -494,8 +494,9 @@ function drawTooltip(dataObject) {
     }
   
     // 6) Prepare dimensions and clear existing tooltip
-    const ttpWidth  = Math.max(400, mapDiv.clientWidth * 0.25);
-    const ttpHeight = ttpWidth * 0.35;
+    var width = mapDiv.clientWidth;
+    var mapTooltipWidth = Math.max(500, width * .3);
+    var mapTooltipHeight = mapTooltipWidth * .65;
   
     const ttpDiv = d3
       .select("#map-tooltip-div")
@@ -586,10 +587,10 @@ function drawTooltip(dataObject) {
       .append("svg")
       .attr("id", "map-tooltip-svg")
       .attr("class", "tooltip-outer-svg")
-      .attr("width", ttpWidth)
-      .attr("height", ttpHeight);
+      .attr("width", mapTooltipWidth)
+      .attr("height", mapTooltipHeight);
   
-    createBarGraph(ttpSVG, thisData, regionData.metadata, ttpHeight, ttpWidth);
+    createBarGraph(ttpSVG, thisData, regionData.metadata, mapTooltipHeight, mapTooltipWidth);
 
     // Add expand button to popup (like respiratory)
     var expandPopupButton = d3.select("div.maplibregl-popup-content").append("sl-icon-button")
@@ -603,20 +604,7 @@ function drawTooltip(dataObject) {
         d3.select(expandPopupButton.node().shadowRoot).select("button").node().style.padding = "4px";
     });
     expandPopupButton.on("click", () => {
-      const tooltipHTML = document.getElementById("map-tooltip-div").innerHTML;
-      const largeDiv   = document.getElementById("map-tooltip-large-div");
-    
-      // 1) copy in the same inner HTML…
-      largeDiv.innerHTML = tooltipHTML;
-    
-      // 2) …then nuke any inline width/height on its SVG so CSS can override
-      const svgEl = largeDiv.querySelector("svg");
-      if (svgEl) {
-        svgEl.removeAttribute("width");
-        svgEl.removeAttribute("height");
-      }
-    
-      // 3) now show the dialog
+      drawLargeTooltip(dataObject);
       document.getElementById("map-tooltip-large").show();
     });
     
@@ -903,6 +891,172 @@ function getData(feature, timeFrame="weekly") {
     }
 
     return thisData
+}
+
+function drawLargeTooltip(dataObject) {
+    // 1) If nothing is selected or the popup is closed, remove and bail:
+    if (!dataObject) {
+      return;
+    }
+
+    // 2) Compute "latest" and "previous" values (for percent‐change),
+    const latestDatum = getLatestDatum(dataObject, mapTimeSwitch.value).data;
+    const prevDatum   = getLastWeekDatum(dataObject, mapTimeSwitch.value).data;
+
+    // 3) Build a percent‐change label
+    let percentLabel;
+    if (isNaN(latestDatum) || isNaN(prevDatum)) {
+      percentLabel = "Change: N/A";
+    } else if (prevDatum === 0 && latestDatum === 0) {
+      percentLabel = "Change: 0 %";
+    } else if (prevDatum === 0 && latestDatum > 0) {
+      percentLabel = "Change: New cases";
+    } else {
+      const rawPct  = ((latestDatum - prevDatum) / Math.abs(prevDatum)) * 100;
+      const rounded = Math.round(rawPct * 10) / 10; // one decimal place
+      const sign    = rounded >= 0 ? "+" : "";
+      percentLabel  = `Change: ${sign}${rounded} %`;
+    }
+  
+    // 4) Grab the entire time series for the bar chart,
+    //    forcing weekly data regardless of the selector.
+    const thisData = getData(dataObject, "weekly");
+  
+    // 5) Build the "Encounters ... from X to Y: N" string
+    let encounterString = "";
+    switch (mapColumnSwitch.value) {
+      case "encounters":
+        encounterString += "Encounters";
+        break;
+      case "pos_tests":
+        encounterString += "Positive tests";
+        break;
+      case "encounter_plus_test":
+        encounterString += "Encounters and positive tests";
+        break;
+    }
+    encounterString += " from ";
+  
+    const endDate = thisData.end_date;
+    const fmt     = d3.timeFormat("%b %d, %Y");
+  
+    if (mapTimeSwitch.value === "weekly") {
+      // If the user has "Week" selected, show exactly that 7‐day window
+      encounterString += `${fmt(endDate)} to ${fmt(d3.timeDay.offset(endDate, 6))}`;
+    } else if (mapTimeSwitch.value === "monthly") {
+      // If the user has "Month" selected, still show the last four weeks (28 days)
+      const startDate = d3.timeDay.offset(endDate, -4 * 7);
+      encounterString += `${fmt(startDate)} to ${fmt(d3.timeDay.offset(endDate, 6))}`;
+    } else {
+      // If the user has "Year" selected, still show the last 52 weeks
+      const startDate = d3.timeDay.offset(endDate, -52 * 7);
+      encounterString += `${fmt(startDate)} to ${fmt(d3.timeDay.offset(endDate, 6))}`;
+    }
+    encounterString += ": ";
+  
+    var lastVal = parseFloat(getData(dataObject, mapTimeSwitch.value).data.at(-1))
+    if (mapRateSwitch.value === "rate") {
+      encounterString += `${Math.round(lastVal * 1000) / 1000} (per 1000 people)`;
+    } else {
+      encounterString += lastVal;
+    }
+  
+    // 6) Prepare dimensions and clear existing tooltip
+    const ttpWidth  = Math.max(400, mapDiv.clientWidth * 0.25);
+    const ttpHeight = ttpWidth * 0.35;
+  
+    const ttpDiv = d3
+      .select("#map-tooltip-large-div")
+      .style("display", "initial")
+      .style("border-style", "none")
+      .html(""); // wipe it clean
+  
+    //
+    // ─── HEADER: "Zip Code: XXX"  (on left)  +  "Change: ±N%"  (on right) ───
+    //
+    const headerContainer = ttpDiv
+      .append("div")
+      .attr("class", "tooltip-header")
+      .style("display", "flex")
+      .style("justify-content", "space-between")
+      .style("align-items", "baseline")   // keep left & right on same baseline
+      .style("margin-bottom", "8px");
+  
+    // 7a) LEFT SIDE of header: Zip Code (or whatever region)
+    const leftHeaderCol = headerContainer
+      .append("div")
+      .attr("class", "tooltip-left-col")
+      .style("flex", "1")
+      .style("font-size", "14px")
+      .style("line-height", "1.4em");
+  
+    leftHeaderCol
+      .append("p")
+      .attr("class", "tooltip-title")
+      .style("margin", "0px")  // remove default <p> margin
+      .html(
+        `${d3.select(`sl-option[value=${mapRegionSelector.value}]`).html()}: ${dataObject.properties.identifier}`
+      );
+
+    //
+    // ─── "County: YYY" on its own line, directly under the header ───
+    //
+    if (mapRegionSelector.value == "zcta") {
+      ttpDiv
+        .append("p")
+        .attr("class", "tooltip-subtitle")
+        .style("margin", "0px")
+        .style("font-size", "20px")
+        .style("line-height", "1.4em")
+        .html(
+          `County: ${dataObject.properties.county[0].toUpperCase() + dataObject.properties.county.slice(1)}`
+        );
+    }
+    
+
+    // 7a-2) If there's no data on map, say no data and return
+    if (getData(dataObject, mapTimeSwitch.value).data.length < 1) {
+        ttpDiv.append("p").html("No Data")
+        return
+    }
+  
+    // 7b) RIGHT SIDE of header: Percent‐change
+    const rightHeaderCol = headerContainer
+      .append("div")
+      .attr("class", "tooltip-right-col")
+      .style("text-align", "right")
+      .style("font-size", "14px")
+      .style("line-height", "1.4em");
+  
+    rightHeaderCol
+      .append("p")
+      .attr("class", "tooltip-percent-change")
+      .style("margin", "0px")
+      .html(percentLabel);
+  
+  
+    //
+    // ─── Then the "Encounters ... to ...: N" line ───
+    //
+    ttpDiv
+      .append("p")
+      .attr("class", "tooltip-subtitle")
+      .style("margin", "4px 0 8px 0") // small spacing above/below
+      .style("font-size", "20px")
+      .style("line-height", "1.4em")
+      .html(encounterString);
+  
+    //
+    // ─── Finally, insert the bar chart SVG below those three lines ───
+    //
+    const ttpSVG = ttpDiv
+      .append("svg")
+      .attr("id", "map-tooltip-svg")
+      .attr("class", "tooltip-outer-svg")
+      .attr("width", ttpWidth)
+      .attr("height", ttpHeight);
+  
+    createBarGraph(ttpSVG, thisData, regionData.metadata, ttpHeight, ttpWidth);
 }
 
 function drawLargeAggregation() {
