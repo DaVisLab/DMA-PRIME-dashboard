@@ -520,7 +520,7 @@ function drawTooltip(dataObject) {
       .append("div")
       .attr("class", "tooltip-left-col")
       .style("flex", "1")
-      .style("font-size", "14px")
+      .style("font-size", "var(--sl-font-size-small)")
       .style("line-height", "1.4em");
   
     leftHeaderCol
@@ -539,7 +539,7 @@ function drawTooltip(dataObject) {
         .append("p")
         .attr("class", "tooltip-subtitle")
         .style("margin", "0px")
-        .style("font-size", "20px")
+        .style("font-size", "var(--sl-font-size-small)")
         .style("line-height", "1.4em")
         .html(
           `County: ${dataObject.properties.county[0].toUpperCase() + dataObject.properties.county.slice(1)}`
@@ -558,7 +558,7 @@ function drawTooltip(dataObject) {
       .append("div")
       .attr("class", "tooltip-right-col")
       .style("text-align", "right")
-      .style("font-size", "14px")
+      .style("font-size", "var(--sl-font-size-small)")
       .style("line-height", "1.4em");
   
     rightHeaderCol
@@ -576,7 +576,7 @@ function drawTooltip(dataObject) {
       .append("p")
       .attr("class", "tooltip-subtitle")
       .style("margin", "4px 0 8px 0") // small spacing above/below
-      .style("font-size", "20px")
+      .style("font-size", "var(--sl-font-size-small)")
       .style("line-height", "1.4em")
       .html(encounterString);
   
@@ -962,8 +962,12 @@ function drawLargeTooltip(dataObject) {
     }
   
     // 6) Prepare dimensions and clear existing tooltip
-    const ttpWidth  = Math.max(400, mapDiv.clientWidth * 0.25);
-    const ttpHeight = ttpWidth * 0.35;
+    // Use a fixed, compact size for large tooltip
+    const maxWidth = Math.min(600, mapDiv.clientWidth * 0.4);
+    const maxHeight = Math.min(350, mapDiv.clientHeight * 0.23);
+    const ttpWidth  = maxWidth;
+    // Add extra bottom margin for slanted x-axis labels
+    const ttpHeight = maxHeight + 40;
   
     const ttpDiv = d3
       .select("#map-tooltip-large-div")
@@ -979,84 +983,64 @@ function drawLargeTooltip(dataObject) {
       .attr("class", "tooltip-header")
       .style("display", "flex")
       .style("justify-content", "space-between")
-      .style("align-items", "baseline")   // keep left & right on same baseline
+      .style("align-items", "baseline")
       .style("margin-bottom", "8px");
-  
-    // 7a) LEFT SIDE of header: Zip Code (or whatever region)
     const leftHeaderCol = headerContainer
       .append("div")
       .attr("class", "tooltip-left-col")
       .style("flex", "1")
-      .style("font-size", "14px")
+      .style("font-size", "var(--sl-font-size-x-small)")
       .style("line-height", "1.4em");
-  
     leftHeaderCol
       .append("p")
       .attr("class", "tooltip-title")
-      .style("margin", "0px")  // remove default <p> margin
+      .style("margin", "0px")
+      .style("font-size", "var(--sl-font-size-x-small)")
       .html(
         `${d3.select(`sl-option[value=${mapRegionSelector.value}]`).html()}: ${dataObject.properties.identifier}`
       );
-
-    //
-    // ─── "County: YYY" on its own line, directly under the header ───
-    //
     if (mapRegionSelector.value == "zcta") {
       ttpDiv
         .append("p")
         .attr("class", "tooltip-subtitle")
         .style("margin", "0px")
-        .style("font-size", "20px")
+        .style("font-size", "var(--sl-font-size-x-small)")
         .style("line-height", "1.4em")
         .html(
           `County: ${dataObject.properties.county[0].toUpperCase() + dataObject.properties.county.slice(1)}`
         );
     }
-    
-
-    // 7a-2) If there's no data on map, say no data and return
     if (getData(dataObject, mapTimeSwitch.value).data.length < 1) {
         ttpDiv.append("p").html("No Data")
         return
     }
-  
-    // 7b) RIGHT SIDE of header: Percent‐change
     const rightHeaderCol = headerContainer
       .append("div")
       .attr("class", "tooltip-right-col")
       .style("text-align", "right")
-      .style("font-size", "14px")
+      .style("font-size", "var(--sl-font-size-x-small)")
       .style("line-height", "1.4em");
-  
     rightHeaderCol
       .append("p")
       .attr("class", "tooltip-percent-change")
       .style("margin", "0px")
+      .style("font-size", "var(--sl-font-size-x-small)")
       .html(percentLabel);
-  
-  
-    //
-    // ─── Then the "Encounters ... to ...: N" line ───
-    //
     ttpDiv
       .append("p")
       .attr("class", "tooltip-subtitle")
-      .style("margin", "4px 0 8px 0") // small spacing above/below
-      .style("font-size", "20px")
+      .style("margin", "4px 0 8px 0")
+      .style("font-size", "var(--sl-font-size-x-small)")
       .style("line-height", "1.4em")
       .html(encounterString);
-  
-    //
-    // ─── Finally, insert the bar chart SVG below those three lines ───
-    //
+    // SVG with extra bottom margin
     const ttpSVG = ttpDiv
       .append("svg")
       .attr("id", "map-tooltip-svg")
       .attr("class", "tooltip-outer-svg")
       .attr("width", ttpWidth)
       .attr("height", ttpHeight);
-  
-    createBarGraph(ttpSVG, thisData, regionData.metadata, ttpHeight, ttpWidth);
+    createBarGraph(ttpSVG, thisData, regionData.metadata, ttpHeight, ttpWidth, { isLargeTooltip: true });
 }
 
 function drawLargeAggregation() {
