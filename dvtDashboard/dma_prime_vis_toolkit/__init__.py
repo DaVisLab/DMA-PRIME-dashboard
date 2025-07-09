@@ -64,6 +64,7 @@ def create_app(development=False, dataDir=None):
                 Bcrypt().generate_password_hash("userpassword"),
                 access_level=0, verified_user=True
             )
+            db.session.add(test_user)
             test_user = User(
                 "admin", "admin", 
                 Bcrypt().generate_password_hash("password"),
