@@ -115,3 +115,7 @@ iframe {
     width: 100%; */
     /* border: solid; */
 }
+
+.highlight-approval-row {
+    background-color: #d4f7d4 !important; /* light green */
+}

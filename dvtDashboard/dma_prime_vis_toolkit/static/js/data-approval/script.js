@@ -17,6 +17,45 @@ d3.selectAll(".preview-data-button").on("click", function(d){
     this.setAttribute("variant", "primary")
 })
 
+// List of dashboard codes (should match those in your Flask context)
+const dashboards = [
+    'respiratory',
+    'wastewater',
+    'outbreak-detection',
+    'opioid-hcv-hiv',
+    'mobile-health-clinics'
+];
+
+function updateApproveButtons(dashboard) {
+    d3.json(`/data/get-date/all/${dashboard}`).then(dates => {
+        // Overview approve button
+        const overviewApproveBtn = document.getElementById(`${dashboard}-approve-button`);
+        const overviewRow = document.getElementById(`${dashboard}-row`);
+        if (overviewApproveBtn) {
+            if (dates[dashboard].new === dates[dashboard].current) {
+                overviewApproveBtn.setAttribute('disabled', true);
+                if (overviewRow) overviewRow.classList.remove('highlight-approval-row');
+            } else {
+                overviewApproveBtn.removeAttribute('disabled');
+                if (overviewRow) overviewRow.classList.add('highlight-approval-row');
+            }
+        }
+        // Dashboard panel approve buttons
+        d3.selectAll(`.approve-data-button[dashboard=${dashboard}][dataVersion=new]`).each(function() {
+            if (dates[dashboard].new === dates[dashboard].current) {
+                this.setAttribute('disabled', true);
+            } else {
+                this.removeAttribute('disabled');
+            }
+        });
+    });
+}
+
+// On page load, update all approve buttons
+window.addEventListener('DOMContentLoaded', function() {
+    dashboards.forEach(dashboard => updateApproveButtons(dashboard));
+});
+
 d3.selectAll(".approve-data-button").on("click", function(d) {
     const requestOptions = {
         method: 'PUT',
@@ -34,6 +73,7 @@ d3.selectAll(".approve-data-button").on("click", function(d) {
             d3.selectAll(`.preview-data-button[dataVersion=current][dashboard=${this.getAttribute("dashboard")}]`).node().setAttribute("variant", "primary")
         }
         updateDates(this.getAttribute("dashboard"))
+        updateApproveButtons(this.getAttribute("dashboard")); // <-- Add this line to update button state after approval
     })
     
 })
