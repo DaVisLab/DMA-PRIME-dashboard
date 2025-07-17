@@ -206,7 +206,7 @@ function updateGridData() {
                 data[ds][dv][hop] = data[ds][dv][hop].map(function(item) { return item === null ? null : item/d.population * 1000} )
             }
             if (data[ds][dv][hop].length) {
-                thisCountMax = Math.max(d3.max(data[ds][dv][hop]), thisCountMax)
+                thisCountMax = d3.max([thisCountMax, ...data[ds][dv][hop]])
             }
         })
 

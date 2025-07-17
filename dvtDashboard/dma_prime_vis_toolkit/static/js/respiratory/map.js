@@ -200,11 +200,17 @@ function createChoropleth(data, mapType, dataSource, dataVariable, imputations=t
                 }
             })
         }
-
-        choroplethColorMap = d3.scaleLinear()
-            .domain([0, d3.max(arr)])
-            .range(["white", dataSourceColorMap[dataSource]])
-            .unknown(unknownColor).nice()
+        if (dataVariable == "rt") {
+            choroplethColorMap = d3.scaleLinear()
+                .domain([0, .9, Math.max(d3.max(arr), 1)])
+                .range(["white", dataSourceColorMap[dataSource], "red"])
+                .unknown(unknownColor).nice()
+        } else {
+            choroplethColorMap = d3.scaleLinear()
+                .domain([0, d3.max(arr)])
+                .range(["white", dataSourceColorMap[dataSource]])
+                .unknown(unknownColor).nice()
+        }
 
     }
 }
@@ -301,10 +307,17 @@ function drawLegend() {
             .attr("id", "linear-gradient-stop-0")
             .attr("offset", "0%")
             .attr("stop-color", "white")
+        if (mapDataVariableSelector.value == "rt") {
+            linearGrdient.append("stop")
+                .attr("id", "linear-gradient-stop-1")
+                .attr("offset", `${(.9/choroplethColorMap.domain().at(-1))*100}%`)
+                .attr("stop-color", choroplethColorMap.range().at(1))
+        }
         linearGrdient.append("stop")
             .attr("id", "linear-gradient-stop-1")
             .attr("offset", "100%")
-            .attr("stop-color", dataSourceColorMap[mapDataSourceSelector.value])
+            .attr("stop-color", choroplethColorMap.range().at(-1))
+            // .attr("stop-color", dataSourceColorMap[mapDataSourceSelector.value])
 
         // add background
         colorLegend.append("rect")
@@ -323,7 +336,7 @@ function drawLegend() {
 
         colorLegendContent.append("g").attr("id", "map-color-legend-axis")
             .attr('transform', `translate(${legendMargins.left} ${em+legendMargins.top})`)
-            .call(d3.axisBottom(d3.scaleLinear(choroplethColorMap.domain(), [0, legendWidth]).nice()).ticks(6))
+            .call(d3.axisBottom(d3.scaleLinear(d3.extent(choroplethColorMap.domain()), [0, legendWidth]).nice()).ticks(6))
 
         colorLegendContent.append("text")
             .attr("id", `map-legend-title`)
