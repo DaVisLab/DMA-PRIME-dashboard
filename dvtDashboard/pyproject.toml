@@ -1,6 +1,6 @@
 [project]
 name = "dma_prime_vis_toolkit"
-version = "1.8.2"
+version = "1.8.3"
 description = "DMA-PRIME Jiuly 2025 - 5 dashboards, user login/roles/creation/2fa, encryption + logging, data approval"
 dependencies = [
     "waitress",

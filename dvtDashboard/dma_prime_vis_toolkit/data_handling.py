@@ -98,7 +98,7 @@ def icon(type):
 # approval
 @bp.route('/change-version', methods=['PUT'])
 def change_version():
-    if not (current_user.email == 'liorr@clemson.edu' or current_app.config['DEVELOPMENT']):
+    if not (current_user.email in current_app.config['DATA_APPROVERS'] or current_app.config['DEVELOPMENT']):
         current_app.logger.info(f'{current_user.email} attempted to retrieve data date')
         return 'Need data approval access', 401
     
@@ -128,7 +128,7 @@ def change_version():
 @bp.route('/get-date/<data_version>/<dashboard>', methods=['GET'])
 def send_data_date(data_version, dashboard):
 
-    if not (current_user.email == 'liorr@clemson.edu' or current_app.config['DEVELOPMENT']):
+    if not (current_user.email in current_app.config['DATA_APPROVERS'] or current_app.config['DEVELOPMENT']):
         current_app.logger.info(f'{current_user.email} attempted to retrieve data date')
         return 'Need data approval access', 401
     

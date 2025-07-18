@@ -58,7 +58,7 @@ def get_data_version_from_request(request, current_user, development, error='sil
     if data_version is None:
         data_version = 'current'
 
-    if data_version is not 'current' and not (current_user.email == 'liorr@clemson.edu' or development):
+    if data_version is not 'current' and not (current_user.email in current_app.config['DATA_APPROVERS'] or current_app.config['DEVELOPMENT']):
         current_app.logger.info(f'{current_user.email} attempted to view a dashboard data preview page')
         data_version = 'current'
 
