@@ -29,7 +29,6 @@
   </sl-select>
 
   <!-- region selector -->
-  <!-- <sl-select value="zcta" id="map-region-selector" class="fill-width" size="small"> -->
   <sl-select value="region" id="map-region-selector" class="fill-width" size="small">
     <p slot="label">Geographic unit</p>
     {% for region, name in metadata['region_sizes'].items() %}
@@ -96,32 +95,13 @@
 {% endblock %}
 
 {% block contents %}
-<div class="fill-width fill-height" id="map-div">
-  <!-- <sl-resize-observer id="map-resizer">
-    <svg id="map-svg" class="scroll fill-height fill-width"></svg>
-  </sl-resize-observer> -->
-</div>
+<div class="fill-width fill-height" id="map-div"></div>
 <div id="choropleth-legend">
   <svg id="choropleth-legend-svg"></svg>
 </div>
 <div id="map-title-container" class="fill-width">
   <p id="map-title">Count of Covid-19 Hospitalizations in South Carolina by Region</p>
 </div>
-
-<sl-dialog id="map-tooltip-large" class="dialog-width" >
-  <div>
-    <div class="tooltip-header">
-      <div class="tooltip-region-info"></div>
-      <div class="tooltip-data-info"></div>
-    </div>
-    <sl-resize-observer id="map-tooltip-large-resizer">
-      <svg id="map-tooltip-large-svg" class="tooltip-outer-svg"></svg>
-    </sl-resize-observer>
-    <div class="tooltip-footer">
-      <div class="tooltip-options"></div>
-    </div>
-  </div>  
-</sl-dialog>
 
 {% endblock %}
 
@@ -178,7 +158,6 @@
     mapDiv               = document.getElementById("map-div");
     choroplethLegendSVG  = document.getElementById("choropleth-legend-svg");
     mapTitle             = document.getElementById("map-title");
-    mapTooltipLarge      = document.getElementById("map-tooltip-large");
   </script>
 
   <!-- 5) Your module code—now deck, loaders & maplibregl are ready -->

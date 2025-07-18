@@ -41,7 +41,27 @@
 {% block linkout %}
 {% endblock %}
 
+{% block extraBody %}
+<sl-dialog id="tooltip-large" class="dialog-width" >
+  <div>
+    <div class="tooltip-header">
+      <div class="tooltip-region-info"></div>
+      <div class="tooltip-data-info"></div>
+    </div>
+    <sl-resize-observer id="tooltip-large-resizer">
+      <svg id="tooltip-large-svg" class="tooltip-outer-svg"></svg>
+    </sl-resize-observer>
+    <div class="tooltip-footer">
+      <div class="tooltip-options"></div>
+    </div>
+  </div>  
+</sl-dialog>
+{% endblock %}
+
 {% block bodyScripts %}
+<script>
+    tooltipLarge = document.getElementById("tooltip-large");
+</script>
 
 <script type="module">
     // toggle tooltip labels

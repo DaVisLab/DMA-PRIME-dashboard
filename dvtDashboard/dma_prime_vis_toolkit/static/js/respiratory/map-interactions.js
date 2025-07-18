@@ -67,37 +67,6 @@ map.on("click", e => {
     }
     popup.setMaxWidth(`${mapDiv.clientWidth}px`)
 
-    var expandPopupButton = d3.select("div.maplibregl-popup-content").append("sl-icon-button")
-        .attr("name", "zoom-in")
-        .style("font-size", "9px")
-        .style("cursor", "pointer")
-        .style("position", "absolute")
-        .style("right", "18px")
-        .style("top", 0)
-
-    expandPopupButton.node().updateComplete.then(() => {
-        d3.select(expandPopupButton.node().shadowRoot).select("button").node().style.padding = "4px"
-    })
-
-    expandPopupButton.on("click", () => {
-        var ttpDiv = d3.select("#map-tooltip-div")
-            .style("display", "initial")
-            .style("border-style", "none")
-        var largeTtp = d3.select(mapTooltipLarge)
-        mapTooltipLarge.show().then(async() => {
-            var allExtendedData = await d3.json(`/data/respiratory/${mapRegionSelector.value}/${mapDiseaseSelector.value}/extended?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`) 
-            var ttpData = {
-                "id": dataObject.properties.id,
-                "county": dataObject.properties.county,
-                "data": allExtendedData[dataObject.properties.id]
-            }
-            drawTooltip(ttpData,
-                largeTtp.select(".tooltip-outer-svg"), largeTtp.select(".tooltip-header"), largeTtp.select(".tooltip-footer"), 
-                mapDataSourceSelector.value, mapDataVariableSelector.value,
-                mapTypeSwitch.value == "rate", false, true, {})
-        })
-    })
-
     var ttpDiv = d3.select("#map-tooltip-div")
         .style("display", "initial")
         .style("border-style", "none")

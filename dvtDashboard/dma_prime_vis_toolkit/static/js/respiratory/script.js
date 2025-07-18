@@ -240,9 +240,46 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
     }
 
     var ttpOptions = footer.select(".tooltip-options").html("")
+
+    if (!allDates) {
+        var expandPopupButton = ttpOptions.append("sl-button")
+            .attr("size", "small")
+            .attr("variant", "default")
+            .html("Expand Graph")
+
+        expandPopupButton.on("click", () => {
+            var largeTtp = d3.select(tooltipLarge)
+            tooltipLarge.show().then(async () => {
+                var allExtendedData
+                if (grid) {
+                    allExtendedData = await d3.json(`/data/respiratory/zcta/${gridDiseaseSelector.value}/extended?data_version=${metadata.data_version}&${parseInt(Math.random() * 9999999999)}`)
+                } else {
+                    allExtendedData = await d3.json(`/data/respiratory/${mapRegionSelector.value}/${mapDiseaseSelector.value}/extended?data_version=${metadata.data_version}&${parseInt(Math.random() * 9999999999)}`)
+                }
+                var ttpData = {
+                    "id": data.id,
+                    "county": data.county,
+                    "data": allExtendedData[data.id]
+                }
+                if (grid) {
+                    var [gridDataSource, gridDataVariable, _] = gridDataSourceSortSelector.value.split('_')
+                    drawTooltip(ttpData,
+                        largeTtp.select(".tooltip-outer-svg"), largeTtp.select(".tooltip-header"), largeTtp.select(".tooltip-footer"),
+                        gridDataSource, gridDataVariable,
+                        gridRateSwitch.value == "rate", grid, true, {})
+                } else {
+                    drawTooltip(ttpData,
+                        largeTtp.select(".tooltip-outer-svg"), largeTtp.select(".tooltip-header"), largeTtp.select(".tooltip-footer"),
+                        mapDataSourceSelector.value, mapDataVariableSelector.value,
+                        mapTypeSwitch.value == "rate", grid, true, {})
+                }
+            })
+        })
+    }
+
     if (dataSource == "state") {
         Object.entries({
-            "extra": ["state-encounters-reported"],
+            // "extra": ["state-encounters-reported"],
             "health-system": ["encounters"],
         }).forEach(function([ds, dvs], i) {
             dvs.forEach(function(dv) {

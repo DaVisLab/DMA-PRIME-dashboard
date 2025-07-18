@@ -106,13 +106,3 @@ text.map-legend  {
     border-style: solid;
     border-radius: .25em;
 }
-
-#map-tooltip-large {
-    --header-spacing: var(--sl-spacing-small) var(--sl-spacing-small) var(--sl-spacing-2x-small);
-    --body-spacing: 0 var(--sl-spacing-small) var(--sl-spacing-small);
-}
-
-#map-tooltip-large-svg {
-    width: 100%;
-    aspect-ratio: 2;
-}

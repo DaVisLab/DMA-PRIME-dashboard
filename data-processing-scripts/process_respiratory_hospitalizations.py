@@ -1,4 +1,3 @@
-
 import pandas as pd
 import json
 import geojson
@@ -52,7 +51,7 @@ data_variables = ['encounters', 'positive-tests', 'rt']
 
 diseases = {}
 dataframes = {}
-min_date = pd.to_datetime(0)
+min_date = pd.Timestamp.today().normalize()
 max_date = pd.to_datetime(0)
 curr_date = pd.to_datetime(0)
 
@@ -92,7 +91,10 @@ for region_size, identifier_column in region_geojson_identifiers.items():
             df = add_df(disease_files, df)
         else:
             for disease_file in disease_files:
-                df = add_df(disease_file, df)
+                try:
+                    df = add_df(disease_file, df)
+                except ValueError as e:
+                    print(f'{disease_file} has incorrect date format')
                 
         if df.empty:
             continue

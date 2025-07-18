@@ -2,10 +2,19 @@
   --width: 65vw;
 }
 
+#tooltip-large {
+    --header-spacing: var(--sl-spacing-small) var(--sl-spacing-small) var(--sl-spacing-2x-small);
+    --body-spacing: 0 var(--sl-spacing-small) var(--sl-spacing-small);
+}
+
+#tooltip-large-svg {
+    width: 100%;
+    aspect-ratio: 2;
+}
+
 .tooltip-div {
   background-color: white;
 }
-
 
 div.tooltip-region-info, div.tooltip-options {
   display: flex;
