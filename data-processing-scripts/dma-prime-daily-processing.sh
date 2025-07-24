@@ -42,13 +42,14 @@ latest_backup=$(ls -td ../backup/* | head -1)
 
 # Mobile Health Clinics
 echo "Mobile Health Clinics" >> $log_file
-diff -r --brief $latest_backup/aggregated/mhc ../aggregated/mhc
-if [[ $? -ne 0 ]]; then # new data!
-    # process data
-    /project/liorr/dmaprime/visualization_data/scripts/.venv/bin/python /project/liorr/dmaprime/visualization_data/scripts/process_mhc.py &>> $log_file
-    if [ $? -ne 0 ]; then # error during processing
-        ((errors++))
-    else # successful processing
+# must process data first because this is how new data is pulled down to compare to
+# process data
+/project/liorr/dmaprime/visualization_data/scripts/.venv/bin/python /project/liorr/dmaprime/visualization_data/scripts/process_mhc.py &>> $log_file
+if [ $? -ne 0 ]; then # error during processing
+    ((errors++))
+else # successful processing, see if new data
+    diff -r --brief $latest_backup/aggregated/mhc ../aggregated/mhc # compare
+    if [[ $? -ne 0 ]]; then # new data!
         # encrypt
         /project/liorr/dmaprime/visualization_data/scripts/.venv/bin/python encrypt.py "/project/liorr/dmaprime/visualization_data/download/supplementary/encrypt_key.bin" "/project/liorr/dmaprime/visualization_data/processed/mhc" "/project/liorr/dmaprime/visualization_data/download/processed/mhc" &>> $log_file
         # copy encryption key
@@ -61,9 +62,9 @@ if [[ $? -ne 0 ]]; then # new data!
         
         ((updated_dashboards++))
         echo "Mobile Health Clinics" >> $lior_file
+    else
+        echo "No changes in Mobile Health Clinics" >> $log_file
     fi
-else
-    echo "No changes in Mobile Health Clinics" >> $log_file
 fi
 echo >> $log_file
 
