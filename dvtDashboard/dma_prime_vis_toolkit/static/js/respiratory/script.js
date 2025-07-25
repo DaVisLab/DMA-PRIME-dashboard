@@ -386,11 +386,17 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
         .range([ttpHeight-ttpMargins.bottom, ttpMargins.top])
 
     var xScaleHistorical = d3.scaleTime()
-        .domain([d3.timeDay.offset(startDate, -7), currentWeek])
-        .range([ttpMargins.left, ttpMargins.left + ttpGraphWidth*ttpHistoryWidthPercentage]) 
     var xScalePrediction = d3.scaleTime()
         .domain(d3.extent(predictionDates))
         .range([ttpMargins.left + ttpGraphWidth*ttpHistoryWidthPercentage, ttpWidth - ttpMargins.right]) 
+
+    if (allDates) {
+        xScaleHistorical.domain(d3.extent(historicalDatesArray))
+                        .range([ttpMargins.left, ttpMargins.left + ttpGraphWidth*ttpHistoryWidthPercentage]) 
+    } else {
+        xScaleHistorical.domain([d3.timeDay.offset(startDate, -7), currentWeek])
+                        .range([ttpMargins.left + 1, ttpMargins.left + ttpGraphWidth*ttpHistoryWidthPercentage]) 
+    }
 
     // draw historical data for selected data var
     var historicalGroup = graphSVG.append("g")
