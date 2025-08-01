@@ -284,6 +284,12 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
             "health-system": ["encounters"],
         }).forEach(function([ds, dvs], i) {
             dvs.forEach(function(dv) {
+                // Check if health system data exists
+                var hasData = data.data[ds] && 
+                             data.data[ds][dv] && 
+                             data.data[ds][dv].historical && 
+                             data.data[ds][dv].historical.length > 0
+
                 var buttonText
                 try {
                     buttonText = `${d3.select(mapDataSourceSelector).select(`*[value=${ds}]`).html()} ${d3.select(mapDataVariableSelector).select(`*[value=${dv}]`).html()}`
@@ -301,11 +307,24 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
                     .html(buttonText)
                     .attr("size", "small")
 
+                // Disable button if no data exists
+                if (!hasData) {
+                    button.attr("disabled", true)
+                }
+
                 button.node().updateComplete.then(() => {
-                    d3.select(button.node().shadowRoot).select("[part=base]")
-                        .style("background-color", "white")
-                        .style("border-color", dataSourceColorMap[ds])
-                        .style("color", dataSourceColorMap[ds])
+                    var buttonBase = d3.select(button.node().shadowRoot).select("[part=base]")
+                    if (hasData) {
+                        buttonBase
+                            .style("background-color", "white")
+                            .style("border-color", dataSourceColorMap[ds])
+                            .style("color", dataSourceColorMap[ds])
+                    } else {
+                        buttonBase
+                            .style("background-color", "var(--sl-color-gray-100)")
+                            .style("border-color", "var(--sl-color-gray-300)")
+                            .style("color", "var(--sl-color-gray-500)")
+                    }
                 })
 
                 function ttpOptionsHandler(extraSourcesAndVariables, dataSource, dataVariable) {
@@ -324,12 +343,16 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
                         mainDataSrc, mainDataVar, 
                         rate, grid, allDates, extraSourcesAndVariables)
                 }
-                button.on("click", () => {ttpOptionsHandler(extraSourcesAndVariables, ds, dv)})
+                
+                // Only add click handler if data exists
+                if (hasData) {
+                    button.on("click", () => {ttpOptionsHandler(extraSourcesAndVariables, ds, dv)})
+                }
 
                 var icon = button.append("sl-icon")
                     .attr("slot", "prefix")
                     .attr("name", "graph-up")
-                    .style("color", dataSourceColorMap[ds])
+                    .style("color", hasData ? dataSourceColorMap[ds] : "var(--sl-color-gray-500)")
 
             })
             

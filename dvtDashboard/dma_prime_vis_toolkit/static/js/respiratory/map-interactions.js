@@ -79,6 +79,34 @@ map.on("click", e => {
         ttpSVG, ttpDiv.select(".tooltip-header"), ttpDiv.select(".tooltip-footer"), 
         mapDataSourceSelector.value, mapDataVariableSelector.value,
         mapTypeSwitch.value == "rate", false, false, {})
+
+    // Add expand icon button to map tooltip
+    var popupContent = d3.select("div.maplibregl-popup-content")
+    if (popupContent.select(".expand-icon-button").empty()) {
+        popupContent.append("sl-icon-button")
+            .attr("class", "expand-icon-button")
+            .attr("name", "zoom-in")
+            .style("position", "absolute")
+            .style("right", "18px")
+            .style("top", "0px")
+            .style("font-size", "9px")
+            .style("cursor", "pointer")
+            .on("click", () => {
+                var largeTtp = d3.select(tooltipLarge)
+                tooltipLarge.show().then(async () => {
+                    var allExtendedData = await d3.json(`/data/respiratory/${mapRegionSelector.value}/${mapDiseaseSelector.value}/extended?data_version=${metadata.data_version}&${parseInt(Math.random() * 9999999999)}`)
+                    var ttpData = {
+                        "id": dataObject.properties.id,
+                        "county": dataObject.properties.county,
+                        "data": allExtendedData[dataObject.properties.id]
+                    }
+                    drawTooltip(ttpData,
+                        largeTtp.select(".tooltip-outer-svg"), largeTtp.select(".tooltip-header"), largeTtp.select(".tooltip-footer"),
+                        mapDataSourceSelector.value, mapDataVariableSelector.value,
+                        mapTypeSwitch.value == "rate", false, true, {})
+                })
+            })
+    }
     dataVersion++
     redraw()
 })

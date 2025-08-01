@@ -75,6 +75,30 @@ function gridInitialVisualization() {
                     .style("top", 0)
                     .style("color", "black")
                     .on("click", () => gridTTPContainer.node().open = false)
+
+                // Add expand icon button next to close button
+                slTtpBody.append("sl-icon-button")
+                    .attr("name", "zoom-in")
+                    .style("position", "absolute")
+                    .style("right", "30px")
+                    .style("top", 0)
+                    .style("color", "black")
+                    .on("click", () => {
+                        var largeTtp = d3.select(tooltipLarge)
+                        tooltipLarge.show().then(async () => {
+                            var allExtendedData = await d3.json(`/data/respiratory/zcta/${gridDiseaseSelector.value}/extended?data_version=${metadata.data_version}&${parseInt(Math.random() * 9999999999)}`)
+                            var ttpData = {
+                                "id": gridTTPContainer.attr("zcta"),
+                                "county": gridTTPContainer.attr("county"),
+                                "data": allExtendedData[gridTTPContainer.attr("zcta")]
+                            }
+                            var [gridDataSource, gridDataVariable, _] = gridDataSourceSortSelector.value.split('_')
+                            drawTooltip(ttpData,
+                                largeTtp.select(".tooltip-outer-svg"), largeTtp.select(".tooltip-header"), largeTtp.select(".tooltip-footer"),
+                                gridDataSource, gridDataVariable,
+                                gridRateSwitch.value == "rate", true, true, {})
+                        })
+                    })
             })
             
             var gridTTPHeader = gridTTP.append("div")
