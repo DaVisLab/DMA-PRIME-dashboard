@@ -38,6 +38,11 @@ sl-tab-panel {
     display: flex;
 }
 
+p {
+    font-family: var(--sl-font-sans);
+    font-size: var(--sl-font-size-small);
+}
+
 /* Overview Panel*/
 #overview-container {
     display: flex;
@@ -96,6 +101,7 @@ sl-menu-item.data-date::part(base) {
     flex-direction: column;
     justify-content: space-around;
     padding: var(--sl-spacing-large);
+    overflow-y: auto;
 }
 
 .dashboard-data-buttons-container > sl-divider {

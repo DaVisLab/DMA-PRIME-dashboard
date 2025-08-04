@@ -153,6 +153,33 @@ def send_data_date(data_version, dashboard):
     
     return date_s
 
+@bp.route('/respiratory/changed_files', methods=['GET'])
+def send_respiratory_file_changes():
+    def find_path(line):
+        parts = line.split('and')
+        path = parts[0]
+
+        parts = path.split('/')
+        index = parts.index('respiratory')
+        path = '/'.join(parts[index+1:])
+
+        return path
+
+    file = os.path.join(current_app.config['DATADIR'], 'processed', 'new', 'respiratory', 'respiratory_changes.txt')
+    with open(file, 'r') as f:
+        changes = f.readlines()
+        additions = []
+        deletions = []
+        changed_files = []
+        for line in changes:            
+            if line.startswith('Only in'):
+                if 'backup' in line:
+                    deletions.append(find_path(line))
+                else:
+                    additions.append(find_path(line))
+            elif line.startswith('Files'):
+                changed_files.append(find_path(line))
+    return {'Changed Files': changed_files, 'New Files': additions, 'Deleted Files': deletions}
 
 def get_data_date(data_version, dashboard):
     all_data_versions = ['new', 'current', 'previous']

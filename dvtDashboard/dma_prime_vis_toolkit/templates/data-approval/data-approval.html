@@ -77,10 +77,6 @@
                             <sl-menu-item class="data-date" dashboard="{{ dash.code }}" dataVersion="{{ col.code }}">{{ dates[dash.code][col.code] }}</sl-menu-item>
                         </sl-menu>
                         {% endfor %}
-
-                        <!-- <table id="{{ dash.code }}-data-summary" class="data-summary">
-                            {% for col in column_headers[1:] %}<tr><td>{{ col.display }}</td><td class="data-date" dashboard="{{ dash.code }}" dataVersion="{{ col.code }}">{{ dates[dash.code][col.code] }}</td></tr>{% endfor %}
-                        </table> -->
                     </div>
                     <sl-divider></sl-divider>
                     <div class="preview-data-button-container">

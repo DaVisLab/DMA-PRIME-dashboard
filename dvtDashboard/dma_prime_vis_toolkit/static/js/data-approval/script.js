@@ -1,4 +1,24 @@
+d3.json('/data/respiratory/changed_files')
+  .then((data) => {
+    d3.select("#respiratory-panel .dashboard-data-buttons-container").append("sl-divider")
+    var div = d3.select("#respiratory-panel .dashboard-data-buttons-container").append("div")
+        .attr("class", "additional-info")
+    for (var [category, values] of Object.entries(data)) {
+        var cat = div.append("sl-details")
+            
+        cat.append("p")
+            .attr("slot", "summary")
+            .html(category[0].toUpperCase() + category.slice(1))
 
+        var catContents = cat.append("div")
+        
+        for (var val of values) {
+            catContents.append("p")
+                .attr("class", "respiratory-changed-file")
+                .html(val)
+        }
+    }
+  })
 
 tabGroup.addEventListener("sl-tab-show", function(e) {
     document.getElementById(`${e.detail.name}-dashboard`).src = `${e.detail.name}`
