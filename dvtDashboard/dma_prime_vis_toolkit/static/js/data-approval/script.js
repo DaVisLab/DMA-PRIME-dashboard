@@ -3,6 +3,7 @@ d3.json('/data/respiratory/changed_files')
     d3.select("#respiratory-panel .dashboard-data-buttons-container").append("sl-divider")
     var div = d3.select("#respiratory-panel .dashboard-data-buttons-container").append("div")
         .attr("class", "additional-info")
+    
     for (var [category, values] of Object.entries(data)) {
         var cat = div.append("sl-details")
             
