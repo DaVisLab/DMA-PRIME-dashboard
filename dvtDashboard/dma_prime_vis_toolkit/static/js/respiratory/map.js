@@ -355,6 +355,7 @@ function drawStateHospitalizations() {
         "bottom": 3.25*em,
         "left": 1.25*em,
         "right": 1*em,
+        "axis-thickness": 1,
     }
 
     function yAxisDisplayFunc(svg, stateYScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames) {
@@ -367,7 +368,7 @@ function drawStateHospitalizations() {
         .text(diseaseDisplayNames[mapDiseaseSelector.value])
         
         svg.select(".y-axis").append("g")
-            .attr("transform", `translate(${stateMargins.left},0)`)
+            .attr("transform", `translate(${stateMargins.left - stateMargins["axis-thickness"]},0)`)
             .call(d3.axisLeft(stateYScale).ticks(5).tickSize(4))
             .selectAll("text")
             .attr("class", "tooltip-label")
@@ -391,6 +392,7 @@ function drawLargeStateHospitalizations() {
         "bottom": 3.5*em,
         "left": 1.75*em,
         "right": 2*em,
+        "axis-thickness": 3,
     }
 
     function yAxisDisplayFunc(svg, stateYScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames) {
@@ -403,7 +405,7 @@ function drawLargeStateHospitalizations() {
             .text(diseaseDisplayNames[mapDiseaseSelector.value])
             
         var svgYAxis = svg.select(".y-axis").append("g")
-            .attr("transform", `translate(${stateMargins.left},0)`)
+            .attr("transform", `translate(${stateMargins.left - stateMargins["axis-thickness"]},0)`)
             .call(d3.axisLeft(stateYScale).ticks(5).tickSize(4))
             
         svgYAxis.select("path")
@@ -493,10 +495,10 @@ async function drawStateBarChart(svgDOM, subtitleDOM, stateMargins, yAxisDisplay
     var maxVal = d3.max(stateData.map(d => d.count)) || 1
 
     var temp = svg.append("text").text(d3.format(".2r")(maxVal)).attr("x", 0).attr("y", 0)
-    stateMargins.left += Math.max(20, temp.node().getBBox().width)
+    stateMargins.left += Math.max(20, temp.node().getBBox().width) + stateMargins["axis-thickness"]
 
     var stateXScale = d3.scaleTime()
-                .domain([d3.timeDay.offset(startDate, 7), endDate]).range([stateMargins.left, stateWidth - stateMargins.right])    
+                .domain([d3.timeDay.offset(startDate, -7), endDate]).range([stateMargins.left, stateWidth - stateMargins.right])    
 
     var stateYScale = d3.scaleLinear()
         .domain([0, maxVal])
