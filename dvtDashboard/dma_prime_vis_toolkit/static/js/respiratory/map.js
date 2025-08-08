@@ -16,6 +16,9 @@ var selectedItems = {
     "icons": []
 }
 
+// For discrete-binned choropleth, store the current bin edges for legend rendering
+var choroplethDiscreteEdges = null
+
 var choroplethColorMap = d3.scaleLinear()
     .domain([0, 1])
     .range(["white", dataSourceColorMap["state"]])
@@ -156,8 +159,11 @@ function getColor(feature) {
                     value = thisData.at(-1)
                 }
             }
-        
-            c = d3.rgb(choroplethColorMap(value))
+            if (value === undefined || value === null || isNaN(value)) {
+                c = d3.rgb(unknownColor)
+            } else {
+                c = d3.rgb(choroplethColorMap(value))
+            }
         }
 
         return [c.r, c.g, c.b]
@@ -201,11 +207,29 @@ function createChoropleth(data, mapType, dataSource, dataVariable, imputations=t
             })
         }
         if (dataVariable == "rt") {
+            choroplethDiscreteEdges = null
             choroplethColorMap = d3.scaleLinear()
                 .domain([0, .9, Math.max(d3.max(arr), 1)])
                 .range(["white", dataSourceColorMap[dataSource], "red"])
                 .unknown(unknownColor).nice()
+        } else if (dataVariable == "encounters" || dataVariable == "positive-tests") {
+            // Use 5 equal-width bins from 0 to a nice max for encounters and positive tests
+            var maxVal = d3.max(arr) || 0
+            var minVal = 0
+            var edges = d3.ticks(minVal, Math.max(maxVal, 1), 5) // returns 6 edges
+            // Ensure exactly 6 edges
+            if (edges.length < 6) {
+                var step = (Math.max(maxVal, 1) - minVal) / 5
+                edges = Array.from({length: 6}, (_, i) => minVal + i * step)
+            }
+            choroplethDiscreteEdges = edges
+            var thresholds = edges.slice(1, -1)
+            var discreteColors = d3.quantize(d3.interpolateRgb("white", dataSourceColorMap[dataSource]), 5)
+            choroplethColorMap = d3.scaleThreshold()
+                .domain(thresholds)
+                .range(discreteColors)
         } else {
+            choroplethDiscreteEdges = null
             choroplethColorMap = d3.scaleLinear()
                 .domain([0, d3.max(arr)])
                 .range(["white", dataSourceColorMap[dataSource]])
@@ -289,61 +313,124 @@ function drawLegend() {
                 .text(d[1])
         })
     } else {
-        var legendWidth = Math.max(mapDiv.clientWidth/3, 300)
+        var legendWidth = Math.max(mapDiv.clientWidth/3, 340)
         var colorLegend = d3.select(choroplethLegendSVG)
             .attr("transform", null)
             .attr("width", legendWidth + legendMargins.left + legendMargins.right)
             .attr("height", 3*em + legendMargins.top + legendMargins.bottom)
 
-        // create gradient that goes from white to color... like the choropleth coloring
-        var colorLegendDefs = colorLegend.append("defs")
-        var linearGrdient = colorLegendDefs.append("linearGradient")
-        linearGrdient.attr("id", "linear-gradient")
-            .attr("x1", "0%")
-            .attr("y1", "0%")
-            .attr("x2", "100%")
-            .attr("y2", "0%")
-        linearGrdient.append("stop")
-            .attr("id", "linear-gradient-stop-0")
-            .attr("offset", "0%")
-            .attr("stop-color", "white")
-        if (mapDataVariableSelector.value == "rt") {
+        // Discrete 5-bin legend for encounters and positive-tests
+        if (mapDataVariableSelector.value == "encounters" || mapDataVariableSelector.value == "positive-tests") {
+            var edges = (choroplethDiscreteEdges && choroplethDiscreteEdges.length === 6)
+                ? choroplethDiscreteEdges
+                : (function(){
+                    var dom = choroplethColorMap.domain ? choroplethColorMap.domain() : [0]
+                    var maxValTmp = Array.isArray(dom) && dom.length ? Math.max(0, d3.max(dom)) : 0
+                    var t = d3.ticks(0, Math.max(maxValTmp, 1), 5)
+                    var s = t.length >= 2 ? (t[1]-t[0]) : 1
+                    return Array.from({length: 6}, (_, i) => i * s)
+                })()
+            var bins = choroplethColorMap.range().map((color, i) => ({ color, x0: edges[i], x1: edges[i+1] }))
+
+            var xDomain = [edges[0], edges[edges.length - 1]]
+            var xScale = d3.scaleLinear().domain(xDomain).range([0, legendWidth])
+
+            // add background
+            colorLegend.append("rect")
+                .attr("class", "map-legend-background")
+                .attr("width", legendWidth + legendMargins.left + legendMargins.right)
+                .attr("height", 3*em + legendMargins.top + legendMargins.bottom)
+
+            var content = colorLegend.append("g").attr("id", "map-color-legend-contents")
+
+            content.selectAll("rect.bin")
+                .data(bins)
+                .enter()
+                .append("rect")
+                .attr("class", "bin")
+                .attr("x", d => legendMargins.left + xScale(d.x0))
+                .attr("y", legendMargins.top)
+                .attr("width", d => Math.max(1, xScale(d.x1) - xScale(d.x0)))
+                .attr("height", em)
+                .attr("fill", d => d.color)
+
+            // Axis with bin boundaries
+            var tickValues = edges
+            var numberFormatter = (v, i) => {
+                if (mapTypeSwitch.value == "rate") {
+                    return d3.format(",.2~f")(v)
+                } else {
+                    return d3.format(",")(Math.round(v))
+                }
+            }
+            var axisG = content.append("g")
+                .attr("id", "map-color-legend-axis")
+                .attr('transform', `translate(${legendMargins.left} ${em+legendMargins.top})`)
+                .call(d3.axisBottom(xScale)
+                    .tickValues(tickValues)
+                    .tickFormat(numberFormatter)
+                )
+
+            // Avoid label overflow: anchor first and last labels inside bounds
+            axisG.selectAll("text")
+                .attr("text-anchor", (d, i) => i === 0 ? "start" : (i === tickValues.length - 1 ? "end" : "middle"))
+
+            content.append("text")
+                .attr("id", `map-legend-title`)
+                .attr("class", `map-legend title`)
+                .attr("x", legendWidth/2 + legendMargins.left)
+                .attr("y", 3*em + legendMargins.top)
+                .text(`Current Week's ${dataVariableStringMap[mapDataVariableSelector.value]} by ${metadata.region_sizes[mapRegionSelector.value]}`)
+        } else {
+            // Continuous gradient legend (default)
+            var colorLegendDefs = colorLegend.append("defs")
+            var linearGrdient = colorLegendDefs.append("linearGradient")
+            linearGrdient.attr("id", "linear-gradient")
+                .attr("x1", "0%")
+                .attr("y1", "0%")
+                .attr("x2", "100%")
+                .attr("y2", "0%")
+            linearGrdient.append("stop")
+                .attr("id", "linear-gradient-stop-0")
+                .attr("offset", "0%")
+                .attr("stop-color", "white")
+            if (mapDataVariableSelector.value == "rt") {
+                linearGrdient.append("stop")
+                    .attr("id", "linear-gradient-stop-1")
+                    .attr("offset", `${(.9/choroplethColorMap.domain().at(-1))*100}%`)
+                    .attr("stop-color", choroplethColorMap.range().at(1))
+            }
             linearGrdient.append("stop")
                 .attr("id", "linear-gradient-stop-1")
-                .attr("offset", `${(.9/choroplethColorMap.domain().at(-1))*100}%`)
-                .attr("stop-color", choroplethColorMap.range().at(1))
+                .attr("offset", "100%")
+                .attr("stop-color", choroplethColorMap.range().at(-1))
+
+            // add background
+            colorLegend.append("rect")
+                .attr("class", "map-legend-background")
+                .attr("width", legendWidth + legendMargins.left + legendMargins.right)
+                .attr("height", 3*em + legendMargins.top + legendMargins.bottom)
+            
+            // display the choropleth range using gradient
+            var colorLegendContent = colorLegend.append("g").attr("id", "map-color-legend-contents")
+            colorLegendContent.append("rect")
+                .style("fill", "url(#linear-gradient)")
+                .attr("width", legendWidth)
+                .attr("height", em)
+                .attr("x", legendMargins.left)
+                .attr("y", legendMargins.top)
+
+            colorLegendContent.append("g").attr("id", "map-color-legend-axis")
+                .attr('transform', `translate(${legendMargins.left} ${em+legendMargins.top})`)
+                .call(d3.axisBottom(d3.scaleLinear(d3.extent(choroplethColorMap.domain()), [0, legendWidth]).nice()).ticks(6))
+
+            colorLegendContent.append("text")
+                .attr("id", `map-legend-title`)
+                .attr("class", `map-legend title`)
+                .attr("x", legendWidth/2 + legendMargins.left)
+                .attr("y", 3*em + legendMargins.top)
+                .text(`Current Week's ${dataVariableStringMap[mapDataVariableSelector.value]} by ${metadata.region_sizes[mapRegionSelector.value]}`)
         }
-        linearGrdient.append("stop")
-            .attr("id", "linear-gradient-stop-1")
-            .attr("offset", "100%")
-            .attr("stop-color", choroplethColorMap.range().at(-1))
-            // .attr("stop-color", dataSourceColorMap[mapDataSourceSelector.value])
-
-        // add background
-        colorLegend.append("rect")
-            .attr("class", "map-legend-background")
-            .attr("width", legendWidth + legendMargins.left + legendMargins.right)
-            .attr("height", 3*em + legendMargins.top + legendMargins.bottom)
-        
-        // display the choropleth range using gradient
-        var colorLegendContent = colorLegend.append("g").attr("id", "map-color-legend-contents")
-        colorLegendContent.append("rect")
-            .style("fill", "url(#linear-gradient)")
-            .attr("width", legendWidth)
-            .attr("height", em)
-            .attr("x", legendMargins.left)
-            .attr("y", legendMargins.top)
-
-        colorLegendContent.append("g").attr("id", "map-color-legend-axis")
-            .attr('transform', `translate(${legendMargins.left} ${em+legendMargins.top})`)
-            .call(d3.axisBottom(d3.scaleLinear(d3.extent(choroplethColorMap.domain()), [0, legendWidth]).nice()).ticks(6))
-
-        colorLegendContent.append("text")
-            .attr("id", `map-legend-title`)
-            .attr("class", `map-legend title`)
-            .attr("x", legendWidth/2 + legendMargins.left)
-            .attr("y", 3*em + legendMargins.top)
-            .text(`Current Week's ${dataVariableStringMap[mapDataVariableSelector.value]} by ${metadata.region_sizes[mapRegionSelector.value]}`)
 
     }
 }
