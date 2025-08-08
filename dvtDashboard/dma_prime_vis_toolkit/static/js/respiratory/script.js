@@ -401,6 +401,72 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
         })
 
     }
+    
+    // Add State Encounters button for expanded tooltip only
+    if (allDates && dataSource == "state") {
+        var hasStateEncountersData = data.data.extra && 
+                                     data.data.extra["state-encounters-reported"] && 
+                                     data.data.extra["state-encounters-reported"].historical && 
+                                     data.data.extra["state-encounters-reported"].historical.length > 0
+
+        var stateEncountersButtonText = "State Encounters"
+        if (extraSourcesAndVariables["extra"] !== undefined && extraSourcesAndVariables["extra"].includes("state-encounters-reported")) {
+            stateEncountersButtonText = "Remove " + stateEncountersButtonText
+        } else {
+            stateEncountersButtonText = "Add " + stateEncountersButtonText
+        }
+
+        var stateEncountersButton = ttpOptions.append("sl-button")
+            .html(stateEncountersButtonText)
+            .attr("size", "small")
+
+        // Disable button if no data exists
+        if (!hasStateEncountersData) {
+            stateEncountersButton.attr("disabled", true)
+        }
+
+        stateEncountersButton.node().updateComplete.then(() => {
+            var buttonBase = d3.select(stateEncountersButton.node().shadowRoot).select("[part=base]")
+            if (hasStateEncountersData) {
+                buttonBase
+                    .style("background-color", "white")
+                    .style("border-color", dataSourceColorMap["extra"])
+                    .style("color", dataSourceColorMap["extra"])
+            } else {
+                buttonBase
+                    .style("background-color", "var(--sl-color-gray-100)")
+                    .style("border-color", "var(--sl-color-gray-300)")
+                    .style("color", "var(--sl-color-gray-500)")
+            }
+        })
+
+        function stateEncountersHandler(extraSourcesAndVariables) {
+            // toggle state encounters
+            if (extraSourcesAndVariables["extra"] !== undefined) {
+                if (extraSourcesAndVariables["extra"].includes("state-encounters-reported")) {
+                    extraSourcesAndVariables["extra"].splice(extraSourcesAndVariables["extra"].indexOf("state-encounters-reported"), 1)
+                } else {
+                    extraSourcesAndVariables["extra"].push("state-encounters-reported")
+                }
+            } else {
+                extraSourcesAndVariables["extra"] = ["state-encounters-reported"]
+            }
+            drawTooltip(d, 
+                ttpSVG, header, footer, 
+                mainDataSrc, mainDataVar, 
+                rate, grid, allDates, extraSourcesAndVariables)
+        }
+        
+        // Only add click handler if data exists
+        if (hasStateEncountersData) {
+            stateEncountersButton.on("click", () => {stateEncountersHandler(extraSourcesAndVariables)})
+        }
+
+        var stateEncountersIcon = stateEncountersButton.append("sl-icon")
+            .attr("slot", "prefix")
+            .attr("name", "graph-up")
+            .style("color", hasStateEncountersData ? dataSourceColorMap["extra"] : "var(--sl-color-gray-500)")
+    }
 
     /* Draw Graph */
     // reset tooltip contents for new data
@@ -588,6 +654,8 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
     // draw legend
     var ttpLegendTop = ttpHeight - 1*em
     var legendItemTotalWidth = 0
+    
+    // Add main data source to legend
     Array(mainDataSrc, `${mainDataSrc}-projected`).forEach(function(dataSrc, i) {
         var labelGroup = ttpLegend.append("g")
             .attr("class", `tooltip-label-group ${dataSrc}`)
@@ -615,6 +683,37 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
                 return text})
 
         legendItemTotalWidth += labelGroup.node().getBBox().width
+    })
+    
+    // Add extra data sources to legend
+    Object.entries(extraSourcesAndVariables).forEach(function([ds, dvs]) {
+        dvs.forEach(function(dv) {
+            Array(ds, `${ds}-projected`).forEach(function(dataSrc, i) {
+                var labelGroup = ttpLegend.append("g")
+                    .attr("class", `tooltip-label-group ${dataSrc}`)
+                labelGroup.append("rect")
+                    .attr("x", 0)
+                    .attr("y", 0)
+                    .attr("height", .5*em)
+                    .attr("width", .5*em)
+                    .attr("fill", dataSourceColorMap[dataSrc])
+                var labelText = labelGroup.append("text")
+                    .attr("class", "tooltip-label")
+                    .attr("x", 1*em)
+                    .attr("y", .25*em)
+                    .attr("fill", dataSourceColorMap[dataSrc])
+                    .attr("font-size", "var(--sl-font-size-small)")
+                    .style("dominant-baseline", "middle")
+                    .text(() => {
+                        var text = dataSourceDisplayName[ds] ? dataSourceDisplayName[ds][dv] : dv
+                        if (i == 1) {
+                            text += ' (projected)'
+                        }
+                        return text})
+
+                legendItemTotalWidth += labelGroup.node().getBBox().width
+            })
+        })
     })
 
     var totalLegendWidth = ttpWidth - (ttpMargins.left + ttpMargins.right)
