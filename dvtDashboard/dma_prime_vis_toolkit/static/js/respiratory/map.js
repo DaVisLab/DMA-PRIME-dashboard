@@ -606,6 +606,46 @@ async function drawStateBarChart(svgDOM, subtitleDOM, stateMargins, yAxisDisplay
         .attr("stroke-width", 1)
         .attr("fill", d => dayjs(parseDate(d["Date"])).isAfter(currentWeek) ? "var(--sl-color-neutral-600)" : "var(--sl-color-neutral-100)")
         .attr("transform", `translate(-${barWidth}, 0)`)
+        .on("mouseover", function(event, d) {
+            var formatDate = d3.timeFormat("%b %d, %Y")
+            var dateStr = formatDate(parseDate(d["Date"]))
+            var countStr = mapTypeSwitch.value == "rate" ? `${d["count"].toFixed(2)} per 1000` : d["count"].toString()
+            
+            // Create tooltip element
+            var tooltip = d3.select("body").append("div")
+                .attr("class", "chart-tooltip")
+                .style("position", "absolute")
+                .style("background", "rgba(0, 0, 0, 0.8)")
+                .style("color", "white")
+                .style("padding", "8px 12px")
+                .style("border-radius", "4px")
+                .style("font-size", "12px")
+                .style("pointer-events", "none")
+                .style("z-index", "1000")
+            
+            tooltip.append("div").text(`Date: ${dateStr}`)
+            tooltip.append("div").text(`Count: ${countStr}`)
+            
+            // Position tooltip
+            var tooltipWidth = tooltip.node().getBoundingClientRect().width
+            var tooltipHeight = tooltip.node().getBoundingClientRect().height
+            var x = event.pageX + 10
+            var y = event.pageY - tooltipHeight - 10
+            
+            // Adjust if tooltip goes off screen
+            if (x + tooltipWidth > window.innerWidth) {
+                x = event.pageX - tooltipWidth - 10
+            }
+            if (y < 0) {
+                y = event.pageY + 10
+            }
+            
+            tooltip.style("left", x + "px")
+                .style("top", y + "px")
+        })
+        .on("mouseout", function() {
+            d3.selectAll(".chart-tooltip").remove()
+        })
 
     yAxisDisplayFunc(svg, stateYScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames)
     xAxisDisplayFunc(svg, stateXScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames)

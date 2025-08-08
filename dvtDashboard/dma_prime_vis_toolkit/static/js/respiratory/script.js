@@ -167,7 +167,7 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
     var data = JSON.parse(JSON.stringify(d)) // don't want to mess up og data
     var mainData = data.data[dataSource][dataVariable]
 
-    function drawMainHistoricalGraph(g, data, historicalDates, dataSrc, allDates, xScale, yScale) {
+    function drawMainHistoricalGraph(g, data, historicalDates, dataSrc, allDates, xScale, yScale, rate) {
         if (allDates){
             g.append("path")
                 .attr("d", d3.area()
@@ -192,6 +192,48 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
                 .attr("width", historicalBarWidth)
                 .attr("fill", dataSourceColorMap[dataSrc])
                 .attr("transform", `translate(-${historicalBarWidth}, 0)`)
+                .on("mouseover", function(event, d) {
+                    if (d !== null) {
+                        var formatDate = d3.timeFormat("%b %d, %Y")
+                        var dateStr = formatDate(historicalDates[data.indexOf(d)])
+                        var countStr = rate ? `${d.toFixed(2)} per 1000` : d.toString()
+                        
+                        // Create tooltip element
+                        var tooltip = d3.select("body").append("div")
+                            .attr("class", "chart-tooltip")
+                            .style("position", "absolute")
+                            .style("background", "rgba(0, 0, 0, 0.8)")
+                            .style("color", "white")
+                            .style("padding", "8px 12px")
+                            .style("border-radius", "4px")
+                            .style("font-size", "12px")
+                            .style("pointer-events", "none")
+                            .style("z-index", "1000")
+                        
+                        tooltip.append("div").text(`Date: ${dateStr}`)
+                        tooltip.append("div").text(`Count: ${countStr}`)
+                        
+                        // Position tooltip
+                        var tooltipWidth = tooltip.node().getBoundingClientRect().width
+                        var tooltipHeight = tooltip.node().getBoundingClientRect().height
+                        var x = event.pageX + 10
+                        var y = event.pageY - tooltipHeight - 10
+                        
+                        // Adjust if tooltip goes off screen
+                        if (x + tooltipWidth > window.innerWidth) {
+                            x = event.pageX - tooltipWidth - 10
+                        }
+                        if (y < 0) {
+                            y = event.pageY + 10
+                        }
+                        
+                        tooltip.style("left", x + "px")
+                            .style("top", y + "px")
+                    }
+                })
+                .on("mouseout", function() {
+                    d3.selectAll(".chart-tooltip").remove()
+                })
         }
     }
     
@@ -423,7 +465,7 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
 
     // draw historical data for selected data var
     var historicalGroup = graphSVG.append("g")
-    drawMainHistoricalGraph(historicalGroup, mainData.historical, historicalDatesArray, mainDataSrc, allDates, xScaleHistorical, yScale)
+    drawMainHistoricalGraph(historicalGroup, mainData.historical, historicalDatesArray, mainDataSrc, allDates, xScaleHistorical, yScale, rate)
 
     // draw projected data for selected data var
     var stateCurrentLabelPositionAbove = null
@@ -458,6 +500,48 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
             .attr("cy", (d) => yScale(d))
             .style("opacity", (d) => {return d === null ? 0 : 1})
             .attr("stroke", dataSourceColorMap[`${mainDataSrc}-projected`])
+            .on("mouseover", function(event, d) {
+                if (d !== null) {
+                    var formatDate = d3.timeFormat("%b %d, %Y")
+                    var dateStr = formatDate(predictionDates[mainData.projected.indexOf(d)])
+                    var countStr = rate ? `${d.toFixed(2)} per 1000` : d.toString()
+                    
+                    // Create tooltip element
+                    var tooltip = d3.select("body").append("div")
+                        .attr("class", "chart-tooltip")
+                        .style("position", "absolute")
+                        .style("background", "rgba(0, 0, 0, 0.8)")
+                        .style("color", "white")
+                        .style("padding", "8px 12px")
+                        .style("border-radius", "4px")
+                        .style("font-size", "12px")
+                        .style("pointer-events", "none")
+                        .style("z-index", "1000")
+                    
+                    tooltip.append("div").text(`Date: ${dateStr}`)
+                    tooltip.append("div").text(`Count: ${countStr}`)
+                    
+                    // Position tooltip
+                    var tooltipWidth = tooltip.node().getBoundingClientRect().width
+                    var tooltipHeight = tooltip.node().getBoundingClientRect().height
+                    var x = event.pageX + 10
+                    var y = event.pageY - tooltipHeight - 10
+                    
+                    // Adjust if tooltip goes off screen
+                    if (x + tooltipWidth > window.innerWidth) {
+                        x = event.pageX - tooltipWidth - 10
+                    }
+                    if (y < 0) {
+                        y = event.pageY + 10
+                    }
+                    
+                    tooltip.style("left", x + "px")
+                        .style("top", y + "px")
+                }
+            })
+            .on("mouseout", function() {
+                d3.selectAll(".chart-tooltip").remove()
+            })
 
         // place line separating historical and prediction data
         ttpSVG.select(".tooltip-prediction-separator")
