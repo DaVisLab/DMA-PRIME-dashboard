@@ -20,7 +20,12 @@ disease_names = {
 with open(f'{aggregated_data_dir}/waste_water/site_info.json') as f:
     site_info = json.load(f)
 
-    df = pd.read_excel(f'{aggregated_data_dir}/waste_water/CDC_running_data_4plot.xlsx')
+    files = glob.glob(f'{aggregated_data_dir}/waste_water/*.xlsx')
+    df = pd.DataFrame()
+    for file in files:
+        temp = pd.read_excel(file)
+        df = pd.concat([df, temp])
+    # df = pd.read_excel(f'{aggregated_data_dir}/waste_water/CDC_running_data_4plot.xlsx')
     df['Date'] = pd.to_datetime(df['Date'], format="%m/%d/%y")
     min_date = df['Date'].min()
     max_date = df['Date'].max()
@@ -32,7 +37,8 @@ with open(f'{aggregated_data_dir}/waste_water/site_info.json') as f:
     pivot = pd.pivot_table(df, values=['GC/L WW AVG'], index=['Site', 'Target', 'Date'])    
 
     for site, info in site_info.items():
-        
+        if site not in df['Site']:
+            continue
         data_dict = {}
         for disease in diseases_tracked:
             temp = pivot.xs((site, disease), level=['Site', 'Target'])
