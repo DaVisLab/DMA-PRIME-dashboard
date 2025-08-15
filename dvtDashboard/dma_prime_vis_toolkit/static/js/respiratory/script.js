@@ -653,9 +653,12 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
 
     // draw legend
     var ttpLegendTop = ttpHeight - 1*em
-    var legendItemTotalWidth = 0
+    var totalLegendWidth = ttpWidth - (ttpMargins.left + ttpMargins.right)
     
-    // Add main data source to legend
+    // Collect all legend items
+    var legendItems = []
+    
+    // Add main data source to legend items
     Array(mainDataSrc, `${mainDataSrc}-projected`).forEach(function(dataSrc, i) {
         var labelGroup = ttpLegend.append("g")
             .attr("class", `tooltip-label-group ${dataSrc}`)
@@ -681,11 +684,14 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
                     text += ' (projected)'
                 }
                 return text})
-
-        legendItemTotalWidth += labelGroup.node().getBBox().width
+        
+        legendItems.push({
+            group: labelGroup,
+            width: labelGroup.node().getBBox().width
+        })
     })
     
-    // Add extra data sources to legend
+    // Add extra data sources to legend items
     Object.entries(extraSourcesAndVariables).forEach(function([ds, dvs]) {
         dvs.forEach(function(dv) {
             Array(ds, `${ds}-projected`).forEach(function(dataSrc, i) {
@@ -710,22 +716,34 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
                             text += ' (projected)'
                         }
                         return text})
-
-                legendItemTotalWidth += labelGroup.node().getBBox().width
+                
+                legendItems.push({
+                    group: labelGroup,
+                    width: labelGroup.node().getBBox().width
+                })
             })
         })
     })
-
-    var totalLegendWidth = ttpWidth - (ttpMargins.left + ttpMargins.right)
-    var legendSpaceAround = Math.max(em, (totalLegendWidth - legendItemTotalWidth) / 3)
-
-    ttpLegend.selectAll(".tooltip-label-group").each(function(_, i, groups) {
-        var groupX = ttpMargins.left + legendSpaceAround * (i+1)
-        if (i > 0) {
-            groupX += groups[i-1].getBBox().width
+    
+    // Position legend items in rows to avoid overlapping
+    var currentRow = 0
+    var currentX = ttpMargins.left
+    var rowHeight = 1.2 * em // Space between rows
+    var itemSpacing = 1.5 * em // Space between items in a row
+    
+    legendItems.forEach(function(item, i) {
+        // Check if this item would overflow the row
+        if (currentX + item.width > ttpMargins.left + totalLegendWidth) {
+            // Move to next row
+            currentRow++
+            currentX = ttpMargins.left
         }
-        d3.select(this)
-            .attr("transform", `translate(${groupX}, ${ttpLegendTop})`)
+        
+        // Position the item
+        item.group.attr("transform", `translate(${currentX}, ${ttpLegendTop - currentRow * rowHeight})`)
+        
+        // Move to next position
+        currentX += item.width + itemSpacing
     })
 
     // display x-axis on the bottom

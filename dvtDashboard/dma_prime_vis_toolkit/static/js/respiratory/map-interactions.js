@@ -89,7 +89,7 @@ map.on("click", e => {
             .style("position", "absolute")
             .style("right", "18px")
             .style("top", "0px")
-            .style("font-size", "9px")
+            .style("color", "black")
             .style("cursor", "pointer")
             .on("click", () => {
                 var largeTtp = d3.select(tooltipLarge)
