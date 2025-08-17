@@ -96,6 +96,10 @@
     cursor: unset;
   }
 
+  .maplibregl-popup-close-button {
+    font-size: var(--sl-font-size-large);
+  }
+
   /* For link to links page */
   #main-tab::part(base) {
     opacity: 1;

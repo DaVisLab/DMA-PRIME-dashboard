@@ -439,7 +439,7 @@ function drawLegend() {
 function drawStateHospitalizations() {
     var stateMargins = {
         "top": 1*em, 
-        "bottom": 3.25*em,
+        "bottom": 2.25*em,
         "left": 1.25*em,
         "right": 1*em,
         "axis-thickness": 1,

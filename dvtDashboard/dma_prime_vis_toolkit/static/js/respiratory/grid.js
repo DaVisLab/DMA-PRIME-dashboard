@@ -49,6 +49,7 @@ function gridInitialVisualization() {
             
             // using sl-tooltip to use shoelace's built in functionality
             var gridTTPContainer = gridItemContainer.append("sl-tooltip")
+                .attr("class", "grid-item-tooltip")
                 .attr("trigger", "manual")
                 .attr("hoist", "")
 
@@ -68,21 +69,17 @@ function gridInitialVisualization() {
                 var slTtpBody = d3.select(gridTTPContainer.node().shadowRoot).select("div[part='body']")
                 slTtpBody.style("pointer-events", "auto")
 
-                slTtpBody.append("sl-icon-button")
+                gridTTP.append("sl-icon-button")
                     .attr("name", "x")
-                    .style("position", "absolute")
+                    .attr("class", "grid-close-tooltip-button grid-tooltip-toolbar-button")
                     .style("right", 0)
-                    .style("top", 0)
-                    .style("color", "black")
                     .on("click", () => gridTTPContainer.node().open = false)
 
                 // Add expand icon button next to close button
-                slTtpBody.append("sl-icon-button")
+                gridTTP.append("sl-icon-button")
                     .attr("name", "zoom-in")
-                    .style("position", "absolute")
+                    .attr("class", "grid-tooltip-toolbar-button")
                     .style("right", "30px")
-                    .style("top", 0)
-                    .style("color", "black")
                     .on("click", () => {
                         var largeTtp = d3.select(tooltipLarge)
                         tooltipLarge.show().then(async () => {
@@ -112,6 +109,8 @@ function gridInitialVisualization() {
                 .attr("class", `tooltip-outer-svg`)
             var gridTTPFooter = gridTTP.append("div")
                 .attr("class", "tooltip-footer")
+            gridTTPFooter.append("div")
+                .attr("class", "tooltip-legend")
             gridTTPFooter.append("div")
                 .attr("class", "tooltip-options")
 

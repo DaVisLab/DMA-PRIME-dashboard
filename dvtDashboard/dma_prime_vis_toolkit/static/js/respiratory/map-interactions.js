@@ -58,6 +58,7 @@ map.on("click", e => {
             </div>
             <svg id="map-tooltip-svg" class="tooltip-outer-svg"></svg>
             <div class="tooltip-footer">
+                <div class="tooltip-legend"></div>
                 <div class="tooltip-options"></div>
             </div>
             </div>`)
