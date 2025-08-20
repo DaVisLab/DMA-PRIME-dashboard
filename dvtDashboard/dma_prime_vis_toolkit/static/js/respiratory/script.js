@@ -103,14 +103,12 @@ function getDataAsArray(data, dataSource, dataVariable, histOrProj, rate, imputa
     var arr = data.features.map((d) => {
         var thisData = d.properties.data[dataSource][dataVariable][histOrProj]
         
-        if (thisData.length > 0 && (imputations || !d.properties.data.imputation)) {
+        if (imputations || !d.properties.data.imputation) {
             if (rate) {
-                return (parseFloat(thisData.at(-1)) || 1) * 1000 / d.properties.population
+                return (parseFloat(thisData.at(-1)) || 0) * 1000 / d.properties.population
             } else {
                 return parseFloat(thisData.at(-1)) || 1
             }
-        } else {
-            return rate ? 1000 / d.properties.population : 1
         }
     })
 

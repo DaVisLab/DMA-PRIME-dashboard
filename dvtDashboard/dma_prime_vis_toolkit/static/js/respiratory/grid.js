@@ -197,8 +197,7 @@ function updateGridData() {
     // create scales
     var [gridDataSource, gridDataVariable, gridHistOrProj] = gridDataSourceSortSelector.value.split('_')
     var gridColor = d3.scaleQuantile()
-        .domain(getDataAsArray(zctaData, gridDataSource, gridDataVariable, gridHistOrProj, gridRateSwitch.value == "rate", gridIncludeImputations.checked)
-            .filter(function(d) {return d != 0}))
+        .domain(d3.extent(getDataAsArray(zctaData, gridDataSource, gridDataVariable, gridHistOrProj, gridRateSwitch.value == "rate", gridIncludeImputations.checked)))
         .range(gridBackgroundColors)
         .unknown("var(--sl-color-gray-600)")
 
@@ -213,7 +212,6 @@ function updateGridData() {
         var zcta = d.properties.ZCTA
 
         var data = JSON.parse(JSON.stringify(d.properties.data))
-        var mainData = data[gridDataSource][gridDataVariable][gridHistOrProj]
 
         var thisCountMax = 0
 
@@ -226,13 +224,14 @@ function updateGridData() {
         gridItemDataSources.forEach(function(dataSource) {
             var [ds, dv, hop] = dataSource.split('_')
             if (gridRateSwitch.value == "rate") {
-                data[ds][dv][hop] = data[ds][dv][hop].map(function(item) { return item === null ? null : item/d.population * 1000} )
+                data[ds][dv][hop] = data[ds][dv][hop].map(function(item) { return item === null ? null : item/d.properties.population * 1000} )
             }
             if (data[ds][dv][hop].length) {
                 thisCountMax = d3.max([thisCountMax, ...data[ds][dv][hop]])
             }
         })
 
+        var mainData = data[gridDataSource][gridDataVariable][gridHistOrProj]
         var value = parseFloat(mainData.at(-1))
 
         // update the heights/widths of things
