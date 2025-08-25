@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import glob
 import json
-import os
+import re
 
 from supporting_files.utility import *
 
@@ -20,25 +20,37 @@ disease_names = {
 with open(f'{aggregated_data_dir}/waste_water/site_info.json') as f:
     site_info = json.load(f)
 
-    df = pd.read_excel(f'{aggregated_data_dir}/waste_water/CDC_running_data_4plot.xlsx')
+    files = glob.glob(f'{aggregated_data_dir}/waste_water/*.xlsx')
+    df = pd.DataFrame()
+    for file in files:
+        temp = pd.read_excel(file)
+        df = pd.concat([df, temp])
+        
     df['Date'] = pd.to_datetime(df['Date'], format="%m/%d/%y")
     min_date = df['Date'].min()
     max_date = df['Date'].max()
-    diseases_tracked = df['Target'].unique()
 
     for site in site_info.keys():
         df = df.replace(site_info[site]["excel_name"], site)
 
-    pivot = pd.pivot_table(df, values=['GC/L WW AVG'], index=['Site', 'Target', 'Date'])    
+    df = df.applymap(lambda x: re.sub(r'\s', '', x) if type(x) is str else x) # stripping out \xa0
+    df = df.replace('')
+    
+    diseases_tracked = df['Target'].unique()
+    sites = df['Site'].unique()
+
+    pivot = pd.pivot_table(df, values=['GC/L WW AVG'], index=['Site', 'Target', 'Date'])
 
     for site, info in site_info.items():
+        if site not in sites:
+            continue
         
         data_dict = {}
         for disease in diseases_tracked:
             temp = pivot.xs((site, disease), level=['Site', 'Target'])
             temp.index = temp.index.strftime('%Y-%m-%d')
             data_dict[disease] = temp.to_dict(orient='dict')['GC/L WW AVG']
-
+        
         with open(f'{processed_data_dir}/waste_water/{site}.json', 'w') as f:
             json.dump(data_dict, f)
 

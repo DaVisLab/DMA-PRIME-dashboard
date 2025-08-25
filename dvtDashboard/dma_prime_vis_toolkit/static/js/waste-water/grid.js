@@ -24,10 +24,10 @@ function drawCharts() {
             data = []
         }
 
-        temp = svg.append("text").text(d3.format(".2r")(maxVal)).attr("x", 0).attr("y", 0)
+        temp = svg.append("text").text(d3.format(".2r")(totalMaxVal)).attr("x", 0).attr("y", 0)
         margins = {
-            "top": .5*em, 
-            "bottom": 1.5*em,
+            "top": .75*em, 
+            "bottom": 1.75*em,
             "left": Math.max(20, temp.node().getBBox().width) + 1.25*em,
             "right": .5*em,
         }
@@ -101,6 +101,8 @@ function drawCharts() {
         } else if (lastPointLabelText.node().getBBox().x + lastPointLabel.node().getBBox().width/2 > xScale.range()[1]) {
             lastPointLabelText.attr("text-anchor", "central")
         }
+
+        temp.remove()
     })
 }
 

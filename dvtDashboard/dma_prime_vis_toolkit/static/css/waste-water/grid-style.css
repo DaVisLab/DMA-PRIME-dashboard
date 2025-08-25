@@ -7,11 +7,13 @@
     display: grid;
     gap: var(--sl-spacing-large);
     height: calc(100% - 2em);
+    overflow-y: auto;
 }
 
 .site-svg{
     height: 100%;
     width: 100%;
+    overflow: visible
 }
 
 .last-point-label {

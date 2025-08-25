@@ -37,12 +37,9 @@
 </sl-resize-observer>
 <div id="grid-legend">
     <svg id="grid-legend-svg">
-        <!-- <line id="grid-legend-state-model-line" x1=".5em" x2="3.5em" y1="1em" y2="1em"></line> -->
         <circle id="grid-legend-disease-concentration-dot" cx="1.5em" cy="1.5em" r="5" fill="black"></circle>
         <line id="grid-legend-disease-concentration-line" x1=".5em" x2="2.5em" y1="1.5em" y2="1.5em" stroke-width="3" stroke="black"></line>
         <text id="grid-legend-disease-concentration-text" x="3em" y="1.5em" dominant-baseline="middle">Disease Concentration</text>
-        <!-- <line id="grid-legend-disease-hospitalizations-line" x1=".5em" x2="1.5em" y1="2.5em" y2="2.5em" width="3" stroke="black"></line>
-        <text id="grid-legend-disease-hospitalizations-text" x="2em" y="2.5em" dominant-baseline="middle">Disease Hospitalizations</text> -->
     </svg>
 </div>
 {% endblock %}
@@ -64,9 +61,7 @@
     // interactive elements
     var gridDiseaseSelector = document.getElementById("grid-disease-selector")
 
-    var gridLength = Math.sqrt(Object.values(metadata.site_info).length)
-    gridContainer.style.setProperty("grid-template-columns", `repeat(${gridLength}, calc(${100.0/gridLength}% - var(--sl-spacing-large) * ${(gridLength-1)/gridLength}))`)
-    gridContainer.style.setProperty("grid-template-rows", `repeat(${gridLength}, calc(${100.0/gridLength}% - var(--sl-spacing-large) * ${(gridLength-1)/gridLength}))`)
+    var totalMaxVal = 1
 
     set{{ panel.name }}Panel()
 </script>
@@ -81,6 +76,13 @@
     var arr = Object.keys(metadata['site_info']).map(site =>
         d3.json(`/data/waste-water/${site}?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`).then(d => {
             d3.select(`#${site}-div`).datum(d)
+            return d
+        }).then(d => {
+            Object.keys(metadata["diseases"]).forEach(disease => {
+                if (d[disease]) {
+                    totalMaxVal = Math.max(d3.max(Object.values(d[disease])), totalMaxVal)
+                }
+            })
         }))
 
     await Promise.all(arr)
