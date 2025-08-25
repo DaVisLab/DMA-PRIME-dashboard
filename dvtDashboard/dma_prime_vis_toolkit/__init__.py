@@ -152,9 +152,9 @@ def create_app(development=False, dataDir=None):
         ]
         return render_template('respiratory/respiratory-base.html', panels=panels, metadata=metadata)
     
-    @app.route('/respiratory-model-metrics', methods=['GET'])
+    @app.route('/respiratory-model-exploration', methods=['GET'])
     @login_required
-    def respiratory_model_metrics():
+    def respiratory_model_exploration():
 
         data_version = get_data_version_from_request(request, current_user)
         
@@ -170,10 +170,10 @@ def create_app(development=False, dataDir=None):
                 'displayName': 'DMA-PRIME',
             },
             {
-                'name': 'metrics',
-                'displayName': 'Model Merics',
+                'name': 'exploration',
+                'displayName': 'Model Exploration',
                 'active': True,
-                'html': 'respiratory/respiratory-model-metric-panel.html'
+                'html': 'respiratory/respiratory-model-exploration-panel.html'
             },
         ]
         return render_template('respiratory/respiratory-model-base.html', panels=panels, metadata=metadata)

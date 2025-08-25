@@ -2,10 +2,10 @@
 {% extends "subtemplates/panel.html" %}
 
 {% block options %}
-<div id="metric-options" class="sidebar-container">
+<div id="exploration-options" class="sidebar-container">
 
   <!-- disease selector -->
-  <sl-select value="{{ metadata['diseases'].keys() | first }}" id="metric-disease-selector" class="fill-width" size="small">
+  <sl-select value="{{ metadata['diseases'].keys() | first }}" id="exploration-disease-selector" class="fill-width" size="small">
     <p slot="label">Select a disease or group of diseases</p>
     {% for disease, name in metadata['diseases'].items() %}
     <sl-option value="{{ disease }}">{{ name }}</sl-option>
@@ -13,7 +13,7 @@
   </sl-select>
 
   <!-- region selector -->
-  <sl-select value="region" id="metric-region-selector" class="fill-width" size="small">
+  <sl-select value="region" id="exploration-region-selector" class="fill-width" size="small">
     <p slot="label">Geographic unit</p>
     {% for region, name in metadata['region_sizes'].items() %}
     <sl-option value="{{ region }}">{{ name }}</sl-option>
@@ -21,7 +21,7 @@
   </sl-select>
 
   <!-- data source -->
-   <sl-select value="state" id="metric-data-source-selector" class="fill-width" size="small">
+   <sl-select value="state" id="exploration-data-source-selector" class="fill-width" size="small">
     <p slot="label">Select data source</p>
     <sl-tooltip content="Revenue and Fiscal Affairs data" trigger="hover" hoist>
       <sl-option value="state" >State</sl-option>
@@ -32,7 +32,7 @@
   </sl-select>
 
   <!-- data variable -->
-  <sl-select value="encounters" id="metric-data-variable-selector" class="fill-width" size="small">
+  <sl-select value="encounters" id="exploration-data-variable-selector" class="fill-width" size="small">
     <p slot="label">Select outcome variable</p>
     <sl-tooltip content="In-patient hospitalizations and emergency department" trigger="hover" hoist>
       <sl-option value="encounters" >Encounters</sl-option>
@@ -55,7 +55,7 @@
 {% endblock %}
 
 {% block contents %}
-<iframe id="model-metrics" title="Selected Model Metrics"></iframe>
+<iframe id="model-exploration" title="Selected Model Information"></iframe>
 
 {% endblock %}
 
@@ -69,10 +69,10 @@
     dataVersion = 0;
 
     // Controls
-    metricDiseaseSelector = document.getElementById("metric-disease-selector")
-    metricRegionSelector = document.getElementById("metric-region-selector")
-    metricDataSourceSelector = document.getElementById("metric-data-source-selector")
-    metricDataVariableSelector = document.getElementById("metric-data-variable-selector")
+    explorationDiseaseSelector = document.getElementById("exploration-disease-selector")
+    explorationRegionSelector = document.getElementById("exploration-region-selector")
+    explorationDataSourceSelector = document.getElementById("exploration-data-source-selector")
+    explorationDataVariableSelector = document.getElementById("exploration-data-variable-selector")
 
   </script>
 
