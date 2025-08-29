@@ -83,6 +83,17 @@
   --max-width: 800px;
 }
 
+.grid-tooltip-toolbar-button {
+  position: absolute;
+  top: 0;
+  color: black;
+}
+
+.grid-close-tooltip-button::part(base) {
+  padding: 6px;
+  font-size: var(--sl-font-size-large);
+}
+
 .grid-container sl-tooltip::part(body), .grid-container sl-tooltip::part(base__arrow) {
   background-color: white;
 }

@@ -81,6 +81,16 @@ sl-tab-panel::part(base) {
   font-size: var(--sl-font-size-small);
 }
 
+.maplibregl-popup-close-button {
+  font-size: var(--sl-font-size-large);
+}
+
+/* For link to links page */
+#main-tab::part(base) {
+  opacity: 1;
+  cursor: pointer;
+}
+
 .sidebar-container sl-option::part(label) {
   font-size: var(--sl-font-size-small);
 }

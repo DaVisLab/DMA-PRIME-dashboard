@@ -49,6 +49,7 @@ function gridInitialVisualization() {
             
             // using sl-tooltip to use shoelace's built in functionality
             var gridTTPContainer = gridItemContainer.append("sl-tooltip")
+                .attr("class", "grid-item-tooltip")
                 .attr("trigger", "manual")
                 .attr("hoist", "")
 
@@ -68,21 +69,17 @@ function gridInitialVisualization() {
                 var slTtpBody = d3.select(gridTTPContainer.node().shadowRoot).select("div[part='body']")
                 slTtpBody.style("pointer-events", "auto")
 
-                slTtpBody.append("sl-icon-button")
+                gridTTP.append("sl-icon-button")
                     .attr("name", "x")
-                    .style("position", "absolute")
+                    .attr("class", "grid-close-tooltip-button grid-tooltip-toolbar-button")
                     .style("right", 0)
-                    .style("top", 0)
-                    .style("color", "black")
                     .on("click", () => gridTTPContainer.node().open = false)
 
                 // Add expand icon button next to close button
-                slTtpBody.append("sl-icon-button")
+                gridTTP.append("sl-icon-button")
                     .attr("name", "zoom-in")
-                    .style("position", "absolute")
+                    .attr("class", "grid-tooltip-toolbar-button")
                     .style("right", "30px")
-                    .style("top", 0)
-                    .style("color", "black")
                     .on("click", () => {
                         var largeTtp = d3.select(tooltipLarge)
                         tooltipLarge.show().then(async () => {
@@ -112,6 +109,8 @@ function gridInitialVisualization() {
                 .attr("class", `tooltip-outer-svg`)
             var gridTTPFooter = gridTTP.append("div")
                 .attr("class", "tooltip-footer")
+            gridTTPFooter.append("div")
+                .attr("class", "tooltip-legend")
             gridTTPFooter.append("div")
                 .attr("class", "tooltip-options")
 
@@ -198,8 +197,7 @@ function updateGridData() {
     // create scales
     var [gridDataSource, gridDataVariable, gridHistOrProj] = gridDataSourceSortSelector.value.split('_')
     var gridColor = d3.scaleQuantile()
-        .domain(getDataAsArray(zctaData, gridDataSource, gridDataVariable, gridHistOrProj, gridRateSwitch.value == "rate", gridIncludeImputations.checked)
-            .filter(function(d) {return d != 0}))
+        .domain(d3.extent(getDataAsArray(zctaData, gridDataSource, gridDataVariable, gridHistOrProj, gridRateSwitch.value == "rate", gridIncludeImputations.checked)))
         .range(gridBackgroundColors)
         .unknown("var(--sl-color-gray-600)")
 
@@ -214,7 +212,6 @@ function updateGridData() {
         var zcta = d.properties.ZCTA
 
         var data = JSON.parse(JSON.stringify(d.properties.data))
-        var mainData = data[gridDataSource][gridDataVariable][gridHistOrProj]
 
         var thisCountMax = 0
 
@@ -227,13 +224,14 @@ function updateGridData() {
         gridItemDataSources.forEach(function(dataSource) {
             var [ds, dv, hop] = dataSource.split('_')
             if (gridRateSwitch.value == "rate") {
-                data[ds][dv][hop] = data[ds][dv][hop].map(function(item) { return item === null ? null : item/d.population * 1000} )
+                data[ds][dv][hop] = data[ds][dv][hop].map(function(item) { return item === null ? null : item/d.properties.population * 1000} )
             }
             if (data[ds][dv][hop].length) {
                 thisCountMax = d3.max([thisCountMax, ...data[ds][dv][hop]])
             }
         })
 
+        var mainData = data[gridDataSource][gridDataVariable][gridHistOrProj]
         var value = parseFloat(mainData.at(-1))
 
         // update the heights/widths of things

@@ -261,7 +261,7 @@ with open(f'{processed_data_dir}/respiratory/metadata.json', 'w') as f:
             'state': 'State',
             'region': 'Region',
             'county': 'County',
-            'zcta': 'Zip Code',
+            'zcta': 'Zip-Code Tabulation Area (ZCTA)',
         },
         'min_date': min_date.strftime('%Y-%m-%d'),
         'start_date': start_date.strftime('%Y-%m-%d'),

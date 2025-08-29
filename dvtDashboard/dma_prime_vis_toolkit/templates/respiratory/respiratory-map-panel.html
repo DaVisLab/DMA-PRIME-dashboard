@@ -38,19 +38,19 @@
 
   <!-- data source -->
    <sl-select value="state" id="map-data-source-selector" class="fill-width" size="small">
-    <p slot="label">Select data source</p>
-    <sl-tooltip content="Revenue and Fiscal Affairs data" trigger="hover" hoist>
-      <sl-option value="state" >State</sl-option>
+    <p slot="label">Select population</p>
+    <sl-tooltip content="All South Carolina residents in the selected geography" trigger="hover" hoist>
+      <sl-option value="state" >General Population</sl-option>
     </sl-tooltip>
-    <sl-tooltip content="Prisma Health and MUSC EHR data" trigger="hover" hoist>
-      <sl-option value="health-system">Health System</sl-option>
+    <sl-tooltip content="South Carolina residents in the selected geography served by the PRISMA or MUSC health system" trigger="hover" hoist>
+      <sl-option value="health-system">Health Systems (PRISMA/MUSC)</sl-option>
     </sl-tooltip>
   </sl-select>
 
   <!-- data variable -->
   <sl-select value="encounters" id="map-data-variable-selector" class="fill-width" size="small">
     <p slot="label">Select outcome variable</p>
-    <sl-tooltip content="In-patient hospitalizations and emergency department" trigger="hover" hoist>
+    <sl-tooltip content="Inpatient and outpatient hospitalizations and emergency department visists" trigger="hover" hoist>
       <sl-option value="encounters" >Encounters</sl-option>
     </sl-tooltip>
     <sl-tooltip content="Positive tests" trigger="hover" hoist>
@@ -100,7 +100,7 @@
   <svg id="choropleth-legend-svg"></svg>
 </div>
 <div id="map-title-container" class="fill-width">
-  <p id="map-title">Count of Covid-19 Hospitalizations in South Carolina by Region</p>
+  <p id="map-title">Count of COVID-19 Hospitalizations in South Carolina by Region</p>
 </div>
 
 {% endblock %}

@@ -1,5 +1,5 @@
 const { GeoJsonLayer, IconLayer, TextLayer, MapboxOverlay } = deck;
-import { startDate, currentWeek, endDate, dataSourceColorMap, dataVariableColorMap, unknownColor, parseDate, getCenter, drawTooltip } from "/static/js/respiratory/script.js";
+import { startDate, currentWeek, endDate, parseDate, getDataAsArray, dataSourceColorMap, unknownColor, getCenter, drawTooltip } from "/static/js/respiratory/script.js";
 export { map, popup, selectedItems, deckOverlay, redraw, drawStateHospitalizations, drawLargeStateHospitalizations, updateMapTitle, updateMapTooltip }
 
 var regionData
@@ -184,7 +184,7 @@ function createChoropleth(data, mapType, dataSource, dataVariable, imputations=t
             var thisData = data.features[0].properties.data[dataSource][dataVariable]['historical']
             if (thisData.length > 0) {
                 if (mapType == "rate") {
-                    arr =  thisData.map(d => (d || 1) / data.features[0].properties.population * 1000)
+                    arr =  thisData.map(d => (d || 0) / data.features[0].properties.population * 1000)
                 } else {
                     arr =  thisData.map(d => d || 1)
                 }
@@ -192,19 +192,7 @@ function createChoropleth(data, mapType, dataSource, dataVariable, imputations=t
                 arr = [1]
             }
         } else {
-            arr = data.features.map((d) => {
-                var thisData = d.properties.data[dataSource][dataVariable]['historical']
-        
-                if (thisData.length > 0 && (imputations || !d.properties.data.imputation)) {
-                    if (mapType == "rate") {
-                        return (parseFloat(thisData.at(-1)) || 1) * 1000 / d.properties.population
-                    } else {
-                        return parseFloat(thisData.at(-1)) || 1
-                    }
-                } else {
-                    return mapType == "rate" ? 1000 / d.properties.population : 1
-                }
-            })
+            arr = getDataAsArray(data, dataSource, dataVariable, ['historical'], mapType == "rate", imputations)
         }
         if (dataVariable == "rt") {
             choroplethDiscreteEdges = null
@@ -213,29 +201,10 @@ function createChoropleth(data, mapType, dataSource, dataVariable, imputations=t
                 .range(["white", dataSourceColorMap[dataSource], "red"])
                 .unknown(unknownColor).nice()
         } else if (dataVariable == "encounters" || dataVariable == "positive-tests") {
-            // Use 5 equal-width bins from 0 to a nice max for encounters and positive tests
-            var maxVal = d3.max(arr) || 0
-            var minVal = 0
-            var edges = d3.ticks(minVal, Math.max(maxVal, 1), 5) // returns 6 edges
-            // Ensure exactly 6 edges
-            if (edges.length < 6) {
-                var step = (Math.max(maxVal, 1) - minVal) / 5
-                edges = Array.from({length: 6}, (_, i) => minVal + i * step)
-            }
-            choroplethDiscreteEdges = edges
-            var thresholds = edges.slice(1, -1)
-            var discreteColors = d3.quantize(d3.interpolateRgb("white", dataSourceColorMap[dataSource]), 5)
-            choroplethColorMap = d3.scaleThreshold()
-                .domain(thresholds)
-                .range(discreteColors)
-        } else {
-            choroplethDiscreteEdges = null
-            choroplethColorMap = d3.scaleLinear()
-                .domain([0, d3.max(arr)])
-                .range(["white", dataSourceColorMap[dataSource]])
-                .unknown(unknownColor).nice()
+            choroplethColorMap = d3.scaleQuantize()
+                .domain([0, d3.max(arr) || 1])
+                .range(d3.quantize(d3.interpolateRgb("white", dataSourceColorMap[dataSource]), 5))
         }
-
     }
 }
 
@@ -606,6 +575,46 @@ async function drawStateBarChart(svgDOM, subtitleDOM, stateMargins, yAxisDisplay
         .attr("stroke-width", 1)
         .attr("fill", d => dayjs(parseDate(d["Date"])).isAfter(currentWeek) ? "var(--sl-color-neutral-600)" : "var(--sl-color-neutral-100)")
         .attr("transform", `translate(-${barWidth}, 0)`)
+        .on("mouseover", function(event, d) {
+            var formatDate = d3.timeFormat("%b %d, %Y")
+            var dateStr = formatDate(parseDate(d["Date"]))
+            var countStr = mapTypeSwitch.value == "rate" ? `${d["count"].toFixed(2)} per 1000` : d["count"].toString()
+            
+            // Create tooltip element
+            var tooltip = d3.select("body").append("div")
+                .attr("class", "chart-tooltip")
+                .style("position", "absolute")
+                .style("background", "rgba(0, 0, 0, 0.8)")
+                .style("color", "white")
+                .style("padding", "8px 12px")
+                .style("border-radius", "4px")
+                .style("font-size", "12px")
+                .style("pointer-events", "none")
+                .style("z-index", "1000")
+            
+            tooltip.append("div").text(`Date: ${dateStr}`)
+            tooltip.append("div").text(`Count: ${countStr}`)
+            
+            // Position tooltip
+            var tooltipWidth = tooltip.node().getBoundingClientRect().width
+            var tooltipHeight = tooltip.node().getBoundingClientRect().height
+            var x = event.pageX + 10
+            var y = event.pageY - tooltipHeight - 10
+            
+            // Adjust if tooltip goes off screen
+            if (x + tooltipWidth > window.innerWidth) {
+                x = event.pageX - tooltipWidth - 10
+            }
+            if (y < 0) {
+                y = event.pageY + 10
+            }
+            
+            tooltip.style("left", x + "px")
+                .style("top", y + "px")
+        })
+        .on("mouseout", function() {
+            d3.selectAll(".chart-tooltip").remove()
+        })
 
     yAxisDisplayFunc(svg, stateYScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames)
     xAxisDisplayFunc(svg, stateXScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames)

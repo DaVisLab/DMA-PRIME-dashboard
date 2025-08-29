@@ -59,3 +59,25 @@ div.tooltip-div p {
   stroke: black
 }
 
+.tooltip-legend {
+  display: flex;
+  justify-content: space-evenly;
+  min-width: 100%;
+  max-width: min-content;
+  flex-wrap: wrap;
+}
+
+.tooltip-legend-group, .tooltip-legend-group-item {
+  display: flex;
+  align-items: center;
+  width: max-content;
+}
+
+.tooltip-legend-group-item {
+  margin: var(--sl-spacing-2x-small);
+}
+
+.tooltip-label {
+  width: max-content;
+  margin: 0 var(--sl-spacing-2x-small);
+}

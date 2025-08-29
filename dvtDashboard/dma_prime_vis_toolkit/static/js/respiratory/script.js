@@ -103,14 +103,12 @@ function getDataAsArray(data, dataSource, dataVariable, histOrProj, rate, imputa
     var arr = data.features.map((d) => {
         var thisData = d.properties.data[dataSource][dataVariable][histOrProj]
         
-        if (thisData.length > 0 && (imputations || !d.properties.data.imputation)) {
+        if (imputations || !d.properties.data.imputation) {
             if (rate) {
-                return (parseFloat(thisData.at(-1)) || 1) * 1000 / d.properties.population
+                return (parseFloat(thisData.at(-1)) || 0) * 1000 / d.properties.population
             } else {
                 return parseFloat(thisData.at(-1)) || 1
             }
-        } else {
-            return rate ? 1000 / d.properties.population : 1
         }
     })
 
@@ -167,7 +165,7 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
     var data = JSON.parse(JSON.stringify(d)) // don't want to mess up og data
     var mainData = data.data[dataSource][dataVariable]
 
-    function drawMainHistoricalGraph(g, data, historicalDates, dataSrc, allDates, xScale, yScale) {
+    function drawMainHistoricalGraph(g, data, historicalDates, dataSrc, allDates, xScale, yScale, rate) {
         if (allDates){
             g.append("path")
                 .attr("d", d3.area()
@@ -192,6 +190,48 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
                 .attr("width", historicalBarWidth)
                 .attr("fill", dataSourceColorMap[dataSrc])
                 .attr("transform", `translate(-${historicalBarWidth}, 0)`)
+                .on("mouseover", function(event, d) {
+                    if (d !== null) {
+                        var formatDate = d3.timeFormat("%b %d, %Y")
+                        var dateStr = formatDate(historicalDates[data.indexOf(d)])
+                        var countStr = rate ? `${d.toFixed(2)} per 1000` : d.toString()
+                        
+                        // Create tooltip element
+                        var tooltip = d3.select("body").append("div")
+                            .attr("class", "chart-tooltip")
+                            .style("position", "absolute")
+                            .style("background", "rgba(0, 0, 0, 0.8)")
+                            .style("color", "white")
+                            .style("padding", "8px 12px")
+                            .style("border-radius", "4px")
+                            .style("font-size", "12px")
+                            .style("pointer-events", "none")
+                            .style("z-index", "1000")
+                        
+                        tooltip.append("div").text(`Date: ${dateStr}`)
+                        tooltip.append("div").text(`Count: ${countStr}`)
+                        
+                        // Position tooltip
+                        var tooltipWidth = tooltip.node().getBoundingClientRect().width
+                        var tooltipHeight = tooltip.node().getBoundingClientRect().height
+                        var x = event.pageX + 10
+                        var y = event.pageY - tooltipHeight - 10
+                        
+                        // Adjust if tooltip goes off screen
+                        if (x + tooltipWidth > window.innerWidth) {
+                            x = event.pageX - tooltipWidth - 10
+                        }
+                        if (y < 0) {
+                            y = event.pageY + 10
+                        }
+                        
+                        tooltip.style("left", x + "px")
+                            .style("top", y + "px")
+                    }
+                })
+                .on("mouseout", function() {
+                    d3.selectAll(".chart-tooltip").remove()
+                })
         }
     }
     
@@ -207,7 +247,7 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
     var regionInfo = header.select(".tooltip-region-info")
     regionInfo.node().innerHTML = ""
     if (grid) {
-        regionInfo.append("p").html(`Zip Code: ${data.id}`)
+        regionInfo.append("p").html(`ZCTA: ${data.id}`)
     } else {
         if (mapRegionSelector.value != "state") {
             regionInfo.append("p").html(`${metadata.region_sizes[mapRegionSelector.value]}: ${data.id}`)
@@ -359,6 +399,72 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
         })
 
     }
+    
+    // Add State Encounters button for expanded tooltip only
+    if (allDates && dataSource == "state") {
+        var hasStateEncountersData = data.data.extra && 
+                                     data.data.extra["state-encounters-reported"] && 
+                                     data.data.extra["state-encounters-reported"].historical && 
+                                     data.data.extra["state-encounters-reported"].historical.length > 0
+
+        var stateEncountersButtonText = "State Encounters"
+        if (extraSourcesAndVariables["extra"] !== undefined && extraSourcesAndVariables["extra"].includes("state-encounters-reported")) {
+            stateEncountersButtonText = "Remove " + stateEncountersButtonText
+        } else {
+            stateEncountersButtonText = "Add " + stateEncountersButtonText
+        }
+
+        var stateEncountersButton = ttpOptions.append("sl-button")
+            .html(stateEncountersButtonText)
+            .attr("size", "small")
+
+        // Disable button if no data exists
+        if (!hasStateEncountersData) {
+            stateEncountersButton.attr("disabled", true)
+        }
+
+        stateEncountersButton.node().updateComplete.then(() => {
+            var buttonBase = d3.select(stateEncountersButton.node().shadowRoot).select("[part=base]")
+            if (hasStateEncountersData) {
+                buttonBase
+                    .style("background-color", "white")
+                    .style("border-color", dataSourceColorMap["extra"])
+                    .style("color", dataSourceColorMap["extra"])
+            } else {
+                buttonBase
+                    .style("background-color", "var(--sl-color-gray-100)")
+                    .style("border-color", "var(--sl-color-gray-300)")
+                    .style("color", "var(--sl-color-gray-500)")
+            }
+        })
+
+        function stateEncountersHandler(extraSourcesAndVariables) {
+            // toggle state encounters
+            if (extraSourcesAndVariables["extra"] !== undefined) {
+                if (extraSourcesAndVariables["extra"].includes("state-encounters-reported")) {
+                    extraSourcesAndVariables["extra"].splice(extraSourcesAndVariables["extra"].indexOf("state-encounters-reported"), 1)
+                } else {
+                    extraSourcesAndVariables["extra"].push("state-encounters-reported")
+                }
+            } else {
+                extraSourcesAndVariables["extra"] = ["state-encounters-reported"]
+            }
+            drawTooltip(d, 
+                ttpSVG, header, footer, 
+                mainDataSrc, mainDataVar, 
+                rate, grid, allDates, extraSourcesAndVariables)
+        }
+        
+        // Only add click handler if data exists
+        if (hasStateEncountersData) {
+            stateEncountersButton.on("click", () => {stateEncountersHandler(extraSourcesAndVariables)})
+        }
+
+        var stateEncountersIcon = stateEncountersButton.append("sl-icon")
+            .attr("slot", "prefix")
+            .attr("name", "graph-up")
+            .style("color", hasStateEncountersData ? dataSourceColorMap["extra"] : "var(--sl-color-gray-500)")
+    }
 
     /* Draw Graph */
     // reset tooltip contents for new data
@@ -397,7 +503,7 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
     var temp = ttpSVG.append("text").text(d3.format(".2r")(countMax)).attr("x", 0).attr("y", 0)
     var ttpMargins = {
         "top": 1*em, 
-        "bottom": 1*em + 2*em + 1*em,
+        "bottom": 2.5*em,
         "left": Math.max(20, temp.node().getBBox().width) + 2*em,
         "right": em,
     }
@@ -423,7 +529,7 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
 
     // draw historical data for selected data var
     var historicalGroup = graphSVG.append("g")
-    drawMainHistoricalGraph(historicalGroup, mainData.historical, historicalDatesArray, mainDataSrc, allDates, xScaleHistorical, yScale)
+    drawMainHistoricalGraph(historicalGroup, mainData.historical, historicalDatesArray, mainDataSrc, allDates, xScaleHistorical, yScale, rate)
 
     // draw projected data for selected data var
     var stateCurrentLabelPositionAbove = null
@@ -458,6 +564,48 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
             .attr("cy", (d) => yScale(d))
             .style("opacity", (d) => {return d === null ? 0 : 1})
             .attr("stroke", dataSourceColorMap[`${mainDataSrc}-projected`])
+            .on("mouseover", function(event, d) {
+                if (d !== null) {
+                    var formatDate = d3.timeFormat("%b %d, %Y")
+                    var dateStr = formatDate(predictionDates[mainData.projected.indexOf(d)])
+                    var countStr = rate ? `${d.toFixed(2)} per 1000` : d.toString()
+                    
+                    // Create tooltip element
+                    var tooltip = d3.select("body").append("div")
+                        .attr("class", "chart-tooltip")
+                        .style("position", "absolute")
+                        .style("background", "rgba(0, 0, 0, 0.8)")
+                        .style("color", "white")
+                        .style("padding", "8px 12px")
+                        .style("border-radius", "4px")
+                        .style("font-size", "12px")
+                        .style("pointer-events", "none")
+                        .style("z-index", "1000")
+                    
+                    tooltip.append("div").text(`Date: ${dateStr}`)
+                    tooltip.append("div").text(`Count: ${countStr}`)
+                    
+                    // Position tooltip
+                    var tooltipWidth = tooltip.node().getBoundingClientRect().width
+                    var tooltipHeight = tooltip.node().getBoundingClientRect().height
+                    var x = event.pageX + 10
+                    var y = event.pageY - tooltipHeight - 10
+                    
+                    // Adjust if tooltip goes off screen
+                    if (x + tooltipWidth > window.innerWidth) {
+                        x = event.pageX - tooltipWidth - 10
+                    }
+                    if (y < 0) {
+                        y = event.pageY + 10
+                    }
+                    
+                    tooltip.style("left", x + "px")
+                        .style("top", y + "px")
+                }
+            })
+            .on("mouseout", function() {
+                d3.selectAll(".chart-tooltip").remove()
+            })
 
         // place line separating historical and prediction data
         ttpSVG.select(".tooltip-prediction-separator")
@@ -500,26 +648,21 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
         
     })
 
-
     // draw legend
-    var ttpLegendTop = ttpHeight - 1*em
-    var legendItemTotalWidth = 0
+    var ttpLegend = footer.select(".tooltip-legend").html("")
+
+    // Add main data source to legend items
+    var ttpLegendGroup = ttpLegend.append("div").attr("class", "tooltip-legend-group")
     Array(mainDataSrc, `${mainDataSrc}-projected`).forEach(function(dataSrc, i) {
-        var labelGroup = ttpLegend.append("g")
-            .attr("class", `tooltip-label-group ${dataSrc}`)
-        labelGroup.append("rect")
-            .attr("x", 0)
-            .attr("y", 0)
-            .attr("height", .5*em)
-            .attr("width", .5*em)
-            .attr("fill", dataSourceColorMap[dataSrc])
-        var labelText = labelGroup.append("text")
+        var ttpLegendGroupItem = ttpLegendGroup.append("div")
+            .attr("class", `tooltip-legend-group-item ${dataSrc}`)
+        ttpLegendGroupItem.append("sl-icon")
+            .attr("name", "square-fill")
+            .style("color", dataSourceColorMap[dataSrc])
+        ttpLegendGroupItem.append("p")
             .attr("class", "tooltip-label")
-            .attr("x", 1*em)
-            .attr("y", .25*em)
-            .attr("fill", dataSourceColorMap[dataSrc])
             .attr("font-size", "var(--sl-font-size-small)")
-            .style("dominant-baseline", "middle")
+            .attr("color", dataSourceColorMap[dataSrc])
             .text(() => {
                 var text = dataVarString
                 if (i == 0 && mainDataSrc == "state") {
@@ -529,20 +672,32 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
                     text += ' (projected)'
                 }
                 return text})
-
-        legendItemTotalWidth += labelGroup.node().getBBox().width
     })
 
-    var totalLegendWidth = ttpWidth - (ttpMargins.left + ttpMargins.right)
-    var legendSpaceAround = Math.max(em, (totalLegendWidth - legendItemTotalWidth) / 3)
-
-    ttpLegend.selectAll(".tooltip-label-group").each(function(_, i, groups) {
-        var groupX = ttpMargins.left + legendSpaceAround * (i+1)
-        if (i > 0) {
-            groupX += groups[i-1].getBBox().width
-        }
-        d3.select(this)
-            .attr("transform", `translate(${groupX}, ${ttpLegendTop})`)
+    Object.entries(extraSourcesAndVariables).forEach(function([ds, dvs]) {
+        dvs.forEach(function(dv) {
+            ttpLegendGroup = ttpLegend.append("div").attr("class", "tooltip-legend-group")
+            Array(ds, `${ds}-projected`).forEach(function(dataSrc, i) {
+                var ttpLegendGroupItem = ttpLegendGroup.append("div")
+                    .attr("class", `tooltip-legend-group-item ${dataSrc}`)
+                ttpLegendGroupItem.append("sl-icon")
+                    .attr("name", "square-fill")
+                    .style("color", dataSourceColorMap[dataSrc])
+                ttpLegendGroupItem.append("p")
+                    .attr("class", "tooltip-label")
+                    .attr("font-size", "var(--sl-font-size-small)")
+                    .attr("color", dataSourceColorMap[dataSrc])
+                    .text(() => {
+                        var text = dataVarString
+                        if (i == 0 && mainDataSrc == "state") {
+                            text += ' (estimated)'
+                        }
+                        if (i == 1) {
+                            text += ' (projected)'
+                        }
+                        return text})
+            })
+        })
     })
 
     // display x-axis on the bottom
@@ -572,7 +727,7 @@ function drawTooltip(d, ttpSVG, header, footer, dataSource, dataVariable, rate=f
 
     // display y-axis on the left
     yAxis.append("text")
-        .attr("transform", `translate(${1.5*em},${yScale(d3.mean(yScale.domain()))})rotate(-90)`)
+        .attr("transform", `translate(${1.25*em},${yScale(d3.mean(yScale.domain()))})rotate(-90)`)
         .attr("text-anchor", "middle")
         .attr("fill", "var(--sl-color-neutral-1000)")
         .attr("font-size", "var(--sl-font-size-small)")
