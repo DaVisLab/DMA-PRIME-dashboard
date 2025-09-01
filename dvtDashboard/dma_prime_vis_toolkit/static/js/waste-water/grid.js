@@ -1,7 +1,7 @@
 
 function drawCharts() {
     Object.keys(metadata['site_info']).forEach(site => {
-        data = d3.select(`#${site}-div`).datum()[gridDiseaseSelector.value]
+        data = d3.select(`#${site}-div`).datum()
 
         domSvg = document.getElementById(`${site}-svg`)
         domSvg.innerHTML = ""
@@ -14,11 +14,11 @@ function drawCharts() {
         xAxis = svg.append("g")
             .attr("class", "x-axis")
 
-        minVal = 0
         maxVal = 1
 
-        if (data) {
-            maxVal = Math.max(d3.max(Object.values(data)), maxVal)
+        if (data && Object.keys(data[gridDiseaseSelector.value]).length) {
+            data = data[gridDiseaseSelector.value]
+            maxVal = d3.max(Object.values(data)) | 1
             data = Object.entries(data).map(d => {return {"date":parseDate(d[0]), "val":d[1]}})
         } else {
             data = []
@@ -28,7 +28,7 @@ function drawCharts() {
         margins = {
             "top": .75*em, 
             "bottom": 1.75*em,
-            "left": Math.max(20, temp.node().getBBox().width) + 1.25*em,
+            "left": Math.max(20, temp.node().getBBox().width) + 1.5*em,
             "right": .5*em,
         }
 
@@ -79,30 +79,32 @@ function drawCharts() {
         xAxis.call(d3.axisBottom(xScale).tickArguments([d3.timeMonth.every(1), d3.timeFormat("%b %Y")]))
             .attr("transform", `translate(0, ${height - margins.bottom})`)
 
-        var lastPointLabel = svg.append("g")
-        var lastPointX = xScale(data.at(-1).date)
-        var lastPointY = yScale(data.at(-1).val)
-        var labelY = lastPointY - em < yScale.range()[0] ? lastPointY - em : lastPointY + em
-        var lastPointLabelText = lastPointLabel.append("text")
-            .attr("class", "last-point-label")
-            .attr("x", lastPointX)
-            .attr("y", labelY)
-            .text(d3.timeFormat(" %b %-d ")(data.at(-1).date))
+        if (data.length) {
+            var lastPointLabel = svg.append("g")
+            var lastPointX = xScale(data.at(-1).date)
+            var lastPointY = yScale(data.at(-1).val)
+            var labelY = lastPointY - em < yScale.range()[0] ? lastPointY - em : lastPointY + em
+            var lastPointLabelText = lastPointLabel.append("text")
+                .attr("class", "last-point-label")
+                .attr("x", lastPointX)
+                .attr("y", labelY)
+                .text(d3.timeFormat(" %b %-d ")(data.at(-1).date))
 
-        lastPointLabel.append("line")
-            .attr("class", "last-point-label-line")
-            .attr("x1", lastPointX)
-            .attr("x2", lastPointX)
-            .attr("y1", lastPointY)
-            .attr("y2", labelY)
+            lastPointLabel.append("line")
+                .attr("class", "last-point-label-line")
+                .attr("x1", lastPointX)
+                .attr("x2", lastPointX)
+                .attr("y1", lastPointY)
+                .attr("y2", labelY)
 
-        if (lastPointLabelText.node().getBBox().x + lastPointLabel.node().getBBox().width > xScale.range()[1]) {
-            lastPointLabelText.attr("text-anchor", "end")
-        } else if (lastPointLabelText.node().getBBox().x + lastPointLabel.node().getBBox().width/2 > xScale.range()[1]) {
-            lastPointLabelText.attr("text-anchor", "central")
+            if (lastPointLabelText.node().getBBox().x + lastPointLabel.node().getBBox().width > xScale.range()[1]) {
+                lastPointLabelText.attr("text-anchor", "end")
+            } else if (lastPointLabelText.node().getBBox().x + lastPointLabel.node().getBBox().width/2 > xScale.range()[1]) {
+                lastPointLabelText.attr("text-anchor", "central")
+            }
         }
-
         temp.remove()
+        
     })
 }
 
