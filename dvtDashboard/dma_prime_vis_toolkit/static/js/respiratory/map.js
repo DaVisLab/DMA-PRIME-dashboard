@@ -1,5 +1,5 @@
 const { GeoJsonLayer, IconLayer, TextLayer, MapboxOverlay } = deck;
-import { startDate, currentWeek, endDate, parseDate, getDataAsArray, dataSourceColorMap, unknownColor, getCenter, drawTooltip } from "/static/js/respiratory/script.js";
+import { getDataAsArray, populationColorMap, unknownColor, getCenter, drawTooltip } from "/static/js/respiratory/script.js";
 export { map, popup, selectedItems, deckOverlay, redraw, drawStateHospitalizations, drawLargeStateHospitalizations, updateMapTitle, updateMapTooltip }
 
 var regionData
@@ -21,7 +21,7 @@ var choroplethDiscreteEdges = null
 
 var choroplethColorMap = d3.scaleLinear()
     .domain([0, 1])
-    .range(["white", dataSourceColorMap["state"]])
+    .range(["white", populationColorMap["general_population"]])
     .unknown(unknownColor).nice()
 
 const map = new maplibregl.Map({
@@ -56,7 +56,7 @@ async function redraw(fetchData=false) {
     if (fetchData == true) {
         regionData = await d3.json(`/data/respiratory/${mapRegionSelector.value}/${mapDiseaseSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`) 
     }
-    createChoropleth(regionData, mapTypeSwitch.value, mapDataSourceSelector.value, mapDataVariableSelector.value, mapIncludeImputations.checked)
+    createChoropleth(regionData, mapTypeSwitch.value, mapPopulationSelector.value, mapOutcomeVariableSelector.value, mapIncludeImputations.checked)
     drawLegend()
     var layers = [
         new GeoJsonLayer({
@@ -75,7 +75,7 @@ async function redraw(fetchData=false) {
             getLineColor: [127, 127, 127],
             updateTriggers: {
                 data: [mapRegionSelector.value, dataVersion],
-                getFillColor: [ mapRegionSelector.value, mapDataVariableSelector.value, dataVersion ],
+                getFillColor: [ mapRegionSelector.value, mapOutcomeVariableSelector.value, dataVersion ],
             },
         })
     ]
@@ -131,16 +131,16 @@ async function redraw(fetchData=false) {
 
 function getColor(feature) {
     if (!selectedItems.feature || selectedItems.feature.properties.id == feature.properties.id) {
-        var dataSource = mapDataSourceSelector.value
-        var dataVariable = mapDataVariableSelector.value
+        var population = mapPopulationSelector.value
+        var outcomeVariable = mapOutcomeVariableSelector.value
         var imputations = mapIncludeImputations.checked
-        var thisData = feature.properties.data[dataSource][dataVariable]['historical']
+        var thisData = feature.properties.data[population][outcomeVariable]['historical']
 
         var c
 
         if (mapTypeSwitch.value == "percentDifference") {
-            var thisWeekDatum = parseFloat(thisData.at(-1))
-            var lastWeekDatum = parseFloat(thisData.at(-2))
+            var thisWeekDatum = parseFloat(thisData.values.at(expectedShortHistoryDataPoints-1))
+            var lastWeekDatum = parseFloat(thisData.values.at(expectedShortHistoryDataPoints-2))
             c = d3.rgb(unknownColor)
             if (isNaN(thisWeekDatum) || lastWeekDatum) {
                 c = d3.rgb(choroplethColorMap((thisWeekDatum - lastWeekDatum) / Math.abs(lastWeekDatum) * 100))
@@ -152,11 +152,11 @@ function getColor(feature) {
         } else {
             var value
         
-            if (imputations || !feature.properties.data.imputation) {
+            if (imputations || !thisData.imputed) {
                 if (mapTypeSwitch.value == "rate") {
-                    value = thisData.at(-1) / feature.properties.population * 1000
+                    value = thisData.values.at(expectedShortHistoryDataPoints-1) / feature.properties.population * 1000
                 } else {
-                    value = thisData.at(-1)
+                    value = thisData.values.at(expectedShortHistoryDataPoints-1)
                 }
             }
             if (value === undefined || value === null || isNaN(value)) {
@@ -172,7 +172,7 @@ function getColor(feature) {
     }
 }
 
-function createChoropleth(data, mapType, dataSource, dataVariable, imputations=true) {
+function createChoropleth(data, mapType, population, outcomeVariable, imputations=true) {
     if (mapType == "percentDifference") {
         choroplethColorMap = d3.scaleLinear()
         .domain([-100, -50, -10, 0, 10, 50, 100, 500])
@@ -181,7 +181,7 @@ function createChoropleth(data, mapType, dataSource, dataVariable, imputations=t
     } else {
         var arr
         if (mapRegionSelector.value == "state") {
-            var thisData = data.features[0].properties.data[dataSource][dataVariable]['historical']
+            var thisData = data.features[0].properties.data[population][outcomeVariable]['historical']
             if (thisData.length > 0) {
                 if (mapType == "rate") {
                     arr =  thisData.map(d => (d || 0) / data.features[0].properties.population * 1000)
@@ -192,18 +192,18 @@ function createChoropleth(data, mapType, dataSource, dataVariable, imputations=t
                 arr = [1]
             }
         } else {
-            arr = getDataAsArray(data, dataSource, dataVariable, ['historical'], mapType == "rate", imputations)
+            arr = getDataAsArray(data, population, outcomeVariable, ['historical'], mapType == "rate", imputations)
         }
-        if (dataVariable == "rt") {
+        if (outcomeVariable == "rate_of_transmission") {
             choroplethDiscreteEdges = null
             choroplethColorMap = d3.scaleLinear()
                 .domain([0, .9, Math.max(d3.max(arr), 1)])
-                .range(["white", dataSourceColorMap[dataSource], "red"])
+                .range(["white", populationColorMap[population]['historical'], "red"])
                 .unknown(unknownColor).nice()
-        } else if (dataVariable == "encounters" || dataVariable == "positive-tests") {
+        } else {
             choroplethColorMap = d3.scaleQuantize()
                 .domain([0, d3.max(arr) || 1])
-                .range(d3.quantize(d3.interpolateRgb("white", dataSourceColorMap[dataSource]), 5))
+                .range(d3.quantize(d3.interpolateRgb("white", populationColorMap[population]['historical']), 5))
         }
     }
 }
@@ -288,8 +288,8 @@ function drawLegend() {
             .attr("width", legendWidth + legendMargins.left + legendMargins.right)
             .attr("height", 3*em + legendMargins.top + legendMargins.bottom)
 
-        // Discrete 5-bin legend for encounters and positive-tests
-        if (mapDataVariableSelector.value == "encounters" || mapDataVariableSelector.value == "positive-tests") {
+        // Discrete 5-bin legend for encounters/inpatient/ed and positive-tests
+        if (mapOutcomeVariableSelector.value != "rate_of_transmission") {
             var edges = (choroplethDiscreteEdges && choroplethDiscreteEdges.length === 6)
                 ? choroplethDiscreteEdges
                 : (function(){
@@ -325,13 +325,7 @@ function drawLegend() {
 
             // Axis with bin boundaries
             var tickValues = edges
-            var numberFormatter = (v, i) => {
-                if (mapTypeSwitch.value == "rate") {
-                    return d3.format(",.2~f")(v)
-                } else {
-                    return d3.format(",")(Math.round(v))
-                }
-            }
+            var numberFormatter = d3.format(",.2~f")
             var axisG = content.append("g")
                 .attr("id", "map-color-legend-axis")
                 .attr('transform', `translate(${legendMargins.left} ${em+legendMargins.top})`)
@@ -349,7 +343,7 @@ function drawLegend() {
                 .attr("class", `map-legend title`)
                 .attr("x", legendWidth/2 + legendMargins.left)
                 .attr("y", 3*em + legendMargins.top)
-                .text(`Current Week's ${dataVariableStringMap[mapDataVariableSelector.value]} by ${metadata.region_sizes[mapRegionSelector.value]}`)
+                .text(`Current Week's ${metadata.outcome_variables[mapOutcomeVariableSelector.value]} by ${metadata.region_sizes[mapRegionSelector.value]}`)
         } else {
             // Continuous gradient legend (default)
             var colorLegendDefs = colorLegend.append("defs")
@@ -363,7 +357,7 @@ function drawLegend() {
                 .attr("id", "linear-gradient-stop-0")
                 .attr("offset", "0%")
                 .attr("stop-color", "white")
-            if (mapDataVariableSelector.value == "rt") {
+            if (mapOutcomeVariableSelector.value == "rate_of_transmission") {
                 linearGrdient.append("stop")
                     .attr("id", "linear-gradient-stop-1")
                     .attr("offset", `${(.9/choroplethColorMap.domain().at(-1))*100}%`)
@@ -398,7 +392,7 @@ function drawLegend() {
                 .attr("class", `map-legend title`)
                 .attr("x", legendWidth/2 + legendMargins.left)
                 .attr("y", 3*em + legendMargins.top)
-                .text(`Current Week's ${dataVariableStringMap[mapDataVariableSelector.value]} by ${metadata.region_sizes[mapRegionSelector.value]}`)
+                .text(`Current Week's ${metadata.outcome_variables[mapOutcomeVariableSelector.value]} by ${metadata.region_sizes[mapRegionSelector.value]}`)
         }
 
     }
@@ -476,7 +470,7 @@ function drawLargeStateHospitalizations() {
     }
 
     function xAxisDisplayFunc(svg, stateXScale, stateWidth, stateHeight, stateMargins, diseaseDisplayNames) {
-        var allWeeks = d3.timeDay.range(d3.timeDay.offset(startDate, -7), endDate, 7)
+        var allWeeks = [d3.timeDay.offset(startShortHistory, -7)].concat(allHistoricalDates)
         var xAxis = svg.select(".x-axis")
         var svgMajorXAxis = xAxis.append("g")
             .attr("id", "map-state-hospitalizations-large-major-xaxis")
@@ -515,11 +509,10 @@ function drawLargeStateHospitalizations() {
 
 async function drawStateBarChart(svgDOM, subtitleDOM, stateMargins, yAxisDisplayFunc, xAxisDisplayFunc) {
     var diseaseDisplayNames = {
-        "covid-19": "COVID-19",
-        "influenza-1": "Influenza",
+        "covid_19": "COVID-19",
+        "influenza": "Influenza",
         "RSV": "RSV", 
-        "respiratory-diseases": "COVID-19, Flu, RSV",
-        "respiratory-diseases-2": "COVID-19, Flu, RSV"
+        "respiratory_diseases": "COVID-19, Flu, RSV",
     }
     
     svgDOM.innerHTML = ""
@@ -536,15 +529,16 @@ async function drawStateBarChart(svgDOM, subtitleDOM, stateMargins, yAxisDisplay
     try {
         stateData = await d3.json(`/data/respiratory/state/state-cdc?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`) 
         stateData = Object.entries(stateData[mapDiseaseSelector.value]).map(d => {
-            temp = {"Date": d[0], "count": d[1]}
+            temp = {"Date": parseDate(d[0]), "count": d[1]}
             if (mapTypeSwitch.value == "rate") {
                 temp["count"] /= (scPopulation / 1000)
             }
             return temp
         })
-        subtitleDOM.innerHTML = `Data from ${d3.timeFormat("%b %d, %Y")(parseDate(d3.min(stateData, d => d.Date)))} to ${d3.timeFormat("%b %d, %Y")(parseDate(d3.max(stateData, d => d.Date)))}`
+        let stateDates = stateData.map(d => d.Date)
+        subtitleDOM.innerHTML = `Data from ${d3.timeFormat("%b %d, %Y")(d3.min(stateDates))} to ${d3.timeFormat("%b %d, %Y")(d3.max(stateDates))}`
     } catch (error) {
-        stateData = [{"Date": "2020-01-01", "count": 1}]
+        stateData = [{"Date": parseDate("2020-01-01"), "count": 1}]
         subtitleDOM.innerHTML = "N/A"
     }
     
@@ -554,7 +548,7 @@ async function drawStateBarChart(svgDOM, subtitleDOM, stateMargins, yAxisDisplay
     stateMargins.left += Math.max(20, temp.node().getBBox().width) + stateMargins["axis-thickness"]
 
     var stateXScale = d3.scaleTime()
-                .domain([d3.timeDay.offset(startDate, -7), endDate]).range([stateMargins.left, stateWidth - stateMargins.right])    
+                .domain([d3.timeDay.offset(startShortHistory, -7), lastDate]).range([stateMargins.left, stateWidth - stateMargins.right])    
 
     var stateYScale = d3.scaleLinear()
         .domain([0, maxVal])
@@ -567,17 +561,17 @@ async function drawStateBarChart(svgDOM, subtitleDOM, stateMargins, yAxisDisplay
         .data(stateData)
         .enter()
         .append("rect")
-        .attr("x", (d) => stateXScale(parseDate(d["Date"])))
+        .attr("x", (d) => stateXScale(d["Date"]))
         .attr("y", d => stateYScale(d["count"]))
         .attr("height", d => stateYScale(0) - stateYScale(d["count"]))
         .attr("width", barWidth)
         .attr("stroke", "var(--sl-color-neutral-1000)")
         .attr("stroke-width", 1)
-        .attr("fill", d => dayjs(parseDate(d["Date"])).isAfter(currentWeek) ? "var(--sl-color-neutral-600)" : "var(--sl-color-neutral-100)")
+        .attr("fill", d => dayjs(d["Date"]).isAfter(currentDate) ? "var(--sl-color-neutral-600)" : "var(--sl-color-neutral-100)")
         .attr("transform", `translate(-${barWidth}, 0)`)
         .on("mouseover", function(event, d) {
             var formatDate = d3.timeFormat("%b %d, %Y")
-            var dateStr = formatDate(parseDate(d["Date"]))
+            var dateStr = formatDate(d["Date"])
             var countStr = mapTypeSwitch.value == "rate" ? `${d["count"].toFixed(2)} per 1000` : d["count"].toString()
             
             // Create tooltip element
@@ -625,7 +619,7 @@ async function drawStateBarChart(svgDOM, subtitleDOM, stateMargins, yAxisDisplay
 function updateMapTitle() {
     var titleStart = `${d3.select(mapTypeSwitch).select(`*[value=${mapTypeSwitch.value}]`).html()} `
     titleStart += `of ${d3.select(mapDiseaseSelector).select(`*[value=${mapDiseaseSelector.value}]`).html()} `
-    titleStart += `${d3.select(mapDataVariableSelector).select(`*[value=${mapDataVariableSelector.value}]`).html()} `
+    titleStart += `${d3.select(mapOutcomeVariableSelector).select(`*[value=${mapOutcomeVariableSelector.value}]`).html()} `
 
     var titleEnd = "in South Carolina "
     if (mapRegionSelector.value != "state") {
@@ -660,13 +654,7 @@ function updateMapTooltip(featureProperties) {
 
     drawTooltip(featureProperties,
         ttpSVG, ttpDiv.select(".tooltip-header"), ttpDiv.select(".tooltip-footer"), 
-        mapDataSourceSelector.value, mapDataVariableSelector.value,
+        mapPopulationSelector.value, mapOutcomeVariableSelector.value,
         mapTypeSwitch.value == "rate", false, false)
         
 }
-
-const dataVariableStringMap = {
-    "encounters": "Encounters",
-    "positive-tests": "Positive Tests",
-    "rt": "Transmission",
-};

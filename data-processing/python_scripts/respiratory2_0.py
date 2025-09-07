@@ -44,6 +44,16 @@ data_sources = {
 # estimate_projected_report crosswalk
 e_p_r_crosswalk = {0: 'estimated', 1: 'projected', 2: 'reported'}
 
+# outcome variable crosswalk
+o_v_crosswalk = {
+    1: 'rt', 
+    2: 'Weekly_Encounters', 
+    3: 'Weekly_Inpatient_Hospitalizations', 
+    4: 'Weekly_ED_Visits',
+    5: 'Weekly_Outpatient',
+    6: 'Weekly_Positive_Tests', 
+}
+
 # populations
 populations = ['general_population', 'health_system']
 
@@ -71,20 +81,21 @@ value_columns = ['value', 'imputed']
 
 # useful to have in one place, to be saved to a file at the end
 metadata = {
-        'diseases': diseases,
+    'outcome_variables': {outcome_variables_code_friendly[k]:v for k, v in outcome_variables.items()},
+    'diseases': diseases,
 
-        'region_sizes': {
-            'state': 'State',
-            'region': 'Region',
-            'county': 'County',
-            'zcta': 'Zip-Code Tabulation Area (ZCTA)',
-        },
+    'region_sizes': {
+        'state': 'State',
+        'region': 'Region',
+        'county': 'County',
+        'zcta': 'Zip-Code Tabulation Area (ZCTA)',
+    },
 
-        # need list of state, regions, counties, zctas
-        # need current, first, start_short_historical, and last dates
-        # need array of all historical dates and short list of historical dates 
+    # need list of state, regions, counties, zctas
+    # need current, first, start_short_historical, and last dates
+    # need array of all historical dates, short list of historical dates, and prediction dates 
 
-    }
+}
 
 ######## 2 ########
 print("Creating Dataframes")
@@ -102,7 +113,10 @@ for file in forecast_files: # read and smoosh
     df = pd.concat([df, temp])
 
 df['estimate_projected_report'] = df['estimate_projected_report'].map(e_p_r_crosswalk)
+df['outcome_measure'] = df['outcome_measure'].replace(o_v_crosswalk)
 df = df.replace(outcome_variables_code_friendly)
+
+df = df.fillna({'data_source': 'N/A'})
 
 #### c ####
 
@@ -113,7 +127,7 @@ df['target_end_date'] = pd.to_datetime(df['target_end_date'], format='mixed')
 # find current, start, and end date
 current_date = df['reference_date'].max()
 first_date = df['target_end_date'].min()
-last_date = df['target_end_date'].min()
+last_date = df['target_end_date'].max()
 
 #### d ####
 
@@ -122,9 +136,9 @@ start_short_history = current_date - pd.DateOffset(weeks=78) # roughly 18 months
 
 # create historical, full historical, and prediction dates
 day_of_week = pd.to_datetime(current_date).day_name()
-all_historical_dates = pd.date_range(end=current_date, start=first_date, freq=f'W-{day_of_week[:3].upper()}').to_series()
-short_history_dates = pd.date_range(end=current_date, start=start_short_history, freq=f'W-{day_of_week[:3].upper()}').to_series()
-pred_dates = pd.date_range(start=current_date, end=last_date, freq=f'W-{day_of_week[:3].upper()}', inclusive='both')
+all_historical_dates = pd.date_range(end=current_date, start=first_date, freq=f'W-{day_of_week[:3].upper()}', inclusive='left').to_series()
+short_history_dates = pd.date_range(end=current_date, start=start_short_history, freq=f'W-{day_of_week[:3].upper()}', inclusive='left').to_series()
+pred_dates = pd.date_range(start=current_date, end=last_date, freq=f'W-{day_of_week[:3].upper()}', inclusive='both').to_series()
 
 #### e ####
 # pivot df so we can use index
@@ -214,7 +228,7 @@ for region_size, identifier_column in region_geojson_identifiers.items():
                             except:
                                 data_by_value_type[value_type] = None
                         
-                        if not data_by_value_type['estimated'] or data_by_value_type['estimated']['value'].isna().all():
+                        if data_by_value_type['estimated'] is None or data_by_value_type['estimated']['value'].isna().all():
                             # no estimated, then reported -> historical
                             
                             if data_by_value_type['reported'] is not None:
@@ -231,32 +245,36 @@ for region_size, identifier_column in region_geojson_identifiers.items():
 
                             # short history
                             disease_data[population][outcome_variable]['historical']['values'] = pandas_to_json_safe_list(data_by_value_type['estimated']['value'].reindex(short_history_dates, level='target_end_date'))
-                            disease_data[population][outcome_variable]['historical']['imputed'] = data_by_value_type['estimated']['imputed'].reindex(short_history_dates, level='target_end_date').any()
+                            disease_data[population][outcome_variable]['historical']['imputed'] = bool(data_by_value_type['estimated']['imputed'].reindex(short_history_dates, level='target_end_date').any())
 
                             # all history
                             disease_data_all[population][outcome_variable]['historical']['values'] = pandas_to_json_safe_list(data_by_value_type['estimated']['value'].reindex(all_historical_dates, level='target_end_date'))
-                            disease_data_all[population][outcome_variable]['historical']['imputed'] = data_by_value_type['estimated']['imputed'].reindex(all_historical_dates, level='target_end_date').any()
+                            disease_data_all[population][outcome_variable]['historical']['imputed'] = bool(data_by_value_type['estimated']['imputed'].reindex(all_historical_dates, level='target_end_date').any())
 
-                            if outcome_variable in ['Encounters', 'Inpatient Hospitalizations']:
-                                # yes estimated, then HS/RFA is extra (button names come from data source) 
+                            if outcome_variable in ['encounters', 'inpatient_hospitalizations', 'emergency_department_visits']:
+                                # yes estimated, then HS/RFA is extra (button names come from data source)
                                 for data_source, data_source_code_friendly in data_sources.items():
-                                    extra_data = data_by_value_type['reported']['value'].xs(data_source, axis=0, level='data_source')
-                                    if extra_data.reindex(historical_dates, level='target_end_date').notna().any():
-                                        # short history
-                                        disease_data[population][outcome_variable]['historical']['extra'][data_source_code_friendly] = pandas_to_json_safe_list(extra_data.reindex(short_history_dates, level='target_end_date'))
+                                    try:
+                                        extra_data = data_by_value_type['reported']['value'].xs(data_source, axis=0, level='data_source')
+                                        if extra_data.reindex(short_history_dates, level='target_end_date').notna().any():
+                                            # short history
+                                            disease_data[population][outcome_variable]['extra'][data_source_code_friendly] = pandas_to_json_safe_list(extra_data.reindex(short_history_dates, level='target_end_date'))
+                                        
+                                        if extra_data.reindex(all_historical_dates, level='target_end_date').notna().any():
+                                            # all history
+                                            disease_data_all[population][outcome_variable]['extra'][data_source_code_friendly] = pandas_to_json_safe_list(extra_data.reindex(all_historical_dates, level='target_end_date'))
+                                    except:
+                                        # couldn't find extra data
+                                        pass
                                     
-                                    if extra_data.reindex(all_historical_dates, level='target_end_date').notna().any():
-                                        # all history
-                                        disease_data_all[population][outcome_variable]['historical']['extra'][data_source_code_friendly] = pandas_to_json_safe_list(extra_data.reindex(all_historical_dates, level='target_end_date'))
-
                         # projected
-                        if data_by_value_type['projected'] and data_by_value_type['projected']['value'].notna().any():
-                            disease_data[population][outcome_variable]['projected']['imputed'] = data_by_value_type['projected']['imputed'].any()
-                            disease_data[population][outcome_variable]['projected']['start_date'] = data_by_value_type['projected']['value'].index.get_level_values('target_end_date').min()
+                        if data_by_value_type['projected'] is not None and data_by_value_type['projected']['value'].notna().any():
+                            disease_data[population][outcome_variable]['projected']['imputed'] = bool(data_by_value_type['projected']['imputed'].any())
+                            disease_data[population][outcome_variable]['projected']['start_date'] = data_by_value_type['projected']['value'].index.get_level_values('target_end_date').min().strftime('%Y-%m-%d')
                             disease_data[population][outcome_variable]['projected']['values'] = pandas_to_json_safe_list(data_by_value_type['projected']['value'])
 
-                            disease_data_all[population][outcome_variable]['projected']['imputed'] = data_by_value_type['projected']['imputed'].any()
-                            disease_data_all[population][outcome_variable]['projected']['start_date'] = data_by_value_type['projected']['value'].index.get_level_values('target_end_date').min()
+                            disease_data_all[population][outcome_variable]['projected']['imputed'] = bool(data_by_value_type['projected']['imputed'].any())
+                            disease_data_all[population][outcome_variable]['projected']['start_date'] = data_by_value_type['projected']['value'].index.get_level_values('target_end_date').min().strftime('%Y-%m-%d')
                             disease_data_all[population][outcome_variable]['projected']['values'] = pandas_to_json_safe_list(data_by_value_type['projected']['value'])
             
                 # add disease data to this feature
@@ -315,5 +333,6 @@ with open(f'{processed_data_dir}/respiratory/metadata.json', 'w') as f:
     metadata['start_short_history'] = start_short_history.strftime('%Y-%m-%d')
     metadata['short_history_dates'] = short_history_dates.dt.strftime('%Y-%m-%d').to_list()
     metadata['last_date'] = last_date.strftime('%Y-%m-%d')
+    metadata['prediction_dates'] = pred_dates.dt.strftime('%Y-%m-%d').to_list()
 
     json.dump(metadata, f)

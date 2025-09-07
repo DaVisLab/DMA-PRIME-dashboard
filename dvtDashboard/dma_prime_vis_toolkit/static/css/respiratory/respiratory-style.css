@@ -81,3 +81,7 @@ div.tooltip-div p {
   width: max-content;
   margin: 0 var(--sl-spacing-2x-small);
 }
+
+.data-point-ttp text {
+  text-anchor: middle;
+}

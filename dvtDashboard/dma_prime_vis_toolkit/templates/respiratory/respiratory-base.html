@@ -3,7 +3,8 @@
 {% block style %}
 <!-- Linking stylesheets -->
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}" />
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/respiratory/respiratory-style.css') }}" />
+<link rel="stylesheet" type="text/css"
+  href="{{ url_for('static', filename='css/respiratory/respiratory-style.css') }}" />
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/respiratory/map-style.css') }}" />
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/respiratory/grid-style.css') }}" />
 {% endblock %}
@@ -17,21 +18,37 @@
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/isSameOrBefore.js"></script>
 
 <script>
-    // Ensuring the timejs additional plugins are linked
-    dayjs.extend(window.dayjs_plugin_utc)
-    dayjs.extend(window.dayjs_plugin_customParseFormat)
-    dayjs.extend(window.dayjs_plugin_isSameOrAfter)
-    dayjs.extend(window.dayjs_plugin_isSameOrBefore)
+  // Ensuring the timejs additional plugins are linked
+  dayjs.extend(window.dayjs_plugin_utc)
+  dayjs.extend(window.dayjs_plugin_customParseFormat)
+  dayjs.extend(window.dayjs_plugin_isSameOrAfter)
+  dayjs.extend(window.dayjs_plugin_isSameOrBefore)
 
-    // A value... I forget where I got it from - I think the US census
-    // TODO: Find a better place to put this value? maybe script.js?
-    // TODO: Find source for value
-    scPopulation = 5118425
+  // A value... I forget where I got it from - I think the US census
+  // TODO: Find a better place to put this value? maybe script.js?
+  // TODO: Find source for value
+  scPopulation = 5118425
 
 </script>
 <!-- Contains helper functions/data/constants -->
 <script>
-    metadata = {{ metadata | safe }}
+  function parseDate(dateString) {
+    return dayjs(dateString, "YYYY-MM-DD").toDate()
+  }
+  metadata = {{ metadata | safe }}
+
+  var currentDate = parseDate(metadata.current_date)
+
+  var firstDate = parseDate(metadata.first_date)
+  var allHistoricalDates = metadata.all_historical_dates.map(d => parseDate(d))
+  var expectedAllHistoricalDataPoints = allHistoricalDates.length
+
+  var startShortHistory = parseDate(metadata.start_short_history)
+  var shortHistoryDates = metadata.short_history_dates.map(d => parseDate(d))
+  var expectedShortHistoryDataPoints = shortHistoryDates.length
+
+  var lastDate = parseDate(metadata.last_date)
+  var predictionDates = metadata.prediction_dates.map(d => parseDate(d))
 </script>
 <script src="{{ url_for('static', filename='js/respiratory/script.js') }}" type="module"></script>
 
@@ -39,12 +56,12 @@
 {% endblock %}
 
 {% block linkout %}
-<sl-button slot="nav" id="model-exploration-button-link" href="{{ url_for('respiratory_model_exploration') }}" target="_blank"
-    variant="text">Model Exploration <sl-icon name="box-arrow-up-right"></sl-icon></sl-button>
+<sl-button slot="nav" id="model-exploration-button-link" href="{{ url_for('respiratory_model_exploration') }}"
+  target="_blank" variant="text">Model Exploration <sl-icon name="box-arrow-up-right"></sl-icon></sl-button>
 {% endblock %}
 
 {% block extraBody %}
-<sl-dialog id="tooltip-large" class="dialog-width" >
+<sl-dialog id="tooltip-large" class="dialog-width">
   <div>
     <div class="tooltip-header">
       <div class="tooltip-region-info"></div>
@@ -57,26 +74,26 @@
       <div class="tooltip-legend"></div>
       <div class="tooltip-options"></div>
     </div>
-  </div>  
+  </div>
 </sl-dialog>
 {% endblock %}
 
 {% block bodyScripts %}
 <script>
-    tooltipLarge = document.getElementById("tooltip-large");
+  tooltipLarge = document.getElementById("tooltip-large");
 </script>
 
 <script type="module">
-    // toggle tooltip labels
-    document.addEventListener("keyup", function(e) {
-        if (e.key == "l") {
-            d3.selectAll(".tooltip-label-group")
-                .each(function(d) {
-                    display = d3.select(this).attr("display") == "none" ? "initial" : "none"
-                    d3.select(this).attr("display", display)
-                })
-        }
-    })
+  // toggle tooltip labels
+  document.addEventListener("keyup", function (e) {
+    if (e.key == "l") {
+      d3.selectAll(".tooltip-label-group")
+        .each(function (d) {
+          display = d3.select(this).attr("display") == "none" ? "initial" : "none"
+          d3.select(this).attr("display", display)
+        })
+    }
+  })
 </script>
 
 {% endblock %}
