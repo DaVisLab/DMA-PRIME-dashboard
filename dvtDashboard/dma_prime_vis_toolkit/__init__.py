@@ -144,14 +144,40 @@ def create_app(development=False, dataDir=None):
                 'active': True,
                 'html': 'respiratory/respiratory-map-panel.html'
             },
-            {
-                'name': 'grid',
-                'displayName': 'Grid View',
-                'html': 'respiratory/respiratory-grid-panel.html'
-            },
+            # {
+            #     'name': 'grid',
+            #     'displayName': 'Grid View',
+            #     'html': 'respiratory/respiratory-grid-panel.html'
+            # },
         ]
         return render_template('respiratory/respiratory-base.html', panels=panels, metadata=metadata)
     
+    @app.route('/respiratory-model-exploration', methods=['GET'])
+    @login_required
+    def respiratory_model_exploration():
+
+        data_version = get_data_version_from_request(request, current_user)
+        
+        file = os.path.join(current_app.config['DATADIR'], 'processed', data_version, 'respiratory', 'metadata.json')
+        decrypt_key = os.path.join(current_app.config['DATADIR'], 'processed', data_version, 'respiratory', 'encrypt_key.bin')
+
+        metadata = dict(decrypt(file, decrypt_key))
+        metadata['data_version'] = data_version
+
+        panels = [
+            {
+                'name': 'main',
+                'displayName': 'DMA-PRIME',
+            },
+            {
+                'name': 'exploration',
+                'displayName': 'Model Exploration',
+                'active': True,
+                'html': 'respiratory/respiratory-model-exploration-panel.html'
+            },
+        ]
+        return render_template('respiratory/respiratory-model-base.html', panels=panels, metadata=metadata)
+
     @app.route('/mobile-health-clinics', methods=['GET'])
     @login_required
     def mobile_health_clinics():

@@ -78,8 +78,8 @@ map.on("click", e => {
 
     drawTooltip(dataObject.properties,
         ttpSVG, ttpDiv.select(".tooltip-header"), ttpDiv.select(".tooltip-footer"), 
-        mapDataSourceSelector.value, mapDataVariableSelector.value,
-        mapTypeSwitch.value == "rate", false, false, {})
+        mapPopulationSelector.value, mapOutcomeVariableSelector.value,
+        mapTypeSwitch.value == "rate", false, false, [])
 
     // Add expand icon button to map tooltip
     var popupContent = d3.select("div.maplibregl-popup-content")
@@ -103,8 +103,8 @@ map.on("click", e => {
                     }
                     drawTooltip(ttpData,
                         largeTtp.select(".tooltip-outer-svg"), largeTtp.select(".tooltip-header"), largeTtp.select(".tooltip-footer"),
-                        mapDataSourceSelector.value, mapDataVariableSelector.value,
-                        mapTypeSwitch.value == "rate", false, true, {})
+                        mapPopulationSelector.value, mapOutcomeVariableSelector.value,
+                        mapTypeSwitch.value == "rate", false, true, [])
                 })
             })
     }
@@ -128,7 +128,7 @@ mapResetButton.addEventListener("click", () => {
 })
 
 mapTypeSwitch.addEventListener("sl-change", (event) => {
-    var dataVarString = d3.select(mapDataVariableSelector).select(`*[value=${mapDataVariableSelector.value}]`).html()
+    var dataVarString = d3.select(mapOutcomeVariableSelector).select(`*[value=${mapOutcomeVariableSelector.value}]`).html()
     // update legend title
     if (mapTypeSwitch.value == "rate"){
         d3.select("#map-legend-title")
@@ -148,7 +148,7 @@ mapTypeSwitch.addEventListener("sl-change", (event) => {
     redraw()
 })
 
-mapDataSourceSelector.addEventListener("sl-change", (event) => {
+mapPopulationSelector.addEventListener("sl-change", (event) => {
     if (selectedItems.feature) {
         updateMapTooltip(selectedItems.feature.properties)
     }
@@ -171,8 +171,8 @@ mapRegionSelector.addEventListener("sl-change", (event) => {
     popup.remove()
 })
 
-mapDataVariableSelector.addEventListener("sl-change", (event) => {
-    var dataVarString = d3.select(mapDataVariableSelector).select(`*[value=${mapDataVariableSelector.value}]`).html()
+mapOutcomeVariableSelector.addEventListener("sl-change", (event) => {
+    var dataVarString = d3.select(mapOutcomeVariableSelector).select(`*[value=${mapOutcomeVariableSelector.value}]`).html()
     // update legend title
     if (mapTypeSwitch.value == "rate"){
         d3.select("#map-legend-title")

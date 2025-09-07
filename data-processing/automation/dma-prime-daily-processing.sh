@@ -142,7 +142,7 @@ if [[ $? -ne 0 ]]; then # new data!
         # update date of last change file
         printf '%(%Y-%m-%d)T\n' -1 > $visualization_data_dir/download/processed/respiratory/date.txt
         # move list of files changed
-        mv respiratory_changes.txt $visualization_data_dir/download/processed/respiratory/respiratory_changes.tx
+        mv respiratory_changes.txt $visualization_data_dir/download/processed/respiratory/respiratory_changes.txt
         
         # logging
         echo "Success" >> $log_file
@@ -159,7 +159,8 @@ echo >> $log_file
 # Wastewater
 echo "Wastewater" >> $log_file
 echo "Getting waste water data from box" >> $log_file
-./globus-http-linux-amd64-0.1.2 -config "$visualization_data_dir/scripts/python_scriptssupporting_files/config.toml" download "https://g-471022.581c1.0ec8.data.globus.org/CDC_running_data_4plot.xlsx" $visualization_data_dir/aggregated/waste_water/CDC_running_data_4plot.xlsx &>> $log_file
+./globus-http-linux-amd64-0.1.2 -config "$visualization_data_dir/scripts/python_scripts/supporting_files/config.toml" download "https://g-471022.581c1.0ec8.data.globus.org/CDC_running_data_4plot.xlsx" $visualization_data_dir/aggregated/waste_water/CDC_running_data_4plot.xlsx &>> $log_file
+./globus-http-linux-amd64-0.1.2 -config "$visualization_data_dir/scripts/python_scripts/supporting_files/config.toml" download "https://g-471022.581c1.0ec8.data.globus.org/CDC_Running_Data_REDDI.xlsx" $visualization_data_dir/aggregated/waste_water/CDC_Running_Data_REDDI.xlsx &>> $log_file
 if [ $? -ne 0 ]; then
     ((errors++))
     echo "error downloading wastewater data"

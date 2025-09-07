@@ -93,8 +93,9 @@
     {% endfor %}
 
     <!-- Navbar righthand linkout to wherever -->
+    <div id="linkout-container" slot="nav">
     {% block linkout %}{% endblock %}
-
+    </div>
   </sl-tab-group>
 
   {% block extraBody %}

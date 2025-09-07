@@ -43,6 +43,15 @@ def get_all_respiratory_hospitalizations(region_size='zcta', disease='covid-19')
     decrypt_key = os.path.join(current_app.config['DATADIR'], 'processed', data_version, 'respiratory', 'encrypt_key.bin')
     return decrypt(file, decrypt_key)
 
+@bp.route('/respiratory/model/<disease>/<geographic_unit>/<population>/<outcome_variable>/<location>', methods=['GET'])
+@login_required
+def get_respiratory_model(region_id, region_size='zcta', disease='covid-19', outcome_variable='encounters', population='state'):
+    # model information for given combo of option selections
+    data_version = get_data_version_from_request(request, current_user)
+    file = os.path.join(current_app.config['DATADIR'], 'processed', data_version, 'respiratory', 'metrics', region_size, disease, outcome_variable, population, f'{region_id}.html')
+    decrypt_key = os.path.join(current_app.config['DATADIR'], 'processed', data_version, 'respiratory', 'encrypt_key.bin')
+    return decrypt(file, decrypt_key)
+
 @bp.route('/opioid-hcv-hiv/<disease>', methods=['GET'])
 @login_required
 def get_opioid_hcv_hiv(disease='opioid'):

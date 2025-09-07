@@ -80,4 +80,10 @@ div.tooltip-div p {
 .tooltip-label {
   width: max-content;
   margin: 0 var(--sl-spacing-2x-small);
+  pointer-events: none;
+}
+
+.data-point-ttp text {
+  text-anchor: middle;
+  pointer-events: none;
 }

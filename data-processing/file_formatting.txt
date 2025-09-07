@@ -1,0 +1,12 @@
+reference_date - “current week” (beginning of week)
+target - <cdc designation or na if none applies>
+target_end_date - date of week of forecast (beginning of week)
+location - if state, 
+value
+disease - 
+data source - (state, health system)
+training - true/false
+reported - true/false
+imputed - true/false
+outcome measure - (encounters, IP, ED, PT, RT)
+    encounters = all encounters, in-patient = IP, emergency-department = ED, positive tests = PT, and transmission = RT?
