@@ -122,9 +122,12 @@ mapResetButton.addEventListener("click", () => {
     })
 
     selectedItems.feature = undefined
-    popup.remove()
-    dataVersion++
-    redraw()
+    if (popup.isOpen()) {
+        popup.remove()        
+    } else {
+        dataVersion++
+        redraw()
+    }
 })
 
 mapTypeSwitch.addEventListener("sl-change", (event) => {
@@ -153,22 +156,29 @@ mapPopulationSelector.addEventListener("sl-change", (event) => {
         updateMapTooltip(selectedItems.feature.properties)
     }
     dataVersion++
-    redraw()
+    redraw(true)
 })
 
 mapDiseaseSelector.addEventListener("sl-change", (event) => {
     drawStateHospitalizations()
     selectedItems.feature = undefined
-    popup.remove()
-    dataVersion++
-    redraw(true)
+    
+    if (popup.isOpen()) {
+        popup.remove()        
+    } else {
+        dataVersion++
+        redraw(true, true)
+    }
 })
 
 mapRegionSelector.addEventListener("sl-change", (event) => {
-    dataVersion++
-    redraw(true)
     selectedItems.feature = undefined
-    popup.remove()
+    if (popup.isOpen()) {
+        popup.remove()        
+    } else {
+        dataVersion++
+        redraw(true, true)
+    }
 })
 
 mapOutcomeVariableSelector.addEventListener("sl-change", (event) => {
@@ -188,7 +198,7 @@ mapOutcomeVariableSelector.addEventListener("sl-change", (event) => {
         updateMapTooltip(selectedItems.feature.properties)
     }
     dataVersion++
-    redraw()
+    redraw(true)
 
 })
 

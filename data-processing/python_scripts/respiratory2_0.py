@@ -103,7 +103,7 @@ print("Creating Dataframes")
 df = pd.DataFrame()
 #### a ####
 # get forecast files
-forecast_files = glob.glob(f'{aggregated_data_dir}/respiratory/*.csv')
+forecast_files = glob.glob(f'{aggregated_data_dir}/respiratory/**/*.csv', recursive=True)
 
 #### b ####
 for file in forecast_files: # read and smoosh

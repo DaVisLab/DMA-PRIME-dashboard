@@ -46,7 +46,7 @@ var populationColorMap = {
 // }
 
 var outcomeVariableStringCrosswalk = {
-    "encounters": "Encounters",
+    "encounters": "All Encounters",
     "inpatient_hospitalizations": "Inpatient Hospitalizations",
     "emergency_department_visits": "Emergency Department Visits",
     "positive_tests": "Positive Tests",
@@ -192,7 +192,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, rat
     }
     if (data.projected.values.length) {
         let thisProjectedEndDate = d3.timeDay.offset(data.projected.start_date, 7*(data.projected.values.length-1))
-        var tooltipString = `Projected ${outcomeVariableString} from ${formatDate(data.projected.start_date)} to ${formatDate(thisProjectedEndDate)}`
+        var tooltipString = `Projected ${outcomeVariableString} from ${formatDate(d3.timeDay.offset(data.projected.start_date, -6))} to ${formatDate(thisProjectedEndDate)}`
         dataInfo.append("p").html(tooltipString)  
     }
 
@@ -396,16 +396,21 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, rat
     }
 
 // for data point tooltips (gives date and value)
-    function createDataPointTooltip(event, date, value, x, y) {
+    function createDataPointTooltip(event, groupStartDate) {
         dataPointTTP.html("")
+
+        let thisDataPointShape = event.target
+        let dataShapeBBox = thisDataPointShape.getBBox()
+
+        let date = d3.timeDay.offset(groupStartDate, 7*(d3.select(thisDataPointShape.parentNode).selectAll('.ttp-data-point').nodes().indexOf(thisDataPointShape)))
         let dateStr = formatDate(date)
+
+        let value = d3.select(thisDataPointShape).datum() 
         let countStr = rate ? `${value.toFixed(2)} per 1000` : value.toString()
         
         dataPointTTP.append("text").text(`Date: ${dateStr}`)
         dataPointTTP.append("text").text(`Count: ${countStr}`)
             .attr("transform", `translate(0, ${.75*em})`)
-
-        let dataShapeBBox = event.target.getBBox()
 
         dataPointTTP.attr("transform", `translate(${dataShapeBBox.x + dataShapeBBox.width/2}, ${dataShapeBBox.y})`)
     }
@@ -430,6 +435,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, rat
             .data(data.historical.values)
             .enter()
             .append("rect")
+            .attr("class", "ttp-data-point")
             .attr("x", (_, i) => {return xScale(historicalDatesArray[i])})
             .attr("y", d => {return yScale(d)})
             .attr("height", d => yScale(0) - yScale(d))
@@ -438,9 +444,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, rat
             .attr("transform", `translate(-${historicalBarWidth}, 0)`)
             .on("mouseover", function(event, d) {
                 if (d !== null) {
-                    var thisPointDate = historicalDatesArray[data.historical.values.indexOf(d)]
-                    var thisPointX = xScale(thisPointDate) - (historicalBarWidth/2)
-                    createDataPointTooltip(event, thisPointDate, d, thisPointX, yScale(d))
+                    createDataPointTooltip(event, historicalDatesArray[0])
                 }
             })
             .on("mouseout", function() {
@@ -480,6 +484,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, rat
             .data(projectedValues.slice(1))
             .enter()
             .append("path")
+            .attr("class", "ttp-data-point")
             .attr("d", (_, i1) => 
                         d3.area()
                         .x((_, i2) => xScale(d3.timeDay.offset(data.projected.start_date, 7*(i1+i2-1))))
@@ -491,9 +496,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, rat
             .attr("fill", populationColorMap[population]["projected"])
             .on("mouseover", function(event, d, a, b) {
                 if (d !== null) {
-                    var thisPointDate = d3.timeDay.offset(data.projected.start_date, 7*data.projected.values.indexOf(d))
-                    var thisPointX = (xScale(thisPointDate)+xScale(d3.timeDay.offset(thisPointDate, -7)))/2
-                    createDataPointTooltip(event, thisPointDate, d, thisPointX, yScale(d))
+                    createDataPointTooltip(event, data.projected.start_date)
                 }
             })
             .on("mouseout", function() {

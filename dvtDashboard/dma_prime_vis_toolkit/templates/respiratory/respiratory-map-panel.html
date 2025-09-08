@@ -51,7 +51,7 @@
   <sl-select value="encounters" id="map-outcome-variable-selector" class="fill-width" size="small">
     <p slot="label">Select outcome variable</p>
     <sl-tooltip content="Inpatient and outpatient hospitalizations and emergency department visits" trigger="hover" hoist>
-      <sl-option value="encounters" >Encounters</sl-option>
+      <sl-option value="encounters" >All Encounters</sl-option>
     </sl-tooltip>
     <sl-tooltip content="Inpatient hospitalizations" trigger="hover" hoist>
       <sl-option value="inpatient_hospitalizations" >Inpatient Hospitalizations</sl-option>
@@ -107,7 +107,27 @@
 </div>
 <div id="map-title-container" class="fill-width">
   <p id="map-title">Count of COVID-19 Hospitalizations in South Carolina by Region</p>
+  <p id="map-disclaimer"></p>
 </div>
+
+<div id="map-alert-container">
+  <sl-alert id="map-mixed-forecast-this-week-alert" variant="warning" class="map-alert" closable >
+    <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+    <strong>Partial forecast submissions available for this week</strong><br />
+    Only locations with this week's forecasts are shown on the map. 
+  </sl-alert>
+
+  <sl-alert id="map-no-forecast-this-week-alert" variant="warning" class="map-alert" closable >
+    <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+    <strong>No forecasts submitted for this week</strong><br />
+  </sl-alert>
+
+  <sl-alert id="map-no-forecast-alert" variant="warning" class="map-alert" >
+    <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+    <strong>No forecast submissions available</strong><br />
+  </sl-alert>
+</div>
+
 
 {% endblock %}
 
@@ -153,9 +173,13 @@
     mapStateHospitalizationsLargeSvg      = document.getElementById("map-state-hospitalizations-large-svg");
 
     // Main map, legend, title & tooltip
-    mapDiv               = document.getElementById("map-div");
-    choroplethLegendSVG  = document.getElementById("choropleth-legend-svg");
-    mapTitle             = document.getElementById("map-title");
+    mapDiv                        = document.getElementById("map-div");
+    choroplethLegendSVG           = document.getElementById("choropleth-legend-svg");
+    mapTitle                      = document.getElementById("map-title");
+    mapDisclaimer                = document.getElementById("map-disclaimer")
+    mapNoForecastAlert            = document.getElementById("map-no-forecast-alert")
+    mapNoForecastThisWeekAlert    = document.getElementById("map-no-forecast-this-week-alert")
+    mapMixedForecastThisWeekAlert = document.getElementById("map-mixed-forecast-this-week-alert")
   </script>
 
   <!-- 5) Your module code—now deck, loaders & maplibregl are ready -->

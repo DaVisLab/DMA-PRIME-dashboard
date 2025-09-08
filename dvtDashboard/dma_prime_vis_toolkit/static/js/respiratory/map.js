@@ -2,8 +2,6 @@ const { GeoJsonLayer, IconLayer, TextLayer, MapboxOverlay } = deck;
 import { getDataAsArray, outcomeVariableStringCrosswalk, populationColorMap, unknownColor, getCenter, drawTooltip } from "/static/js/respiratory/script.js";
 export { map, popup, selectedItems, deckOverlay, redraw, drawStateHospitalizations, drawLargeStateHospitalizations, updateMapTitle, updateMapTooltip }
 
-var regionData
-
 var icons = {
     data: await d3.csv('/data/health-care-facility'),
     iconAtlas: '/static/assets/Icons/icon-pack.png',
@@ -48,15 +46,22 @@ await Promise.allSettled([ // wait for following to be defined/load in
     customElements.whenDefined('sl-option'),
     customElements.whenDefined('sl-button'),
 ])
-redraw(true)
+
+var regionData = await d3.json(`/data/respiratory/${mapRegionSelector.value}/${mapDiseaseSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`)
+
+redraw(true, true)
 drawStateHospitalizations()
 
-async function redraw(fetchData=false) {
+async function redraw(resetWarnings=false, fetchData=false) {
     updateMapTitle()
     if (fetchData == true) {
         regionData = await d3.json(`/data/respiratory/${mapRegionSelector.value}/${mapDiseaseSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`) 
     }
+    if (resetWarnings) {
+        updateMapWarnings()
+    }
     createChoropleth(regionData, mapTypeSwitch.value, mapPopulationSelector.value, mapOutcomeVariableSelector.value, mapIncludeImputations.checked)
+    updateMapTitle()
     drawLegend()
     var layers = [
         new GeoJsonLayer({
@@ -627,20 +632,24 @@ function updateMapTitle() {
         titleEnd += d3.select(mapRegionSelector).select(`*[value=${mapRegionSelector.value}]`).html() 
     } 
 
+    var newTitle
+
     switch (mapTypeSwitch.value) {
         case "count": 
-            mapTitle.innerHTML = titleStart + titleEnd
+            newTitle = titleStart + titleEnd
             break;
         case "rate": 
-            mapTitle.innerHTML = titleStart + "(per 1000 people) " + titleEnd
+            newTitle = titleStart + "(per 1000 people) " + titleEnd
             break;
         case "percentDifference": 
-            mapTitle.innerHTML = titleStart + "from Last Week " + titleEnd
+            newTitle = titleStart + "from Last Week " + titleEnd
             break;
         default: 
-            mapTitle.innerHTML = titleStart + titleEnd
+            newTitle = titleStart + titleEnd
             break;
     }
+
+    mapTitle.innerHTML = newTitle
 }
 
 function updateMapTooltip(featureProperties) {
@@ -657,4 +666,56 @@ function updateMapTooltip(featureProperties) {
         mapPopulationSelector.value, mapOutcomeVariableSelector.value,
         mapTypeSwitch.value == "rate", false, false)
         
+}
+
+function updateMapWarnings() {
+            
+    // check for alert status
+    let noForecast = 1
+    let noForecastThisWeek = 1
+    let someForecastThisWeek
+    let allForecast = 1
+    for (let feature of regionData.features) {
+        let thisData = feature.properties.data[mapPopulationSelector.value][mapOutcomeVariableSelector.value]
+
+        let hasProjection = thisData.projected.values.length
+
+        // essentially trying to "prove wrong" each option
+        if (noForecast) {
+            let hasHistorical = thisData.historical.values.length
+            noForecast &&= !(hasHistorical | hasProjection)
+        }
+        if (noForecastThisWeek | allForecast) {
+            let startECurr = dayjs(thisData.projected.start_date).isSame(currentDate)
+            if (hasProjection) {
+                noForecastThisWeek &&= !startECurr
+                allForecast &&= startECurr
+            }
+        }
+
+    }
+    someForecastThisWeek = !(noForecastThisWeek | allForecast)
+
+    mapNoForecastAlert.hide()
+    mapNoForecastThisWeekAlert.hide()
+    mapMixedForecastThisWeekAlert.hide()
+    mapDisclaimer.innerHTML = ""
+
+    if (noForecast) {
+        mapNoForecastAlert.show()
+
+    } else {
+        if (noForecastThisWeek) {
+            mapNoForecastThisWeekAlert.show()
+        }
+        if (someForecastThisWeek) {
+            mapMixedForecastThisWeekAlert.show()
+            mapDisclaimer.innerHTML = "Partial forecast submissions available for this week"
+        }
+    }
+
+    // no forecast: all historical & projection lengths = 0
+    // no forecast this week: all start_date != current_week where projection has length
+    // some forecast this week: some start_date != current_week
+    // all forecast updated: all start_date = current_week (and some projections have length)
 }
