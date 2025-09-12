@@ -52,7 +52,7 @@ var regionData = await d3.json(`/data/respiratory/${mapRegionSelector.value}/${m
 redraw(true, true)
 drawStateHospitalizations()
 
-async function redraw(resetWarnings=false, fetchData=false) {
+async function redraw(resetWarnings=false, fetchData=false, center=false) {
     updateMapTitle()
     if (fetchData == true) {
         regionData = await d3.json(`/data/respiratory/${mapRegionSelector.value}/${mapDiseaseSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`) 
@@ -131,6 +131,14 @@ async function redraw(resetWarnings=false, fetchData=false) {
     deckOverlay.setProps({
         layers: layers
     })
+
+    if (center) {
+        map.flyTo({
+            center: [-81, 33.65],
+            zoom: 7,
+            essential: true // this animation is considered essential with respect to prefers-reduced-motion
+        })
+    }
 
 }
 

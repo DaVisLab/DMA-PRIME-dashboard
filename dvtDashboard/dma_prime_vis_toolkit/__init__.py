@@ -144,11 +144,11 @@ def create_app(development=False, dataDir=None):
                 'active': True,
                 'html': 'respiratory/respiratory-map-panel.html'
             },
-            # {
-            #     'name': 'grid',
-            #     'displayName': 'Grid View',
-            #     'html': 'respiratory/respiratory-grid-panel.html'
-            # },
+            {
+                'name': 'grid',
+                'displayName': 'Grid View',
+                'html': 'respiratory/respiratory-grid-panel.html'
+            },
         ]
         return render_template('respiratory/respiratory-base.html', panels=panels, metadata=metadata)
     

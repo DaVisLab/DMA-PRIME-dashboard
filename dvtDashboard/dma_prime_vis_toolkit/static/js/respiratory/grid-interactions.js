@@ -1,88 +1,53 @@
-import { zctaData } from "/static/js/respiratory/script.js";
-import { gridWidth, gridHeight, updateGridData, sortGrid, setupGridTooltip } from "/static/js/respiratory/grid.js";
+import { updateGrid, sortGridItems, filterGridItems, setupGridTooltip } from "/static/js/respiratory/grid.js";
+
+gridContainerResizer.addEventListener("sl-resize", updateGrid)
 
 gridCloseTtpsButton.addEventListener("click", () => {
     d3.selectAll(".grid-container > sl-tooltip").each(function(_) {this.open = false})
 })
 
-gridContainerResizer.addEventListener("sl-resize", () => {
-    updateGridData()
+gridTypeSwitch.addEventListener("sl-change", (event) => {
+    d3.select(gridContainer).selectAll("sl-tooltip[open]")
+        .each(function(d, i) {
+            setupGridTooltip(d3.select(this), true)
+        })
+    updateGrid()
 })
+
+gridDiseaseSelector.addEventListener("sl-change", (event) => {
+    d3.select(gridContainer).selectAll("sl-tooltip[open]")
+        .each(function(d, i) {
+            setupGridTooltip(d3.select(this), true)
+        })
+    updateGrid(true)    
+})
+
+gridRegionSelector.addEventListener("sl-change", (event) => {
+    updateGrid(true)
+})
+
+gridPopulationSelector.addEventListener("sl-change", (event) => {
+    d3.select(gridContainer).selectAll("sl-tooltip[open]")
+        .each(function(d, i) {
+            setupGridTooltip(d3.select(this), true)
+        })
+    updateGrid()    
+})
+
+gridOutcomeVariableSelector.addEventListener("sl-change", (event) => {
+    d3.select(gridContainer).selectAll("sl-tooltip[open]")
+        .each(function(d, i) {
+            setupGridTooltip(d3.select(this), true)
+        })
+    updateGrid()    
+})
+
+gridIncludeImputations.addEventListener("sl-change", filterGridItems)
 
 gridSort.addEventListener("sl-change", (event) => {
-    sortGrid()
+    sortGridItems()
 })
 
-gridRateSwitch.addEventListener("sl-change", (event) => {
-    d3.select(gridContainer).selectAll("sl-tooltip[open]")
-        .each(function(d, i) {
-            setupGridTooltip(d3.select(this), true)
-        })
-    updateGridData()
-})
+gridTextFilter.addEventListener("sl-input", filterGridItems)
+gridTextFilter.addEventListener("clear", filterGridItems)
 
-gridDataSourceSortSelector.addEventListener("sl-change", (event) => {
-    d3.select(gridContainer).selectAll("sl-tooltip[open]")
-        .each(function(d, i) {
-            setupGridTooltip(d3.select(this), true)
-        })
-    updateGridData()    
-})
-
-gridDiseaseSelector.addEventListener("sl-change", async (event) => {
-    await d3.json(`/data/respiratory/zcta/${gridDiseaseSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`).then(data => {
-        zctaData.features = data.features
-    })
-    d3.select(gridContainer).selectAll("sl-tooltip[open]")
-        .each(function(d, i) {
-            setupGridTooltip(d3.select(this), true)
-        })
-    updateGridData()
-})
-
-gridTextFilter.addEventListener("sl-input", filterZCTAByText)
-
-function filterZCTAByText(event) {
-    // get filtration value
-    var diseaseData = zctaData.features
-
-    // get all zcta that partially match (case ignored) either zip code or county
-    var matchingZCTAData = diseaseData.filter(function(d) {
-        var countyMatch = d.properties.county.toLowerCase().includes(gridTextFilter.value.toLowerCase())
-        var zctaMatch = d.properties.ZCTA.toString().toLowerCase().includes(gridTextFilter.value.toLowerCase())
-        return countyMatch || zctaMatch
-    })
-
-    // if we're not including imputations, then filter them out so they don't show
-    if (!gridIncludeImputations.checked) {
-        matchingZCTAData = matchingZCTAData.filter(function(d) {
-            return !d.properties.data.imputation
-        })
-    }
-
-    // get all grid items corresponding to the selected zcta 
-    var objs = d3.selectAll("div.grid-container")
-        .data(matchingZCTAData, function(d) {
-            return d.properties.ZCTA
-        })
-    objs.style("display", "initial") // show ones that match
-    objs.exit()
-        .style("display", "none") // hide ones that don't
-}
-
-gridIncludeImputations.addEventListener("sl-change", () => {
-    if (gridIncludeImputations.checked) {
-        // include all zcta including imputations
-        d3.selectAll("div.grid-container")
-            .style("display", "initial")
-    } else {
-        // hide imputed zcta
-        d3.selectAll("div.grid-container")
-            .filter(function(d) {
-                return d.properties.data.imputation
-            })
-            .style("display", "none")
-    }
-    updateGridData() // update display since the min and max values will change
-    filterZCTAByText() // filter again since the if else statement didn't account for that
-})

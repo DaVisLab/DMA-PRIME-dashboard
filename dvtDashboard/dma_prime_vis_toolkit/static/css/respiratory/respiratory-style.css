@@ -3,20 +3,25 @@
 }
 
 #tooltip-large {
-    --header-spacing: var(--sl-spacing-small) var(--sl-spacing-small) var(--sl-spacing-2x-small);
-    --body-spacing: 0 var(--sl-spacing-small) var(--sl-spacing-small);
+  --header-spacing: var(--sl-spacing-small) var(--sl-spacing-small) var(--sl-spacing-2x-small);
+  --body-spacing: 0 var(--sl-spacing-small) var(--sl-spacing-small);
+}
+
+#tooltip-large::part(base) {
+  z-index: 1100 !important;
 }
 
 #tooltip-large-svg {
-    width: 100%;
-    aspect-ratio: 2;
+  width: 100%;
+  aspect-ratio: 2;
 }
 
 .tooltip-div {
   background-color: white;
 }
 
-div.tooltip-region-info, div.tooltip-options {
+div.tooltip-region-info,
+div.tooltip-options {
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
@@ -52,10 +57,13 @@ div.tooltip-div p {
   fill: hsl(240 5.3% 58%);
 }
 
-.y-axis:not(.map-state-hospitalizations *) text, :is(.x-axis-historical, .x-axis-prediction) text {
+.y-axis:not(.map-state-hospitalizations *) text,
+:is(.x-axis-historical, .x-axis-prediction) text {
   fill: black;
 }
-.y-axis:not(.map-state-hospitalizations *) :is(path,line), :is(.x-axis-historical, .x-axis-prediction) :is(path,line) {
+
+.y-axis:not(.map-state-hospitalizations *) :is(path, line),
+:is(.x-axis-historical, .x-axis-prediction) :is(path, line) {
   stroke: black
 }
 
@@ -67,7 +75,8 @@ div.tooltip-div p {
   flex-wrap: wrap;
 }
 
-.tooltip-legend-group, .tooltip-legend-group-item {
+.tooltip-legend-group,
+.tooltip-legend-group-item {
   display: flex;
   align-items: center;
   width: max-content;

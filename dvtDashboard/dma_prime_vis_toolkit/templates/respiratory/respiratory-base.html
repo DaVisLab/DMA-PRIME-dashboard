@@ -81,6 +81,7 @@
 {% block bodyScripts %}
 <script>
   tooltipLarge = document.getElementById("tooltip-large");
+  tooltipLarge.addEventListener("close", () => tooltipLarge.innerHTML="")
 </script>
 
 <script type="module">

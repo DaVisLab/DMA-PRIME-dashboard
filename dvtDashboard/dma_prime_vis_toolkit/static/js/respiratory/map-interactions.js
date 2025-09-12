@@ -5,7 +5,7 @@ import { map, popup, deckOverlay, selectedItems, redraw, drawStateHospitalizatio
 popup.on("close", e => {
     selectedItems.feature = undefined
     dataVersion++
-    redraw()
+    redraw(false, false, true)
 })
 
 map.on('zoom', _ => {if (mapRegionSelector.value == "zcta") { redraw() }})

@@ -1,8 +1,7 @@
 
 export { zctaData, 
-    populationColorMap, dataSourceColorMap, gridLineStyle, unknownColor,
-    outcomeVariableStringCrosswalk,
-    gridItemDataSources, 
+    populationColorMap, dataSourceColorMap, unknownColor,
+    outcomeVariableStringCrosswalk, 
     getDataAsArray, getBoundsOfCoords, getCenter,
     drawTooltip }
 
@@ -17,10 +16,6 @@ await Promise.allSettled([ // wait for following to be defined/load in
 // visualization variables
 var formatInt = d3.format(".0f")
 var formatDate = d3.timeFormat("%b %d, %Y")
-
-let dataVersion = 0
-
-var gridItemDataSources = ["state_encounters_historical", "health-system_encounters_historical"]
 
 var unknownColor = d3.hsl("#CCCCCC")
 
@@ -51,11 +46,6 @@ var outcomeVariableStringCrosswalk = {
     "emergency_department_visits": "Emergency Department Visits",
     "positive_tests": "Positive Tests",
     "rate_of_transmission": "Transmission",
-}
-
-var gridLineStyle = {
-    "health-system_encounters_historical": null,
-    "state_encounters_historical": "5,5",
 }
 
 var ttpHistoryWidthPercentage = 3/4
@@ -144,8 +134,14 @@ function fixCoord(coord) {
 }
 
 function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, rate=false, grid=false, allDates=false, extraSources=[]) {
-    
 // The beginning bits
+    var geographicUnit
+    if (grid) {
+        geographicUnit = gridRegionSelector.value
+    } else {
+        geographicUnit = mapRegionSelector.value
+    }
+
     var historicalDatesArray = allDates ? allHistoricalDates : shortHistoryDates
     var featureData = JSON.parse(JSON.stringify(d))
 
@@ -165,16 +161,12 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, rat
     
     var regionInfo = header.select(".tooltip-region-info")
     regionInfo.node().innerHTML = ""
-    if (grid) {
-        regionInfo.append("p").html(`ZCTA: ${identifier}`)
-    } else {
-        if (mapRegionSelector.value != "state") {
-            regionInfo.append("p").html(`${metadata.region_sizes[mapRegionSelector.value]}: ${identifier}`)
+        if (geographicUnit != "state") {
+            regionInfo.append("p").html(`${metadata.region_sizes[geographicUnit]}: ${identifier}`)
         } else {
             regionInfo.append("p").html("South Carolina")
         }
-    }
-    if (mapRegionSelector.value == "zcta" || grid) {
+    if (geographicUnit == "zcta") {
         // TODO: Make county names display correctly (e.g. McCormick instead of Mccormick)
         regionInfo.append("p").html(`County: ${featureData.county[0].toUpperCase()+featureData.county.substring(1)}`)
     }
@@ -217,6 +209,11 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, rat
                 if (e_p == "projected") {
                     text += ' (projected)'
                 } else {
+                    if (outcomeVariable == "encounters") {
+                        text = "All Historical Encounters"
+                    } else {
+                        text = "Historical " + text
+                    }
                     text += data[e_p].reported ? ' (reported)' : ' (estimated)'
                 }
                 return text})
@@ -233,7 +230,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, rat
             tooltipLarge.show().then(async () => {
                 var allExtendedData
                 if (grid) {
-                    allExtendedData = await d3.json(`/data/respiratory/zcta/${gridDiseaseSelector.value}/extended?data_version=${metadata.data_version}&${parseInt(Math.random() * 9999999999)}`)
+                    allExtendedData = await d3.json(`/data/respiratory/${gridRegionSelector.value}/${gridDiseaseSelector.value}/extended?data_version=${metadata.data_version}&${parseInt(Math.random() * 9999999999)}`)
                 } else {
                     allExtendedData = await d3.json(`/data/respiratory/${mapRegionSelector.value}/${mapDiseaseSelector.value}/extended?data_version=${metadata.data_version}&${parseInt(Math.random() * 9999999999)}`)
                 }
@@ -243,11 +240,10 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, rat
                     "data": allExtendedData[identifier]
                 }
                 if (grid) {
-                    var [gridDataSource, gridDataVariable, _] = gridDataSourceSortSelector.value.split('_')
                     drawTooltip(ttpData,
                         largeTtp.select(".tooltip-outer-svg"), largeTtp.select(".tooltip-header"), largeTtp.select(".tooltip-footer"),
-                        gridDataSource, gridDataVariable,
-                        gridRateSwitch.value == "rate", grid, true, [])
+                        gridPopulationSelector.value, gridOutcomeVariableSelector.value,
+                        gridTypeSwitch.value == "rate", grid, true, [])
                 } else {
                     drawTooltip(ttpData,
                         largeTtp.select(".tooltip-outer-svg"), largeTtp.select(".tooltip-header"), largeTtp.select(".tooltip-footer"),
@@ -332,6 +328,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, rat
         .attr("width", ttpWidth)
     ttpSVG.append("line")
         .attr("class", "tooltip-prediction-separator")
+        .style("pointer-events", "none")
 
     var yAxis = ttpSVG.append("g")
         .attr("class", "y-axis")

@@ -12,6 +12,10 @@
   overflow: hidden
 }
 
+.hide {
+  display: none;
+}
+
 .scroll {
   overflow: scroll;
   overflow-x: scroll;

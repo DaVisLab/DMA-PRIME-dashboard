@@ -164,10 +164,7 @@ for region_size, identifier_column in region_geojson_identifiers.items():
             extended_historical_data = {}
             # reshape data
             for feature in gj.features:
-                try:
-                    identifier = int(feature.properties[identifier_column])
-                except ValueError:
-                    identifier = feature.properties[identifier_column]
+                identifier = feature.properties['id']
 
                 disease_data = {
                     'state': {var:{'historical': [], 'projected': []} for var in data_variables},                        
@@ -193,8 +190,8 @@ for region_size, identifier_column in region_geojson_identifiers.items():
 
                 except:
                     # no data in this region - disease combo
-                    pass
                     # print(identifier, disease)
+                    pass
 
                 for data_source in ['state', 'health-system']:
                     for var in data_variables:
@@ -206,16 +203,16 @@ for region_size, identifier_column in region_geojson_identifiers.items():
                                 historical_data = var_data.reindex(historical_dates)
                                 disease_data[data_source][var]['historical'] = [None if math.isnan(x) else x for x in historical_data.to_list()]
                             except:
-                                pass
                                 # print(identifier, disease, var, 'historical')
+                                pass
 
                             try:
                                 projected_data = var_data.reindex(pred_dates)
                                 disease_data[data_source][var]['projected'] = [None if math.isnan(x) else x for x in projected_data.to_list()]
                                 all_hist[data_source][var]['projected'] = disease_data[data_source][var]['projected']
                             except: 
-                                pass
                                 # print(identifier, disease, var, 'projected')
+                                pass
                         except: # this column doesn't exist
                             pass 
                         
