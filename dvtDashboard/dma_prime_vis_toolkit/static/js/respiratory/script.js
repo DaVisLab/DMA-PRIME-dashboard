@@ -2,7 +2,7 @@
 export { zctaData, 
     populationColorMap, dataSourceColorMap, unknownColor,
     outcomeVariableStringCrosswalk, 
-    getDataAsArray, getBoundsOfCoords, getCenter,
+    getFeatureValue, getAllFeatureValues, getBoundsOfCoords, getCenter,
     drawTooltip }
 
 
@@ -79,18 +79,35 @@ window.addEventListener("keydown", (event) => {
 
 document.adoptedStyleSheets = [styleSheet]
 
-// data fetching
-function getDataAsArray(data, population, outcomeVariable, histOrProj, rate, imputations=true) {
-    var arr = data.features.map((d) => {
-        var thisData = d.properties.data[population][outcomeVariable][histOrProj]
-        
-        if (imputations || !thisData.imputed) {
-            if (rate) {
-                return (parseFloat(thisData.values.at(expectedShortHistoryDataPoints-1)) || 0) * 1000 / d.properties.population
-            } else {
-                return parseFloat(thisData.values.at(expectedShortHistoryDataPoints-1)) || 1
-            }
+function getFeatureValue(feature, population, outcomeVariable, panelType, imputations) {
+    let thisData = feature.properties.data[population][outcomeVariable]["historical"]
+
+    if (!imputations && thisData.imputed) {
+        return null
+    }
+
+    if (panelType == "percentDifference") {
+        var thisWeekDatum = parseFloat(thisData.values.at(expectedShortHistoryDataPoints-1))
+        var lastWeekDatum = parseFloat(thisData.values.at(expectedShortHistoryDataPoints-2))
+        var percentDifference = undefined
+        if (isNaN(thisWeekDatum) || lastWeekDatum) {
+            percentDifference = (thisWeekDatum - lastWeekDatum) / Math.abs(lastWeekDatum) * 100
         }
+        return [lastWeekDatum, thisWeekDatum, percentDifference]
+    } else {
+        var value
+        if (panelType == "rate") {
+            value = thisData.values.at(expectedShortHistoryDataPoints-1) / feature.properties.population * 1000
+        } else {
+            value = thisData.values.at(expectedShortHistoryDataPoints-1)
+        }
+        return value
+    }
+}
+
+function getAllFeatureValues(features, population, outcomeVariable, panelType, imputations) {
+    var arr = features.map((feature) => {
+        return getFeatureValue(feature, population, outcomeVariable, panelType, imputations)
     })
 
     return arr

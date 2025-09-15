@@ -1,5 +1,5 @@
 const { GeoJsonLayer, IconLayer, TextLayer, MapboxOverlay } = deck;
-import { getDataAsArray, outcomeVariableStringCrosswalk, populationColorMap, unknownColor, getCenter, drawTooltip } from "/static/js/respiratory/script.js";
+import { outcomeVariableStringCrosswalk, populationColorMap, unknownColor, getCenter, getFeatureValue, getAllFeatureValues, drawTooltip } from "/static/js/respiratory/script.js";
 export { map, popup, selectedItems, deckOverlay, redraw, drawStateHospitalizations, drawLargeStateHospitalizations, updateMapTitle, updateMapTooltip }
 
 var icons = {
@@ -147,36 +147,20 @@ function getColor(feature) {
         var population = mapPopulationSelector.value
         var outcomeVariable = mapOutcomeVariableSelector.value
         var imputations = mapIncludeImputations.checked
-        var thisData = feature.properties.data[population][outcomeVariable]['historical']
 
         var c
 
+        let value = getFeatureValue(feature, population, outcomeVariable, mapTypeSwitch.value, imputations)
         if (mapTypeSwitch.value == "percentDifference") {
-            var thisWeekDatum = parseFloat(thisData.values.at(expectedShortHistoryDataPoints-1))
-            var lastWeekDatum = parseFloat(thisData.values.at(expectedShortHistoryDataPoints-2))
-            c = d3.rgb(unknownColor)
-            if (isNaN(thisWeekDatum) || lastWeekDatum) {
-                c = d3.rgb(choroplethColorMap((thisWeekDatum - lastWeekDatum) / Math.abs(lastWeekDatum) * 100))
+            if (isNaN(value[1]) || value[0]) {
+                c = d3.rgb(choroplethColorMap(value[2]))
             } else if (thisWeekDatum == 0) {
                 c = d3.rgb("white")
             } else {
                 c = d3.rgb("#ff8800")
             }
         } else {
-            var value
-        
-            if (imputations || !thisData.imputed) {
-                if (mapTypeSwitch.value == "rate") {
-                    value = thisData.values.at(expectedShortHistoryDataPoints-1) / feature.properties.population * 1000
-                } else {
-                    value = thisData.values.at(expectedShortHistoryDataPoints-1)
-                }
-            }
-            if (value === undefined || value === null || isNaN(value)) {
-                c = d3.rgb(unknownColor)
-            } else {
-                c = d3.rgb(choroplethColorMap(value))
-            }
+            c = d3.rgb(choroplethColorMap(value))
         }
 
         return [c.r, c.g, c.b]
@@ -195,17 +179,11 @@ function createChoropleth(data, mapType, population, outcomeVariable, imputation
         var arr
         if (mapRegionSelector.value == "state") {
             var thisData = data.features[0].properties.data[population][outcomeVariable]['historical']
-            if (thisData.length > 0) {
-                if (mapType == "rate") {
-                    arr =  thisData.map(d => (d || 0) / data.features[0].properties.population * 1000)
-                } else {
-                    arr =  thisData.map(d => d || 1)
-                }
-            } else {
-                arr = [1]
+            if (mapType == "rate") {
+                arr =  thisData.map(d => d/ data.features[0].properties.population * 1000)
             }
         } else {
-            arr = getDataAsArray(data, population, outcomeVariable, ['historical'], mapType == "rate", imputations)
+            arr = getAllFeatureValues(data.features, population, outcomeVariable, mapType, imputations)
         }
         if (outcomeVariable == "rate_of_transmission") {
             choroplethDiscreteEdges = null
@@ -217,6 +195,7 @@ function createChoropleth(data, mapType, population, outcomeVariable, imputation
             choroplethColorMap = d3.scaleQuantize()
                 .domain([0, d3.max(arr) || 1])
                 .range(d3.quantize(d3.interpolateRgb("white", populationColorMap[population]['historical']), 5))
+                .unknown(unknownColor).nice()
         }
     }
 }

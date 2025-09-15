@@ -1,5 +1,5 @@
 
-import { populationColorMap, unknownColor, getDataAsArray, drawTooltip } from "/static/js/respiratory/script.js";
+import { populationColorMap, unknownColor, getFeatureValue, getAllFeatureValues, drawTooltip } from "/static/js/respiratory/script.js";
 export { updateGrid, sortGridItems, filterGridItems, setupGridTooltip }
 
 var backgroundColors = d3.schemeReds[9].slice(1,5) //[1, 2, 3, 4].map(i => d3.schemeReds[9][i])
@@ -210,10 +210,9 @@ async function updateGrid(fetchData=true) {
 
     // create scales
     var gridColor = d3.scaleQuantile()
-                    .domain(d3.extent(getDataAsArray(regionData, 
+                    .domain(d3.extent(getAllFeatureValues(regionData.features, 
                         gridPopulationSelector.value, gridOutcomeVariableSelector.value, 
-                        "historical", gridTypeSwitch.value == "rate", 
-                        gridIncludeImputations.checked)))
+                        gridTypeSwitch.value, gridIncludeImputations.checked)))
                     .range(d3.quantize(d3.interpolateRgb("white", populationColorMap[gridPopulationSelector.value]['historical']), 5))
                     .unknown(unknownColor)
 
@@ -223,7 +222,6 @@ async function updateGrid(fetchData=true) {
 
     gridContainerD3.selectAll("div.grid-container").each(function(feature) {
         // draw grid graph
-        let location = feature.properties.id
         var data = JSON.parse(JSON.stringify(feature.properties.data[gridPopulationSelector.value][gridOutcomeVariableSelector.value]))
         
         let countMax = 0
@@ -242,10 +240,8 @@ async function updateGrid(fetchData=true) {
             countMax = d3.max([...data[e_p]["values"], countMax])
         })
 
-        let value
-
-        value = data["historical"].values[expectedShortHistoryDataPoints-1]
-
+        let value = getFeatureValue(feature, gridPopulationSelector.value, gridOutcomeVariableSelector.value,
+            gridTypeSwitch.value, gridIncludeImputations.checked)
 
         gridSVG.select(".grid-background")
             // .transition()
