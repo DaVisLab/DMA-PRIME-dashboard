@@ -5,10 +5,7 @@ import math
 import os
 import glob
 
-# from supporting_files.utility import *
-aggregated_data_dir = 'C:/Users/Grace/Documents/New Resp Submission Format'
-processed_data_dir = 'C:/Users/Grace/Documents/New Resp Submission Format/processed'
-scripts_supporting_files_dir = 'C:/Users/Grace/Documents/New Resp Submission Format/supporting files (geojsons)'
+from supporting_files.utility import *
 
 # Guide to this file (assume it's slightly outdated)
 # 1) Define variables for names of things/columns of incoming data etc
@@ -220,7 +217,6 @@ for region_size, identifier_column in region_geojson_identifiers.items():
 
                 for population in populations: # for general and hs
                     for outcome_variable in outcome_variables_code_friendly.values(): # for each encounter/inpatient/pos test/rt
-
                         data_by_value_type = {}
                         for value_type in e_p_r_crosswalk.values():
                             try:
@@ -242,15 +238,17 @@ for region_size, identifier_column in region_geojson_identifiers.items():
 
                         else:
                             # yes estimated -> historical
+                            temp_data_values = data_by_value_type['estimated']['value'].droplevel('data_source')
+                            temp_data_imputations = data_by_value_type['estimated']['imputed'].droplevel('data_source')
 
                             # short history
-                            disease_data[population][outcome_variable]['historical']['values'] = pandas_to_json_safe_list(data_by_value_type['estimated']['value'].reindex(short_history_dates, level='target_end_date'))
-                            disease_data[population][outcome_variable]['historical']['imputed'] = bool(data_by_value_type['estimated']['imputed'].reindex(short_history_dates, level='target_end_date').any())
+                            disease_data[population][outcome_variable]['historical']['values'] = pandas_to_json_safe_list(temp_data_values.reindex(short_history_dates, level='target_end_date'))
+                            disease_data[population][outcome_variable]['historical']['imputed'] = bool(temp_data_imputations.reindex(short_history_dates, level='target_end_date').any())
 
                             # all history
-                            disease_data_all[population][outcome_variable]['historical']['values'] = pandas_to_json_safe_list(data_by_value_type['estimated']['value'].reindex(all_historical_dates, level='target_end_date'))
-                            disease_data_all[population][outcome_variable]['historical']['imputed'] = bool(data_by_value_type['estimated']['imputed'].reindex(all_historical_dates, level='target_end_date').any())
-
+                            disease_data_all[population][outcome_variable]['historical']['values'] = pandas_to_json_safe_list(temp_data_values.reindex(all_historical_dates, level='target_end_date'))
+                            disease_data_all[population][outcome_variable]['historical']['imputed'] = bool(temp_data_imputations.reindex(all_historical_dates, level='target_end_date').any())
+                            
                             if outcome_variable in ['encounters', 'inpatient_hospitalizations', 'emergency_department_visits']:
                                 # yes estimated, then HS/RFA is extra (button names come from data source)
                                 for data_source, data_source_code_friendly in data_sources.items():

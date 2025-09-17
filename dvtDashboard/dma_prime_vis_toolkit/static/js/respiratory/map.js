@@ -176,7 +176,7 @@ function createChoropleth(data, mapType, population, outcomeVariable, imputation
         .range(d3.reverse(d3.schemeRdBu[8]).slice(1))
         .unknown(unknownColor)
     } else {
-        var arr
+        var arr = []
         if (mapRegionSelector.value == "state") {
             var thisData = data.features[0].properties.data[population][outcomeVariable]['historical']
             if (mapType == "rate") {
