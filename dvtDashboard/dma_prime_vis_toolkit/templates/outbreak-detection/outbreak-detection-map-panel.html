@@ -42,12 +42,16 @@
   <sl-select value="pos_tests" id="map-column-switch" class="fill-width" size="small">
     <p slot="label">Data Variable</p>
     <sl-option value="pos_tests">Positive Tests</sl-option>
-    <sl-option value="encounters">Encounters</sl-option>
-    <sl-option value="encounter_plus_test">Encounters and Positive Tests</sl-option>
+    <sl-tooltip content="Unique diagnosis">
+      <sl-option value="encounters">Encounters</sl-option>
+    </sl-tooltip>
+    <sl-tooltip content="Unique recorded diagnoses or positive tests">
+      <sl-option value="encounter_plus_test">Unique Records</sl-option>
+    </sl-tooltip>
   </sl-select>
 
   <!-- disease selector -->
-    <sl-details id="map-disease-selector-container" >
+    <sl-details id="map-disease-selector-container" open>
       <p slot="summary">Select a disease or group of diseases</p>
       <sl-checkbox id="map-all-disease-selector" size="small">All Diseases <span id="map-all-count"></span></sl-checkbox>
       {% for disease in metadata['diseases'] %}
@@ -95,7 +99,7 @@
   <svg id="choropleth-legend-svg"></svg>
 </div>
 <div id="map-title-container" class="fill-width">
-  <p id="map-title">Count of Weekly Positive Tests in South Carolina by Zip Code</p>
+  <p id="map-title">Count of Weekly Positive Tests in Prisma and MUSC Health Systems by Zip Code</p>
 </div>
 <div id="map-loading-div">
   <p id="loading-text">Loading</p>

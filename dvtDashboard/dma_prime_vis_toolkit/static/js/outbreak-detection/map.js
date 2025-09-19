@@ -19,8 +19,8 @@ var selectedItems = {
 }
 
 var choroplethColorMap = d3.scaleLinear()
-    .domain([-100, -50, -10, 0, 10, 50, 100, 500])
-    .range(d3.reverse(d3.schemeRdYlGn[10]).slice(1))
+    .domain([-100, -50, 0, 50, 100, 500])
+    .range(d3.reverse(d3.schemeRdBu[8]).slice(1))
     .unknown(unknownColor).nice()
 
 // Placeholder: actual domain set later via createCountRateChoropleth()
@@ -230,7 +230,7 @@ function redraw() {
       }
       // new encounters when lastWeek = 0 but thisWeek > 0 → light pink
       else {
-        colorObj = d3.rgb('#ffddff');
+        colorObj = d3.rgb('#ff8000');
       }
   
       return [colorObj.r, colorObj.g, colorObj.b];
@@ -276,8 +276,8 @@ function redraw() {
 
     if (mapRateSwitch.value === "percent") {
         // ======== PERCENT DIFFERENCE LEGEND ========
-        const colors = d3.reverse(d3.schemeRdYlGn[10]).slice(1);
-        const labels = [-100, -50, -10, 0, 10, 50, 100, 500];
+        const colors = d3.reverse(d3.schemeRdBu[8]).slice(1);
+        const labels = [-100, -50, 0, 50, 100, 500];
 
         // 1) Title centered above the swatch bar
         legend.append("text")
@@ -313,7 +313,7 @@ function redraw() {
         const otherColors = legend.append("g");
         const others = [
             ["white", `No ${columnLabel}`],
-            ["#ffddff", `New ${columnLabel} from Last Period`],
+            ["#ff8000", `New ${columnLabel} from Last Period`],
             [unknownColor, "Unknown"]
         ];
 
@@ -723,19 +723,39 @@ function updateDiseaseCountDisplay() {
     allCount += val;
     allPrev  += prevVal;
 
-    // always compute percent-change
-    const rawPct = prevVal !== 0
-      ? ((val - prevVal) / Math.abs(prevVal)) * 100
-      : 0;
-    const pct  = Math.round(rawPct * 10) / 10;     // one decimal
-    const sign = pct >= 0 ? "+" : "";              // prefix for positives
-
     // round display of val
     const dispVal = Math.round(val * 1000) / 1000;
 
-    // show "(value, +pct%)" in every mode
-    d3.select(`#map-${disease}-count`)
-      .html(`(${dispVal}, ${sign}${pct}%)`);
+    if (prevVal || !(val)) {
+      // always compute percent-change
+      const rawPct = prevVal !== 0
+        ? ((val - prevVal) / Math.abs(prevVal)) * 100
+        : 0;
+      const pct  = Math.round(rawPct * 10) / 10;     // one decimal
+      const sign = pct >= 0 ? "+" : "";              // prefix for positives
+
+
+      // show "(value, +pct%)" in every mode
+      d3.select(`#map-${disease}-count`)
+        .html(`(${dispVal}, ${sign}${pct}%)`);
+    } else {
+      let pctReplacement 
+      switch (mapColumnSwitch.value) {
+        case "pos_tests":
+          pctReplacement = "Positive Tests"
+          break
+        case "encounters":
+          pctReplacement = "Encounters"
+          break;
+        case "encounter_plus_test":
+          pctReplacement = "Unique Records"
+          break;
+
+      }
+      d3.select(`#map-${disease}-count`)
+        .html(`(${dispVal}, New ${pctReplacement})`);
+
+    }
   });
 
   // 3) Same for "All Diseases"
@@ -1317,7 +1337,7 @@ function updateMapTitle() {
     titleStart += `of ${d3.select(mapTimeSwitch).select(`*[value=${mapTimeSwitch.value}]`).html()}ly `
     titleStart += `${d3.select(mapColumnSwitch).select(`*[value=${mapColumnSwitch.value}]`).html()} `
 
-    var titleEnd = "in South Carolina "
+    var titleEnd = "in Prisma and MUSC Health Systems "
     if (mapRegionSelector.value != "state") {
         titleEnd += "by "
         titleEnd += d3.select(mapRegionSelector).select(`*[value=${mapRegionSelector.value}]`).html() 
