@@ -34,12 +34,19 @@ let countRateColorMap = d3.scaleLinear()
 
 function createCountRateChoropleth(data) {
   // 1) For every polygon (except "state"), grab its latest value (or 0):
-  const arr = data.features.map(feature => {
+  let arr 
+
+  if (mapRegionSelector.value != "state") {
+    arr = data.features.map(feature => {
     const thisDt = getData(feature, mapTimeSwitch.value)
     return (thisDt.data.length > 0 && feature.properties.identifier !== "state")
       ? thisDt.data.at(-1)
       : 0
   })
+  } else {
+    arr = getData(data.features[0], mapTimeSwitch.value).data
+    console.log(data.features[0], arr)
+  }
 
   // 2) If "Rate" is selected, push a small nonzero so domain covers per-1000 scale:
   const minMaxVal = (mapRateSwitch.value === "rate")

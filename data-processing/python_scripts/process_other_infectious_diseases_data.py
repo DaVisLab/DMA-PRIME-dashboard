@@ -58,6 +58,9 @@ for region_size, file_region_size in region_file_identifiers.items():
                     identifier = int(feature.properties[region_geojson_identifiers[region_size]])
                 except ValueError:
                     identifier = feature.properties[region_geojson_identifiers[region_size]]
+                    
+                if region_size == 'state':
+                    identifier = 'SC'
 
                 feature.properties['identifier'] = identifier
 
@@ -119,9 +122,9 @@ for region_size, file_region_size in region_file_identifiers.items():
 
                 for feature in gj.features:
                     try:
-                        identifier = int(feature.properties[region_geojson_identifiers[region_size]])
+                        identifier = int(feature.properties['identifier'])
                     except ValueError:
-                        identifier = feature.properties[region_geojson_identifiers[region_size]]
+                        identifier = feature.properties['identifier']
 
                     try:
                         feature_disease_data = pd.Series(data=df.xs(identifier, axis=0)[column], index=dates).fillna(0)
