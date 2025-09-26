@@ -2,7 +2,7 @@ const { GeoJsonLayer, IconLayer, TextLayer, MapboxOverlay } = deck;
 
 export { styleSheet, selectedItems, map, deckOverlay, popup, redraw, drawTooltip, drawAggregation, drawLargeAggregation, drawLegend, updateDiseaseCountDisplay, getData, changeDataColumn, update, updateMapTitle }
 
-var regionData = await d3.json(`/data/outbreak-detection/zcta/pos_tests?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`)
+var regionData = await d3.json(`/data/outbreak-detection/zcta/positive_tests?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`)
 var stateFeature = regionData.features.find(d => d.properties.identifier == "state")
 
 var icons = {
