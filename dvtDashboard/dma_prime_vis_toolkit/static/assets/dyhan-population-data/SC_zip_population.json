@@ -1,0 +1,2546 @@
+[
+  {
+    "zip": 29072,
+    "city": "Lexington",
+    "county": "Lexington",
+    "population": 67669
+  },
+  {
+    "zip": 29681,
+    "city": "Simpsonville",
+    "county": "Greenville",
+    "population": 66168
+  },
+  {
+    "zip": 29445,
+    "city": "Goose Creek",
+    "county": "Berkeley",
+    "population": 60419
+  },
+  {
+    "zip": 29485,
+    "city": "Summerville",
+    "county": "Dorchester",
+    "population": 58946
+  },
+  {
+    "zip": 29732,
+    "city": "Rock Hill",
+    "county": "York",
+    "population": 57182
+  },
+  {
+    "zip": 29483,
+    "city": "Summerville",
+    "county": "Dorchester",
+    "population": 56758
+  },
+  {
+    "zip": 29730,
+    "city": "Rock Hill",
+    "county": "York",
+    "population": 56727
+  },
+  {
+    "zip": 29651,
+    "city": "Greer",
+    "county": "Greenville",
+    "population": 53804
+  },
+  {
+    "zip": 29588,
+    "city": "Myrtle Beach",
+    "county": "Horry",
+    "population": 52899
+  },
+  {
+    "zip": 29720,
+    "city": "Lancaster",
+    "county": "Lancaster",
+    "population": 52308
+  },
+  {
+    "zip": 29223,
+    "city": "Columbia",
+    "county": "Richland",
+    "population": 51354
+  },
+  {
+    "zip": 29464,
+    "city": "Mount Pleasant",
+    "county": "Charleston",
+    "population": 51259
+  },
+  {
+    "zip": 29073,
+    "city": "Lexington",
+    "county": "Lexington",
+    "population": 49849
+  },
+  {
+    "zip": 29526,
+    "city": "Conway",
+    "county": "Horry",
+    "population": 49383
+  },
+  {
+    "zip": 29579,
+    "city": "Myrtle Beach",
+    "county": "Horry",
+    "population": 49113
+  },
+  {
+    "zip": 29229,
+    "city": "Columbia",
+    "county": "Richland",
+    "population": 49097
+  },
+  {
+    "zip": 29910,
+    "city": "Bluffton",
+    "county": "Beaufort",
+    "population": 47927
+  },
+  {
+    "zip": 29501,
+    "city": "Florence",
+    "county": "Florence",
+    "population": 47406
+  },
+  {
+    "zip": 29621,
+    "city": "Anderson",
+    "county": "Anderson",
+    "population": 44260
+  },
+  {
+    "zip": 29414,
+    "city": "Charleston",
+    "county": "Charleston",
+    "population": 44196
+  },
+  {
+    "zip": 29486,
+    "city": "Summerville",
+    "county": "Berkeley",
+    "population": 43513
+  },
+  {
+    "zip": 29607,
+    "city": "Greenville",
+    "county": "Greenville",
+    "population": 43466
+  },
+  {
+    "zip": 29687,
+    "city": "Taylors",
+    "county": "Greenville",
+    "population": 43398
+  },
+  {
+    "zip": 29466,
+    "city": "Mount Pleasant",
+    "county": "Charleston",
+    "population": 43233
+  },
+  {
+    "zip": 29461,
+    "city": "Moncks Corner",
+    "county": "Berkeley",
+    "population": 42217
+  },
+  {
+    "zip": 29708,
+    "city": "Fort Mill",
+    "county": "York",
+    "population": 42028
+  },
+  {
+    "zip": 29715,
+    "city": "Fort Mill",
+    "county": "York",
+    "population": 41581
+  },
+  {
+    "zip": 29203,
+    "city": "Columbia",
+    "county": "Richland",
+    "population": 41205
+  },
+  {
+    "zip": 29210,
+    "city": "Columbia",
+    "county": "Richland",
+    "population": 40923
+  },
+  {
+    "zip": 29412,
+    "city": "Charleston",
+    "county": "Charleston",
+    "population": 40307
+  },
+  {
+    "zip": 29605,
+    "city": "Greenville",
+    "county": "Greenville",
+    "population": 39355
+  },
+  {
+    "zip": 29615,
+    "city": "Greenville",
+    "county": "Greenville",
+    "population": 39164
+  },
+  {
+    "zip": 29803,
+    "city": "Aiken",
+    "county": "Aiken",
+    "population": 38849
+  },
+  {
+    "zip": 29063,
+    "city": "Irmo",
+    "county": "Richland",
+    "population": 38754
+  },
+  {
+    "zip": 29150,
+    "city": "Sumter",
+    "county": "Sumter",
+    "population": 38738
+  },
+  {
+    "zip": 29650,
+    "city": "Greer",
+    "county": "Greenville",
+    "population": 38725
+  },
+  {
+    "zip": 29710,
+    "city": "Clover",
+    "county": "York",
+    "population": 38528
+  },
+  {
+    "zip": 29209,
+    "city": "Columbia",
+    "county": "Richland",
+    "population": 36979
+  },
+  {
+    "zip": 29407,
+    "city": "Charleston",
+    "county": "Charleston",
+    "population": 35908
+  },
+  {
+    "zip": 29456,
+    "city": "Ladson",
+    "county": "Charleston",
+    "population": 35871
+  },
+  {
+    "zip": 29301,
+    "city": "Spartanburg",
+    "county": "Spartanburg",
+    "population": 35380
+  },
+  {
+    "zip": 29349,
+    "city": "Inman",
+    "county": "Spartanburg",
+    "population": 35204
+  },
+  {
+    "zip": 29577,
+    "city": "Myrtle Beach",
+    "county": "Horry",
+    "population": 34384
+  },
+  {
+    "zip": 29745,
+    "city": "York",
+    "county": "York",
+    "population": 34352
+  },
+  {
+    "zip": 29680,
+    "city": "Simpsonville",
+    "county": "Greenville",
+    "population": 33768
+  },
+  {
+    "zip": 29642,
+    "city": "Easley",
+    "county": "Anderson",
+    "population": 33366
+  },
+  {
+    "zip": 29611,
+    "city": "Greenville",
+    "county": "Greenville",
+    "population": 32925
+  },
+  {
+    "zip": 29576,
+    "city": "Murrells Inlet",
+    "county": "Horry",
+    "population": 32817
+  },
+  {
+    "zip": 29406,
+    "city": "Charleston",
+    "county": "Charleston",
+    "population": 32570
+  },
+  {
+    "zip": 29841,
+    "city": "North Augusta",
+    "county": "Aiken",
+    "population": 32505
+  },
+  {
+    "zip": 29640,
+    "city": "Easley",
+    "county": "Pickens",
+    "population": 32397
+  },
+  {
+    "zip": 29707,
+    "city": "Fort Mill",
+    "county": "Lancaster",
+    "population": 31826
+  },
+  {
+    "zip": 29673,
+    "city": "Piedmont",
+    "county": "Greenville",
+    "population": 30723
+  },
+  {
+    "zip": 29316,
+    "city": "Boiling Springs",
+    "county": "Spartanburg",
+    "population": 30283
+  },
+  {
+    "zip": 29801,
+    "city": "Aiken",
+    "county": "Aiken",
+    "population": 30148
+  },
+  {
+    "zip": 29550,
+    "city": "Hartsville",
+    "county": "Darlington",
+    "population": 29776
+  },
+  {
+    "zip": 29045,
+    "city": "Elgin",
+    "county": "Kershaw",
+    "population": 29754
+  },
+  {
+    "zip": 29609,
+    "city": "Greenville",
+    "county": "Greenville",
+    "population": 29739
+  },
+  {
+    "zip": 29016,
+    "city": "Blythewood",
+    "county": "Richland",
+    "population": 29154
+  },
+  {
+    "zip": 29154,
+    "city": "Sumter",
+    "county": "Sumter",
+    "population": 28655
+  },
+  {
+    "zip": 29527,
+    "city": "Conway",
+    "county": "Horry",
+    "population": 28167
+  },
+  {
+    "zip": 29646,
+    "city": "Greenwood",
+    "county": "Greenwood",
+    "population": 28014
+  },
+  {
+    "zip": 29625,
+    "city": "Anderson",
+    "county": "Anderson",
+    "population": 27720
+  },
+  {
+    "zip": 29405,
+    "city": "North Charleston",
+    "county": "Charleston",
+    "population": 27449
+  },
+  {
+    "zip": 29303,
+    "city": "Spartanburg",
+    "county": "Spartanburg",
+    "population": 27413
+  },
+  {
+    "zip": 29212,
+    "city": "Columbia",
+    "county": "Lexington",
+    "population": 27310
+  },
+  {
+    "zip": 29115,
+    "city": "Orangeburg",
+    "county": "Orangeburg",
+    "population": 27024
+  },
+  {
+    "zip": 29649,
+    "city": "Greenwood",
+    "county": "Greenwood",
+    "population": 26696
+  },
+  {
+    "zip": 29617,
+    "city": "Greenville",
+    "county": "Greenville",
+    "population": 26649
+  },
+  {
+    "zip": 29690,
+    "city": "Travelers Rest",
+    "county": "Greenville",
+    "population": 26362
+  },
+  {
+    "zip": 29440,
+    "city": "Georgetown",
+    "county": "Georgetown",
+    "population": 26302
+  },
+  {
+    "zip": 29906,
+    "city": "Beaufort",
+    "county": "Beaufort",
+    "population": 25772
+  },
+  {
+    "zip": 29036,
+    "city": "Chapin",
+    "county": "Lexington",
+    "population": 25544
+  },
+  {
+    "zip": 29455,
+    "city": "Johns Island",
+    "county": "Charleston",
+    "population": 25449
+  },
+  {
+    "zip": 29926,
+    "city": "Hilton Head Island",
+    "county": "Beaufort",
+    "population": 25384
+  },
+  {
+    "zip": 29505,
+    "city": "Florence",
+    "county": "Florence",
+    "population": 24562
+  },
+  {
+    "zip": 29418,
+    "city": "North Charleston",
+    "county": "Charleston",
+    "population": 24386
+  },
+  {
+    "zip": 29909,
+    "city": "Okatie",
+    "county": "Beaufort",
+    "population": 23490
+  },
+  {
+    "zip": 29678,
+    "city": "Seneca",
+    "county": "Oconee",
+    "population": 23359
+  },
+  {
+    "zip": 29201,
+    "city": "Columbia",
+    "county": "Richland",
+    "population": 22938
+  },
+  {
+    "zip": 29205,
+    "city": "Columbia",
+    "county": "Richland",
+    "population": 22861
+  },
+  {
+    "zip": 29420,
+    "city": "North Charleston",
+    "county": "Dorchester",
+    "population": 22808
+  },
+  {
+    "zip": 29403,
+    "city": "Charleston",
+    "county": "Charleston",
+    "population": 22363
+  },
+  {
+    "zip": 29488,
+    "city": "Walterboro",
+    "county": "Colleton",
+    "population": 22354
+  },
+  {
+    "zip": 29169,
+    "city": "West Columbia",
+    "county": "Lexington",
+    "population": 22039
+  },
+  {
+    "zip": 29020,
+    "city": "Camden",
+    "county": "Kershaw",
+    "population": 22021
+  },
+  {
+    "zip": 29360,
+    "city": "Laurens",
+    "county": "Laurens",
+    "population": 21819
+  },
+  {
+    "zip": 29644,
+    "city": "Fountain Inn",
+    "county": "Greenville",
+    "population": 21762
+  },
+  {
+    "zip": 29170,
+    "city": "West Columbia",
+    "county": "Lexington",
+    "population": 21279
+  },
+  {
+    "zip": 29340,
+    "city": "Gaffney",
+    "county": "Cherokee",
+    "population": 20745
+  },
+  {
+    "zip": 29053,
+    "city": "Gaston",
+    "county": "Lexington",
+    "population": 20620
+  },
+  {
+    "zip": 29410,
+    "city": "Hanahan",
+    "county": "Berkeley",
+    "population": 20603
+  },
+  {
+    "zip": 29506,
+    "city": "Florence",
+    "county": "Florence",
+    "population": 20545
+  },
+  {
+    "zip": 29341,
+    "city": "Gaffney",
+    "county": "Cherokee",
+    "population": 20027
+  },
+  {
+    "zip": 29532,
+    "city": "Darlington",
+    "county": "Darlington",
+    "population": 20000
+  },
+  {
+    "zip": 29108,
+    "city": "Newberry",
+    "county": "Newberry",
+    "population": 19857
+  },
+  {
+    "zip": 29566,
+    "city": "Little River",
+    "county": "Horry",
+    "population": 19722
+  },
+  {
+    "zip": 29582,
+    "city": "North Myrtle Beach",
+    "county": "Horry",
+    "population": 19701
+  },
+  {
+    "zip": 29575,
+    "city": "Myrtle Beach",
+    "county": "Horry",
+    "population": 19511
+  },
+  {
+    "zip": 29706,
+    "city": "Chester",
+    "county": "Chester",
+    "population": 19470
+  },
+  {
+    "zip": 29671,
+    "city": "Pickens",
+    "county": "Pickens",
+    "population": 19318
+  },
+  {
+    "zip": 29492,
+    "city": "Charleston",
+    "county": "Berkeley",
+    "population": 19266
+  },
+  {
+    "zip": 29307,
+    "city": "Spartanburg",
+    "county": "Spartanburg",
+    "population": 18759
+  },
+  {
+    "zip": 29206,
+    "city": "Columbia",
+    "county": "Richland",
+    "population": 18746
+  },
+  {
+    "zip": 29204,
+    "city": "Columbia",
+    "county": "Richland",
+    "population": 18034
+  },
+  {
+    "zip": 29306,
+    "city": "Spartanburg",
+    "county": "Spartanburg",
+    "population": 17932
+  },
+  {
+    "zip": 29302,
+    "city": "Spartanburg",
+    "county": "Spartanburg",
+    "population": 17897
+  },
+  {
+    "zip": 29512,
+    "city": "Bennettsville",
+    "county": "Marlboro",
+    "population": 17736
+  },
+  {
+    "zip": 29379,
+    "city": "Union",
+    "county": "Union",
+    "population": 17380
+  },
+  {
+    "zip": 29860,
+    "city": "North Augusta",
+    "county": "Edgefield",
+    "population": 17149
+  },
+  {
+    "zip": 29902,
+    "city": "Beaufort",
+    "county": "Beaufort",
+    "population": 16999
+  },
+  {
+    "zip": 29334,
+    "city": "Duncan",
+    "county": "Spartanburg",
+    "population": 16964
+  },
+  {
+    "zip": 29627,
+    "city": "Belton",
+    "county": "Anderson",
+    "population": 16623
+  },
+  {
+    "zip": 29569,
+    "city": "Loris",
+    "county": "Horry",
+    "population": 16460
+  },
+  {
+    "zip": 29070,
+    "city": "Leesville",
+    "county": "Lexington",
+    "population": 16357
+  },
+  {
+    "zip": 29657,
+    "city": "Liberty",
+    "county": "Pickens",
+    "population": 16344
+  },
+  {
+    "zip": 29568,
+    "city": "Longs",
+    "county": "Horry",
+    "population": 16331
+  },
+  {
+    "zip": 29631,
+    "city": "Clemson",
+    "county": "Pickens",
+    "population": 16313
+  },
+  {
+    "zip": 29585,
+    "city": "Pawleys Island",
+    "county": "Georgetown",
+    "population": 16268
+  },
+  {
+    "zip": 29388,
+    "city": "Woodruff",
+    "county": "Spartanburg",
+    "population": 16059
+  },
+  {
+    "zip": 29118,
+    "city": "Orangeburg",
+    "county": "Orangeburg",
+    "population": 16051
+  },
+  {
+    "zip": 29102,
+    "city": "Manning",
+    "county": "Clarendon",
+    "population": 15831
+  },
+  {
+    "zip": 29078,
+    "city": "Lugoff",
+    "county": "Kershaw",
+    "population": 15771
+  },
+  {
+    "zip": 29536,
+    "city": "Dillon",
+    "county": "Dillon",
+    "population": 15690
+  },
+  {
+    "zip": 29630,
+    "city": "Central",
+    "county": "Pickens",
+    "population": 15638
+  },
+  {
+    "zip": 29153,
+    "city": "Sumter",
+    "county": "Sumter",
+    "population": 15275
+  },
+  {
+    "zip": 29323,
+    "city": "Chesnee",
+    "county": "Spartanburg",
+    "population": 15024
+  },
+  {
+    "zip": 29369,
+    "city": "Moore",
+    "county": "Spartanburg",
+    "population": 14980
+  },
+  {
+    "zip": 29365,
+    "city": "Lyman",
+    "county": "Spartanburg",
+    "population": 14903
+  },
+  {
+    "zip": 29624,
+    "city": "Anderson",
+    "county": "Anderson",
+    "population": 14746
+  },
+  {
+    "zip": 29928,
+    "city": "Hilton Head Island",
+    "county": "Beaufort",
+    "population": 14680
+  },
+  {
+    "zip": 29662,
+    "city": "Mauldin",
+    "county": "Greenville",
+    "population": 14583
+  },
+  {
+    "zip": 29907,
+    "city": "Beaufort",
+    "county": "Beaufort",
+    "population": 14580
+  },
+  {
+    "zip": 29697,
+    "city": "Williamston",
+    "county": "Anderson",
+    "population": 14253
+  },
+  {
+    "zip": 29571,
+    "city": "Marion",
+    "county": "Marion",
+    "population": 14147
+  },
+  {
+    "zip": 29626,
+    "city": "Anderson",
+    "county": "Anderson",
+    "population": 14062
+  },
+  {
+    "zip": 29325,
+    "city": "Clinton",
+    "county": "Laurens",
+    "population": 13808
+  },
+  {
+    "zip": 29669,
+    "city": "Pelzer",
+    "county": "Greenville",
+    "population": 13789
+  },
+  {
+    "zip": 29693,
+    "city": "Westminster",
+    "county": "Oconee",
+    "population": 13420
+  },
+  {
+    "zip": 29936,
+    "city": "Ridgeland",
+    "county": "Jasper",
+    "population": 13123
+  },
+  {
+    "zip": 29601,
+    "city": "Greenville",
+    "county": "Greenville",
+    "population": 12993
+  },
+  {
+    "zip": 29033,
+    "city": "Cayce",
+    "county": "Lexington",
+    "population": 12890
+  },
+  {
+    "zip": 29520,
+    "city": "Cheraw",
+    "county": "Chesterfield",
+    "population": 12575
+  },
+  {
+    "zip": 29061,
+    "city": "Hopkins",
+    "county": "Richland",
+    "population": 12569
+  },
+  {
+    "zip": 29691,
+    "city": "Walhalla",
+    "county": "Oconee",
+    "population": 12337
+  },
+  {
+    "zip": 29620,
+    "city": "Abbeville",
+    "county": "Abbeville",
+    "population": 12268
+  },
+  {
+    "zip": 29672,
+    "city": "Seneca",
+    "county": "Oconee",
+    "population": 12217
+  },
+  {
+    "zip": 29560,
+    "city": "Lake City",
+    "county": "Florence",
+    "population": 12073
+  },
+  {
+    "zip": 29180,
+    "city": "Winnsboro",
+    "county": "Fairfield",
+    "population": 12014
+  },
+  {
+    "zip": 29010,
+    "city": "Bishopville",
+    "county": "Lee",
+    "population": 11955
+  },
+  {
+    "zip": 29556,
+    "city": "Kingstree",
+    "county": "Williamsburg",
+    "population": 11467
+  },
+  {
+    "zip": 29572,
+    "city": "Myrtle Beach",
+    "county": "Horry",
+    "population": 11441
+  },
+  {
+    "zip": 29829,
+    "city": "Graniteville",
+    "county": "Aiken",
+    "population": 11396
+  },
+  {
+    "zip": 29161,
+    "city": "Timmonsville",
+    "county": "Florence",
+    "population": 10935
+  },
+  {
+    "zip": 29812,
+    "city": "Barnwell",
+    "county": "Barnwell",
+    "population": 10773
+  },
+  {
+    "zip": 29067,
+    "city": "Kershaw",
+    "county": "Lancaster",
+    "population": 10771
+  },
+  {
+    "zip": 29472,
+    "city": "Ridgeville",
+    "county": "Dorchester",
+    "population": 10693
+  },
+  {
+    "zip": 29645,
+    "city": "Gray Court",
+    "county": "Laurens",
+    "population": 10644
+  },
+  {
+    "zip": 29510,
+    "city": "Andrews",
+    "county": "Williamsburg",
+    "population": 10558
+  },
+  {
+    "zip": 29920,
+    "city": "Saint Helena Island",
+    "county": "Beaufort",
+    "population": 10482
+  },
+  {
+    "zip": 29322,
+    "city": "Campobello",
+    "county": "Spartanburg",
+    "population": 10432
+  },
+  {
+    "zip": 29670,
+    "city": "Pendleton",
+    "county": "Anderson",
+    "population": 10422
+  },
+  {
+    "zip": 29927,
+    "city": "Hardeeville",
+    "county": "Jasper",
+    "population": 10297
+  },
+  {
+    "zip": 29207,
+    "city": "Columbia",
+    "county": "Richland",
+    "population": 9963
+  },
+  {
+    "zip": 29138,
+    "city": "Saluda",
+    "county": "Saluda",
+    "population": 9851
+  },
+  {
+    "zip": 29574,
+    "city": "Mullins",
+    "county": "Marion",
+    "population": 9842
+  },
+  {
+    "zip": 29541,
+    "city": "Effingham",
+    "county": "Florence",
+    "population": 9836
+  },
+  {
+    "zip": 29728,
+    "city": "Pageland",
+    "county": "Chesterfield",
+    "population": 9790
+  },
+  {
+    "zip": 29702,
+    "city": "Blacksburg",
+    "county": "Cherokee",
+    "population": 9535
+  },
+  {
+    "zip": 29654,
+    "city": "Honea Path",
+    "county": "Anderson",
+    "population": 9505
+  },
+  {
+    "zip": 29040,
+    "city": "Dalzell",
+    "county": "Sumter",
+    "population": 9402
+  },
+  {
+    "zip": 29054,
+    "city": "Gilbert",
+    "county": "Lexington",
+    "population": 9383
+  },
+  {
+    "zip": 29172,
+    "city": "West Columbia",
+    "county": "Lexington",
+    "population": 9359
+  },
+  {
+    "zip": 29006,
+    "city": "Batesburg",
+    "county": "Saluda",
+    "population": 9255
+  },
+  {
+    "zip": 29127,
+    "city": "Prosperity",
+    "county": "Newberry",
+    "population": 9042
+  },
+  {
+    "zip": 29554,
+    "city": "Hemingway",
+    "county": "Georgetown",
+    "population": 8930
+  },
+  {
+    "zip": 29401,
+    "city": "Charleston",
+    "county": "Charleston",
+    "population": 8895
+  },
+  {
+    "zip": 29376,
+    "city": "Roebuck",
+    "county": "Spartanburg",
+    "population": 8858
+  },
+  {
+    "zip": 29356,
+    "city": "Landrum",
+    "county": "Greenville",
+    "population": 8841
+  },
+  {
+    "zip": 29851,
+    "city": "Warrenville",
+    "county": "Aiken",
+    "population": 8773
+  },
+  {
+    "zip": 29330,
+    "city": "Cowpens",
+    "county": "Cherokee",
+    "population": 8181
+  },
+  {
+    "zip": 29385,
+    "city": "Wellford",
+    "county": "Spartanburg",
+    "population": 8039
+  },
+  {
+    "zip": 29655,
+    "city": "Iva",
+    "county": "Abbeville",
+    "population": 8033
+  },
+  {
+    "zip": 29135,
+    "city": "Saint Matthews",
+    "county": "Calhoun",
+    "population": 7974
+  },
+  {
+    "zip": 29842,
+    "city": "Beech Island",
+    "county": "Aiken",
+    "population": 7896
+  },
+  {
+    "zip": 29824,
+    "city": "Edgefield",
+    "county": "Edgefield",
+    "population": 7637
+  },
+  {
+    "zip": 29449,
+    "city": "Hollywood",
+    "county": "Charleston",
+    "population": 7598
+  },
+  {
+    "zip": 29123,
+    "city": "Pelion",
+    "county": "Lexington",
+    "population": 7511
+  },
+  {
+    "zip": 29477,
+    "city": "Saint George",
+    "county": "Dorchester",
+    "population": 7195
+  },
+  {
+    "zip": 29431,
+    "city": "Bonneau",
+    "county": "Berkeley",
+    "population": 7060
+  },
+  {
+    "zip": 29544,
+    "city": "Galivants Ferry",
+    "county": "Horry",
+    "population": 6987
+  },
+  {
+    "zip": 29160,
+    "city": "Swansea",
+    "county": "Lexington",
+    "population": 6966
+  },
+  {
+    "zip": 29565,
+    "city": "Latta",
+    "county": "Dillon",
+    "population": 6790
+  },
+  {
+    "zip": 29479,
+    "city": "Saint Stephen",
+    "county": "Berkeley",
+    "population": 6630
+  },
+  {
+    "zip": 29666,
+    "city": "Ninety Six",
+    "county": "Greenwood",
+    "population": 6351
+  },
+  {
+    "zip": 29130,
+    "city": "Ridgeway",
+    "county": "Fairfield",
+    "population": 6276
+  },
+  {
+    "zip": 29661,
+    "city": "Marietta",
+    "county": "Greenville",
+    "population": 6243
+  },
+  {
+    "zip": 29853,
+    "city": "Williston",
+    "county": "Barnwell",
+    "population": 6205
+  },
+  {
+    "zip": 29835,
+    "city": "McCormick",
+    "county": "McCormick",
+    "population": 6149
+  },
+  {
+    "zip": 29511,
+    "city": "Aynor",
+    "county": "Horry",
+    "population": 6075
+  },
+  {
+    "zip": 29555,
+    "city": "Johnsonville",
+    "county": "Florence",
+    "population": 6043
+  },
+  {
+    "zip": 29148,
+    "city": "Summerton",
+    "county": "Clarendon",
+    "population": 6005
+  },
+  {
+    "zip": 29676,
+    "city": "Salem",
+    "county": "Oconee",
+    "population": 5960
+  },
+  {
+    "zip": 29634,
+    "city": "Clemson",
+    "county": "Pickens",
+    "population": 5958
+  },
+  {
+    "zip": 29709,
+    "city": "Chesterfield",
+    "county": "Chesterfield",
+    "population": 5803
+  },
+  {
+    "zip": 29335,
+    "city": "Enoree",
+    "county": "Spartanburg",
+    "population": 5687
+  },
+  {
+    "zip": 29058,
+    "city": "Heath Springs",
+    "county": "Lancaster",
+    "population": 5621
+  },
+  {
+    "zip": 29684,
+    "city": "Starr",
+    "county": "Anderson",
+    "population": 5621
+  },
+  {
+    "zip": 29003,
+    "city": "Bamberg",
+    "county": "Bamberg",
+    "population": 5564
+  },
+  {
+    "zip": 29832,
+    "city": "Johnston",
+    "county": "Edgefield",
+    "population": 5514
+  },
+  {
+    "zip": 29470,
+    "city": "Ravenel",
+    "county": "Charleston",
+    "population": 5349
+  },
+  {
+    "zip": 29059,
+    "city": "Holly Hill",
+    "county": "Orangeburg",
+    "population": 5258
+  },
+  {
+    "zip": 29032,
+    "city": "Cassatt",
+    "county": "Kershaw",
+    "population": 5172
+  },
+  {
+    "zip": 29805,
+    "city": "Aiken",
+    "county": "Aiken",
+    "population": 5113
+  },
+  {
+    "zip": 29696,
+    "city": "West Union",
+    "county": "Oconee",
+    "population": 5102
+  },
+  {
+    "zip": 29583,
+    "city": "Pamplico",
+    "county": "Florence",
+    "population": 5074
+  },
+  {
+    "zip": 29847,
+    "city": "Trenton",
+    "county": "Edgefield",
+    "population": 5060
+  },
+  {
+    "zip": 29142,
+    "city": "Santee",
+    "county": "Orangeburg",
+    "population": 4907
+  },
+  {
+    "zip": 29164,
+    "city": "Wagener",
+    "county": "Aiken",
+    "population": 4833
+  },
+  {
+    "zip": 29048,
+    "city": "Eutawville",
+    "county": "Orangeburg",
+    "population": 4820
+  },
+  {
+    "zip": 29692,
+    "city": "Ware Shoals",
+    "county": "Laurens",
+    "population": 4792
+  },
+  {
+    "zip": 29918,
+    "city": "Estill",
+    "county": "Hampton",
+    "population": 4776
+  },
+  {
+    "zip": 29042,
+    "city": "Denmark",
+    "county": "Bamberg",
+    "population": 4762
+  },
+  {
+    "zip": 29924,
+    "city": "Hampton",
+    "county": "Hampton",
+    "population": 4609
+  },
+  {
+    "zip": 29935,
+    "city": "Port Royal",
+    "county": "Beaufort",
+    "population": 4594
+  },
+  {
+    "zip": 29591,
+    "city": "Scranton",
+    "county": "Florence",
+    "population": 4565
+  },
+  {
+    "zip": 29429,
+    "city": "Awendaw",
+    "county": "Charleston",
+    "population": 4527
+  },
+  {
+    "zip": 29435,
+    "city": "Cottageville",
+    "county": "Colleton",
+    "population": 4462
+  },
+  {
+    "zip": 29069,
+    "city": "Lamar",
+    "county": "Darlington",
+    "population": 4460
+  },
+  {
+    "zip": 29581,
+    "city": "Nichols",
+    "county": "Horry",
+    "population": 4436
+  },
+  {
+    "zip": 29831,
+    "city": "Jackson",
+    "county": "Aiken",
+    "population": 4435
+  },
+  {
+    "zip": 29540,
+    "city": "Darlington",
+    "county": "Darlington",
+    "population": 4419
+  },
+  {
+    "zip": 29944,
+    "city": "Varnville",
+    "county": "Hampton",
+    "population": 4393
+  },
+  {
+    "zip": 29817,
+    "city": "Blackville",
+    "county": "Barnwell",
+    "population": 4392
+  },
+  {
+    "zip": 29451,
+    "city": "Isle Of Palms",
+    "county": "Charleston",
+    "population": 4378
+  },
+  {
+    "zip": 29129,
+    "city": "Ridge Spring",
+    "county": "Aiken",
+    "population": 4311
+  },
+  {
+    "zip": 29044,
+    "city": "Eastover",
+    "county": "Richland",
+    "population": 4208
+  },
+  {
+    "zip": 29945,
+    "city": "Yemassee",
+    "county": "Colleton",
+    "population": 4165
+  },
+  {
+    "zip": 29689,
+    "city": "Townville",
+    "county": "Anderson",
+    "population": 4057
+  },
+  {
+    "zip": 29570,
+    "city": "McColl",
+    "county": "Marlboro",
+    "population": 4056
+  },
+  {
+    "zip": 29682,
+    "city": "Six Mile",
+    "county": "Pickens",
+    "population": 4010
+  },
+  {
+    "zip": 29436,
+    "city": "Cross",
+    "county": "Berkeley",
+    "population": 3992
+  },
+  {
+    "zip": 29940,
+    "city": "Seabrook",
+    "county": "Beaufort",
+    "population": 3958
+  },
+  {
+    "zip": 29718,
+    "city": "Jefferson",
+    "county": "Chesterfield",
+    "population": 3926
+  },
+  {
+    "zip": 29055,
+    "city": "Great Falls",
+    "county": "Chester",
+    "population": 3899
+  },
+  {
+    "zip": 29128,
+    "city": "Rembert",
+    "county": "Sumter",
+    "population": 3891
+  },
+  {
+    "zip": 29653,
+    "city": "Hodges",
+    "county": "Greenwood",
+    "population": 3844
+  },
+  {
+    "zip": 29638,
+    "city": "Donalds",
+    "county": "Abbeville",
+    "population": 3815
+  },
+  {
+    "zip": 29827,
+    "city": "Fairfax",
+    "county": "Allendale",
+    "population": 3812
+  },
+  {
+    "zip": 29384,
+    "city": "Waterloo",
+    "county": "Laurens",
+    "population": 3810
+  },
+  {
+    "zip": 29372,
+    "city": "Pacolet",
+    "county": "Cherokee",
+    "population": 3797
+  },
+  {
+    "zip": 29590,
+    "city": "Salters",
+    "county": "Williamsburg",
+    "population": 3679
+  },
+  {
+    "zip": 29168,
+    "city": "Wedgefield",
+    "county": "Sumter",
+    "population": 3666
+  },
+  {
+    "zip": 29810,
+    "city": "Allendale",
+    "county": "Allendale",
+    "population": 3651
+  },
+  {
+    "zip": 29112,
+    "city": "North",
+    "county": "Orangeburg",
+    "population": 3627
+  },
+  {
+    "zip": 29714,
+    "city": "Fort Lawn",
+    "county": "Chester",
+    "population": 3527
+  },
+  {
+    "zip": 29704,
+    "city": "Catawba",
+    "county": "York",
+    "population": 3512
+  },
+  {
+    "zip": 29047,
+    "city": "Elloree",
+    "county": "Orangeburg",
+    "population": 3490
+  },
+  {
+    "zip": 29353,
+    "city": "Jonesville",
+    "county": "Union",
+    "population": 3483
+  },
+  {
+    "zip": 29162,
+    "city": "Turbeville",
+    "county": "Clarendon",
+    "population": 3420
+  },
+  {
+    "zip": 29178,
+    "city": "Whitmire",
+    "county": "Newberry",
+    "population": 3389
+  },
+  {
+    "zip": 29018,
+    "city": "Bowman",
+    "county": "Orangeburg",
+    "population": 3359
+  },
+  {
+    "zip": 29321,
+    "city": "Buffalo",
+    "county": "Union",
+    "population": 3248
+  },
+  {
+    "zip": 29332,
+    "city": "Cross Hill",
+    "county": "Laurens",
+    "population": 3093
+  },
+  {
+    "zip": 29856,
+    "city": "Windsor",
+    "county": "Aiken",
+    "population": 3064
+  },
+  {
+    "zip": 29039,
+    "city": "Cordova",
+    "county": "Orangeburg",
+    "population": 3058
+  },
+  {
+    "zip": 29450,
+    "city": "Huger",
+    "county": "Berkeley",
+    "population": 3010
+  },
+  {
+    "zip": 29075,
+    "city": "Little Mountain",
+    "county": "Newberry",
+    "population": 2999
+  },
+  {
+    "zip": 29374,
+    "city": "Pauline",
+    "county": "Spartanburg",
+    "population": 2976
+  },
+  {
+    "zip": 29125,
+    "city": "Pinewood",
+    "county": "Sumter",
+    "population": 2969
+  },
+  {
+    "zip": 29080,
+    "city": "Lynchburg",
+    "county": "Lee",
+    "population": 2921
+  },
+  {
+    "zip": 29643,
+    "city": "Fair Play",
+    "county": "Oconee",
+    "population": 2915
+  },
+  {
+    "zip": 29438,
+    "city": "Edisto Island",
+    "county": "Charleston",
+    "population": 2751
+  },
+  {
+    "zip": 29107,
+    "city": "Neeses",
+    "county": "Orangeburg",
+    "population": 2709
+  },
+  {
+    "zip": 29038,
+    "city": "Cope",
+    "county": "Orangeburg",
+    "population": 2691
+  },
+  {
+    "zip": 29546,
+    "city": "Gresham",
+    "county": "Marion",
+    "population": 2615
+  },
+  {
+    "zip": 29409,
+    "city": "Charleston",
+    "county": "Charleston",
+    "population": 2612
+  },
+  {
+    "zip": 29530,
+    "city": "Coward",
+    "county": "Florence",
+    "population": 2597
+  },
+  {
+    "zip": 29101,
+    "city": "McBee",
+    "county": "Chesterfield",
+    "population": 2592
+  },
+  {
+    "zip": 29448,
+    "city": "Harleyville",
+    "county": "Dorchester",
+    "population": 2506
+  },
+  {
+    "zip": 29052,
+    "city": "Gadsden",
+    "county": "Richland",
+    "population": 2479
+  },
+  {
+    "zip": 29628,
+    "city": "Calhoun Falls",
+    "county": "Abbeville",
+    "population": 2456
+  },
+  {
+    "zip": 29126,
+    "city": "Pomaria",
+    "county": "Newberry",
+    "population": 2415
+  },
+  {
+    "zip": 29432,
+    "city": "Branchville",
+    "county": "Orangeburg",
+    "population": 2389
+  },
+  {
+    "zip": 29742,
+    "city": "Sharon",
+    "county": "York",
+    "population": 2378
+  },
+  {
+    "zip": 29547,
+    "city": "Hamer",
+    "county": "Dillon",
+    "population": 2368
+  },
+  {
+    "zip": 29613,
+    "city": "Greenville",
+    "county": "Greenville",
+    "population": 2345
+  },
+  {
+    "zip": 29137,
+    "city": "Salley",
+    "county": "Aiken",
+    "population": 2335
+  },
+  {
+    "zip": 29809,
+    "city": "New Ellenton",
+    "county": "Aiken",
+    "population": 2326
+  },
+  {
+    "zip": 29475,
+    "city": "Ruffin",
+    "county": "Colleton",
+    "population": 2324
+  },
+  {
+    "zip": 29584,
+    "city": "Patrick",
+    "county": "Chesterfield",
+    "population": 2320
+  },
+  {
+    "zip": 29482,
+    "city": "Sullivans Island",
+    "county": "Charleston",
+    "population": 2317
+  },
+  {
+    "zip": 29468,
+    "city": "Pineville",
+    "county": "Berkeley",
+    "population": 2306
+  },
+  {
+    "zip": 29458,
+    "city": "McClellanville",
+    "county": "Charleston",
+    "population": 2303
+  },
+  {
+    "zip": 29487,
+    "city": "Wadmalaw Island",
+    "county": "Charleston",
+    "population": 2302
+  },
+  {
+    "zip": 29208,
+    "city": "Columbia",
+    "county": "Richland",
+    "population": 2281
+  },
+  {
+    "zip": 29009,
+    "city": "Bethune",
+    "county": "Kershaw",
+    "population": 2267
+  },
+  {
+    "zip": 29056,
+    "city": "Greeleyville",
+    "county": "Williamsburg",
+    "population": 2264
+  },
+  {
+    "zip": 29404,
+    "city": "Charleston Afb",
+    "county": "Charleston",
+    "population": 2257
+  },
+  {
+    "zip": 29001,
+    "city": "Alcolu",
+    "county": "Clarendon",
+    "population": 2246
+  },
+  {
+    "zip": 29113,
+    "city": "Norway",
+    "county": "Orangeburg",
+    "population": 2215
+  },
+  {
+    "zip": 29729,
+    "city": "Richburg",
+    "county": "Chester",
+    "population": 2204
+  },
+  {
+    "zip": 29152,
+    "city": "Shaw Afb",
+    "county": "Sumter",
+    "population": 2186
+  },
+  {
+    "zip": 29726,
+    "city": "McConnells",
+    "county": "York",
+    "population": 2099
+  },
+  {
+    "zip": 29030,
+    "city": "Cameron",
+    "county": "Calhoun",
+    "population": 2059
+  },
+  {
+    "zip": 29685,
+    "city": "Sunset",
+    "county": "Pickens",
+    "population": 2038
+  },
+  {
+    "zip": 29525,
+    "city": "Clio",
+    "county": "Marlboro",
+    "population": 2009
+  },
+  {
+    "zip": 29593,
+    "city": "Society Hill",
+    "county": "Darlington",
+    "population": 1990
+  },
+  {
+    "zip": 29563,
+    "city": "Lake View",
+    "county": "Dillon",
+    "population": 1985
+  },
+  {
+    "zip": 29614,
+    "city": "Greenville",
+    "county": "Greenville",
+    "population": 1965
+  },
+  {
+    "zip": 29437,
+    "city": "Dorchester",
+    "county": "Dorchester",
+    "population": 1916
+  },
+  {
+    "zip": 29743,
+    "city": "Smyrna",
+    "county": "York",
+    "population": 1913
+  },
+  {
+    "zip": 29664,
+    "city": "Mountain Rest",
+    "county": "Oconee",
+    "population": 1908
+  },
+  {
+    "zip": 29031,
+    "city": "Carlisle",
+    "county": "Chester",
+    "population": 1864
+  },
+  {
+    "zip": 29727,
+    "city": "Mount Croghan",
+    "county": "Chesterfield",
+    "population": 1846
+  },
+  {
+    "zip": 29741,
+    "city": "Ruby",
+    "county": "Chesterfield",
+    "population": 1824
+  },
+  {
+    "zip": 29596,
+    "city": "Wallace",
+    "county": "Marlboro",
+    "population": 1800
+  },
+  {
+    "zip": 29916,
+    "city": "Early Branch",
+    "county": "Hampton",
+    "population": 1799
+  },
+  {
+    "zip": 29712,
+    "city": "Edgemoor",
+    "county": "Chester",
+    "population": 1797
+  },
+  {
+    "zip": 29426,
+    "city": "Adams Run",
+    "county": "Charleston",
+    "population": 1771
+  },
+  {
+    "zip": 29733,
+    "city": "Rock Hill",
+    "county": "York",
+    "population": 1726
+  },
+  {
+    "zip": 29545,
+    "city": "Green Sea",
+    "county": "Horry",
+    "population": 1648
+  },
+  {
+    "zip": 29111,
+    "city": "New Zion",
+    "county": "Clarendon",
+    "population": 1636
+  },
+  {
+    "zip": 29639,
+    "city": "Due West",
+    "county": "Abbeville",
+    "population": 1610
+  },
+  {
+    "zip": 29717,
+    "city": "Hickory Grove",
+    "county": "York",
+    "population": 1564
+  },
+  {
+    "zip": 29481,
+    "city": "Smoaks",
+    "county": "Colleton",
+    "population": 1527
+  },
+  {
+    "zip": 29474,
+    "city": "Round O",
+    "county": "Colleton",
+    "population": 1487
+  },
+  {
+    "zip": 29911,
+    "city": "Brunson",
+    "county": "Hampton",
+    "population": 1475
+  },
+  {
+    "zip": 29104,
+    "city": "Mayesville",
+    "county": "Lee",
+    "population": 1464
+  },
+  {
+    "zip": 29114,
+    "city": "Olanta",
+    "county": "Florence",
+    "population": 1459
+  },
+  {
+    "zip": 29351,
+    "city": "Joanna",
+    "county": "Laurens",
+    "population": 1406
+  },
+  {
+    "zip": 29163,
+    "city": "Vance",
+    "county": "Orangeburg",
+    "population": 1385
+  },
+  {
+    "zip": 29015,
+    "city": "Blair",
+    "county": "Fairfield",
+    "population": 1340
+  },
+  {
+    "zip": 29819,
+    "city": "Bradley",
+    "county": "Greenwood",
+    "population": 1328
+  },
+  {
+    "zip": 29446,
+    "city": "Green Pond",
+    "county": "Colleton",
+    "population": 1317
+  },
+  {
+    "zip": 29635,
+    "city": "Cleveland",
+    "county": "Greenville",
+    "population": 1312
+  },
+  {
+    "zip": 29014,
+    "city": "Blackstock",
+    "county": "Fairfield",
+    "population": 1298
+  },
+  {
+    "zip": 29146,
+    "city": "Springfield",
+    "county": "Orangeburg",
+    "population": 1267
+  },
+  {
+    "zip": 29424,
+    "city": "Charleston",
+    "county": "Charleston",
+    "population": 1267
+  },
+  {
+    "zip": 29453,
+    "city": "Jamestown",
+    "county": "Berkeley",
+    "population": 1241
+  },
+  {
+    "zip": 29564,
+    "city": "Lane",
+    "county": "Williamsburg",
+    "population": 1238
+  },
+  {
+    "zip": 29105,
+    "city": "Monetta",
+    "county": "Aiken",
+    "population": 1198
+  },
+  {
+    "zip": 29081,
+    "city": "Ehrhardt",
+    "county": "Bamberg",
+    "population": 1195
+  },
+  {
+    "zip": 29843,
+    "city": "Olar",
+    "county": "Bamberg",
+    "population": 1174
+  },
+  {
+    "zip": 29904,
+    "city": "Beaufort",
+    "county": "Beaufort",
+    "population": 1164
+  },
+  {
+    "zip": 29845,
+    "city": "Plum Branch",
+    "county": "McCormick",
+    "population": 1155
+  },
+  {
+    "zip": 29580,
+    "city": "Nesmith",
+    "county": "Williamsburg",
+    "population": 1130
+  },
+  {
+    "zip": 29922,
+    "city": "Garnett",
+    "county": "Hampton",
+    "population": 1092
+  },
+  {
+    "zip": 29905,
+    "city": "Parris Island",
+    "county": "Beaufort",
+    "population": 1082
+  },
+  {
+    "zip": 29471,
+    "city": "Reevesville",
+    "county": "Dorchester",
+    "population": 1044
+  },
+  {
+    "zip": 29821,
+    "city": "Clarks Hill",
+    "county": "Edgefield",
+    "population": 1019
+  },
+  {
+    "zip": 29929,
+    "city": "Islandton",
+    "county": "Colleton",
+    "population": 982
+  },
+  {
+    "zip": 29355,
+    "city": "Kinards",
+    "county": "Newberry",
+    "population": 980
+  },
+  {
+    "zip": 29816,
+    "city": "Bath",
+    "county": "Aiken",
+    "population": 973
+  },
+  {
+    "zip": 29037,
+    "city": "Chappells",
+    "county": "Newberry",
+    "population": 961
+  },
+  {
+    "zip": 29145,
+    "city": "Silverstreet",
+    "county": "Newberry",
+    "population": 935
+  },
+  {
+    "zip": 29133,
+    "city": "Rowesville",
+    "county": "Orangeburg",
+    "population": 909
+  },
+  {
+    "zip": 29686,
+    "city": "Tamassee",
+    "county": "Oconee",
+    "population": 863
+  },
+  {
+    "zip": 29899,
+    "city": "McCormick",
+    "county": "McCormick",
+    "population": 860
+  },
+  {
+    "zip": 29439,
+    "city": "Folly Beach",
+    "county": "Charleston",
+    "population": 855
+  },
+  {
+    "zip": 29516,
+    "city": "Blenheim",
+    "county": "Marlboro",
+    "population": 846
+  },
+  {
+    "zip": 29848,
+    "city": "Troy",
+    "county": "McCormick",
+    "population": 839
+  },
+  {
+    "zip": 29834,
+    "city": "Langley",
+    "county": "Aiken",
+    "population": 827
+  },
+  {
+    "zip": 29518,
+    "city": "Cades",
+    "county": "Williamsburg",
+    "population": 805
+  },
+  {
+    "zip": 29166,
+    "city": "Ward",
+    "county": "Saluda",
+    "population": 743
+  },
+  {
+    "zip": 29838,
+    "city": "Modoc",
+    "county": "Edgefield",
+    "population": 714
+  },
+  {
+    "zip": 29828,
+    "city": "Gloverville",
+    "county": "Aiken",
+    "population": 672
+  },
+  {
+    "zip": 29592,
+    "city": "Sellers",
+    "county": "Marion",
+    "population": 661
+  },
+  {
+    "zip": 29469,
+    "city": "Pinopolis",
+    "county": "Berkeley",
+    "population": 600
+  },
+  {
+    "zip": 29434,
+    "city": "Cordesville",
+    "county": "Berkeley",
+    "population": 598
+  },
+  {
+    "zip": 29370,
+    "city": "Mountville",
+    "county": "Laurens",
+    "population": 590
+  },
+  {
+    "zip": 29915,
+    "city": "Daufuskie Island",
+    "county": "Beaufort",
+    "population": 569
+  },
+  {
+    "zip": 29065,
+    "city": "Jenkinsville",
+    "county": "Fairfield",
+    "population": 558
+  },
+  {
+    "zip": 29364,
+    "city": "Lockhart",
+    "county": "Union",
+    "population": 557
+  },
+  {
+    "zip": 29117,
+    "city": "Orangeburg",
+    "county": "Orangeburg",
+    "population": 555
+  },
+  {
+    "zip": 29567,
+    "city": "Little Rock",
+    "county": "Dillon",
+    "population": 547
+  },
+  {
+    "zip": 29377,
+    "city": "Startex",
+    "county": "Spartanburg",
+    "population": 525
+  },
+  {
+    "zip": 29943,
+    "city": "Tillman",
+    "county": "Jasper",
+    "population": 515
+  },
+  {
+    "zip": 29921,
+    "city": "Furman",
+    "county": "Hampton",
+    "population": 510
+  },
+  {
+    "zip": 29543,
+    "city": "Fork",
+    "county": "Dillon",
+    "population": 498
+  },
+  {
+    "zip": 29934,
+    "city": "Pineland",
+    "county": "Jasper",
+    "population": 457
+  },
+  {
+    "zip": 29082,
+    "city": "Lodge",
+    "county": "Colleton",
+    "population": 426
+  },
+  {
+    "zip": 29225,
+    "city": "Columbia",
+    "county": "Richland",
+    "population": 401
+  },
+  {
+    "zip": 29658,
+    "city": "Long Creek",
+    "county": "Oconee",
+    "population": 385
+  },
+  {
+    "zip": 29320,
+    "city": "Arcadia",
+    "county": "Spartanburg",
+    "population": 383
+  },
+  {
+    "zip": 29683,
+    "city": "Slater",
+    "county": "Greenville",
+    "population": 382
+  },
+  {
+    "zip": 29840,
+    "city": "Mount Carmel",
+    "county": "McCormick",
+    "population": 379
+  },
+  {
+    "zip": 29665,
+    "city": "Newry",
+    "county": "Oconee",
+    "population": 341
+  },
+  {
+    "zip": 29051,
+    "city": "Gable",
+    "county": "Clarendon",
+    "population": 340
+  },
+  {
+    "zip": 29849,
+    "city": "Ulmer",
+    "county": "Allendale",
+    "population": 334
+  },
+  {
+    "zip": 29175,
+    "city": "Westville",
+    "county": "Kershaw",
+    "population": 285
+  },
+  {
+    "zip": 29932,
+    "city": "Luray",
+    "county": "Allendale",
+    "population": 283
+  },
+  {
+    "zip": 29519,
+    "city": "Centenary",
+    "county": "Marion",
+    "population": 279
+  },
+  {
+    "zip": 29836,
+    "city": "Martin",
+    "county": "Allendale",
+    "population": 276
+  },
+  {
+    "zip": 29368,
+    "city": "Mayo",
+    "county": "Spartanburg",
+    "population": 274
+  },
+  {
+    "zip": 29346,
+    "city": "Glendale",
+    "county": "Spartanburg",
+    "population": 254
+  },
+  {
+    "zip": 29452,
+    "city": "Jacksonboro",
+    "county": "Colleton",
+    "population": 246
+  },
+  {
+    "zip": 29493,
+    "city": "Williams",
+    "county": "Colleton",
+    "population": 232
+  },
+  {
+    "zip": 29333,
+    "city": "Drayton",
+    "county": "Spartanburg",
+    "population": 224
+  },
+  {
+    "zip": 29826,
+    "city": "Elko",
+    "county": "Barnwell",
+    "population": 219
+  },
+  {
+    "zip": 29074,
+    "city": "Liberty Hill",
+    "county": "Kershaw",
+    "population": 215
+  },
+  {
+    "zip": 29923,
+    "city": "Gifford",
+    "county": "Hampton",
+    "population": 201
+  },
+  {
+    "zip": 29667,
+    "city": "Norris",
+    "county": "Pickens",
+    "population": 197
+  },
+  {
+    "zip": 29373,
+    "city": "Pacolet Mills",
+    "county": "Spartanburg",
+    "population": 190
+  },
+  {
+    "zip": 29177,
+    "city": "White Rock",
+    "county": "Richland",
+    "population": 176
+  },
+  {
+    "zip": 29941,
+    "city": "Sheldon",
+    "county": "Beaufort",
+    "population": 150
+  },
+  {
+    "zip": 29375,
+    "city": "Reidville",
+    "county": "Spartanburg",
+    "population": 148
+  },
+  {
+    "zip": 29659,
+    "city": "Lowndesville",
+    "county": "Abbeville",
+    "population": 146
+  },
+  {
+    "zip": 29594,
+    "city": "Tatum",
+    "county": "Marlboro",
+    "population": 117
+  },
+  {
+    "zip": 29844,
+    "city": "Parksville",
+    "county": "McCormick",
+    "population": 112
+  },
+  {
+    "zip": 29378,
+    "city": "Una",
+    "county": "Spartanburg",
+    "population": 109
+  },
+  {
+    "zip": 29329,
+    "city": "Converse",
+    "county": "Spartanburg",
+    "population": 106
+  },
+  {
+    "zip": 29939,
+    "city": "Scotia",
+    "county": "Hampton",
+    "population": 106
+  },
+  {
+    "zip": 29046,
+    "city": "Elliott",
+    "county": "Lee",
+    "population": 84
+  },
+  {
+    "zip": 29338,
+    "city": "Fingerville",
+    "county": "Spartanburg",
+    "population": 79
+  },
+  {
+    "zip": 29122,
+    "city": "Peak",
+    "county": "Newberry",
+    "population": 75
+  },
+  {
+    "zip": 29324,
+    "city": "Clifton",
+    "county": "Spartanburg",
+    "population": 74
+  },
+  {
+    "zip": 29589,
+    "city": "Rains",
+    "county": "Marion",
+    "population": 57
+  },
+  {
+    "zip": 29331,
+    "city": "Cross Anchor",
+    "county": "Spartanburg",
+    "population": 25
+  },
+  {
+    "zip": 29724,
+    "city": "Lando",
+    "county": "Chester",
+    "population": 18
+  },
+  {
+    "zip": 29079,
+    "city": "Lydia",
+    "county": "Darlington",
+    "population": 14
+  },
+  {
+    "zip": 29062,
+    "city": "Horatio",
+    "county": "Sumter",
+    "population": 10
+  },
+  {
+    "zip": 29425,
+    "city": "Charleston",
+    "county": "Charleston",
+    "population": 0
+  },
+  {
+    "zip": 29912,
+    "city": "Coosawhatchie",
+    "county": "Jasper",
+    "population": 0
+  }
+]

@@ -45,7 +45,6 @@ def decrypt(file_name, encrypt_key):
             ioText = StringIO(plaintext.decode('utf-8'))
             return Response(ioText, mimetype='text/csv')
 
-
         return json.loads(plaintext)
         
     except (ValueError, KeyError) as e:

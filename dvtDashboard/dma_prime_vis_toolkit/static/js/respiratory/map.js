@@ -56,6 +56,8 @@ async function redraw(fetchData=false) {
     if (fetchData == true) {
         regionData = await d3.json(`/data/respiratory/${mapRegionSelector.value}/${mapDiseaseSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`) 
     }
+
+    console.log(regionData)
     createChoropleth(regionData, mapTypeSwitch.value, mapDataSourceSelector.value, mapDataVariableSelector.value, mapIncludeImputations.checked)
     drawLegend()
     var layers = [

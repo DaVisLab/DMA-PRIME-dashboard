@@ -1,140 +1,490 @@
 <!DOCTYPE html>
 <html lang="en" class="sl-theme-dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
+    <title>{% block title %}DMA-PRIME{% endblock %}</title>
 
-  <title>{% block title %}DMA-PRIME{% endblock %}</title>
+    <!-- Shoelace (CDN) -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/dark.css"
+    />
 
-  <!-- Shoelace -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/dark.css" />
-  <script type="module"
-    src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/shoelace-autoloader.js"></script>
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/shoelace.js"
+    ></script>
 
-  <!-- D3 -->
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-geo@3"></script>
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/shoelace-autoloader.js"
+    ></script>
 
-  <!-- Style that should load before the rest of the page -->
-  {% block style %}
-  <style>
-    header {
-      background-color: #333; /* Dark background */
-      position: fixed; /* Sticks to the top */
-      top: 0;
-      left: 0;
-      width: 100%; /* Full width */
-      display: flex;
-      align-items: center; /* Align icons vertically /*
-      z-index: 1000; /* Keeps it above other content */
-      height: 60px; /* Define a fixed height */
-    }
+    <!-- materializecss -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
-    nav {
-      /* display: flex; */
-      width: 100%;
-      align-items: center;
-    }
+    <!-- D3 -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-geo@3"></script>
 
-    sl-icon-button{
-      font-size: 2rem;
-    }
+    <!-- Style that should load before the rest of the page -->
+    {% block style %}
+    <style>
+      /* ===== 0) Fluid typography ===== */
+      html {
+        font-size: clamp(14px, 1.1vw + 10px, 18px);
+        font-family: "Roboto";
+      }
 
-    body {
-        width: 100vw;
-        height: 100vh;
+      h1.p-title {
+        font-size: clamp(0.5rem, 2vw, 4.4rem);
+        line-height: 1.1;
+        margin: 0.2em 0 0.6em;
+      }
+
+      h1.p-title span {
+        font-size: clamp(0.5rem, 1.8vw, 4.4rem);
+        margin: 0px;
+      }
+
+      .content p,
+      .content li {
+        font-size: clamp(0.95rem, 0.35vw + 0.9rem, 1.15rem);
+        line-height: 1.6;
+      }
+
+      /* ===== 1) Stage: anchor for all absolute layers ===== */
+      body {
+        margin: 0;
+        background: #fff;
+        color: #111;
+      }
+
+      #title-container {
+        height: calc(8vh - 1rem);
         display: flex;
         justify-content: center;
         align-items: center;
+        margin-top: 1rem;
+        /* padding-left: 2rem; */
+      }
+      #title-container hr{
         margin: 0px;
-        padding: 0px;
-    }
+      }
+      .stage {
+        position: relative;
+        min-height: 92vh;
+        padding-bottom: 120px; /* leave space for footer height */
+        overflow: hidden;
+      }
 
-    #form-div {
-        height: fit-content;
+      /* ===== 2) Background image with drop shadow ===== */
+      .background {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        opacity: 0.9;
+        filter: brightness(0.95);
+        pointer-events: none;
+      }
+
+      .background::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        width: 90vw; /* max width of the background image */
+        aspect-ratio: 16/9; /* change to the real ratio (e.g., 3/2, 4/3) */
+        background: url("/static/assets/ProjectOverview/login-background.png")
+          center / contain no-repeat;
+        filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.25));
+        border-radius: 12px;
+      }
+
+      /* ===== 3) Left card (title + tabs): pinned at top-left ===== */
+      .left-card {
+        position: absolute;
+        z-index: 1;
+        top: 2.5vh;
+        left: clamp(2rem, 3vw, 60px);
+        width: 40vw;
+        height: 75vh;
+
+        background: rgba(255, 255, 255, 0.5);
+        border: 2px solid rgba(255, 165, 0, 0.8);
+        border-radius: 1rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        backdrop-filter: blur(2px);
+        /* padding: 1.25rem; */
+
+        /* Important: split into two rows (title + tabs) and clip inner content */
+        /* display: block; */
+        /* grid-template-rows: auto 1fr; */
+        /* overflow: hidden; */
+        /* background-clip: padding-box; */
+      }
+
+      sl-tab-panel,
+      sl-tab-panel::part(base) {
+        flex: 1 1 auto;
+        max-height: 100%;
+        overflow: auto;
+      }
+
+      sl-tab-group {
+        flex: 1 1 auto;
+        /* 80% seems to be the sweet spot? This was what was closest to 100% of the remaining space in the container. */
+        max-height: 100%;
+        height: 100%;
+        padding: 1rem;
+        scrollbar-width: thin; /* auto | thin | none */
+        scrollbar-color: rgba(0, 0, 0, 0.45) transparent; /* thumb track */
+      }
+
+      sl-tab-group::part(base) {
+        flex: 1 1 auto;
+        max-height: 100%;
+      }
+
+      /* scrolling container inside the panel */
+      .panel-scroll {
+        height: 100%;
+        box-sizing: border-box !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        overflow: auto !important;
+        background-color: transparent !important;
+        padding-right: 0.5rem; /* room for scrollbar */
+        /* overscroll-behavior: contain; optional: prevent parent bounce */
+      }
+
+      /* Tab labels (optional sizing) */
+      sl-tab::part(base) {
+        color: inherit;
+        font-size: clamp(0.9rem, 1vw, 1.1rem);
+      }
+      sl-tab[active]::part(base) {
+        color: orangered;
+        font-weight: 600;
+      }
+
+      /* ===== 4) Login card: pinned at right middle ===== */
+      .login-card {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        right: clamp(24px, 6vw, 80px);
+        transform: translateY(-50%);
+        width: 30vw;
+        background: rgba(255, 255, 255, 0.8);
+        border: 0.2rem solid orange;
+        border-radius: 14px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        /* padding: 1rem; */
+      }
+
+      /* Login card internal layout */
+      #login-component-container {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        /* gap: 1rem; */
+        margin: 0;
+      }
+
+      .logo-col {
         width: 30%;
-        font-family: var(--sl-font-sans); 
-    }
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-evenly;
+        text-align: center;
+        margin-left: 1.5rem; /* slight left nudge for the logo */
+      }
 
-    #login-title {
-      margin-bottom: var(--sl-spacing-2x-large)
-    }
+      .logo-col img {
+        max-width: 90%;
+        /* max-height: 50px; */
+        width: auto;
+        height: auto;
+        object-fit: contain;
+      }
 
-    #email_username {
-      margin-bottom: var(--sl-spacing-small)
-    }
+      .form-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 70%;
+      }
 
-    #password {
-      margin-bottom: var(--sl-spacing-2x-small)
-    }
+      #login-form {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        width: 90%;
+      }
 
-    #login-error {
-      height: 1em;
-      margin-top: 0;
-      margin-bottom: var(--sl-spacing-x-large)
-    }
+      .login-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.5rem;
+        align-items: center;
+        gap: 0.75rem;
+      }
 
-    #notification-container {
-      position: fixed;
-      top: 32px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 2000;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      pointer-events: none;
-    }
-    #notification-container sl-alert {
-      pointer-events: auto;
-      min-width: 300px;
-      max-width: 90vw;
-      margin-bottom: 8px;
-    }
+      #login-title {
+        font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+        margin: 0;
+      }
 
-  </style>
-  {% endblock %}
+      /* ===== 5) Footer logos (responsive) ===== */
+      .footer-logos {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 8vh;
+        /* min-height: var(--footer-h); */
+        z-index: 10;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        /* padding: 1rem; */
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.08);
+        backdrop-filter: blur(2px);
+      }
 
-  <!-- code that should run before the rest of the page -->
-  {% block headScripts %}
-  {% endblock %}
+      .footer-logos a {
+        width: auto;
+        height: 100%;
+        display: flex;
+        align-items: center;
+      }
+      .footer-logos img {
+        width: auto;
+        height: 70%;
+        /* min-width: 80px; */
+        /* filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25)); */
+      }
 
-</head>
+      #notification-container {
+        position: fixed;
+        top: 32px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 2000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: none;
+      }
 
-<body>
-  <div id="notification-container">
-    {% for message in get_flashed_messages() %}
+      #notification-container sl-alert {
+        pointer-events: auto;
+        min-width: 300px;
+        max-width: 90vw;
+        margin-bottom: 8px;
+      }
+    </style>
+    {% endblock %} {% block headScripts %} {% endblock %}
+  </head>
+  <body>
+    <div id="notification-container">
+      {% for message in get_flashed_messages() %}
       <sl-alert duration="2000" closable open>
         <sl-icon slot="icon" name="info-circle"></sl-icon>
         {{ message }}
       </sl-alert>
-    {% endfor %}
-  </div>
-  <header>
-    <nav>
-      
-    </nav>
-  </header>
+      {% endfor %}
+    </div>
+    <div id="title-container" style="z-index: 99">
+      <h1 class="p-title">
+        <b>From Forecasts to Decisions:</b>
+        <span>
+          Visualization for Trust and Transparency in Public Health in the Era
+          of AI
+        </span>
+        <hr />
+      </h1>
+    </div>
+    <div class="stage">
+      <!-- Background layer -->
+      <div class="background"></div>
 
-  <div id="form-div">
-    <h1 id="login-title">Log In</h1>
-    <form method="post" id="login-form">
-      <sl-input type="text" label="Email/Username" id="email_username" name="email_username" required></sl-input>
-      <sl-input label="Password" type="password" name="password" id="password-input" password-toggle required></sl-input>
-      <p><a href="/auth/reset_password">Reset Password</a></p>
-      <p id="login-error"> 
-        <!-- if there is an error passed through flask, display it -->
-        {% for message in get_flashed_messages() %}
-        <text>{{ message }}</text>
-        {% endfor %}
-      </p>
-      <sl-button type="submit" variant="primary">Submit</sl-button>
-    </form>
-  </div>
+      <!-- Left card: title + scrollable tabs -->
 
-  <footer>
-  </footer>
-</body>
+      <div class="left-card">
+        <sl-tab-group
+          style="--indicator-color: orangered; --track-color: lightgray"
+        >
+          <sl-tab slot="nav" panel="objective">Research Objective</sl-tab>
+          <sl-tab slot="nav" panel="feature" disabled>System Features</sl-tab>
+          <sl-tab slot="nav" panel="information" disabled>Information</sl-tab>
 
+          <!-- Panel 1: Scrollable -->
+          <sl-tab-panel name="objective">
+            <!-- <div class="panel-scroll"> -->
+            <ul>
+              <li>
+                <b
+                  >● Sparse data weakens confidence and makes outputs harder to
+                  validate.</b
+                >
+                Infectious disease forecasts rely on surveillance data streams
+                such as case reports, hospitalizations, and wastewater signals.
+                Sparse or noisy reporting weakens confidence in model outputs
+                and complicates validation.
+              </li>
+              <br />
+              <li>
+                <b>● Data quality and signal detection.</b>
+                Decision-makers frequently confront uncertainty about whether
+                observed anomalies represent real outbreaks or artifacts from
+                inconsistent reporting, missing data, or delayed submissions.
+                Without clear indications of which inputs are influencing the
+                forecast, users risk overreacting to spurious patterns or
+                underreacting to genuine threats.
+              </li>
+              <br />
+              <li>
+                <b
+                  >● Understanding model mechanics and decision
+                  justification.</b
+                >
+                Beyond distinguishing signal from noise, public health officials
+                need insight into how forecasts are generated. Black-box models
+                obscure the relationships between inputs (e.g., test positivity,
+                mobility, hospitalizations) and predicted trends, making it
+                difficult to justify actions, communicate risk, or optimize
+                interventions.
+              </li>
+              <br />
+              <li>
+                <b>● Uncertainty communication.</b>
+                Forecasts inevitably carry uncertainty, but if confidence
+                intervals are overly wide, they become operationally unusable.
+                For example, during COVID-19, state health departments received
+                hospitalization surge forecasts with wide uncertainty ranges,
+                sometimes spanning hundreds of admissions. Even though the
+                models were scientifically valid, administrators could not
+                translate those ranges into concrete staffing or supply
+                decisions.
+              </li>
+              <br />
+            </ul>
+            <!-- </div> -->
+          </sl-tab-panel>
+
+          <!-- Panel 2 -->
+          <sl-tab-panel name="feature">
+            <div class="panel-scroll">
+              <p>System features content…</p>
+            </div>
+          </sl-tab-panel>
+
+          <!-- Panel 3 -->
+          <sl-tab-panel name="information">
+            <div class="panel-scroll">
+              <p>Information content…</p>
+            </div>
+          </sl-tab-panel>
+        </sl-tab-group>
+      </div>
+
+      <!-- Right-middle login card -->
+      <aside class="login-card">
+        <div id="login-component-container" class="row">
+          <div class="logo-col">
+            <h6 id="login-title">Login</h6>
+            <img
+              src="/static/assets/Icons/Clemson_Tigers_logo.svg.png"
+              alt="Logo"
+            />
+          </div>
+          <div class="form-col">
+            <form method="post" id="login-form">
+              <p id="login-error">
+                <!-- Flask flash example (replace as needed) -->
+                {% for message in get_flashed_messages() %}
+                <span style="color: red">{{ message }}</span>
+                {% endfor %}
+              </p>
+
+              <sl-input
+                type="text"
+                placeholder="Email/Username"
+                id="email_username"
+                name="email_username"
+                required
+                pill
+              >
+                <sl-icon name="person-circle" slot="prefix"></sl-icon>
+              </sl-input>
+              <br />
+              <sl-input
+                placeholder="Password"
+                type="password"
+                name="password"
+                id="password-input"
+                password-toggle
+                required
+                pill
+              >
+                <sl-icon name="lock" slot="prefix"></sl-icon>
+              </sl-input>
+
+              <div class="login-actions">
+                <p><a href="/auth/reset_password">Reset Password</a></p>
+                <sl-button type="submit" variant="primary">Submit</sl-button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Footer logos -->
+      <footer class="footer-logos">
+        <!-- Replace with your own image paths -->
+        <a href="https://dph.sc.gov/" target="_blank">
+          <img src="/static/assets/logos/SCDPH-logo2.jpg" alt="SCDPH" />
+        </a>
+        <a href="https://www.scruralhealth.org/" target="_blank">
+          <img src="/static/assets/logos/sccrph-logo.png" alt="CRPH" />
+        </a>
+        <a href="https://prismahealth.org/" target="_blank">
+          <img
+            src="/static/assets/logos/Prisma-Health-System-logo.png"
+            alt="PRISMA"
+          />
+        </a>
+        <a href="https://muschealth.org/" target="_blank">
+          <img src="/static/assets/logos/musc-health-logo.png" alt="MUSC" />
+        </a>
+        <a
+          href="https://www.clemson.edu/cbshs/clemson-rural-health/"
+          target="_blank"
+        >
+          <img
+            src="/static/assets/logos/clemson-rural-health-logo.png"
+            alt="Clemson Rural Health"
+          />
+        </a>
+        <a href="https://www.clemson.edu/public/lph/" target="_blank">
+          <img
+            src="/static/assets/logos/livestock-poultry-health-logo.png"
+            alt="Livestock Poultry Health"
+          />
+        </a>
+      </footer>
+    </div>
+  </body>
 </html>

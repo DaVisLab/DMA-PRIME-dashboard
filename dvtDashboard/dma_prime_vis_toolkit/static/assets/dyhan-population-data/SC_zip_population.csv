@@ -1,0 +1,425 @@
+zip,city,county,population
+29072,Lexington,Lexington,67669
+29681,Simpsonville,Greenville,66168
+29445,Goose Creek,Berkeley,60419
+29485,Summerville,Dorchester,58946
+29732,Rock Hill,York,57182
+29483,Summerville,Dorchester,56758
+29730,Rock Hill,York,56727
+29651,Greer,Greenville,53804
+29588,Myrtle Beach,Horry,52899
+29720,Lancaster,Lancaster,52308
+29223,Columbia,Richland,51354
+29464,Mount Pleasant,Charleston,51259
+29073,Lexington,Lexington,49849
+29526,Conway,Horry,49383
+29579,Myrtle Beach,Horry,49113
+29229,Columbia,Richland,49097
+29910,Bluffton,Beaufort,47927
+29501,Florence,Florence,47406
+29621,Anderson,Anderson,44260
+29414,Charleston,Charleston,44196
+29486,Summerville,Berkeley,43513
+29607,Greenville,Greenville,43466
+29687,Taylors,Greenville,43398
+29466,Mount Pleasant,Charleston,43233
+29461,Moncks Corner,Berkeley,42217
+29708,Fort Mill,York,42028
+29715,Fort Mill,York,41581
+29203,Columbia,Richland,41205
+29210,Columbia,Richland,40923
+29412,Charleston,Charleston,40307
+29605,Greenville,Greenville,39355
+29615,Greenville,Greenville,39164
+29803,Aiken,Aiken,38849
+29063,Irmo,Richland,38754
+29150,Sumter,Sumter,38738
+29650,Greer,Greenville,38725
+29710,Clover,York,38528
+29209,Columbia,Richland,36979
+29407,Charleston,Charleston,35908
+29456,Ladson,Charleston,35871
+29301,Spartanburg,Spartanburg,35380
+29349,Inman,Spartanburg,35204
+29577,Myrtle Beach,Horry,34384
+29745,York,York,34352
+29680,Simpsonville,Greenville,33768
+29642,Easley,Anderson,33366
+29611,Greenville,Greenville,32925
+29576,Murrells Inlet,Horry,32817
+29406,Charleston,Charleston,32570
+29841,North Augusta,Aiken,32505
+29640,Easley,Pickens,32397
+29707,Fort Mill,Lancaster,31826
+29673,Piedmont,Greenville,30723
+29316,Boiling Springs,Spartanburg,30283
+29801,Aiken,Aiken,30148
+29550,Hartsville,Darlington,29776
+29045,Elgin,Kershaw,29754
+29609,Greenville,Greenville,29739
+29016,Blythewood,Richland,29154
+29154,Sumter,Sumter,28655
+29527,Conway,Horry,28167
+29646,Greenwood,Greenwood,28014
+29625,Anderson,Anderson,27720
+29405,North Charleston,Charleston,27449
+29303,Spartanburg,Spartanburg,27413
+29212,Columbia,Lexington,27310
+29115,Orangeburg,Orangeburg,27024
+29649,Greenwood,Greenwood,26696
+29617,Greenville,Greenville,26649
+29690,Travelers Rest,Greenville,26362
+29440,Georgetown,Georgetown,26302
+29906,Beaufort,Beaufort,25772
+29036,Chapin,Lexington,25544
+29455,Johns Island,Charleston,25449
+29926,Hilton Head Island,Beaufort,25384
+29505,Florence,Florence,24562
+29418,North Charleston,Charleston,24386
+29909,Okatie,Beaufort,23490
+29678,Seneca,Oconee,23359
+29201,Columbia,Richland,22938
+29205,Columbia,Richland,22861
+29420,North Charleston,Dorchester,22808
+29403,Charleston,Charleston,22363
+29488,Walterboro,Colleton,22354
+29169,West Columbia,Lexington,22039
+29020,Camden,Kershaw,22021
+29360,Laurens,Laurens,21819
+29644,Fountain Inn,Greenville,21762
+29170,West Columbia,Lexington,21279
+29340,Gaffney,Cherokee,20745
+29053,Gaston,Lexington,20620
+29410,Hanahan,Berkeley,20603
+29506,Florence,Florence,20545
+29341,Gaffney,Cherokee,20027
+29532,Darlington,Darlington,20000
+29108,Newberry,Newberry,19857
+29566,Little River,Horry,19722
+29582,North Myrtle Beach,Horry,19701
+29575,Myrtle Beach,Horry,19511
+29706,Chester,Chester,19470
+29671,Pickens,Pickens,19318
+29492,Charleston,Berkeley,19266
+29307,Spartanburg,Spartanburg,18759
+29206,Columbia,Richland,18746
+29204,Columbia,Richland,18034
+29306,Spartanburg,Spartanburg,17932
+29302,Spartanburg,Spartanburg,17897
+29512,Bennettsville,Marlboro,17736
+29379,Union,Union,17380
+29860,North Augusta,Edgefield,17149
+29902,Beaufort,Beaufort,16999
+29334,Duncan,Spartanburg,16964
+29627,Belton,Anderson,16623
+29569,Loris,Horry,16460
+29070,Leesville,Lexington,16357
+29657,Liberty,Pickens,16344
+29568,Longs,Horry,16331
+29631,Clemson,Pickens,16313
+29585,Pawleys Island,Georgetown,16268
+29388,Woodruff,Spartanburg,16059
+29118,Orangeburg,Orangeburg,16051
+29102,Manning,Clarendon,15831
+29078,Lugoff,Kershaw,15771
+29536,Dillon,Dillon,15690
+29630,Central,Pickens,15638
+29153,Sumter,Sumter,15275
+29323,Chesnee,Spartanburg,15024
+29369,Moore,Spartanburg,14980
+29365,Lyman,Spartanburg,14903
+29624,Anderson,Anderson,14746
+29928,Hilton Head Island,Beaufort,14680
+29662,Mauldin,Greenville,14583
+29907,Beaufort,Beaufort,14580
+29697,Williamston,Anderson,14253
+29571,Marion,Marion,14147
+29626,Anderson,Anderson,14062
+29325,Clinton,Laurens,13808
+29669,Pelzer,Greenville,13789
+29693,Westminster,Oconee,13420
+29936,Ridgeland,Jasper,13123
+29601,Greenville,Greenville,12993
+29033,Cayce,Lexington,12890
+29520,Cheraw,Chesterfield,12575
+29061,Hopkins,Richland,12569
+29691,Walhalla,Oconee,12337
+29620,Abbeville,Abbeville,12268
+29672,Seneca,Oconee,12217
+29560,Lake City,Florence,12073
+29180,Winnsboro,Fairfield,12014
+29010,Bishopville,Lee,11955
+29556,Kingstree,Williamsburg,11467
+29572,Myrtle Beach,Horry,11441
+29829,Graniteville,Aiken,11396
+29161,Timmonsville,Florence,10935
+29812,Barnwell,Barnwell,10773
+29067,Kershaw,Lancaster,10771
+29472,Ridgeville,Dorchester,10693
+29645,Gray Court,Laurens,10644
+29510,Andrews,Williamsburg,10558
+29920,Saint Helena Island,Beaufort,10482
+29322,Campobello,Spartanburg,10432
+29670,Pendleton,Anderson,10422
+29927,Hardeeville,Jasper,10297
+29207,Columbia,Richland,9963
+29138,Saluda,Saluda,9851
+29574,Mullins,Marion,9842
+29541,Effingham,Florence,9836
+29728,Pageland,Chesterfield,9790
+29702,Blacksburg,Cherokee,9535
+29654,Honea Path,Anderson,9505
+29040,Dalzell,Sumter,9402
+29054,Gilbert,Lexington,9383
+29172,West Columbia,Lexington,9359
+29006,Batesburg,Saluda,9255
+29127,Prosperity,Newberry,9042
+29554,Hemingway,Georgetown,8930
+29401,Charleston,Charleston,8895
+29376,Roebuck,Spartanburg,8858
+29356,Landrum,Greenville,8841
+29851,Warrenville,Aiken,8773
+29330,Cowpens,Cherokee,8181
+29385,Wellford,Spartanburg,8039
+29655,Iva,Abbeville,8033
+29135,Saint Matthews,Calhoun,7974
+29842,Beech Island,Aiken,7896
+29824,Edgefield,Edgefield,7637
+29449,Hollywood,Charleston,7598
+29123,Pelion,Lexington,7511
+29477,Saint George,Dorchester,7195
+29431,Bonneau,Berkeley,7060
+29544,Galivants Ferry,Horry,6987
+29160,Swansea,Lexington,6966
+29565,Latta,Dillon,6790
+29479,Saint Stephen,Berkeley,6630
+29666,Ninety Six,Greenwood,6351
+29130,Ridgeway,Fairfield,6276
+29661,Marietta,Greenville,6243
+29853,Williston,Barnwell,6205
+29835,McCormick,McCormick,6149
+29511,Aynor,Horry,6075
+29555,Johnsonville,Florence,6043
+29148,Summerton,Clarendon,6005
+29676,Salem,Oconee,5960
+29634,Clemson,Pickens,5958
+29709,Chesterfield,Chesterfield,5803
+29335,Enoree,Spartanburg,5687
+29058,Heath Springs,Lancaster,5621
+29684,Starr,Anderson,5621
+29003,Bamberg,Bamberg,5564
+29832,Johnston,Edgefield,5514
+29470,Ravenel,Charleston,5349
+29059,Holly Hill,Orangeburg,5258
+29032,Cassatt,Kershaw,5172
+29805,Aiken,Aiken,5113
+29696,West Union,Oconee,5102
+29583,Pamplico,Florence,5074
+29847,Trenton,Edgefield,5060
+29142,Santee,Orangeburg,4907
+29164,Wagener,Aiken,4833
+29048,Eutawville,Orangeburg,4820
+29692,Ware Shoals,Laurens,4792
+29918,Estill,Hampton,4776
+29042,Denmark,Bamberg,4762
+29924,Hampton,Hampton,4609
+29935,Port Royal,Beaufort,4594
+29591,Scranton,Florence,4565
+29429,Awendaw,Charleston,4527
+29435,Cottageville,Colleton,4462
+29069,Lamar,Darlington,4460
+29581,Nichols,Horry,4436
+29831,Jackson,Aiken,4435
+29540,Darlington,Darlington,4419
+29944,Varnville,Hampton,4393
+29817,Blackville,Barnwell,4392
+29451,Isle Of Palms,Charleston,4378
+29129,Ridge Spring,Aiken,4311
+29044,Eastover,Richland,4208
+29945,Yemassee,Colleton,4165
+29689,Townville,Anderson,4057
+29570,McColl,Marlboro,4056
+29682,Six Mile,Pickens,4010
+29436,Cross,Berkeley,3992
+29940,Seabrook,Beaufort,3958
+29718,Jefferson,Chesterfield,3926
+29055,Great Falls,Chester,3899
+29128,Rembert,Sumter,3891
+29653,Hodges,Greenwood,3844
+29638,Donalds,Abbeville,3815
+29827,Fairfax,Allendale,3812
+29384,Waterloo,Laurens,3810
+29372,Pacolet,Cherokee,3797
+29590,Salters,Williamsburg,3679
+29168,Wedgefield,Sumter,3666
+29810,Allendale,Allendale,3651
+29112,North,Orangeburg,3627
+29714,Fort Lawn,Chester,3527
+29704,Catawba,York,3512
+29047,Elloree,Orangeburg,3490
+29353,Jonesville,Union,3483
+29162,Turbeville,Clarendon,3420
+29178,Whitmire,Newberry,3389
+29018,Bowman,Orangeburg,3359
+29321,Buffalo,Union,3248
+29332,Cross Hill,Laurens,3093
+29856,Windsor,Aiken,3064
+29039,Cordova,Orangeburg,3058
+29450,Huger,Berkeley,3010
+29075,Little Mountain,Newberry,2999
+29374,Pauline,Spartanburg,2976
+29125,Pinewood,Sumter,2969
+29080,Lynchburg,Lee,2921
+29643,Fair Play,Oconee,2915
+29438,Edisto Island,Charleston,2751
+29107,Neeses,Orangeburg,2709
+29038,Cope,Orangeburg,2691
+29546,Gresham,Marion,2615
+29409,Charleston,Charleston,2612
+29530,Coward,Florence,2597
+29101,McBee,Chesterfield,2592
+29448,Harleyville,Dorchester,2506
+29052,Gadsden,Richland,2479
+29628,Calhoun Falls,Abbeville,2456
+29126,Pomaria,Newberry,2415
+29432,Branchville,Orangeburg,2389
+29742,Sharon,York,2378
+29547,Hamer,Dillon,2368
+29613,Greenville,Greenville,2345
+29137,Salley,Aiken,2335
+29809,New Ellenton,Aiken,2326
+29475,Ruffin,Colleton,2324
+29584,Patrick,Chesterfield,2320
+29482,Sullivans Island,Charleston,2317
+29468,Pineville,Berkeley,2306
+29458,McClellanville,Charleston,2303
+29487,Wadmalaw Island,Charleston,2302
+29208,Columbia,Richland,2281
+29009,Bethune,Kershaw,2267
+29056,Greeleyville,Williamsburg,2264
+29404,Charleston Afb,Charleston,2257
+29001,Alcolu,Clarendon,2246
+29113,Norway,Orangeburg,2215
+29729,Richburg,Chester,2204
+29152,Shaw Afb,Sumter,2186
+29726,McConnells,York,2099
+29030,Cameron,Calhoun,2059
+29685,Sunset,Pickens,2038
+29525,Clio,Marlboro,2009
+29593,Society Hill,Darlington,1990
+29563,Lake View,Dillon,1985
+29614,Greenville,Greenville,1965
+29437,Dorchester,Dorchester,1916
+29743,Smyrna,York,1913
+29664,Mountain Rest,Oconee,1908
+29031,Carlisle,Chester,1864
+29727,Mount Croghan,Chesterfield,1846
+29741,Ruby,Chesterfield,1824
+29596,Wallace,Marlboro,1800
+29916,Early Branch,Hampton,1799
+29712,Edgemoor,Chester,1797
+29426,Adams Run,Charleston,1771
+29733,Rock Hill,York,1726
+29545,Green Sea,Horry,1648
+29111,New Zion,Clarendon,1636
+29639,Due West,Abbeville,1610
+29717,Hickory Grove,York,1564
+29481,Smoaks,Colleton,1527
+29474,Round O,Colleton,1487
+29911,Brunson,Hampton,1475
+29104,Mayesville,Lee,1464
+29114,Olanta,Florence,1459
+29351,Joanna,Laurens,1406
+29163,Vance,Orangeburg,1385
+29015,Blair,Fairfield,1340
+29819,Bradley,Greenwood,1328
+29446,Green Pond,Colleton,1317
+29635,Cleveland,Greenville,1312
+29014,Blackstock,Fairfield,1298
+29146,Springfield,Orangeburg,1267
+29424,Charleston,Charleston,1267
+29453,Jamestown,Berkeley,1241
+29564,Lane,Williamsburg,1238
+29105,Monetta,Aiken,1198
+29081,Ehrhardt,Bamberg,1195
+29843,Olar,Bamberg,1174
+29904,Beaufort,Beaufort,1164
+29845,Plum Branch,McCormick,1155
+29580,Nesmith,Williamsburg,1130
+29922,Garnett,Hampton,1092
+29905,Parris Island,Beaufort,1082
+29471,Reevesville,Dorchester,1044
+29821,Clarks Hill,Edgefield,1019
+29929,Islandton,Colleton,982
+29355,Kinards,Newberry,980
+29816,Bath,Aiken,973
+29037,Chappells,Newberry,961
+29145,Silverstreet,Newberry,935
+29133,Rowesville,Orangeburg,909
+29686,Tamassee,Oconee,863
+29899,McCormick,McCormick,860
+29439,Folly Beach,Charleston,855
+29516,Blenheim,Marlboro,846
+29848,Troy,McCormick,839
+29834,Langley,Aiken,827
+29518,Cades,Williamsburg,805
+29166,Ward,Saluda,743
+29838,Modoc,Edgefield,714
+29828,Gloverville,Aiken,672
+29592,Sellers,Marion,661
+29469,Pinopolis,Berkeley,600
+29434,Cordesville,Berkeley,598
+29370,Mountville,Laurens,590
+29915,Daufuskie Island,Beaufort,569
+29065,Jenkinsville,Fairfield,558
+29364,Lockhart,Union,557
+29117,Orangeburg,Orangeburg,555
+29567,Little Rock,Dillon,547
+29377,Startex,Spartanburg,525
+29943,Tillman,Jasper,515
+29921,Furman,Hampton,510
+29543,Fork,Dillon,498
+29934,Pineland,Jasper,457
+29082,Lodge,Colleton,426
+29225,Columbia,Richland,401
+29658,Long Creek,Oconee,385
+29320,Arcadia,Spartanburg,383
+29683,Slater,Greenville,382
+29840,Mount Carmel,McCormick,379
+29665,Newry,Oconee,341
+29051,Gable,Clarendon,340
+29849,Ulmer,Allendale,334
+29175,Westville,Kershaw,285
+29932,Luray,Allendale,283
+29519,Centenary,Marion,279
+29836,Martin,Allendale,276
+29368,Mayo,Spartanburg,274
+29346,Glendale,Spartanburg,254
+29452,Jacksonboro,Colleton,246
+29493,Williams,Colleton,232
+29333,Drayton,Spartanburg,224
+29826,Elko,Barnwell,219
+29074,Liberty Hill,Kershaw,215
+29923,Gifford,Hampton,201
+29667,Norris,Pickens,197
+29373,Pacolet Mills,Spartanburg,190
+29177,White Rock,Richland,176
+29941,Sheldon,Beaufort,150
+29375,Reidville,Spartanburg,148
+29659,Lowndesville,Abbeville,146
+29594,Tatum,Marlboro,117
+29844,Parksville,McCormick,112
+29378,Una,Spartanburg,109
+29329,Converse,Spartanburg,106
+29939,Scotia,Hampton,106
+29046,Elliott,Lee,84
+29338,Fingerville,Spartanburg,79
+29122,Peak,Newberry,75
+29324,Clifton,Spartanburg,74
+29589,Rains,Marion,57
+29331,Cross Anchor,Spartanburg,25
+29724,Lando,Chester,18
+29079,Lydia,Darlington,14
+29062,Horatio,Sumter,10
+29425,Charleston,Charleston,0
+29912,Coosawhatchie,Jasper,0

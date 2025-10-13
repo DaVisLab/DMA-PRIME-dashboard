@@ -23,6 +23,7 @@ def create_app(development=False, dataDir=None):
         exit("No data directory")
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
+
     app.config.from_mapping(
         # SECRET_KEY='***REMOVED***',
         DEVELOPMENT=development,
@@ -126,22 +127,27 @@ def create_app(development=False, dataDir=None):
 
         data_version = get_data_version_from_request(request, current_user)
 
-        
         file = os.path.join(current_app.config['DATADIR'], 'processed', data_version, 'respiratory', 'metadata.json')
         decrypt_key = os.path.join(current_app.config['DATADIR'], 'processed', data_version, 'respiratory', 'encrypt_key.bin')
 
         metadata = dict(decrypt(file, decrypt_key))
         metadata['data_version'] = data_version
-
+        
         panels = [
             {
                 'name': 'main',
                 'displayName': 'DMA-PRIME',
             },
             {
+                'name': 'map 2',
+                'displayName': 'Map View - Han Test',
+                'active': True,
+                'html': 'respiratory/respiratory-map-panel_dy.html'
+            },
+            {
                 'name': 'map',
                 'displayName': 'Map View',
-                'active': True,
+                # 'active': True,
                 'html': 'respiratory/respiratory-map-panel.html'
             },
             {
