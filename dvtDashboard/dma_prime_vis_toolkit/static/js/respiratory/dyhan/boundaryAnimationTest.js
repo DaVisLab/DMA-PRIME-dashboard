@@ -59,6 +59,7 @@ function renderBoundaries(g, features, path, style = {}) {
     fill = "none",
     strokeWidth = 1,
     opacity = 1,
+    scale = 1,
   } = style;
   const sel = g
     .selectAll("path")
@@ -74,7 +75,8 @@ function renderBoundaries(g, features, path, style = {}) {
     .attr("fill", fill)
     .attr("stroke", stroke)
     .attr("stroke-width", strokeWidth)
-    .attr("opacity", opacity);
+    .attr("opacity", opacity)
+    .attr("transform", `scale(${scale})`);
 
   sel.exit().remove();
 
@@ -91,6 +93,16 @@ function geoCentroidAvg(path, features) {
     sy += y;
   });
   return [sx / features.length, sy / features.length];
+}
+
+function centroidOf(d, path) {
+  return path.centroid(d); // [cx, cy]
+}
+
+function scaleFromCenter(d, path, scale) {
+  console.log(d);
+  const [cx, cy] = centroidOf(d, path);
+  return `translate(${cx},${cy}) scale(${scale}) translate(${-cx},${-cy})`;
 }
 
 // =============== 새 효과 1) line-draw (경계 그려지듯 등장) ===============
@@ -147,60 +159,6 @@ function behavior_clipReveal(layerSel, meta) {
     });
 }
 
-// =============== 새 효과 4) centroid-flow (중심점 흐름) ===============
-function behavior_centroidFlow(
-  flowLayer,
-  { path, stageDelay, ease, dur, direction, fromFeatures, toFeatures }
-) {
-  // drill: 상위 → 하위 힌트(상위 중심에서 여러 점이 퍼짐)
-  // roll : 하위 → 상위 수렴(여러 점이 상위 중심으로 모임)
-  const [tx, ty] = geoCentroidAvg(
-    path,
-    toFeatures && toFeatures.length ? toFeatures : fromFeatures
-  );
-  const pts = (direction === "roll" ? fromFeatures : toFeatures).map((f) => ({
-    f,
-    c: path.centroid(f),
-  }));
-
-  const sel = flowLayer
-    .selectAll("circle.__flow")
-    .data(pts, (d) => d.f.properties?.id ?? JSON.stringify(d.f.geometry));
-  
-    sel
-    .enter()
-    .append("circle")
-    .attr("class", "__flow")
-    .attr("r", 2.5)
-    .attr("fill", "#333")
-    .attr("opacity", 0.0)
-    .attr(
-      "transform",
-      (d) =>
-        `translate(${direction === "roll" ? d.c[0] : tx},${
-          direction === "roll" ? d.c[1] : ty
-        })`
-    )
-    .transition()
-    .delay(stageDelay)
-    .duration(dur)
-    .ease(ease)
-    .attr("opacity", 0.6)
-    .attr(
-      "transform",
-      (d) =>
-        `translate(${direction === "roll" ? tx : d.c[0]},${
-          direction === "roll" ? ty : d.c[1]
-        })`
-    )
-    .transition()
-    .duration(250)
-    .attr("opacity", 0)
-    .remove();
-
-  sel.exit().remove();
-}
-
 // 간단한 path morph (실패 시 fade 폴백)
 function morphOrFade(selection, path, ease, dur) {
   selection.each(function (d) {
@@ -243,10 +201,10 @@ function applyBehavior(selection, behaviors, meta) {
   const stageDelay =
     meta.mode === "staging"
       ? isDrill
-        ? meta.role === "upper"
+        ? meta.role === "lower"
           ? 0
           : meta.dur
-        : meta.role === "lower"
+        : meta.role === "upper"
         ? 0
         : meta.dur
       : 0;
@@ -262,115 +220,6 @@ function applyBehavior(selection, behaviors, meta) {
       : 0;
   }
 
-  //   if (behavior === "hold") {
-  //     selection
-  //       .interrupt()
-  //       .transition()
-  //       .duration(dur)
-  //       .ease(ease)
-  //       .attr("opacity", 1);
-  //     return;
-  //   }
-
-  //   if (behavior === "fade") {
-  //     const targetOpacity = isDrill
-  //       ? role === "upper"
-  //         ? 0
-  //         : 1 // drill: upper(0), lower(1)
-  //       : role === "upper"
-  //       ? 1
-  //       : 0; // roll : upper(1), lower(0)
-
-  //     selection
-  //       .interrupt()
-  //       .transition()
-  //       .delay(stageDelay)
-  //       .duration(dur)
-  //       .ease(ease)
-  //       .attr("opacity", targetOpacity);
-  //     return;
-  //   }
-
-  //   if (behavior === "split") {
-  //     // drill 전용: 하위 레이어 등장(upper엔 의미 없음)
-  //     if (!isDrill || role !== "lower") return;
-
-  //     selection.each(function (d) {
-  //       const node = d3.select(this);
-  //       const el = this; // SVGPathElement
-  //       // 경로 길이(라인 드로잉 효과)
-  //       let L = 0;
-  //       try {
-  //         L = el.getTotalLength();
-  //       } catch (_) {
-  //         L = 0;
-  //       }
-
-  //       // 초기 상태: 안 보이다가 선이 그려지며 등장
-  //       node
-  //         .interrupt()
-  //         .attr("opacity", 0)
-  //         .attr("stroke-width", 1.5)
-  //         .attr("stroke-dasharray", L ? `${L} ${L}` : null)
-  //         .attr("stroke-dashoffset", L ? L : null)
-  //         .transition()
-  //         .delay(stageDelay)
-  //         .duration(dur)
-  //         .ease(ease)
-  //         .attr("opacity", 1)
-  //         .attr("stroke-dashoffset", 0)
-  //         .transition()
-  //         .duration(200)
-  //         .attr("stroke-width", 1); // 원래 두께로 복귀
-  //     });
-  //     return;
-  //     // selection
-  //     //   .attr("opacity", 0)
-  //     //   .interrupt()
-  //     //   .transition()
-  //     //   .duration(dur)
-  //     //   .ease(ease)
-  //     //   .attr("opacity", 1);
-  //     // return;
-  //   }
-  //   if (behavior === "morph") {
-  //     // morphOrFade(selection, path, ease, dur);
-  //     // 형태 보간 (실패 시 fade 폴백)
-  //     selection.each(function (d) {
-  //       const node = d3.select(this);
-  //       const oldD = node.attr("d");
-  //       const newD = path(d);
-  //       let interp;
-  //       try {
-  //         interp = d3.interpolateString(oldD, newD);
-  //       } catch (_) {
-  //         interp = null;
-  //       }
-  //       if (interp) {
-  //         node
-  //           .interrupt()
-  //           .transition()
-  //           .delay(stageDelay)
-  //           .duration(dur)
-  //           .ease(ease)
-  //           .attrTween("d", () => interp);
-  //       } else {
-  //         node
-  //           .interrupt()
-  //           .transition()
-  //           .delay(stageDelay)
-  //           .duration(dur / 2)
-  //           .ease(ease)
-  //           .attr("opacity", 0)
-  //           .on("end", () => node.attr("d", newD))
-  //           .transition()
-  //           .duration(dur / 2)
-  //           .ease(ease)
-  //           .attr("opacity", 1);
-  //       }
-  //     });
-  //     return;
-  //   }
   let dur = meta.dur;
   console.log(dur);
   // 순차 실행
@@ -386,47 +235,59 @@ function applyBehavior(selection, behaviors, meta) {
           .attr("opacity", 1);
         break;
       case "fade":
+        if (stageDelay != 0) {
+          selection
+            .interrupt()
+            .attr("transform", "scale(1)")
+            .transition()
+            .duration(stageDelay)
+            .ease(ease)
+            .attr("stroke-width", 2);
+        }
+
         selection
-          .interrupt()
+          // .interrupt()
+          .attr("transform", "scale(1)")
           .transition()
           .delay(stageDelay)
           .duration(dur)
           .ease(ease)
           .attr("opacity", toOpacity(meta.role, meta.direction));
+        // .attr("transform", (d) => scaleFromCenter(d, meta.path, 1));
+        // .attr("transform", `scale(${toOpacity(meta.role, meta.direction)})`);
         break;
       case "split":
         // drill 전용: lower가 안에서 생성되는 상징 → line-draw가 없으면 기본 split은 간단 fade-in
         if (!(isDrill && meta.role === "lower")) break;
 
-        
-      selection.each(function (d) {
-        const node = d3.select(this);
-        const el = this; // SVGPathElement
-        // 경로 길이(라인 드로잉 효과)
-        let L = 0;
-        try {
-          L = el.getTotalLength();
-        } catch (_) {
-          L = 0;
-        }
+        selection.each(function (d) {
+          const node = d3.select(this);
+          const el = this; // SVGPathElement
+          // 경로 길이(라인 드로잉 효과)
+          let L = 0;
+          try {
+            L = el.getTotalLength();
+          } catch (_) {
+            L = 0;
+          }
 
-        // 초기 상태: 안 보이다가 선이 그려지며 등장
-        node
-          .interrupt()
-          .attr("opacity", 0)
-          .attr("stroke-width", 1.5)
-          .attr("stroke-dasharray", L ? `${L} ${L}` : null)
-          .attr("stroke-dashoffset", L ? L : null)
-          .transition()
-          .delay(stageDelay)
-          .duration(dur)
-          .ease(ease)
-          .attr("opacity", 1)
-          .attr("stroke-dashoffset", 0)
-          .transition()
-          .duration(200)
-          .attr("stroke-width", 1); // 원래 두께로 복귀
-      });
+          // 초기 상태: 안 보이다가 선이 그려지며 등장
+          node
+            .interrupt()
+            .attr("opacity", 0)
+            .attr("stroke-width", 1.5)
+            .attr("stroke-dasharray", L ? `${L} ${L}` : null)
+            .attr("stroke-dashoffset", L ? L : null)
+            .transition()
+            .delay(stageDelay)
+            .duration(dur)
+            .ease(ease)
+            .attr("opacity", 1)
+            .attr("stroke-dashoffset", 0)
+            .transition()
+            .duration(200)
+            .attr("stroke-width", 1); // 원래 두께로 복귀
+        });
         // selection
         //   .interrupt()
         //   .attr("opacity", 0)
@@ -437,7 +298,7 @@ function applyBehavior(selection, behaviors, meta) {
         //   .attr("opacity", 1);
         break;
       case "lineDraw":
-        behavior_lineDraw(selection, { stageDelay, ease,dur});
+        behavior_lineDraw(selection, { stageDelay, ease, dur });
         break;
       case "clipReveal":
         // 레이어 단위로 clip 적용 (selection이 path들인 점을 고려해 부모 g를 전달)
@@ -451,20 +312,28 @@ function applyBehavior(selection, behaviors, meta) {
         );
         break;
       case "centroidFlow":
-        behavior_centroidFlow(meta.flow, {
-          path: meta.path,
-          stageDelay,
-          ease, dur,
-          direction: meta.direction,
-          fromFeatures:
-            meta.role === "upper"
-              ? meta.upperFC.features
-              : meta.lowerFC.features,
-          toFeatures:
-            meta.role === "upper"
-              ? meta.lowerFC.features
-              : meta.upperFC.features,
-        });
+        selection
+          .interrupt()
+          .attr("opacity", 1)
+          .attr("transform", (d) => scaleFromCenter(d, meta.path, 0.001))
+          .transition()
+          .delay(stageDelay)
+          .duration(dur)
+          .ease(ease)
+          .attr("transform", (d) => scaleFromCenter(d, meta.path, 1));
+
+        break;
+      case "centroidFlow-lowerCenter":
+        selection
+          .interrupt()
+          .attr("opacity", 1)
+          .attr("transform", (d) => scaleFromCenter(d, meta.path, 0.3))
+          .transition()
+          .delay(stageDelay)
+          .duration(dur)
+          .ease(ease)
+          .attr("transform", (d) => scaleFromCenter(d, meta.path, 1));
+
         break;
       case "morph":
         // 간단 morph (외곽 1↔1 권장; 복잡하면 fade fallback)
@@ -540,6 +409,7 @@ function transitionBoundaries(
     fill: "none",
     strokeWidth: 1,
     opacity: showUpper ? 0 : 1,
+    scale: showUpper ? 0 : 1,
     ...(style.upper || {}),
   });
 
@@ -548,6 +418,7 @@ function transitionBoundaries(
     fill: "none",
     strokeWidth: 1,
     opacity: showLower ? 0 : 1,
+    scale: showLower ? 0 : 1,
     ...(style.lower || {}),
   });
 
@@ -580,62 +451,6 @@ function transitionBoundaries(
     lowerFC,
     dur,
   });
-  //   const {
-  //     direction = "drill",
-  //     mode = "tween",
-  //     upperBehavior = "fade",
-  //     lowerBehavior = "fade",
-  //     dur = DUR.normal,
-  //     style = {},
-  //   } = opts;
-  //   const svgEl = svgLike?.node ? svgLike.node() : svgLike;
-  //   const { upper, lower } = ensureLayers(svgEl);
-
-  //   const width =
-  //     svgEl.getBoundingClientRect().width || +svgEl.getAttribute("width") || 800;
-  //   const height =
-  //     svgEl.getBoundingClientRect().height ||
-  //     +svgEl.getAttribute("height") ||
-  //     500;
-
-  //   const showUpper = direction === "roll"; // 롤업: upper가 나타남
-  //   const showLower = direction === "drill"; // 드릴다운: lower가 나타남
-  //   const targetFC = showLower ? lowerFC : upperFC;
-  //   const path = makePath(width, height, targetFC);
-
-  //   // === 초기 opacity: "전환 시작 상태" 기준으로 올바르게 세팅 ===
-  //   renderBoundaries(upper, upperFC.features, path, {
-  //     stroke: "#333",
-  //     fill: "none",
-  //     strokeWidth: 1,
-  //     opacity: showUpper ? 0 : 1,
-  //     ...(style.upper || {}),
-  //   });
-
-  //   renderBoundaries(lower, lowerFC.features, path, {
-  //     stroke: "#666",
-  //     fill: "none",
-  //     strokeWidth: 1,
-  //     opacity: showLower ? 0 : 1,
-  //     ...(style.lower || {}),
-  //   });
-
-  //   // === 상하 레이어 각각 behavior 적용 (role 전달) ===
-  //   applyBehavior(upper.selectAll("path"), upperBehavior, {
-  //     mode,
-  //     direction,
-  //     role: "upper",
-  //     path,
-  //     dur,
-  //   });
-
-  //   applyBehavior(lower.selectAll("path"), lowerBehavior, {
-  //     mode,
-  //     direction,
-  //     role: "lower",
-  //     path,
-  //     dur,
-  //   });
 }
 
 // ========================= 16가지 프리셋 =========================
@@ -643,10 +458,10 @@ function transitionBoundaries(
 function case1(svg, upperFC, lowerFC, dur) {
   transitionBoundaries(svg, upperFC, lowerFC, {
     direction: "drill",
-    mode: "tween",
-    lowerBehavior: ["split"], // (1)+(3)+마무리 동기화
+    mode: "staging",
+    lowerBehavior: ["centroidFlow-lowerCenter"], // (1)+(3)+마무리 동기화
     // lowerBehavior: ["clipReveal", "lineDraw", "fade"],
-    upperBehavior: "hold",
+    upperBehavior: "fade",
     dur: dur,
   });
   //   transitionBoundaries(svg, upperFC, lowerFC, {
