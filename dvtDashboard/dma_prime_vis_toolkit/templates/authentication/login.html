@@ -116,16 +116,20 @@
       .left-card {
         position: absolute;
         z-index: 1;
-        top: 2.5vh;
+        /* top: 2.5vh; */
+        top: 50%;
         left: clamp(2rem, 3vw, 60px);
         width: 40vw;
-        height: 75vh;
+        /* height: 75vh; */
+        max-height: 75vh;
+        height:fit-content;
 
         background: rgba(255, 255, 255, 0.8);
         border: 2px solid rgba(255, 165, 0, 0.8);
         border-radius: 1rem;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
         backdrop-filter: blur(2px);
+        transform: translate(0%, -60%);
         /* padding: 1.25rem; */
 
         /* Important: split into two rows (title + tabs) and clip inner content */
