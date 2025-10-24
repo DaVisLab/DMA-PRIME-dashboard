@@ -202,7 +202,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
 // The beginning bits
     var geographicUnit
     if (grid) {
-        geographicUnit = gridRegionSelector.value
+        geographicUnit = gridGeographicUnitSelector.value
     } else {
         geographicUnit = mapGeographicUnitSelector.value
     }
@@ -348,7 +348,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
             tooltipLarge.show().then(async () => {
                 var allExtendedData
                 if (grid) {
-                    allExtendedData = await d3.json(`/data/respiratory/${gridRegionSelector.value}/${gridDiseaseSelector.value}/extended?data_version=${metadata.data_version}&${parseInt(Math.random() * 9999999999)}`)
+                    allExtendedData = await d3.json(`/data/respiratory/${gridGeographicUnitSelector.value}/${gridDiseaseSelector.value}/extended?data_version=${metadata.data_version}&${parseInt(Math.random() * 9999999999)}`)
                 } else {
                     allExtendedData = await d3.json(`/data/respiratory/${mapGeographicUnitSelector.value}/${mapDiseaseSelector.value}/extended?data_version=${metadata.data_version}&${parseInt(Math.random() * 9999999999)}`)
                 }
@@ -572,7 +572,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
                         .x((_, i) => xScale(historicalDatesArray[i]))
                         .y0(panelType == "percentDifference" ? yScale2(0) : yScale(0))
                         .y1(d => panelType == "percentDifference" ? yScale2(d) : yScale(d))
-                        .defined(d => !isNaN(d))
+                        .defined(d => d || d == 0)
                         (panelType == "percentDifference" ? percentDifferenceHistoricalValues : data.historical.values)
             )
             .attr("fill", populationColorMap[population]["historical"])
@@ -638,7 +638,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
                         .x((_, i2) => xScale(d3.timeDay.offset(data.projected.start_date, 7*(i1+i2-1))))
                         .y0(panelType == "percentDifference" ? yScale2(0) : yScale(0))
                         .y1(d => panelType == "percentDifference" ? yScale2(d) : yScale(d))
-                        .defined(d => !isNaN(d))
+                        .defined(d => d || d == 0)
                         (panelType == "percentDifference" ? percentDifferenceProjectedValues.slice(i1, i1+2) : projectedValues.slice(i1, i1+2))
             )
             .attr("fill", populationColorMap[population]["projected"])
@@ -676,7 +676,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
     if (panelType == "percentDifference") {
         graphSVG.append("path")
             .attr("d", d3.line()
-                .defined(d => !isNaN(d))
+                .defined(d => d || d == 0)
                 .x((_, i) => xScale(historicalDatesArray[i]))
                 .y((d, i) => yScale(d))
                 .curve(d3.curveMonotoneX)(data.historical.values)
@@ -688,7 +688,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
 
         graphSVG.append("path")
             .attr("d", d3.line()
-                .defined(d => !isNaN(d))
+                .defined(d => d || d == 0)
                 .x((_, i) => xScale(d3.timeDay.offset(predictionDates[i], -7)))
                 .y((d, i) => yScale(d))
                 .curve(d3.curveMonotoneX)(data.projected.values)

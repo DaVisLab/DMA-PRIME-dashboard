@@ -315,7 +315,7 @@ async function updateGrid(fetchData = true) {
             .attr("d", d3.line()
                 .x((_, i) => xScale(shortHistoryDates[i]))
                 .y((d) => yScale(d))
-                .defined(d => d !== null)
+                .defined(d => d || d == 0)
                 .curve(d3.curveMonotoneX)(data.historical.values)
             )
 
@@ -324,7 +324,7 @@ async function updateGrid(fetchData = true) {
                 .attr("stroke", "#444444")
             gridSVG.append("path")
                 .attr("d", d3.line()
-                    .defined(d => !isNaN(d))
+                    .defined(d => d || d == 0)
                     .x((_, i) => xScale(shortHistoryDates[i]))
                     .y((d, i) => yScale2(d))
                     .curve(d3.curveMonotoneX)(percentDifferenceValues)

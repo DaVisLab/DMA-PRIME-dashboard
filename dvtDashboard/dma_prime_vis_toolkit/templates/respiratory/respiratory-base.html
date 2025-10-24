@@ -93,7 +93,7 @@
       })
     } else if (event.detail.name == "grid") {
       d3.select(modelExplorationButtonTooltipLarge).on("click", () => {
-        window.open(`/respiratory-model-exploration?disease=${gridDiseaseSelector.value}&geographic-unit=${gridRegionSelector.value}&population=${gridPopulationSelector.value}&outcome-variable=${gridOutcomeVariableSelector.value}&location=${dataObject.properties.id}`)
+        window.open(`/respiratory-model-exploration?disease=${gridDiseaseSelector.value}&geographic-unit=${gridGeographicUnitSelector.value}&population=${gridPopulationSelector.value}&outcome-variable=${gridOutcomeVariableSelector.value}&location=${dataObject.properties.id}`)
       })
     }
   })

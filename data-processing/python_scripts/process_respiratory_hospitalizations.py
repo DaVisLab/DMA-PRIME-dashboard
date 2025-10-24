@@ -98,11 +98,11 @@ metadata = {
 
     'populations': {
         'general_population': 'General Population',
-        'health_system': 'Health System (PRISMA/MUSC)'
+        'health_system': 'Health System (Prisma/MUSC)'
     },
     'populations_tooltips': {
         'general_population': 'All South Carolina residents in the selected geography',
-        'health_system': 'South Carolina residents in the selected geography served by the PRISMA or MUSC health system'
+        'health_system': 'South Carolina residents in the selected geography served by the Prisma or MUSC health system'
     },
 
     'outcome_variables': {outcome_variables_code_friendly[k]:v for k, v in outcome_variables.items()},
