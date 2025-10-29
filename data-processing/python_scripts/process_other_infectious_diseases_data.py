@@ -84,12 +84,12 @@ for region_size, file_region_size in region_file_identifiers.items():
 
                 df = pd.read_csv(file).rename({file_region_size: region_size, 
                                             'Week': 'date', 
-                                            'Weekly_Encounters': 'encounters', 
+                                            'Weekly_Diagnoses': 'diagnoses', 
                                             'Weekly_Inpatient_Hospitalizations': 'inpatient_hospitalizations',
                                             'Weekly_ED_Visits': 'emergency_department_visits',
                                             'Weekly_Positive_Tests': 'positive_tests',
                                             'Weekly_Tests': 'tests',
-                                            'Weekly_Unique_Records': 'unique_records'}, axis=1)
+                                            'Weekly_Encounters': 'encounters'}, axis=1)
                 
                 df['date'] = pd.to_datetime(df['date'])
                 start_date = df['date'].min().strftime('%Y-%m-%d')

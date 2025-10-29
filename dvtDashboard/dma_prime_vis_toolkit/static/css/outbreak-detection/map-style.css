@@ -225,7 +225,7 @@
     margin-top: 16px !important;
   }
   
-  /* Stack Zip Code + Change vertically */
+  /* Stack zcta + Change vertically */
   #map-tooltip-large-div.map-tooltip-large-content .tooltip-header {
     display: flex !important;
     flex-direction: column !important;

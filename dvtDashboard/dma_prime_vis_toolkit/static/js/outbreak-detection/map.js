@@ -533,7 +533,7 @@ function drawTooltip(dataObject) {
       .html(""); // wipe it clean
   
     //
-    // ─── HEADER: "Zip Code: XXX"  (on left)  +  "Change: ±N%"  (on right) ───
+    // ─── HEADER: "ZCTA: XXX"  (on left)  +  "Change: ±N%"  (on right) ───
     //
     const headerContainer = ttpDiv
       .append("div")
@@ -543,7 +543,7 @@ function drawTooltip(dataObject) {
       .style("align-items", "baseline")   // keep left & right on same baseline
       .style("margin-bottom", "8px");
   
-    // 7a) LEFT SIDE of header: Zip Code (or whatever region)
+    // 7a) LEFT SIDE of header: ZCTA (or whatever region)
     const leftHeaderCol = headerContainer
       .append("div")
       .attr("class", "tooltip-left-col")
@@ -1292,8 +1292,12 @@ function updateMapTitle() {
     var titleEnd = "in Prisma and MUSC Health Systems "
     if (mapRegionSelector.value != "state") {
         titleEnd += "by "
-        titleEnd += d3.select(mapRegionSelector).select(`*[value=${mapRegionSelector.value}]`).html() 
-    } 
+        if (mapRegionSelector.value == "zcta") {
+          titleEnd += "ZCTA" 
+        } else {
+          titleEnd += d3.select(mapRegionSelector).select(`*[value=${mapRegionSelector.value}]`).html() 
+        }
+    }
 
     switch (mapRateSwitch.value) {
         case "count": 
