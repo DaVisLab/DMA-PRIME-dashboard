@@ -3,7 +3,7 @@ svg {
   z-index: 1200;
 }
 
-.y-axis, .x-axis {
+.y-axis, .x-axis, .data-point-ttp {
   pointer-events: none;
 }
 
@@ -197,6 +197,10 @@ svg {
 
   sl-dialog#map-tooltip-large::part(body) {
     padding-top: 0;
+  }
+
+  sl-dialog#map-tooltip-large p {
+    text-align: center;
   }
 
   #map-tooltip-large-svg {
