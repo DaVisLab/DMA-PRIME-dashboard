@@ -58,7 +58,7 @@ function createBarGraph(svg, data, metadata, options = {}) {
     const xAxis = svg.append("g").attr("class", "x-axis");
     var dataPointTTP = svg.append("g").attr("class", "data-point-ttp")
 
-    function createDataPointTooltip(event, groupStartDate) {
+    function createDataPointTooltip(event, groupStartDate) {  
         dataPointTTP.html("")
 
         let thisDataPointShape = event.target
@@ -68,18 +68,21 @@ function createBarGraph(svg, data, metadata, options = {}) {
         let dateStr = d3.timeFormat("%b %d, %Y")(date)
 
         let value = d3.select(thisDataPointShape).datum() 
-        let valueStr = panelType == "rate" ? `${value.toFixed(2)} per 1000` : value.toFixed(2).toString()
-
-        let valueTypeStr
+        let valueStr, valueTypeStr
         switch (panelType) {
             case "count": 
                 valueTypeStr = "Count"
+                valueStr = `${value}`
                 break;
             case "rate":
                 valueTypeStr = "Rate"
+                valueStr = `${value.toFixed(2)} per 1000`
                 break;
-            case "percentDifference":
-                valueTypeStr = "Percent Change"
+            case "percent":
+                // valueTypeStr = "Percent Change"
+                // valueStr = `${value.toFixed(2)}`
+                valueTypeStr = "Count"
+                valueStr = `${value}`
                 break;
             default:
                 valueTypeStr = "Count"
