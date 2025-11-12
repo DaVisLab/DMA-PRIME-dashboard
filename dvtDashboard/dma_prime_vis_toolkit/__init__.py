@@ -144,12 +144,12 @@ def create_app(development=False, dataDir=None):
                 'active': True,
                 'html': 'respiratory/respiratory-map-panel_dy.html'
             },
-            {
-                'name': 'map',
-                'displayName': 'Map View',
-                # 'active': True,
-                'html': 'respiratory/respiratory-map-panel.html'
-            },
+            # {
+            #     'name': 'map',
+            #     'displayName': 'Map View',
+            #     # 'active': True,
+            #     'html': 'respiratory/respiratory-map-panel.html'
+            # },
             {
                 'name': 'grid',
                 'displayName': 'Grid View',
