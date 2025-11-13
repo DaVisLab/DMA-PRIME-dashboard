@@ -138,27 +138,28 @@ options %}
 <div class="fill-width fill-height container">
   <div class="row" style="height: 100%">
     <div class="col-md-10">
-      <div class="row" style="width: 100%; height: 10%">
+      <div class="row" style="width: 100%; height: 18%">
         <div id="map-title-container" class="fill-width">
           <p id="map-title">
             Count of COVID-19 Hospitalizations in South Carolina by Region
           </p>
         </div>
 
-        <div id="state-hospitalizations-div">
-          <sl-resize-observer id="state-hospitalizations-resizer">
-            <svg
-              id="state-hospitalizations-svg"
-              class="state-hospitalizations"
-            ></svg>
-          </sl-resize-observer>
+        <div id="state-hospitalizations-div" style="height: 100%; width: 100%">
+          <!-- <sl-resize-observer id="state-hospitalizations-resizer"> -->
+          <svg
+            id="state-hospitalizations-svg"
+            class="state-hospitalizations"
+            style="height: 100%; width: 100%"
+          ></svg>
+          <!-- </sl-resize-observer> -->
         </div>
       </div>
-      <div class="row" style="width: 100%; height: 45%">
+      <div class="row" style="width: 100%; height: 41%">
         <div class="col-md-6">map 1</div>
         <div class="col-md-6">map 2</div>
       </div>
-      <div class="row" style="width: 100%; height: 45%">map 3</div>
+      <div class="row" style="width: 100%; height: 41%">map 3</div>
     </div>
     <div class="col-md-2">small multiples</div>
   </div>
@@ -183,80 +184,80 @@ options %}
 <!-- 2) Deck.gl UMD bundle (pin to 8.9.27) -->
 <script src="https://unpkg.com/deck.gl@8.9.27/dist.min.js"></script>
 <script>
-  mapDiseaseSelector = document.getElementById("map-disease-selector");
-  mapRegionSelector = document.getElementById("map-region-selector");
-  mapDataSourceSelector = document.getElementById("map-data-source-selector");
-  mapDataVariableSelector = document.getElementById(
-    "map-data-variable-selector"
-  );
-  mapOptionsGeographicLabelsToggle = document.getElementById(
-    "map-options-geographic-labels-toggle"
-  );
-  hospitalIconsToggle = document.getElementById(
-    "map-options-hospital-icons-toggle"
-  );
-  mobileClinicIconsToggle = document.getElementById(
-    "map-options-mobile-clinic-icons-toggle"
-  );
-  communityPartnerIconsToggle = document.getElementById(
-    "map-options-community-partner-icons-toggle"
-  );
-  mapIncludeImputations = document.getElementById("map-include-imputations");
+  // mapDiseaseSelector = document.getElementById("map-disease-selector");
+  // mapRegionSelector = document.getElementById("map-region-selector");
+  // mapDataSourceSelector = document.getElementById("map-data-source-selector");
+  // mapDataVariableSelector = document.getElementById(
+  //   "map-data-variable-selector"
+  // );
+  // mapOptionsGeographicLabelsToggle = document.getElementById(
+  //   "map-options-geographic-labels-toggle"
+  // );
+  // hospitalIconsToggle = document.getElementById(
+  //   "map-options-hospital-icons-toggle"
+  // );
+  // mobileClinicIconsToggle = document.getElementById(
+  //   "map-options-mobile-clinic-icons-toggle"
+  // );
+  // communityPartnerIconsToggle = document.getElementById(
+  //   "map-options-community-partner-icons-toggle"
+  // );
+  // mapIncludeImputations = document.getElementById("map-include-imputations");
 </script>
 
 <!-- 3) Your initialization + controls (unchanged) -->
 <script>
   dataVersion = 0;
 
-  // Map controls
-  mapResetButton = document.getElementById("map-reset-button");
+  // // Map controls
+  // mapResetButton = document.getElementById("map-reset-button");
   mapTypeSwitch = document.getElementById("map-type-switch");
   mapDiseaseSelector = document.getElementById("map-disease-selector");
-  mapRegionSelector = document.getElementById("map-region-selector");
-  mapDataSourceSelector = document.getElementById("map-data-source-selector");
-  mapIncludeImputations = document.getElementById("map-include-imputations");
+  // mapRegionSelector = document.getElementById("map-region-selector");
+  // mapDataSourceSelector = document.getElementById("map-data-source-selector");
+  // mapIncludeImputations = document.getElementById("map-include-imputations");
 
-  // Optional toggles
-  mapOptionsGeographicLabelsToggle = document.getElementById(
-    "map-options-geographic-labels-toggle"
-  );
-  hospitalIconsToggle = document.getElementById(
-    "map-options-hospital-icons-toggle"
-  );
-  mobileClinicIconsToggle = document.getElementById(
-    "map-options-mobile-clinic-icons-toggle"
-  );
-  communityPartnerIconsToggle = document.getElementById(
-    "map-options-community-partner-icons-toggle"
-  );
+  // // Optional toggles
+  // mapOptionsGeographicLabelsToggle = document.getElementById(
+  //   "map-options-geographic-labels-toggle"
+  // );
+  // hospitalIconsToggle = document.getElementById(
+  //   "map-options-hospital-icons-toggle"
+  // );
+  // mobileClinicIconsToggle = document.getElementById(
+  //   "map-options-mobile-clinic-icons-toggle"
+  // );
+  // communityPartnerIconsToggle = document.getElementById(
+  //   "map-options-community-partner-icons-toggle"
+  // );
 
-  // State–level chart elements
-  mapStateHospitalizationsSubtitle = document.getElementById(
-    "map-state-hospitalizations-subtitle"
-  );
-  mapStateHospitalizationsResizer = document.getElementById(
-    "map-state-hospitalizations-resizer"
-  );
-  mapStateHospitalizationsSvg = document.getElementById(
-    "map-state-hospitalizations-svg"
-  );
-  mapStateHospitalizationsLarge = document.getElementById(
-    "map-state-hospitalizations-large"
-  );
-  mapStateHospitalizationsLargeSubtitle = document.getElementById(
-    "map-state-hospitalizations-large-subtitle"
-  );
-  mapStateHospitalizationsLargeResizer = document.getElementById(
-    "map-state-hospitalizations-large-resizer"
-  );
-  mapStateHospitalizationsLargeSvg = document.getElementById(
-    "map-state-hospitalizations-large-svg"
-  );
+  // // State–level chart elements
+  // mapStateHospitalizationsSubtitle = document.getElementById(
+  //   "map-state-hospitalizations-subtitle"
+  // );
+  // mapStateHospitalizationsResizer = document.getElementById(
+  //   "map-state-hospitalizations-resizer"
+  // );
+  // mapStateHospitalizationsSvg = document.getElementById(
+  //   "map-state-hospitalizations-svg"
+  // );
+  // mapStateHospitalizationsLarge = document.getElementById(
+  //   "map-state-hospitalizations-large"
+  // );
+  // mapStateHospitalizationsLargeSubtitle = document.getElementById(
+  //   "map-state-hospitalizations-large-subtitle"
+  // );
+  // mapStateHospitalizationsLargeResizer = document.getElementById(
+  //   "map-state-hospitalizations-large-resizer"
+  // );
+  // mapStateHospitalizationsLargeSvg = document.getElementById(
+  //   "map-state-hospitalizations-large-svg"
+  // );
 
-  // Main map, legend, title & tooltip
-  mapDiv = document.getElementById("map-div");
-  choroplethLegendSVG = document.getElementById("choropleth-legend-svg");
-  mapTitle = document.getElementById("map-title");
+  // // Main map, legend, title & tooltip
+  // mapDiv = document.getElementById("map-div");
+  // choroplethLegendSVG = document.getElementById("choropleth-legend-svg");
+  // mapTitle = document.getElementById("map-title");
 </script>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
@@ -273,16 +274,17 @@ options %}
 />
 
 <!-- 5) Your module code—now deck, loaders & maplibregl are ready -->
- <script
+<script
   src="{{ url_for('static', filename='js/respiratory/dyhan/state-hospitalization-info.js') }}"
   type="module"
 ></script>
-<script
+
+<!-- <script
   src="{{ url_for('static', filename='js/respiratory/dyhan/map.js') }}"
   type="module"
 ></script>
 <script
   src="{{ url_for('static', filename='js/respiratory/dyhan/map-interactions.js') }}"
   type="module"
-></script>
+></script> -->
 {% endblock %}
