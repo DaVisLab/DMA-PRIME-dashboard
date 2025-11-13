@@ -62,12 +62,11 @@ function drawingHospitalizationInfo(data) {
 
   const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
   const dateExtent = d3.extent(data, (d) => d.date);
+  dateExtent[1] = new Date()
 
   const barWidth =
     (innerWidth / ((dateExtent[1] - dateExtent[0]) / oneWeekMs + 1)) * 0.8;
 
-  console.log(width);
-  console.log(barWidth);
   const x = d3
     .scaleTime()
     .domain(dateExtent)
@@ -80,7 +79,8 @@ function drawingHospitalizationInfo(data) {
     .range([innerHeight, 0]);
 
   g.append("g")
-    .attr("transform", `translate(${barWidth / 2}, ${innerHeight})`)
+    .attr("transform", `translate(${0}, ${innerHeight})`)
+    // .attr("transform", `translate(${barWidth / 2}, ${innerHeight})`)
     .call(
       d3
         .axisBottom(x)
