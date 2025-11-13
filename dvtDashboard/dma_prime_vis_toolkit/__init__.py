@@ -23,7 +23,6 @@ def create_app(development=False, dataDir=None):
         exit("No data directory")
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
-
     app.config.from_mapping(
         # SECRET_KEY='***REMOVED***',
         DEVELOPMENT=development,
@@ -127,12 +126,13 @@ def create_app(development=False, dataDir=None):
 
         data_version = get_data_version_from_request(request, current_user)
 
+        
         file = os.path.join(current_app.config['DATADIR'], 'processed', data_version, 'respiratory', 'metadata.json')
         decrypt_key = os.path.join(current_app.config['DATADIR'], 'processed', data_version, 'respiratory', 'encrypt_key.bin')
 
         metadata = dict(decrypt(file, decrypt_key))
         metadata['data_version'] = data_version
-        
+
         panels = [
             {
                 'name': 'main',
@@ -140,73 +140,19 @@ def create_app(development=False, dataDir=None):
             },
             {
                 'name': 'map',
-                'displayName': 'Map View 2',
+                'displayName': 'Map View',
                 'active': True,
-                'html': 'respiratory/respiratory-map-panel_dy.html'
+                'html': 'respiratory/respiratory-map-panel.html'
             },
-            # {
-            #     'name': 'map',
-            #     'displayName': 'Map View',
-            #     'active': True,
-            #     'html': 'respiratory/respiratory-map-panel.html'
-            # },
             {
                 'name': 'grid',
                 'displayName': 'Grid View',
+                
                 'html': 'respiratory/respiratory-grid-panel.html'
             },
         ]
         return render_template('respiratory/respiratory-base.html', panels=panels, metadata=metadata)
     
-    @app.route('/respiratory-model-exploration', methods=['GET'])
-    @login_required
-    def respiratory_model_exploration():
-
-        data_version = get_data_version_from_request(request, current_user)
-
-        disease = request.args.get('disease')
-        geographic_unit = request.args.get('geographic-unit')
-        population = request.args.get('population')
-        outcome_variable = request.args.get('outcome-variable')
-        location = request.args.get('location')
-
-        if disease is None:
-            disease = 'covid_19'
-        if geographic_unit is None:
-            geographic_unit = 'region'
-        if population is None:
-            population = 'general_population'
-        if outcome_variable is None:
-            outcome_variable = 'all_encounters'
-        if location is None:
-            location = ''
-
-        file = os.path.join(current_app.config['DATADIR'], 'processed', data_version, 'respiratory', 'metadata.json')
-        decrypt_key = os.path.join(current_app.config['DATADIR'], 'processed', data_version, 'respiratory', 'encrypt_key.bin')
-
-        metadata = dict(decrypt(file, decrypt_key))
-        metadata['data_version'] = data_version
-
-        panels = [
-            {
-                'name': 'main',
-                'displayName': 'DMA-PRIME',
-            },
-            {
-                'name': 'exploration',
-                'displayName': 'Model Exploration',
-                'active': True,
-                'html': 'respiratory/respiratory-model-exploration-panel.html'
-            },
-        ]
-        if location == '':
-            return render_template('respiratory/respiratory-model-base.html', panels=panels, metadata=metadata, 
-                                disease=disease, geographic_unit=geographic_unit, population=population, outcome_variable=outcome_variable, location=location)
-        else:
-            src = f'/data/respiratory/model/{disease}/{geographic_unit}/{population}/{outcome_variable}/{location}'
-            return render_template('respiratory/respiratory-model-base.html', panels=panels, metadata=metadata, 
-                                disease=disease, geographic_unit=geographic_unit, population=population, outcome_variable=outcome_variable, location=location, src=src)
-
     @app.route('/mobile-health-clinics', methods=['GET'])
     @login_required
     def mobile_health_clinics():

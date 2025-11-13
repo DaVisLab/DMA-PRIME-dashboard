@@ -211,4 +211,3 @@ def reset_password(token):
 
     flash("Password Changed Succesfully. Please Log in")
     return redirect("/auth/login")
-
