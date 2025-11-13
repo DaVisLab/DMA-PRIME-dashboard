@@ -18,8 +18,11 @@ await Promise.allSettled([ // wait for following to be defined/load in
     customElements.whenDefined('sl-button'),
 ])
 
+console.log(gridGeographicUnitSelector.value)
+console.log(gridDiseaseSelector.value)
+console.log(metadata.data_version)
 var regionData = await d3.json(`/data/respiratory/${gridGeographicUnitSelector.value}/${gridDiseaseSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random() * 9999999999)}`)
-
+console.log(regionData)
 updateGrid(true)
 drawStateHospitalizations(gridDiseaseSelector.value, gridTypeSwitch.value, gridStateHospitalizationsSvg, gridStateHospitalizationsSubtitle)
 
