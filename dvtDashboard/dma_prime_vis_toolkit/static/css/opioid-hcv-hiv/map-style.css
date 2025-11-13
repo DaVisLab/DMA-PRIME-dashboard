@@ -3,6 +3,17 @@
     position: relative;
 }
 
+#map-title-container {
+    position: absolute;
+    top: var(--sl-spacing-x-large);
+}
+
+#map-title {
+    text-align: center;
+    font-size: var(--sl-font-size-x-large);
+    color: red;
+}
+
 #map-filter-reset-button {
     width: fit-content;
 }

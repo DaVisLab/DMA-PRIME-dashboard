@@ -1,10 +1,5 @@
-#grid-options {
-  display: flex;
-  flex-direction: column;
-}
-
-#grid-rate-switch {
-  align-self: center;
+#grid-content {
+  background-color: var(--sl-color-neutral-100);
 }
 
 /* grid item container */
@@ -12,14 +7,19 @@
   /* div containing all the grid items */
   display: flex;
   flex-wrap: wrap;
-  max-height: 100%;
-  height: fit-content;
-  max-width: calc(100%-em);
-  width: 100%;
-  overflow-y: auto;
+  justify-content: flex-start;
   gap: .25em .25em; 
+
+  overflow-y: auto;
+
+  max-height: 100%;
+  height: max-content;
+  /* width: 100%; */
+  margin: auto;
   padding: .5em;
-  padding-right: .25em;
+  padding-left: 1.25em;
+  padding-right:.25em;
+
 }
 
 
@@ -27,29 +27,24 @@
 #grid-legend {
   /* div that contains the grid legend (line meanings) */
   background-color: var(--sl-color-neutral-0);
-  opacity: .75;
-  display: block;
-  position: absolute;
-  margin-left: 1em;
-  bottom: 1em;
 }
 
-#grid-legend-svg {
+#grid-legend svg {
   /* svg for grid legend */
-  height: 3em;
+  height: 1.5em;
   width: 200px;
 }
 
-#grid-legend-svg > line {
+#grid-legend line {
   /* lines in grid legend */
-  stroke: currentColor;
+  stroke: var(--sl-color-neutral-1000);
 }
 
-#grid-legend-svg > text {
-  fill: currentColor
+#grid-legend text {
+  fill: var(--sl-color-neutral-1000);
 }
 
-#grid-legend-state-model-line {
+#grid-secondary-legend > line {
   stroke-dasharray: 5, 5;
 }
 
@@ -57,6 +52,7 @@
 .grid-item {
   /* svg for each grid item */
   display:block;
+  box-shadow: .1em .1em .1em .1em var(--sl-color-neutral-300);
 }
 
 .grid-title {
@@ -77,27 +73,80 @@
   font-size: var(--sl-font-size-x-small);
 }
 
-/* grid tooltip */
+.grid-item-historical-line {
+    stroke: black;
+    stroke-width: 1.5px;
+    fill: none;    
+    /* //         .attr("stroke-dasharray", gridLineStyle[dataSource]) */
+}
+
+.grid-background {
+    fill: var(--sl-color-gray-200);
+}
+
+.grid-item-value line {
+    stroke: black;
+    stroke-width: 1px;
+    stroke-dasharray: "5,5";
+}
+
+.grid-item-value circle {
+    r: 3px;
+}
+
+.grid-item-value text {
+    font-size: var(--sl-font-size-x-small);        
+}
+
+/* Grid Tooltip */
 #grid-container sl-tooltip {
   /* makes sure sl-tooltip doesn't cut off tooltip contents */
   --max-width: 800px;
-}
-
-.grid-tooltip-toolbar-button {
-  position: absolute;
-  top: 0;
-  color: black;
-}
-
-.grid-close-tooltip-button::part(base) {
-  padding: 6px;
-  font-size: var(--sl-font-size-large);
 }
 
 .grid-container sl-tooltip::part(body), .grid-container sl-tooltip::part(base__arrow) {
   background-color: white;
 }
 
+.grid-tooltip-toolbar-button {
+  position: absolute;
+  top: 0;
+  color: black;
+  font-size: var(--sl-font-size-x-small);
+}
+
+.grid-close-tooltip-button::part(base) {
+  padding: 6px;
+  padding-top: 2px;
+  padding-right: 2px;
+  font-size: var(--sl-font-size-x-large);
+}
+
+#grid-container div.tooltip-div{
+    padding: var(--sl-spacing-small) 0;
+}
+
+.grid-close-tooltip-button {
+    right: 0px;
+}
+
+.grid-open-expanded-tooltip-button.grid-tooltip-toolbar-button {
+    right: 18px;
+}
+
+.grid-model-exploration-icon-button.grid-tooltip-toolbar-button {
+  right: 40px;
+}
+
+/* other */
 p, text {
   color: var(--sl-color-neutral-1000)
+}
+
+.scrollbar-measure {
+	width: 100px;
+	height: 100px;
+	overflow: scroll;
+	position: absolute;
+	top: -9999px;
 }

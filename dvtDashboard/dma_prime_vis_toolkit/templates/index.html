@@ -55,12 +55,17 @@
       font-size: var(--sl-font-size-x-large);
       text-decoration: none;
       color: white;
+      text-align: center;
     }
 
     .subpage sl-icon,img,embed {
       font-size: calc(min(30vw, 20vh));
       height: calc(min(30vw, 20vh));
       width: calc(min(30vw, 20vh));
+    }
+
+    .beta-warning {
+      color: red
     }
 
     /* The following is from  https://dev.to/lennythedev/css-gotcha-how-to-fill-page-with-a-div-270j*/
@@ -151,7 +156,10 @@
     <div class="subpage">
       <a href="{{ url_for('opioid_hcv_hiv') }}">
         <img src="{{ url_for('static', filename='assets/Icons/syringe-1309-svgrepo-com.svg') }}"></img>
-        <p>Opioid Overdose and HCV and HIV Hospitalizations</p>
+        <p>Opioid Overdose and HCV and HIV Hospitalizations
+          <br>
+          <tspan class="beta-warning">(Beta)</tspan>
+        </p>
       </a>
     </div>
     <div class="subpage">

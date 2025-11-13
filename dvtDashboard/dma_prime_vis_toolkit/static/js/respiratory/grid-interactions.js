@@ -1,88 +1,87 @@
-import { zctaData } from "/static/js/respiratory/script.js";
-import { gridWidth, gridHeight, updateGridData, sortGrid, setupGridTooltip } from "/static/js/respiratory/grid.js";
+import { drawStateHospitalizations, drawLargeStateHospitalizations } from "/static/js/respiratory/script.js";
+import { updateGrid, sortGridItems, filterGridItems, setupGridTooltip,
+    updateGridOutcomeVariableOptions, updateGridPopulationOptions, updateGridGeographicUnitOptions
+} from "/static/js/respiratory/grid.js";
+
+gridContainerResizer.addEventListener("sl-resize", updateGrid)
 
 gridCloseTtpsButton.addEventListener("click", () => {
     d3.selectAll(".grid-container > sl-tooltip").each(function(_) {this.open = false})
 })
 
-gridContainerResizer.addEventListener("sl-resize", () => {
-    updateGridData()
-})
-
-gridSort.addEventListener("sl-change", (event) => {
-    sortGrid()
-})
-
-gridRateSwitch.addEventListener("sl-change", (event) => {
+gridTypeSwitch.addEventListener("sl-change", (event) => {
     d3.select(gridContainer).selectAll("sl-tooltip[open]")
         .each(function(d, i) {
             setupGridTooltip(d3.select(this), true)
         })
-    updateGridData()
-})
 
-gridDataSourceSortSelector.addEventListener("sl-change", (event) => {
-    d3.select(gridContainer).selectAll("sl-tooltip[open]")
-        .each(function(d, i) {
-            setupGridTooltip(d3.select(this), true)
-        })
-    updateGridData()    
+    d3.select(gridMainLegend).select("text").text(d3.select(gridTypeSwitch).select(`*[value=${gridTypeSwitch.value}]`).html())
+    drawStateHospitalizations(gridDiseaseSelector.value, gridTypeSwitch.value, gridStateHospitalizationsSvg, gridStateHospitalizationsSubtitle)
+
+    if (gridTypeSwitch.value == "percentDifference") {
+        d3.select(gridSecondaryLegend).style("display", "initial")
+    } else {
+        d3.select(gridSecondaryLegend).style("display", "none")
+    }
+    updateGrid()
 })
 
 gridDiseaseSelector.addEventListener("sl-change", async (event) => {
-    await d3.json(`/data/respiratory/zcta/${gridDiseaseSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`).then(data => {
-        zctaData.features = data.features
-    })
+    await updateGridGeographicUnitOptions()
+
     d3.select(gridContainer).selectAll("sl-tooltip[open]")
         .each(function(d, i) {
             setupGridTooltip(d3.select(this), true)
         })
-    updateGridData()
+    updateGrid(true)    
+    drawStateHospitalizations(gridDiseaseSelector.value, gridTypeSwitch.value, gridStateHospitalizationsSvg, gridStateHospitalizationsSubtitle)
 })
 
-gridTextFilter.addEventListener("sl-input", filterZCTAByText)
+gridGeographicUnitSelector.addEventListener("sl-change", async (event) => {
+    await updateGridPopulationOptions()
+    gridGeographicUnit = gridGeographicUnitSelector.value
 
-function filterZCTAByText(event) {
-    // get filtration value
-    var diseaseData = zctaData.features
+    updateGrid(true)
+})
 
-    // get all zcta that partially match (case ignored) either zip code or county
-    var matchingZCTAData = diseaseData.filter(function(d) {
-        var countyMatch = d.properties.county.toLowerCase().includes(gridTextFilter.value.toLowerCase())
-        var zctaMatch = d.properties.ZCTA.toString().toLowerCase().includes(gridTextFilter.value.toLowerCase())
-        return countyMatch || zctaMatch
-    })
+gridPopulationSelector.addEventListener("sl-change", async (event) => {
+    await updateGridOutcomeVariableOptions()
+    gridPopulation = gridPopulationSelector.value
 
-    // if we're not including imputations, then filter them out so they don't show
-    if (!gridIncludeImputations.checked) {
-        matchingZCTAData = matchingZCTAData.filter(function(d) {
-            return !d.properties.data.imputation
+    d3.select(gridContainer).selectAll("sl-tooltip[open]")
+        .each(function(d, i) {
+            setupGridTooltip(d3.select(this), true)
         })
-    }
+    updateGrid()    
+})
 
-    // get all grid items corresponding to the selected zcta 
-    var objs = d3.selectAll("div.grid-container")
-        .data(matchingZCTAData, function(d) {
-            return d.properties.ZCTA
+gridOutcomeVariableSelector.addEventListener("sl-change", (event) => {
+    gridOutcomeVariable = gridOutcomeVariableSelector.value
+
+    d3.select(gridContainer).selectAll("sl-tooltip[open]")
+        .each(function(d, i) {
+            setupGridTooltip(d3.select(this), true)
         })
-    objs.style("display", "initial") // show ones that match
-    objs.exit()
-        .style("display", "none") // hide ones that don't
-}
+    updateGrid()    
+})
 
-gridIncludeImputations.addEventListener("sl-change", () => {
-    if (gridIncludeImputations.checked) {
-        // include all zcta including imputations
-        d3.selectAll("div.grid-container")
-            .style("display", "initial")
-    } else {
-        // hide imputed zcta
-        d3.selectAll("div.grid-container")
-            .filter(function(d) {
-                return d.properties.data.imputation
-            })
-            .style("display", "none")
-    }
-    updateGridData() // update display since the min and max values will change
-    filterZCTAByText() // filter again since the if else statement didn't account for that
+gridIncludeImputations.addEventListener("sl-change", updateGrid)
+
+gridSort.addEventListener("sl-change", (event) => {
+    sortGridItems()
+})
+
+gridTextFilter.addEventListener("sl-input", filterGridItems)
+gridTextFilter.addEventListener("clear", filterGridItems)
+
+gridStateHospitalizationsResizer.addEventListener("sl-resize", () => {
+    drawStateHospitalizations(gridDiseaseSelector.value, gridTypeSwitch.value, gridStateHospitalizationsSvg, gridStateHospitalizationsSubtitle)
+})
+
+gridStateHospitalizationsSvg.addEventListener("click", () => {
+    gridStateHospitalizationsLarge.show()
+})
+
+gridStateHospitalizationsLargeResizer.addEventListener("sl-resize", () => {
+    drawLargeStateHospitalizations(gridDiseaseSelector.value, gridTypeSwitch.value, gridStateHospitalizationsLargeSvg, gridStateHospitalizationsLargeSubtitle)
 })

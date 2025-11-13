@@ -1,3 +1,12 @@
+svg {
+  overflow: visible;
+  z-index: 1200;
+}
+
+.y-axis, .x-axis, .data-point-ttp {
+  pointer-events: none;
+}
+
 /* map title */
 #map-title-container {
     position:absolute; 
@@ -25,9 +34,21 @@
     padding-top: 0px;
 }
 
+#disease-explanation {
+  font-size: var(--sl-font-size-x-small);
+}
+
 .disease-checkbox {
     /* ensures 1 disease per "line" */
     width: 100%;
+}
+
+.disease-last-week-value {
+  color: var(--sl-color-neutral-400)
+}
+
+.disease-current-week-value {
+  font-weight: var(--sl-font-weight-bold);
 }
 
 .map-toggle::part(control--checked) {
@@ -82,38 +103,21 @@
     align-self: end;
     text-align: center;
   }
-  
-  #map-tooltip-svg text,
-  #map-tooltip-svg .tick text,
-  #map-tooltip-svg .domain,
-  #map-tooltip-svg .tick,
-  #map-tooltip-svg .tick > text,
-  #map-tooltip-svg .tick-label,
-  #map-tooltip-svg .axis-label,
-  #map-tooltip-svg .x-axis text,
-  #map-tooltip-svg .y-axis text,
-  #aggregated-disease-history text,
-  #aggregated-disease-history .tick text,
-  #aggregated-disease-history .domain,
-  #aggregated-disease-history .tick,
-  #aggregated-disease-history .tick > text,
-  #aggregated-disease-history .tick-label,
-  #aggregated-disease-history .axis-label,
-  #aggregated-disease-history .x-axis text,
-  #aggregated-disease-history .y-axis text {
-    font-size: 8px !important;
-  }
-  
-  .tooltip-title,
-  #aggregated-disease-history-title {
-    font-size: var(--sl-font-size-small);
-  }
-  
-  .tooltip-subtitle,
-  #aggregated-disease-history-subtitle {
+ 
+  #aggregated-disease-history-container p,
+  #aggregated-disease-history text {
     font-size: var(--sl-font-size-x-small);
   }
-  
+
+  #aggregated-disease-history .x-axis text {
+    font-size: var(--sl-font-size-2x-small);
+  } 
+
+  #aggregated-disease-history {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+  }
   
   /* ==========================================================================
      5) MapLibre Popup Styling
@@ -133,17 +137,17 @@
      6) Small (Inline) Tooltip Layout
      ========================================================================== */
   #map-tooltip-div p {
-    margin: 0 !important;
-    padding: 0 !important;
-    font-size: 14px !important;
-    line-height: 1.4em !important;
+    margin: 0;
+    padding: 0;
   }
   
   #map-tooltip-div .tooltip-header {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: baseline !important;
-    margin-bottom: 1px !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-top: var(--sl-spacing-x-small);
+    margin-bottom: 0px;
+    font-size: var(--sl-font-size-x-small);
   }
   
   #map-tooltip-div .tooltip-left-col {
@@ -163,10 +167,16 @@
   
   #map-tooltip-div p.tooltip-subtitle {
     display: block;
-    margin: 4px 0 !important;
-    line-height: 1.4em !important;
     text-align: left;
-    font-size: var(--sl-font-size-x-small);
+  }
+
+  #map-tooltip-svg text {
+    font-size: var(--sl-font-size-2x-small);
+  }
+
+  #map-tooltip-svg .y-axis > text,
+  #map-tooltip-svg .legend text {
+    font-size: var(--sl-font-size-small);
   }
   
   
@@ -175,61 +185,49 @@
      ========================================================================== */
   /* Make the dialog panel itself a column-flex container */
   sl-dialog#map-tooltip-large::part(panel) {
-    display: flex !important;
-    flex-direction: column !important;
-    padding: 0 !important;
-    width: 75vw !important;
-    max-width: none !important;
-    height: 75vh !important;
-    max-height: none !important;
+    display: flex ;
+    flex-direction: column ;
+    padding: 0 ;
+    --width: 65vw;
   }
   
-  /* Force its body slot to flex:1 so it fills the panel */
+  sl-dialog#map-tooltip-large::part(header) {
+    padding-bottom: 0;
+  }
+
   sl-dialog#map-tooltip-large::part(body) {
-    display: flex !important;
-    flex-direction: column !important;
-    flex: 1 1 auto !important;
-    padding: 0 !important;
-    overflow: hidden !important;
+    padding-top: 0;
+  }
+
+  sl-dialog#map-tooltip-large p {
+    text-align: center;
+  }
+
+  #map-tooltip-large-svg {
+    width: 100%;
+    aspect-ratio: 2;
+  }
+
+  #map-tooltip-large-svg text {
+    font-size: var(--sl-font-size-x-small);
+  }
+
+  #map-tooltip-large-svg .legend text {
+    font-size: var(--sl-font-size-small);
+  }
+
+  #map-tooltip-large-svg .y-axis > text {
+    font-size: var(--sl-font-size-medium);
   }
   
   /* Container for your header + chart */
   #map-tooltip-large-div.map-tooltip-large-content {
-    display: flex !important;
-    flex-direction: column !important;
-    flex: 1 1 auto !important;
-    padding: 8px 16px 16px !important;
-    box-sizing: border-box !important;
-    justify-content: flex-start !important;
-    align-items: center !important;
-    overflow: hidden !important;
+    display: flex ;
+    flex-direction: column ;
+    flex: 1 1 auto ;
+    justify-content: flex-start ;
+    align-items: center ;
   }
-  
-  /* Grow the SVG to fill the remaining space */
-  #map-tooltip-large-div.map-tooltip-large-content > svg {
-    flex: 1 1 auto !important;
-    width: 100% !important;
-    height: 100% !important;
-    margin-top: 16px !important;
-  }
-  
-  /* Stack Zip Code + Change vertically */
-  #map-tooltip-large-div.map-tooltip-large-content .tooltip-header {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    gap: 0.2em !important;
-    margin-bottom: 0.3em !important;
-  }
-  
-  /* Uniform header font‐size and centering */
-  #map-tooltip-large-div.map-tooltip-large-content .tooltip-header p {
-    margin: 0 !important;
-    font-size: 1.3rem !important;
-    line-height: 1.2 !important;
-    text-align: center !important;
-  }
-
 
   /* ==========================================================================
     8) Loading animation
@@ -315,38 +313,3 @@
       fill: black
     }
   }
-
-  /* Add at the end of the file to ensure specificity and override */
-  #map-tooltip-div,
-  #map-tooltip-div p,
-  #map-tooltip-div .tooltip-header,
-  #map-tooltip-div .tooltip-left-col,
-  #map-tooltip-div .tooltip-right-col,
-  #map-tooltip-div .tooltip-title,
-  #map-tooltip-div .tooltip-subtitle,
-  #map-tooltip-div .tooltip-label,
-  #map-tooltip-div .tick text,
-  #map-tooltip-div .tick-label,
-  #map-tooltip-div .axis-label,
-  #map-tooltip-div .x-axis text,
-  #map-tooltip-div .y-axis text,
-  #map-tooltip-div text,
-  #map-tooltip-div svg text,
-  #map-tooltip-large-div,
-  #map-tooltip-large-div p,
-  #map-tooltip-large-div .tooltip-header,
-  #map-tooltip-large-div .tooltip-left-col,
-  #map-tooltip-large-div .tooltip-right-col,
-  #map-tooltip-large-div .tooltip-title,
-  #map-tooltip-large-div .tooltip-subtitle,
-  #map-tooltip-large-div .tooltip-label,
-  #map-tooltip-large-div .tick text,
-  #map-tooltip-large-div .tick-label,
-  #map-tooltip-large-div .axis-label,
-  #map-tooltip-large-div .x-axis text,
-  #map-tooltip-large-div .y-axis text,
-  #map-tooltip-large-div text,
-  #map-tooltip-large-div svg text {
-    font-size: var(--sl-font-size-small) !important;
-  }
-  

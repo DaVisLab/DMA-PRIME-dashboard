@@ -1,9 +1,8 @@
 const { GeoJsonLayer, IconLayer, TextLayer, MapboxOverlay } = deck;
 
-export { styleSheet, selectedItems, map, deckOverlay, popup, redraw, drawTooltip, drawAggregation, drawLargeAggregation, drawLegend, updateDiseaseCountDisplay, getData, changeDataColumn, update, updateMapTitle }
+export { styleSheet, selectedItems, map, deckOverlay, popup, redraw, drawTooltip, drawAggregation, drawLargeAggregation, changeDataColumn, update }
 
-var regionData = await d3.json(`/data/outbreak-detection/zcta/pos_tests?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`)
-var stateFeature = regionData.features.find(d => d.properties.identifier == "state")
+var regionData, stateFeature
 
 var icons = {
     data: await d3.csv('/data/health-care-facility'),
@@ -19,8 +18,8 @@ var selectedItems = {
 }
 
 var choroplethColorMap = d3.scaleLinear()
-    .domain([-100, -50, -10, 0, 10, 50, 100, 500])
-    .range(d3.reverse(d3.schemeRdYlGn[10]).slice(1))
+    .domain([-100, -50, 0, 50, 100, 500])
+    .range(d3.reverse(d3.schemeRdBu[8]).slice(1))
     .unknown(unknownColor).nice()
 
 // Placeholder: actual domain set later via createCountRateChoropleth()
@@ -34,12 +33,18 @@ let countRateColorMap = d3.scaleLinear()
 
 function createCountRateChoropleth(data) {
   // 1) For every polygon (except "state"), grab its latest value (or 0):
-  const arr = data.features.map(feature => {
+  let arr 
+
+  if (mapRegionSelector.value != "state") {
+    arr = data.features.map(feature => {
     const thisDt = getData(feature, mapTimeSwitch.value)
     return (thisDt.data.length > 0 && feature.properties.identifier !== "state")
       ? thisDt.data.at(-1)
       : 0
   })
+  } else {
+    arr = getData(data.features[0], mapTimeSwitch.value).data
+  }
 
   // 2) If "Rate" is selected, push a small nonzero so domain covers per-1000 scale:
   const minMaxVal = (mapRateSwitch.value === "rate")
@@ -64,7 +69,9 @@ const map = new maplibregl.Map({
     zoom: 7,
 })
 
-await map.once('load')
+await map.once('load', d => {
+    d3.selectAll(".map-option").attr("disabled", null)
+})
 
 var popup = new maplibregl.Popup({focusAfterOpen: false, closeOnClick: false})
 
@@ -76,6 +83,7 @@ map.addControl(deckOverlay)
 map.addControl(new maplibregl.NavigationControl())
 
 await Promise.allSettled([ // wait for following to be defined/load in
+    customElements.whenDefined('sl-select'),
     customElements.whenDefined('sl-checkbox'),
     customElements.whenDefined('sl-button'),
 ])
@@ -89,9 +97,7 @@ styleSheet.insertRule(`
     ,0)   
 
 document.adoptedStyleSheets = [styleSheet]
-drawAggregation()
-updateDiseaseCountDisplay()
-redraw()
+changeDataColumn()
 
 function redraw() {
     // 1) Recompute the Count/Rate color scale from the actual data:
@@ -118,7 +124,7 @@ function redraw() {
         updateTriggers: {
           getFillColor: [
             mapRateSwitch.value,
-            mapColumnSwitch.value,
+            mapOutcomeVariableSelector.value,
             mapTimeSwitch.value,
             selectedItems.diseases,
             selectedItems.dataVersion,
@@ -230,7 +236,7 @@ function redraw() {
       }
       // new encounters when lastWeek = 0 but thisWeek > 0 → light pink
       else {
-        colorObj = d3.rgb('#ffddff');
+        colorObj = d3.rgb('#ff8000');
       }
   
       return [colorObj.r, colorObj.g, colorObj.b];
@@ -272,12 +278,12 @@ function redraw() {
         .attr("height", 50);
 
     const legendLength = 350;
-    const columnLabel = d3.select(`sl-option[value=${mapColumnSwitch.value}]`).html();
+    const columnLabel = d3.select(`sl-option[value=${mapOutcomeVariableSelector.value}]`).html();
 
     if (mapRateSwitch.value === "percent") {
         // ======== PERCENT DIFFERENCE LEGEND ========
-        const colors = d3.reverse(d3.schemeRdYlGn[10]).slice(1);
-        const labels = [-100, -50, -10, 0, 10, 50, 100, 500];
+        const colors = d3.reverse(d3.schemeRdBu[8]).slice(1);
+        const labels = [-100, -50, 0, 50, 100, 500];
 
         // 1) Title centered above the swatch bar
         legend.append("text")
@@ -313,7 +319,7 @@ function redraw() {
         const otherColors = legend.append("g");
         const others = [
             ["white", `No ${columnLabel}`],
-            ["#ffddff", `New ${columnLabel} from Last Period`],
+            ["#ff8000", `New ${columnLabel} from Last Period`],
             [unknownColor, "Unknown"]
         ];
 
@@ -485,21 +491,11 @@ function drawTooltip(dataObject) {
     const thisData = getData(dataObject, "weekly");
   
     // 5) Build the "Encounters ... from X to Y: N" string
-    let encounterString = "";
-    switch (mapColumnSwitch.value) {
-      case "encounters":
-        encounterString += "Encounters";
-        break;
-      case "pos_tests":
-        encounterString += "Positive tests";
-        break;
-      case "encounter_plus_test":
-        encounterString += "Encounters and positive tests";
-        break;
-    }
+    let encounterString = d3.select(mapOutcomeVariableSelector).select(`*[value=${mapOutcomeVariableSelector.value}]`).html();
+    
     encounterString += " from ";
   
-    const endDate = thisData.end_date;
+    const endDate = parseDate(regionData.metadata.end_date);
     const fmt     = d3.timeFormat("%b %d, %Y");
   
     if (mapTimeSwitch.value === "weekly") {
@@ -535,28 +531,20 @@ function drawTooltip(dataObject) {
       .html(""); // wipe it clean
   
     //
-    // ─── HEADER: "Zip Code: XXX"  (on left)  +  "Change: ±N%"  (on right) ───
+    // ─── HEADER: "ZCTA: XXX"  (on left)  +  "Change: ±N%"  (on right) ───
     //
     const headerContainer = ttpDiv
       .append("div")
       .attr("class", "tooltip-header")
-      .style("display", "flex")
-      .style("justify-content", "space-between")
-      .style("align-items", "baseline")   // keep left & right on same baseline
-      .style("margin-bottom", "8px");
   
-    // 7a) LEFT SIDE of header: Zip Code (or whatever region)
+    // 7a) LEFT SIDE of header: ZCTA (or whatever region)
     const leftHeaderCol = headerContainer
       .append("div")
       .attr("class", "tooltip-left-col")
-      .style("flex", "1")
-      .style("font-size", "var(--sl-font-size-small)")
-      .style("line-height", "1.4em");
   
     leftHeaderCol
       .append("p")
       .attr("class", "tooltip-title")
-      .style("margin", "0px")  // remove default <p> margin
       .html(
         `${d3.select(`sl-option[value=${mapRegionSelector.value}]`).html()}: ${dataObject.properties.identifier}`
       );
@@ -565,12 +553,11 @@ function drawTooltip(dataObject) {
     // ─── "County: YYY" on its own line, directly under the header ───
     //
     if (mapRegionSelector.value == "zcta") {
+      leftHeaderCol
+        .html(`ZCTA: ${dataObject.properties.identifier}`)
       ttpDiv
         .append("p")
         .attr("class", "tooltip-subtitle")
-        .style("margin", "0px")
-        .style("font-size", "var(--sl-font-size-small)")
-        .style("line-height", "1.4em")
         .html(
           `County: ${dataObject.properties.county[0].toUpperCase() + dataObject.properties.county.slice(1)}`
         );
@@ -587,15 +574,10 @@ function drawTooltip(dataObject) {
     const rightHeaderCol = headerContainer
       .append("div")
       .attr("class", "tooltip-right-col")
-      .style("text-align", "right")
-      .style("font-size", "var(--sl-font-size-small)")
-      .style("line-height", "1.4em");
   
     rightHeaderCol
       .append("p")
-      .attr("class", "tooltip-percent-change")
-      .style("margin", "0px")
-      
+      .attr("class", "tooltip-percent-change")      
       .html(percentLabel);
   
   
@@ -605,9 +587,6 @@ function drawTooltip(dataObject) {
     ttpDiv
       .append("p")
       .attr("class", "tooltip-subtitle")
-      .style("margin", "4px 0 8px 0") // small spacing above/below
-      .style("font-size", "var(--sl-font-size-small)")
-      .style("line-height", "1.4em")
       .html(encounterString);
   
     //
@@ -620,22 +599,27 @@ function drawTooltip(dataObject) {
       .attr("width", mapTooltipWidth)
       .attr("height", mapTooltipHeight);
   
-    createBarGraph(ttpSVG, thisData, regionData.metadata, mapTooltipHeight, mapTooltipWidth);
+    thisData.data = thisData.data.slice(thisData.data.length-1-18*4)
+    thisData.other = thisData.other.slice(thisData.other.length-1-18*4)
+    createBarGraph(ttpSVG, thisData, regionData.metadata);
 
     // Add expand button to popup (like respiratory)
     var expandPopupButton = d3.select("div.maplibregl-popup-content").append("sl-icon-button")
         .attr("name", "zoom-in")
-        .style("font-size", "9px")
+        .style("font-size", "12px")
         .style("cursor", "pointer")
         .style("position", "absolute")
         .style("right", "18px")
-        .style("top", 0);
+        .style("top", "4px");
     expandPopupButton.node().updateComplete.then(() => {
         d3.select(expandPopupButton.node().shadowRoot).select("button").node().style.padding = "4px";
     });
     expandPopupButton.on("click", () => {
-      drawLargeTooltip(dataObject);
-      document.getElementById("map-tooltip-large").show();
+      mapTooltipLarge.show();
+      mapTooltipLarge.addEventListener("sl-after-show", () => {
+        drawLargeTooltip(dataObject);
+
+      }, {once: true})
     });
     
 }
@@ -645,26 +629,17 @@ function drawTooltip(dataObject) {
 
 
 function drawAggregation() {
+  var diseases = selectedItems.diseases
+  if (diseases.length > 0) {
+    d3.select(aggregatedDiseaseHistoryContainer).style("display", "initial")
     var thisData = getData(stateFeature, "weekly")
-    var aggWidth = Math.max(300, document.getElementById("map-sidebar").clientWidth)
-    var aggHeight = aggWidth * .5
 
-    aggregatedDiseaseHistoryTitle.innerHTML = `State Wide ${d3.select(`sl-option[value=${mapColumnSwitch.value}]`).html()}`
+    aggregatedDiseaseHistoryTitle.innerHTML = `State Wide ${d3.select(`sl-option[value=${mapOutcomeVariableSelector.value}]`).html()}`
 
-    var encounterString = ""
-    switch (mapColumnSwitch.value) {
-        case "encounters":
-            encounterString += "Encounters"
-            break;
-        case "pos_tests":
-            encounterString += "Positive tests"
-            break;
-        case "encounter_plus_test":
-            encounterString += "Encounters and positive tests"
-            break;
-    }
+    var encounterString = d3.select(mapOutcomeVariableSelector).select(`*[value=${mapOutcomeVariableSelector.value}]`).html()
+
     encounterString += " from "
-    var thisWeek = thisData.end_date
+    var thisWeek = parseDate(regionData.metadata.end_date)
     switch (mapTimeSwitch.value) {
         case "weekly":
             var formatDate = d3.timeFormat("%b %d, %Y")
@@ -697,8 +672,14 @@ function drawAggregation() {
 
     var aggSVG = d3.select(aggregatedDiseaseHistory)
     aggSVG.html("")
-    
-    createBarGraph(aggSVG, thisData, regionData.metadata, aggHeight, aggWidth)
+
+    thisData.data = thisData.data.slice(thisData.data.length-1-18*4)
+    thisData.other = thisData.other.slice(thisData.other.length-1-18*4)
+
+    createBarGraph(aggSVG, thisData, regionData.metadata)
+  } else {
+    d3.select(aggregatedDiseaseHistoryContainer).style("display", "none")
+  }
 }
 
 function updateDiseaseCountDisplay() {
@@ -723,19 +704,27 @@ function updateDiseaseCountDisplay() {
     allCount += val;
     allPrev  += prevVal;
 
-    // always compute percent-change
-    const rawPct = prevVal !== 0
-      ? ((val - prevVal) / Math.abs(prevVal)) * 100
-      : 0;
-    const pct  = Math.round(rawPct * 10) / 10;     // one decimal
-    const sign = pct >= 0 ? "+" : "";              // prefix for positives
-
     // round display of val
+    const dispPrevVal = Math.round(prevVal * 1000) / 1000;
     const dispVal = Math.round(val * 1000) / 1000;
 
-    // show "(value, +pct%)" in every mode
-    d3.select(`#map-${disease}-count`)
-      .html(`(${dispVal}, ${sign}${pct}%)`);
+    if (prevVal || !(val)) {
+      // always compute percent-change
+      const rawPct = prevVal !== 0
+        ? ((val - prevVal) / Math.abs(prevVal)) * 100
+        : 0;
+      const pct  = Math.round(rawPct * 10) / 10;     // one decimal
+      const sign = pct >= 0 ? "+" : "";              // prefix for positives
+
+
+      // show "(value, +pct%)" in every mode
+      d3.select(`#map-${disease}-count`)
+        .html(`(<tspan class="disease-last-week-value">${dispPrevVal}</tspan>, <tspan class="disease-current-week-value">${dispVal}</tspan>, <tspan class="disease-current-week-value">${sign}${pct}%</tspan>)`);
+    } else {
+      d3.select(`#map-${disease}-count`)
+        .html(`(<tspan class="disease-last-week-value">${dispPrevVal}</tspan>, <tspan class="disease-current-week-value">${dispVal}</tspan>, <tspan class="disease-current-week-value">New ${d3.select(mapOutcomeVariableSelector).select(`*[value=${mapOutcomeVariableSelector.value}]`).html()}</tspan>)`);
+
+    }
   });
 
   // 3) Same for "All Diseases"
@@ -744,10 +733,11 @@ function updateDiseaseCountDisplay() {
     : 0;
   const pctAll  = Math.round(rawAll * 10) / 10;
   const signAll = pctAll >= 0 ? "+" : "";
+  const dispPrevAll = Math.round(allPrev * 1000) / 1000;
   const dispAll = Math.round(allCount * 1000) / 1000;
 
   d3.select("#map-all-count")
-    .html(`(N=${dispAll}, ${signAll}${pctAll}%)`);
+    .html(`(<tspan class="disease-last-week-value">${dispPrevAll}</tspan>, <tspan class="disease-current-week-value">${dispAll}</tspan>, <tspan class="disease-current-week-value">${signAll}${pctAll}%</tspan>)`);
 }
 
 
@@ -759,8 +749,6 @@ function getLatestDatum(feature, timeFrame="weekly") {
     data: NaN,
     other: NaN,
     population: feature.properties.population,
-    start_date: dayjs().toDate(),
-    end_date: dayjs().toDate(),
   };
 
   if (diseases.length > 0) {
@@ -777,13 +765,7 @@ function getLatestDatum(feature, timeFrame="weekly") {
       )
       .map(([_, obj]) => obj);
 
-    // 1b) Grab the metadata dates
-    var earliestDate = parseDate(regionData.metadata.start_date);
-    var latestDate   = parseDate(regionData.metadata.end_date);
-    thisData.start_date = earliestDate;
-    thisData.end_date   = latestDate;
-
-    // 1c) Sum up the "latest" values (last entry in each array)
+    // 1b) Sum up the "latest" values (last entry in each array)
     if (dataDicts.length > 0) {
       thisData.data  = 0;
       thisData.other = 0;
@@ -815,8 +797,6 @@ function getLastWeekDatum(feature, timeFrame="weekly") {
     data: NaN,
     other: NaN,
     population: feature.properties.population,
-    start_date: dayjs().toDate(),
-    end_date: dayjs().toDate(),
   };
 
   if (diseases.length > 0) {
@@ -831,11 +811,6 @@ function getLastWeekDatum(feature, timeFrame="weekly") {
         diseases.includes(disease) && obj[timeFrame].length > 0
       )
       .map(([_, obj]) => obj);
-
-    var earliestDate = parseDate(regionData.metadata.start_date);
-    var latestDate   = parseDate(regionData.metadata.end_date);
-    thisData.start_date = earliestDate;
-    thisData.end_date   = latestDate;
 
     if (dataDicts.length > 0) {
       thisData.data  = 0;
@@ -869,8 +844,6 @@ function getData(feature, timeFrame="weekly") {
         "data": [],
         "other": [],
         "population": feature.properties.population,
-        "start_date": dayjs().toDate(),
-        "end_date": dayjs().toDate(),
     }
 
     if (diseases.length > 0) {
@@ -882,8 +855,6 @@ function getData(feature, timeFrame="weekly") {
 
         var earliestDate = parseDate(regionData.metadata.start_date)
         var latestDate = parseDate(regionData.metadata.end_date)
-        thisData.start_date = earliestDate
-        thisData.end_date = latestDate
         var periods
         if (dataDicts.length > 0) {
             switch (timeFrame) {
@@ -953,21 +924,10 @@ function drawLargeTooltip(dataObject) {
     const thisData = getData(dataObject, "weekly");
   
     // 5) Build the "Encounters ... from X to Y: N" string
-    let encounterString = "";
-    switch (mapColumnSwitch.value) {
-      case "encounters":
-        encounterString += "Encounters";
-        break;
-      case "pos_tests":
-        encounterString += "Positive tests";
-        break;
-      case "encounter_plus_test":
-        encounterString += "Encounters and positive tests";
-        break;
-    }
+    let encounterString = d3.select(mapOutcomeVariableSelector).select(`*[value=${mapOutcomeVariableSelector.value}]`).html();
     encounterString += " from ";
   
-    const endDate = thisData.end_date;
+    const endDate = parseDate(regionData.metadata.end_date);
     const fmt     = d3.timeFormat("%b %d, %Y");
   
     if (mapTimeSwitch.value === "weekly") {
@@ -993,8 +953,8 @@ function drawLargeTooltip(dataObject) {
   
     // 6) Prepare dimensions and clear existing tooltip
     // Use a fixed, compact size for large tooltip
-    const maxWidth = Math.min(600, mapDiv.clientWidth * 0.4);
-    const maxHeight = Math.min(350, mapDiv.clientHeight * 0.23);
+    const maxWidth = Math.max(600, mapDiv.clientWidth * .75);
+    const maxHeight = Math.max(350, mapDiv.clientHeight * .75);
     const ttpWidth  = maxWidth;
     // Add extra bottom margin for slanted x-axis labels
     const ttpHeight = maxHeight + 40;
@@ -1011,21 +971,12 @@ function drawLargeTooltip(dataObject) {
     const headerContainer = ttpDiv
       .append("div")
       .attr("class", "tooltip-header")
-      .style("display", "flex")
-      .style("justify-content", "space-between")
-      .style("align-items", "baseline")
-      .style("margin-bottom", "8px");
     const leftHeaderCol = headerContainer
       .append("div")
       .attr("class", "tooltip-left-col")
-      .style("flex", "1")
-      .style("font-size", "var(--sl-font-size-x-small)")
-      .style("line-height", "1.4em");
     leftHeaderCol
       .append("p")
       .attr("class", "tooltip-title")
-      .style("margin", "0px")
-      .style("font-size", "var(--sl-font-size-x-small)")
       .html(
         `${d3.select(`sl-option[value=${mapRegionSelector.value}]`).html()}: ${dataObject.properties.identifier}`
       );
@@ -1033,9 +984,6 @@ function drawLargeTooltip(dataObject) {
       ttpDiv
         .append("p")
         .attr("class", "tooltip-subtitle")
-        .style("margin", "0px")
-        .style("font-size", "var(--sl-font-size-x-small)")
-        .style("line-height", "1.4em")
         .html(
           `County: ${dataObject.properties.county[0].toUpperCase() + dataObject.properties.county.slice(1)}`
         );
@@ -1047,51 +995,30 @@ function drawLargeTooltip(dataObject) {
     const rightHeaderCol = headerContainer
       .append("div")
       .attr("class", "tooltip-right-col")
-      .style("text-align", "right")
-      .style("font-size", "var(--sl-font-size-x-small)")
-      .style("line-height", "1.4em");
     rightHeaderCol
       .append("p")
       .attr("class", "tooltip-percent-change")
-      .style("margin", "0px")
-      .style("font-size", "var(--sl-font-size-x-small)")
       .html(percentLabel);
     ttpDiv
       .append("p")
       .attr("class", "tooltip-subtitle")
-      .style("margin", "4px 0 8px 0")
-      .style("font-size", "var(--sl-font-size-x-small)")
-      .style("line-height", "1.4em")
       .html(encounterString);
     // SVG with extra bottom margin
     const ttpSVG = ttpDiv
       .append("svg")
-      .attr("id", "map-tooltip-svg")
+      .attr("id", "map-tooltip-large-svg")
       .attr("class", "tooltip-outer-svg")
-      .attr("width", ttpWidth)
-      .attr("height", ttpHeight);
-    createBarGraph(ttpSVG, thisData, regionData.metadata, ttpHeight, ttpWidth, { isLargeTooltip: true });
+    createBarGraph(ttpSVG, thisData, regionData.metadata, { isLargeTooltip: true });
 }
 
 function drawLargeAggregation() {
     var thisData = getData(stateFeature, "weekly")
 
-    aggregatedDiseaseHistoryLargeTitle.innerHTML = `State Wide ${d3.select(`sl-option[value=${mapColumnSwitch.value}]`).html()}`
+    aggregatedDiseaseHistoryLargeTitle.innerHTML = `State Wide ${d3.select(`sl-option[value=${mapOutcomeVariableSelector.value}]`).html()}`
 
-    var encounterString = ""
-    switch (mapColumnSwitch.value) {
-        case "encounters":
-            encounterString += "Encounters"
-            break;
-        case "pos_tests":
-            encounterString += "Positive tests"
-            break;
-        case "encounter_plus_test":
-            encounterString += "Encounters and positive tests"
-            break;
-    }
+    var encounterString = d3.select(mapOutcomeVariableSelector).select(`*[value=${mapOutcomeVariableSelector.value}]`).html()
     encounterString += " from "
-    var thisWeek = thisData.end_date
+    var thisWeek = parseDate(regionData.metadata.end_date)
     switch (mapTimeSwitch.value) {
         case "weekly":
             var formatDate = d3.timeFormat("%b %d, %Y")
@@ -1124,174 +1051,15 @@ function drawLargeAggregation() {
 
     var svg = d3.select(aggregatedDiseaseHistoryLargeSvg)
     svg.html("")
-    var data = thisData
-    var regionMetadata = regionData.metadata
-    var width = aggregatedDiseaseHistoryLargeSvg.clientWidth
-    var height = aggregatedDiseaseHistoryLargeSvg.clientHeight
 
-    var graphSVG = svg.append("svg")
-        .attr("class", "tooltip-graph-svg")
-        .attr("height", height)
-        .attr("width", width)
-
-    var yAxis = svg.append("g")
-        .attr("class", "y-axis")
-    var xAxis = svg.append("g")
-        .attr("class", "x-axis")
-    
-    var minMaxVal = mapRateSwitch.value == "rate" ? 1000.0/data.population : 1
-    var maxVal = d3.max(data.data) ? d3.max(data.data) : minMaxVal
-    maxVal = d3.max(data.other) ? Math.max(maxVal, d3.max(data.other)) : maxVal
-    
-    // figure out how much space is needed for the y-axis text
-    var temp = svg.append("text").text(d3.format(".2r")(maxVal)).attr("x", 0).attr("y", 0)
-    var margins = {
-        "top": .5*em, 
-        "bottom": 1.5*em,
-        "left": 1.25*em,
-        "right": .5*em,
-    }
-    margins.left += Math.max(20, temp.node().getBBox().width)
-
-    if (mapColumnSwitch.value == "pos_tests") {
-        var percentages = data.data.map((pos_test, i) => pos_test / Math.max(data.other[i], 1))
-        temp.text(d3.format(".0%")(1))
-        margins.right += Math.max(10, temp.node().getBBox().width) + .75*em
-    }
-
-    var yScale = d3.scaleLinear()
-        .domain([0, maxVal])
-        .nice()
-        .range([height-margins.bottom, margins.top])
-
-    var start_date = parseDate(regionMetadata.start_date)
-    var xScale = d3.scaleTime()
-        .domain([start_date, parseDate(regionMetadata.end_date)])
-        .nice()
-        .range([margins.left, width - margins.right])
-
-    graphSVG.append("g").selectAll("rect")
-        .data(data.data)
-        .enter()
-        .append("rect")
-        .attr("x", (d, i) => xScale(d3.timeDay.offset(start_date, (7 * i))))
-        .attr("y", d => yScale(d))
-        .attr("height", d => yScale(0) - yScale(d))
-        .attr("width", (width - (margins.left + margins.right)) / data.data.length)
-        .attr("fill", "var(--sl-color-neutral-1000)")
-
-    yAxis.append("text")
-        .attr("transform", `translate(${1*em},${yScale(d3.mean(yScale.domain()))})rotate(-90)`)
-        .attr("text-anchor", "middle")
-        .attr("fill", "var(--sl-color-neutral-1000)")
-        .attr("font-size", "var(--sl-font-size-small)")
-        // .text(mapColumnSwitch.value == "pos_tests" ? "Tests" : d3.select(`sl-option[value=${mapColumnSwitch.value}]`).html())
-        .text(d3.select(`sl-option[value=${mapColumnSwitch.value}]`).html())
-        
-    yAxis.append("g")
-        .attr("transform", `translate(${margins.left},0)`)
-        .call(d3.axisLeft(yScale).ticks(5).tickSize(4))
-        .selectAll("text")
-        .attr("class", "tooltip-label")
-        .attr("fill", "var(--sl-color-neutral-1000)")
-
-    xAxis.call(d3.axisBottom(xScale).tickArguments([d3.timeYear.every(1), d3.timeFormat("%Y")]))
-        .attr("transform", `translate(0, ${height - margins.bottom})`)
-
-    if (mapColumnSwitch.value == "pos_tests") {
-        var yScale2 = d3.scaleLinear()
-            .domain([0, 1])
-            .nice()
-            .range([height-margins.bottom, margins.top])
-
-        var yAxis2 = svg.append("g")
-            .attr("class", "y-axis")
-        
-        var percentageGroup = graphSVG.append("g")
-
-          const line = d3.line()
-            .x((_, i) => xScale(d3.timeDay.offset(start_date, (7 * i))))
-            .y((d) => yScale2(d))
-
-        percentageGroup.append("path")
-            .attr("d", line(percentages))
-            .style("stroke", "blue")
-            .attr("fill", "none")
-            .attr("stroke-width", 1)
-
-        yAxis2.append("text")
-            .attr("transform", `translate(${width-em},${yScale(d3.mean(yScale.domain()))})rotate(90)`)
-            .attr("text-anchor", "middle")
-            .attr("fill", "blue")
-            .attr("font-size", "var(--sl-font-size-small)")
-            .text("Percent Positive Tests")
-            
-        var yAxis2Axis = yAxis2.append("g")
-            .attr("transform", `translate(${xScale.range()[1]},0)`)
-            .call(d3.axisRight(yScale2).ticks(5, ".0%").tickSize(4))
-        yAxis2Axis.selectAll("text")
-            .attr("class", "tooltip-label")
-            .attr("fill", "blue")
-        yAxis2Axis.selectAll("line,path")
-            .style("stroke", "blue")
-        
-        var legend = svg.append("g")
-        legend.attr("transform", `translate(${xScale.range()[0] + .5*em}, 0)`)
-        var posTest = legend.append("g")
-        posTest.append("rect")
-            .attr("height", .5*em)
-            .attr("width", .5*em)
-            .attr("x", 0)
-            .attr("y", .5*em/4)
-            .attr("fill", "var(--sl-color-neutral-1000)")
-        posTest.append("text")
-            .attr("x", .5*1.5*em)
-            .attr("y", em/2)
-            .attr("dominant-baseline", "middle")
-            .attr("fill", "var(--sl-color-neutral-1000)")
-            .style("font-size", "var(--sl-font-size-small)")
-            .text("Positive Tests")
-        // var test = legend.append("g")
-        // test.attr("transform", `translate(0, ${em})`)
-        // test.append("rect")
-        //     .attr("height", .5*em)
-        //     .attr("width", .5*em)
-        //     .attr("x", 0)
-        //     .attr("y", .5*em/4)
-        //     .attr("fill", "var(--sl-color-neutral-400)")
-        // test.append("text")
-        //     .attr("x", .5*1.5*em)
-        //     .attr("y", em/2)
-        //     .attr("dominant-baseline", "middle")
-        //     .attr("fill", "var(--sl-color-neutral-1000)")
-        //     .style("font-size", "var(--sl-font-size-small)")
-        //     .text("Tests")
-        var percentPosTest = legend.append("g")
-        percentPosTest.attr("transform", `translate(0, ${em})`)
-        // percentPosTest.attr("transform", `translate(0, ${2*em})`)
-        percentPosTest.append("line")
-            .attr("x1", 0)
-            .attr("x2", .5*em)
-            .attr("y1", .5*em)
-            .attr("y2", .5*em)
-            .attr("stroke", "blue")
-        percentPosTest.append("text")
-            .attr("x", .5*1.5*em)
-            .attr("y", em/2)
-            .attr("dominant-baseline", "middle")
-            .attr("fill", "blue")
-            .style("font-size", "var(--sl-font-size-small)")
-            .text("Percent Positive Tests")
-    }
-    
-    temp.remove()
+    createBarGraph(svg, thisData, regionData.metadata, {isLargeTooltip: true})
     
 }
 
 async function changeDataColumn() {
     d3.select("#map-loading-div").style("visibility", "visible")
     d3.selectAll("#map-loading-div circle").classed("animate", true)
-    regionData = await d3.json(`/data/outbreak-detection/${mapRegionSelector.value}/${mapColumnSwitch.value}?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`)
+    regionData = await d3.json(`/data/outbreak-detection/${mapRegionSelector.value}/${mapOutcomeVariableSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`)
     stateFeature = regionData.features.find(d => d.properties.identifier == "state")
 
     if (selectedItems.region) {
@@ -1315,13 +1083,17 @@ function update() {
 function updateMapTitle() {
     var titleStart = `${d3.select(mapRateSwitch).select(`*[value=${mapRateSwitch.value}]`).html()} `
     titleStart += `of ${d3.select(mapTimeSwitch).select(`*[value=${mapTimeSwitch.value}]`).html()}ly `
-    titleStart += `${d3.select(mapColumnSwitch).select(`*[value=${mapColumnSwitch.value}]`).html()} `
+    titleStart += `${d3.select(mapOutcomeVariableSelector).select(`*[value=${mapOutcomeVariableSelector.value}]`).html()} `
 
-    var titleEnd = "in South Carolina "
+    var titleEnd = "in Prisma and MUSC Health Systems "
     if (mapRegionSelector.value != "state") {
         titleEnd += "by "
-        titleEnd += d3.select(mapRegionSelector).select(`*[value=${mapRegionSelector.value}]`).html() 
-    } 
+        if (mapRegionSelector.value == "zcta") {
+          titleEnd += "ZCTA" 
+        } else {
+          titleEnd += d3.select(mapRegionSelector).select(`*[value=${mapRegionSelector.value}]`).html() 
+        }
+    }
 
     switch (mapRateSwitch.value) {
         case "count": 

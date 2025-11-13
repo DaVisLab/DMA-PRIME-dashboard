@@ -1,52 +1,17 @@
-
 #map-content {
     /* needed for choropleth legend to be in the correct spot I think */
     position: relative;
 }
 
-/* state hospitalizations */
-#map-state-hospitalizations {
-    padding: var(--sl-spacing-large) var(--sl-spacing-small);
-}
-
-#map-state-hospitalizations-svg {
-    width: 100%;
-    height: 200px;
-}
-
-#map-state-hospitalizations-large-svg {
-    width: 100%;
-    aspect-ratio: 2;
-}
-
-.map-state-hospitalizations-title {
-    text-align: center;
-}
-
-#map-state-hospitalizations-subtitle {
-    font-size: var(--sl-font-size-x-small);
-}
-
-#map-state-hospitalizations-large-subtitle {
-    font-size: var(--sl-font-size-small);
-}
-
-#map-state-hospitalizations-yaxis-title {
-    font-size: var(--sl-font-size-x-small);
-}
-
-#map-state-hospitalizations-large-yaxis-title {
-    font-size: var(--sl-font-size-medium);
-}
-
 /* map items */
 #map-title-container {
-    position:absolute; 
+    position: absolute;
     top: var(--sl-spacing-x-large);
 }
 
 #map-title {
-    text-align: center
+    text-align: center;
+    color: black;
 }
 
 .map-toggle::part(control--checked) {
@@ -69,11 +34,30 @@ path.map-zcta {
     stroke-linejoin: round;
 }
 
+#map-alert-container {
+    position: relative;
+    top: -65%;
+    width: max-content;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.map-alert {
+    position: fixed;
+    top: 0;
+}
+
 /* legend components */
-#choropleth-legend {
-    position:absolute;
+#map-legend {
+    position: absolute;
     bottom: var(--sl-spacing-small);
     left: var(--sl-spacing-x-large);
+    display: flex;
+    flex-direction: column;
+}
+
+#choropleth-legend-svg {
+  overflow: visible;
 }
 
 .map-legend-background {
@@ -82,16 +66,22 @@ path.map-zcta {
     fill-opacity: .5;
 }
 
-text.map-legend  {
-    /* legend text */
-    font-size: var(--sl-font-size-x-small);
+#map-legend g path,
+#map-legend g line {
+    /* legend "axis" */
+    stroke: black;
+}
+
+#map-legend g text {
+    /* legend "axis" */
+    fill: black;
 }
 
 #map-legend-title {
     /* titles for the legends */
-    font-size: var(--sl-font-size-medium);
+    font-size: var(--sl-font-size-small);
     text-anchor: middle;
-    fill: currentColor;
+    fill: black;
 }
 
 .legend-other-colors {
@@ -106,3 +96,86 @@ text.map-legend  {
     border-style: solid;
     border-radius: .25em;
 }
+
+/* Loading animation */
+:root {
+    --loading-dot-size: var(--sl-spacing-x-small);
+    --loading-dot-gap: var(--sl-spacing-large);
+  }
+  #map-loading-div {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    justify-items: center;
+    align-items: center;
+    pointer-events: none;
+  }
+
+  #loading-text {
+    font-family: var(--sl-font-sans);
+    font-size: var(--sl-font-size-2x-large);
+    font-weight: var(--sl-font-weight-semibold);
+    text-align: center;
+    margin-bottom: var(--sl-spacing-small);
+  }
+
+  #loading-dots-svg {
+    margin-left: auto;
+    margin-right: auto;
+    height: calc(var(--loading-dot-size) * 2 + 2px);
+    width: calc(var(--loading-dot-size) * 6 + var(--loading-dot-gap) * 2 + 2px);
+  }
+
+  .loading-dot {
+    cx: var(--loading-dot-size);
+    cy: var(--loading-dot-size);
+    r: var(--loading-dot-size);
+    stroke: grey;
+    stroke-width: 1px;
+    fill: white;
+  }
+
+  .animate {
+    animation: 1s steps(4, end) infinite
+  }
+
+  .loading-dot:nth-child(1) { 
+    /* transform: translate(var(--loading-dot-size), 1px); */
+    animation-name: fill-dot-1;
+  }
+  .loading-dot:nth-child(2) { 
+    transform: translate(calc(var(--loading-dot-size) * 2 + var(--loading-dot-gap)), 1px);
+    animation-name: fill-dot-2;
+  }
+  .loading-dot:nth-child(3) { 
+    transform: translate(calc(var(--loading-dot-size) * 4 + var(--loading-dot-gap) * 2), 1px);
+    animation-name: fill-dot-3;
+ }
+
+  @keyframes fill-dot-1 {
+    0% {
+      fill: white
+    }
+    25% {
+      fill: black
+    }
+  }
+  @keyframes fill-dot-2 {
+    0% {
+      fill: white
+    }
+    50% {
+      fill: black
+    }
+  }
+  @keyframes fill-dot-3 {
+    0% {
+      fill: white
+    }
+    75% {
+      fill: black
+    }
+  }

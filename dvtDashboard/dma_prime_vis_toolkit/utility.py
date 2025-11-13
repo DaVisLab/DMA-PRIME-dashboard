@@ -44,6 +44,9 @@ def decrypt(file_name, encrypt_key):
         if values['header'] == b'.csv':
             ioText = StringIO(plaintext.decode('utf-8'))
             return Response(ioText, mimetype='text/csv')
+        
+        if values['header'] == b'.html':
+            return plaintext.decode('utf-8')
 
         return json.loads(plaintext)
         

@@ -9,7 +9,7 @@
     <!-- Shoelace (CDN) -->
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/dark.css"
+      href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/light.css"
     />
 
     <script
@@ -39,11 +39,11 @@
       /* ===== 0) Fluid typography ===== */
       html {
         font-size: clamp(14px, 1.1vw + 10px, 18px);
-        font-family: "Roboto";
+        font-family: sans-serif !important;
       }
 
       h1.p-title {
-        font-size: clamp(0.5rem, 2vw, 4.4rem);
+        font-size: clamp(0.5rem, 2.5vw, 4.4rem);
         line-height: 1.1;
         margin: 0.2em 0 0.6em;
       }
@@ -55,7 +55,7 @@
 
       .content p,
       .content li {
-        font-size: clamp(0.95rem, 0.35vw + 0.9rem, 1.15rem);
+        font-size: clamp(0.95rem, 0.35vw + 1rem, 1.15rem);
         line-height: 1.6;
       }
 
@@ -74,13 +74,16 @@
         margin-top: 1rem;
         /* padding-left: 2rem; */
       }
-      #title-container hr{
+
+      #title-container hr {
         margin: 0px;
       }
+
       .stage {
         position: relative;
         min-height: 92vh;
-        padding-bottom: 120px; /* leave space for footer height */
+        padding-bottom: 120px;
+        /* leave space for footer height */
         overflow: hidden;
       }
 
@@ -99,42 +102,46 @@
         position: absolute;
         inset: 0;
         margin: auto;
-        width: 90vw; /* max width of the background image */
-        aspect-ratio: 16/9; /* change to the real ratio (e.g., 3/2, 4/3) */
+        width: 90vw;
+        /* max width of the background image */
+        aspect-ratio: 16/9;
+        /* change to the real ratio (e.g., 3/2, 4/3) */
         background: url("/static/assets/ProjectOverview/login-background.png")
           center / contain no-repeat;
         filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.25));
         border-radius: 12px;
       }
 
-      /* ===== 3) Left card (title + tabs): pinned at top-left ===== */
-      .left-card {
+      .left-card-wrap {
         position: absolute;
         z-index: 1;
-        top: 2.5vh;
+        top: 50%;
         left: clamp(2rem, 3vw, 60px);
+        transform: translateY(-60%);
+      }
+      /* ===== 3) Left card (title + tabs): pinned at top-left ===== */
+      .left-card {
+        /* position: absolute; */
+        z-index: 1;
+        /* top: 2.5vh; */
+        /* top: 50%; */
+        /* left: clamp(2rem, 3vw, 60px); */
         width: 40vw;
         max-height: 75vh;
 
-        background: rgba(255, 255, 255, 0.5);
+        background: rgba(255, 255, 255, 0.8);
         border: 2px solid rgba(255, 165, 0, 0.8);
         border-radius: 1rem;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
         backdrop-filter: blur(2px);
-        /* padding: 1.25rem; */
-
-        /* Important: split into two rows (title + tabs) and clip inner content */
-        /* display: block; */
-        /* grid-template-rows: auto 1fr; */
-        /* overflow: hidden; */
-        /* background-clip: padding-box; */
       }
 
       sl-tab-panel,
       sl-tab-panel::part(base) {
         flex: 1 1 auto;
-        max-height: 100%;
+        max-height: 60vh;
         overflow: auto;
+        font-size: 1.2rem;
       }
 
       sl-tab-group {
@@ -143,13 +150,10 @@
         max-height: 100%;
         height: fit-content;
         padding: 1rem;
-        scrollbar-width: thin; /* auto | thin | none */
-        scrollbar-color: rgba(0, 0, 0, 0.45) transparent; /* thumb track */
-      }
-
-      sl-tab-group::part(base) {
-        flex: 1 1 auto;
-        max-height: 100%;
+        scrollbar-width: thin;
+        /* auto | thin | none */
+        scrollbar-color: rgba(0, 0, 0, 0.45) transparent;
+        /* thumb track */
       }
 
       /* scrolling container inside the panel */
@@ -160,15 +164,17 @@
         min-height: 0 !important;
         overflow: auto !important;
         background-color: transparent !important;
-        padding-right: 0.5rem; /* room for scrollbar */
+        padding-right: 0.5rem;
+        /* room for scrollbar */
         /* overscroll-behavior: contain; optional: prevent parent bounce */
       }
 
       /* Tab labels (optional sizing) */
       sl-tab::part(base) {
         color: inherit;
-        font-size: clamp(0.9rem, 1vw, 1.1rem);
+        font-size: clamp(0.9rem, 1.1vw, 1.1rem);
       }
+
       sl-tab[active]::part(base) {
         color: orangered;
         font-weight: 600;
@@ -182,10 +188,11 @@
         right: clamp(24px, 6vw, 80px);
         transform: translateY(-50%);
         width: 30vw;
-        background: rgba(255, 255, 255, 0.8);
+        background: rgba(255, 255, 255, 0.9);
         border: 0.2rem solid orange;
         border-radius: 14px;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        font-weight: 500;
         /* padding: 1rem; */
       }
 
@@ -205,7 +212,8 @@
         align-items: center;
         justify-content: space-evenly;
         text-align: center;
-        margin-left: 1.5rem; /* slight left nudge for the logo */
+        margin-left: 1.5rem;
+        /* slight left nudge for the logo */
       }
 
       .logo-col img {
@@ -228,6 +236,7 @@
         flex-direction: column;
         justify-content: space-around;
         width: 90%;
+        margin: var(--sl-spacing-2x-small);
       }
 
       .login-actions {
@@ -241,6 +250,14 @@
       #login-title {
         font-size: clamp(1.1rem, 2.2vw, 1.5rem);
         margin: 0;
+        font-weight: bold;
+        margin-top: 0.3rem;
+        /* font-family: var(--sl-font-sans); */
+      }
+
+      #reset-password-text {
+        /* font-family: var(--sl-font-sans); */
+        margin: auto auto auto 2rem;
       }
 
       /* ===== 5) Footer logos (responsive) ===== */
@@ -269,6 +286,7 @@
         display: flex;
         align-items: center;
       }
+
       .footer-logos img {
         width: auto;
         height: 70%;
@@ -297,6 +315,7 @@
     </style>
     {% endblock %} {% block headScripts %} {% endblock %}
   </head>
+
   <body>
     <div id="notification-container">
       {% for message in get_flashed_messages() %}
@@ -308,11 +327,12 @@
     </div>
     <div id="title-container" style="z-index: 99">
       <h1 class="p-title">
-        <b>From Forecasts to Decisions:</b>
-        <span>
+        <!-- <b>From Forecasts to Decisions:</b> -->
+        <b> DMAPRIME Visualization Dashboard</b>
+        <!-- <span>
           Visualization for Trust and Transparency in Public Health in the Era
           of AI
-        </span>
+        </span> -->
         <hr />
       </h1>
     </div>
@@ -321,98 +341,97 @@
       <div class="background"></div>
 
       <!-- Left card: title + scrollable tabs -->
+      <div class="left-card-wrap">
+        <div class="left-card">
+          <sl-tab-group
+            style="--indicator-color: orangered; --track-color: lightgray"
+          >
+            <sl-tab slot="nav" panel="objective">Research Objective</sl-tab>
+            <sl-tab slot="nav" panel="feature">System Features</sl-tab>
+            <sl-tab slot="nav" panel="information" disabled>Information</sl-tab>
 
-      <div class="left-card">
-        <sl-tab-group
-          style="--indicator-color: orangered; --track-color: lightgray"
-        >
-          <sl-tab slot="nav" panel="objective">Research Objective</sl-tab>
-          <sl-tab slot="nav" panel="feature" disabled>System Features</sl-tab>
-          <sl-tab slot="nav" panel="information" disabled>Information</sl-tab>
+            <!-- Panel 1: Scrollable -->
+            <sl-tab-panel name="objective">
+              <!-- <div class="panel-scroll"> -->
+              <ul>
+                <li>
+                  <b>● Integrate Multisource Data for Forecasting: </b>
+                  Combine heterogeneous, real-time data streams including EHRs,
+                  wastewater surveillance, search trends, and mobile health
+                  records into a unified analytic framework.
+                </li>
+                <br />
+                <li>
+                  <b>● Develop and Validate Predictive Models:</b>
+                  Advance a suite of forecasting models (deep learning,
+                  ensemble, probabilistic) trained on continuously updated South
+                  Carolina data to predict respiratory disease dynamics at
+                  multiple spatial scales.
+                </li>
+                <br />
+                <li>
+                  <b>● Enhance Public Health Decision-Making:</b>
+                  Collaborate with state, local, and national public health
+                  partners to support timely interventions and equitable health
+                  responses.
+                </li>
+              </ul>
+              <!-- </div> -->
+            </sl-tab-panel>
 
-          <!-- Panel 1: Scrollable -->
-          <sl-tab-panel name="objective">
-            <!-- <div class="panel-scroll"> -->
-            <ul>
-              <li>
-                <b
-                  >● Sparse data weakens confidence and makes outputs harder to
-                  validate.</b
-                >
-                Infectious disease forecasts rely on surveillance data streams
-                such as case reports, hospitalizations, and wastewater signals.
-                Sparse or noisy reporting weakens confidence in model outputs
-                and complicates validation.
-              </li>
-              <br />
-              <li>
-                <b>● Data quality and signal detection.</b>
-                Decision-makers frequently confront uncertainty about whether
-                observed anomalies represent real outbreaks or artifacts from
-                inconsistent reporting, missing data, or delayed submissions.
-                Without clear indications of which inputs are influencing the
-                forecast, users risk overreacting to spurious patterns or
-                underreacting to genuine threats.
-              </li>
-              <br />
-              <li>
-                <b
-                  >● Understanding model mechanics and decision
-                  justification.</b
-                >
-                Beyond distinguishing signal from noise, public health officials
-                need insight into how forecasts are generated. Black-box models
-                obscure the relationships between inputs (e.g., test positivity,
-                mobility, hospitalizations) and predicted trends, making it
-                difficult to justify actions, communicate risk, or optimize
-                interventions.
-              </li>
-              <br />
-              <li>
-                <b>● Uncertainty communication.</b>
-                Forecasts inevitably carry uncertainty, but if confidence
-                intervals are overly wide, they become operationally unusable.
-                For example, during COVID-19, state health departments received
-                hospitalization surge forecasts with wide uncertainty ranges,
-                sometimes spanning hundreds of admissions. Even though the
-                models were scientifically valid, administrators could not
-                translate those ranges into concrete staffing or supply
-                decisions.
-              </li>
-              <br />
-            </ul>
-            <!-- </div> -->
-          </sl-tab-panel>
+            <!-- Panel 2 -->
+            <sl-tab-panel name="feature">
+              <div class="panel-scroll">
+                <ul>
+                  <li>
+                    <b>● Robust Partnership Network: </b>
+                    Active collaborations with state and local agencies (SCDPH,
+                    Prisma Health, MUSC, CRH, CRPH, SC State Veterinarian, and
+                    Clemson LPH) and national partners (CDC CFA, Insight Net)
+                    for data sharing and dissemination.
+                  </li>
+                  <br />
+                  <li>
+                    <b>● Rich, Continuously Updated Data Streams: </b>
+                    Integration of clinical, environmental, behavioral, and
+                    contextual datasets covering over half of South Carolina’s
+                    population with fine spatial and temporal granularity.
+                  </li>
+                  <br />
+                  <li>
+                    <b>● Comprehensive Modeling Framework: </b>
+                    A modular platform supporting multiple forecasting paradigms
+                    regularly retrained for adaptive accuracy.
+                  </li>
+                </ul>
+              </div>
+            </sl-tab-panel>
 
-          <!-- Panel 2 -->
-          <sl-tab-panel name="feature">
-            <div class="panel-scroll">
-              <p>System features content…</p>
-            </div>
-          </sl-tab-panel>
-
-          <!-- Panel 3 -->
-          <sl-tab-panel name="information">
-            <div class="panel-scroll">
-              <p>Information content…</p>
-            </div>
-          </sl-tab-panel>
-        </sl-tab-group>
+            <!-- Panel 3 -->
+            <sl-tab-panel name="information">
+              <div class="panel-scroll">
+                <p>Information content…</p>
+              </div>
+            </sl-tab-panel>
+          </sl-tab-group>
+        </div>
       </div>
-
       <!-- Right-middle login card -->
       <aside class="login-card">
         <div id="login-component-container" class="row">
           <div class="logo-col">
-            <h6 id="login-title">Login</h6>
             <img
               src="/static/assets/Icons/Clemson_Tigers_logo.svg.png"
               alt="Logo"
             />
           </div>
           <div class="form-col">
+            <h6 id="login-title">Login</h6>
             <form method="post" id="login-form">
-              <p id="login-error">
+              <p
+                id="login-error"
+                style="display: {% if get_flashed_messages() | length %}initial{% else %}none{% endif %}"
+              >
                 <!-- Flask flash example (replace as needed) -->
                 {% for message in get_flashed_messages() %}
                 <span style="color: red">{{ message }}</span>
@@ -426,6 +445,7 @@
                 name="email_username"
                 required
                 pill
+                size="small"
               >
                 <sl-icon name="person-circle" slot="prefix"></sl-icon>
               </sl-input>
@@ -438,12 +458,15 @@
                 password-toggle
                 required
                 pill
+                size="small"
               >
                 <sl-icon name="lock" slot="prefix"></sl-icon>
               </sl-input>
 
               <div class="login-actions">
-                <p><a href="/auth/reset_password">Reset Password</a></p>
+                <p id="reset-password-text">
+                  <a href="/auth/reset_password">Reset Password</a>
+                </p>
                 <sl-button type="submit" variant="primary">Submit</sl-button>
               </div>
             </form>

@@ -22,7 +22,8 @@ d3.json('/data/respiratory/changed_files')
   })
 
 tabGroup.addEventListener("sl-tab-show", function(e) {
-    document.getElementById(`${e.detail.name}-dashboard`).src = `${e.detail.name}`
+    let dataVersionButton = d3.selectAll(`.preview-data-button[dashboard=${e.detail.name}][variant=primary]`)
+    document.getElementById(`${e.detail.name}-dashboard`).src = `/${e.detail.name}?data_version=${dataVersionButton.attr("dataVersion")}`
 })
 tabGroup.addEventListener("sl-tab-hide", function(e) {
     try {

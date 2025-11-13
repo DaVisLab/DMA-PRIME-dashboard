@@ -1,22 +1,29 @@
+/* for large ttp */
 .dialog-width {
   --width: 65vw;
 }
 
 #tooltip-large {
-    --header-spacing: var(--sl-spacing-small) var(--sl-spacing-small) var(--sl-spacing-2x-small);
-    --body-spacing: 0 var(--sl-spacing-small) var(--sl-spacing-small);
+  --header-spacing: var(--sl-spacing-small) var(--sl-spacing-small) var(--sl-spacing-2x-small);
+  --body-spacing: 0 var(--sl-spacing-small) var(--sl-spacing-small);
+}
+
+#tooltip-large::part(base) {
+  z-index: 1100 !important;
 }
 
 #tooltip-large-svg {
-    width: 100%;
-    aspect-ratio: 2;
+  width: 100%;
+  aspect-ratio: 2;
 }
 
+/* for ttp */
 .tooltip-div {
   background-color: white;
 }
 
-div.tooltip-region-info, div.tooltip-options {
+div.tooltip-region-info,
+div.tooltip-options {
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
@@ -52,10 +59,13 @@ div.tooltip-div p {
   fill: hsl(240 5.3% 58%);
 }
 
-.y-axis:not(.map-state-hospitalizations *) text, :is(.x-axis-historical, .x-axis-prediction) text {
+.y-axis:not(.state-hospitalizations *) text,
+:is(.x-axis-historical, .x-axis-prediction) text {
   fill: black;
 }
-.y-axis:not(.map-state-hospitalizations *) :is(path,line), :is(.x-axis-historical, .x-axis-prediction) :is(path,line) {
+
+.y-axis:not(.state-hospitalizations *) :is(path, line),
+:is(.x-axis-historical, .x-axis-prediction) :is(path, line) {
   stroke: black
 }
 
@@ -67,7 +77,8 @@ div.tooltip-div p {
   flex-wrap: wrap;
 }
 
-.tooltip-legend-group, .tooltip-legend-group-item {
+.tooltip-legend-group,
+.tooltip-legend-group-item {
   display: flex;
   align-items: center;
   width: max-content;
@@ -80,4 +91,53 @@ div.tooltip-div p {
 .tooltip-label {
   width: max-content;
   margin: 0 var(--sl-spacing-2x-small);
+  pointer-events: none;
+}
+
+.data-point-ttp text {
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+/* for state bar chart */
+/* state hospitalizations */
+.state-hospitalizations {
+  /* div for state hospitalizations title and bar chart */
+  padding: var(--sl-spacing-large) var(--sl-spacing-small);
+}
+
+.state-hospitalizations-svg {
+  width: 100%;
+  height: 200px;
+}
+
+.state-hospitalizations text {
+  fill: var(--sl-color-neutral-1000);
+}
+
+.state-hospitalizations-large-svg {
+  width: 100%;
+  aspect-ratio: 2;
+}
+
+.state-hospitalizations-title {
+  text-align: center;
+}
+
+.state-hospitalizations-subtitle {
+  font-size: var(--sl-font-size-x-small);
+  text-align: center;
+}
+
+.state-hospitalizations-large-subtitle {
+  font-size: var(--sl-font-size-small);
+}
+
+.state-hospitalizations-yaxis-title {
+  font-size: var(--sl-font-size-x-small);
+  text-anchor: middle;
+}
+
+.state-hospitalizations-large-yaxis-title {
+  font-size: var(--sl-font-size-medium);
 }

@@ -1,30 +1,50 @@
 {
-	"community_partner": {
-		"x": 508,
-		"y": 0,
-		"width": 539,
-		"height": 500,
-		"mask": false
-	},
-	"hospital": {
-		"x": 1047,
-		"y": 0,
-		"width": 512,
-		"height": 512,
-		"mask": false
-	},
-	"mobile_health_clinic": {
-		"x": 0,
-		"y": 512,
-		"width": 511,
-		"height": 341,
-		"mask": false
-	},
-	"CDAP": {
-		"x": 0,
-		"y": 0,
-		"width": 508,
-		"height": 512,
-		"mask": false
-	}
+"cdap":
+{
+	"x":500,
+	"y":500,
+	"height":512,
+	"width":508,
+	"mask": false
+},
+"community_partner":
+{
+	"x":511,
+	"y":0,
+	"height":500,
+	"width":539,
+	"mask": false
+},
+"hospital":
+{
+	"x":1008,
+	"y":500,
+	"height":512,
+	"width":512,
+	"mask": false
+},
+"mobile_health_clinic":
+{
+	"x":0,
+	"y":0,
+	"height":341,
+	"width":511,
+	"mask": false
+},
+"MUSC":
+{
+	"x":1050,
+	"y":0,
+	"height":500,
+	"width":500,
+	"mask": true
+},
+"PRISMA":
+{
+	"x":0,
+	"y":500,
+	"height":500,
+	"width":500,
+	"mask": true
+}
 }

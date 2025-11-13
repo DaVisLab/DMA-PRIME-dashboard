@@ -1,0 +1,24 @@
+{% extends "subtemplates/base.html" %}
+{% block title %}DMA-PRIME{% endblock %}
+{% block style %}
+<!-- Linking stylesheets -->
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}" />
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/respiratory/model-exploration-style.css') }}" />
+
+{% endblock %}
+
+{% block headScripts %}
+
+<!-- Contains helper functions/data/constants -->
+<script>
+    metadata = {{ metadata | safe }}
+</script>
+
+{% endblock %}
+
+{% block linkout %}
+{% endblock %}
+
+{% block bodyScripts %}
+
+{% endblock %}
