@@ -149,11 +149,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   drawingHospitalizationInfo(hositalizationData);
 
-  // window.addEventListener("resize", () => {
-  //   // draw();
-  //    drawingHospitalizationInfo(hositalizationData);
-  // });
-
   const ro = new ResizeObserver(() => {
     drawingHospitalizationInfo(hositalizationData);
   });
