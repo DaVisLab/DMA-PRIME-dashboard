@@ -163,30 +163,41 @@ options %}
       </div>
       <div class="row" style="width: 100%; height: 41%">map 3</div>
     </div>
-    <div class="col-md-2">
+
+    <div class="col-md-2" style="border-left: 1px solid lightgray; height: 100%; ">
       <div
         class="fill-width"
-        style="display: flex; 
-        flex-direction: column;
-        height: 15%; 
-        padding: 5%;
-        border: 1px solid lightgray; border-radius: 0.5rem; font-size: 0.3rem !important;"
+        style="
+          display: flex;
+          flex-direction: column;
+          height: 15vh;
+          padding: 5%;
+          border-bottom: 1px solid lightgray;
+          font-size: 0.3rem !important;
+        "
       >
         <!-- region selector -->
-         <p slot="label" style="font-size: .7rem; margin-bottom: 0;">Geographic unit</p>
+        <p slot="label" style="font-size: 0.7rem; margin-bottom: 0; color: black">
+          Geographic unit
+        </p>
         <sl-select
-          value="region"
+          value="county"
           id="map-resolution-selector"
           class="fill-width"
           size="small"
         >
-          
           {% for region, name in metadata['region_sizes'].items() %}
           <sl-option value="{{ region }}">{{ name }}</sl-option>
           {% endfor %}
         </sl-select>
       </div>
-      <div class="fill-width" style="height: 85%">small multiples</div>
+      <div id="respiratory-smallMultiples-container" class="fill-width" 
+      style="height: calc(100% - 15vh); overflow-y: auto;">
+        <!-- <svg
+            id="respiratory-smallMultiples-svg"
+            style="height: 100%; width: 100%"
+          ></svg> -->
+      </div>
     </div>
   </div>
 </div>

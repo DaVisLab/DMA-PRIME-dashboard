@@ -139,11 +139,17 @@ def create_app(development=False, dataDir=None):
                 'displayName': 'DMA-PRIME',
             },
             {
-                'name': 'map',
-                'displayName': 'Map View',
+                'name': 'map2',
+                'displayName': 'Map View dy',
                 'active': True,
-                'html': 'respiratory/respiratory-map-panel.html'
+                'html': 'respiratory/respiratory-map-panel_dy.html'
             },
+            # {
+            #     'name': 'map',
+            #     'displayName': 'Map View',
+            #     'active': True,
+            #     'html': 'respiratory/respiratory-map-panel.html'
+            # },
             {
                 'name': 'grid',
                 'displayName': 'Grid View',
