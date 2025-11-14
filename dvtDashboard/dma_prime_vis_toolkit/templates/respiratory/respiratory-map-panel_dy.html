@@ -157,14 +157,21 @@ options %}
       </div>
       <div class="row" style="width: 100%; height: 41%">
         <div class="col-md-6">
-          <div class="fill-width fill-height" id="map-div"></div>
+          <div class="fill-width fill-height" id="state-map-div">
+            <!-- <svg id="repiratory-choropleth-state-map"></svg> -->
+          </div>
         </div>
-        <div class="col-md-6">map 2</div>
+        <div class="col-md-6">
+          <!-- <div class="fill-width fill-height" id="map-div">map 2</div> -->
+        </div>
       </div>
       <div class="row" style="width: 100%; height: 41%">map 3</div>
     </div>
 
-    <div class="col-md-2" style="border-left: 1px solid lightgray; height: 100%; ">
+    <div
+      class="col-md-2"
+      style="border-left: 1px solid lightgray; height: 100%"
+    >
       <div
         class="fill-width"
         style="
@@ -177,7 +184,10 @@ options %}
         "
       >
         <!-- region selector -->
-        <p slot="label" style="font-size: 0.7rem; margin-bottom: 0; color: black">
+        <p
+          slot="label"
+          style="font-size: 0.7rem; margin-bottom: 0; color: black"
+        >
           Geographic unit
         </p>
         <sl-select
@@ -191,13 +201,11 @@ options %}
           {% endfor %}
         </sl-select>
       </div>
-      <div id="respiratory-smallMultiples-container" class="fill-width" 
-      style="height: calc(100% - 15vh); overflow-y: auto;">
-        <!-- <svg
-            id="respiratory-smallMultiples-svg"
-            style="height: 100%; width: 100%"
-          ></svg> -->
-      </div>
+      <div
+        id="respiratory-smallMultiples-container"
+        class="fill-width"
+        style="height: calc(100% - 15vh); overflow-y: auto"
+      ></div>
     </div>
   </div>
 </div>
@@ -243,11 +251,11 @@ options %}
   src="{{ url_for('static', filename='js/respiratory/dyhan/smallMultiples-hospitalization.js') }}"
   type="module"
 ></script>
-<!-- <script
+<script
   src="{{ url_for('static', filename='js/respiratory/dyhan/map.js') }}"
   type="module"
 ></script>
-<script
+<!-- <script
   src="{{ url_for('static', filename='js/respiratory/dyhan/map-interactions.js') }}"
   type="module"
 ></script> -->

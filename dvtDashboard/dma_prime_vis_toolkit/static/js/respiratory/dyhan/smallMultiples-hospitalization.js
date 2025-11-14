@@ -77,7 +77,7 @@ function trendStrict(arr) {
 }
 
 function drawingSmallMultipleUnit(svg, data) {
-  console.log(data);
+//   console.log(data);
 
   svg.attr("id", `small-multiple-${data.name.replaceAll(" ", "-")}`);
   // space label
@@ -159,7 +159,7 @@ function drawingSmallMultiples(dataBySpace) {
   const unitHeight = 40;
   const unitWidth = svgContainer.clientWidth;
 
-  console.log(dataBySpace);
+//   console.log(dataBySpace);
 
   for (const data of dataBySpace) {
     // console.log(data);
@@ -198,7 +198,7 @@ async function initSmallMultipleView() {
     drawingSmallMultiples(diseaseDataBySpace);
   });
 
-  ro.observe(d3.select("#respiratory-smallMultiples-container"));
+  ro.observe(d3.select("#respiratory-smallMultiples-container").node());
 }
 
 function callInitSmallMultipleView() {
