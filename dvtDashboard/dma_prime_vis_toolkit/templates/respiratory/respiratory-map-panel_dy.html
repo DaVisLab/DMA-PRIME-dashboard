@@ -139,12 +139,6 @@ options %}
   <div class="row" style="height: 100%">
     <div class="col-md-10">
       <div class="row" style="width: 100%; height: 18%">
-        <div id="map-title-container" class="fill-width">
-          <p id="map-title">
-            Count of COVID-19 Hospitalizations in South Carolina by Region
-          </p>
-        </div>
-
         <div id="state-hospitalizations-div" style="height: 100%; width: 100%">
           <!-- <sl-resize-observer id="state-hospitalizations-resizer"> -->
           <svg
@@ -157,15 +151,98 @@ options %}
       </div>
       <div class="row" style="width: 100%; height: 41%">
         <div class="col-md-6">
-          <div class="fill-width fill-height" id="state-map-div">
-            <!-- <svg id="repiratory-choropleth-state-map"></svg> -->
+          <div
+            class="fill-width fill-height"
+            id="state-map-div"
+            style="
+              border-radius: 0.5rem;
+              border: 1px solid lightgray;
+              box-shadow: 0.2rem 0.2rem #888888;
+            "
+          >
+            <!-- <div
+              id="pause"
+              style="
+                position: relative;
+                top: 75%;
+                left: 3%;
+                z-index: 1;
+                background-color: lightgray;
+                opacity: 0.7;
+                width: 40%;
+                height: fit-content;
+                margin: 0;
+                padding: 5px;
+              "
+            >
+              State Map <br />
+              Color Scheme:
+            </div> -->
           </div>
         </div>
         <div class="col-md-6">
-          <!-- <div class="fill-width fill-height" id="map-div">map 2</div> -->
+          <div
+            class="fill-width fill-height"
+            id="county-map-div"
+            style="
+              border-radius: 0.5rem;
+              border: 1px solid lightgray;
+              box-shadow: 0.2rem 0.2rem #888888;
+            "
+          >
+            <!-- <div
+              id="pause"
+              style="
+                position: relative;
+                top: 75%;
+                left: 3%;
+                z-index: 99;
+                background-color: lightgray;
+                opacity: 0.7;
+                width: 40%;
+                height: fit-content;
+                margin: 0;
+                padding: 5px;
+              "
+            >
+              County Map <br />
+              Color Scheme:
+            </div> -->
+          </div>
         </div>
       </div>
-      <div class="row" style="width: 100%; height: 41%">map 3</div>
+      <div class="row" style="width: 100%; height: 41%">
+        <div class="col-md-12">
+          <div
+            class="fill-width fill-height"
+            id="zip-map-div"
+            style="
+              border-radius: 0.5rem;
+              border: 1px solid lightgray;
+              box-shadow: 0.2rem 0.2rem #888888;
+            "
+          >
+            <!-- <div
+              id="pause"
+              style="
+                position: relative;
+                top: 75%;
+                left: 3%;
+                z-index: 99;
+                background-color: lightgray;
+                opacity: 0.7;
+                width: 40%;
+                height: fit-content;
+                margin: 0;
+                padding: 5px;
+              "
+            >
+              Zip Map <br />
+              Color Scheme:
+            </div> -->
+          </div>
+        </div>
+      </div>
     </div>
 
     <div
@@ -252,9 +329,21 @@ options %}
   type="module"
 ></script>
 <script
-  src="{{ url_for('static', filename='js/respiratory/dyhan/map.js') }}"
+  src="{{ url_for('static', filename='js/respiratory/dyhan/mapManager.js') }}"
   type="module"
 ></script>
+<!-- <script
+  src="{{ url_for('static', filename='js/respiratory/dyhan/maps/map-stateLevel.js') }}"
+  type="module"
+></script>
+<script
+  src="{{ url_for('static', filename='js/respiratory/dyhan/maps/map-countyLevel.js') }}"
+  type="module"
+></script>
+<script
+  src="{{ url_for('static', filename='js/respiratory/dyhan/maps/map-zipLevel.js') }}"
+  type="module"
+></script> -->
 <!-- <script
   src="{{ url_for('static', filename='js/respiratory/dyhan/map-interactions.js') }}"
   type="module"
