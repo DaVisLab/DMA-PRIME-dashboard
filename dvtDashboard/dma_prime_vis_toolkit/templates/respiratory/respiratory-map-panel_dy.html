@@ -42,8 +42,8 @@ options %}
 
   <!-- region selector -->
   <sl-select
-    value="region"
-    id="map-region-selector"
+    value="zcta"
+    id="map-resolution-selector"
     class="fill-width"
     size="small"
   >
@@ -55,7 +55,7 @@ options %}
 
   <!-- data source -->
   <sl-select
-    value="state"
+    value="general_population"
     id="map-data-source-selector"
     class="fill-width"
     size="small"
@@ -66,7 +66,7 @@ options %}
       trigger="hover"
       hoist
     >
-      <sl-option value="state">General Population</sl-option>
+      <sl-option value="general_population">General Population</sl-option>
     </sl-tooltip>
     <sl-tooltip
       content="South Carolina residents in the selected geography served by the PRISMA or MUSC health system"
@@ -79,7 +79,7 @@ options %}
 
   <!-- data variable -->
   <sl-select
-    value="encounters"
+    value="all_encounters"
     id="map-data-variable-selector"
     class="fill-width"
     size="small"
@@ -90,17 +90,17 @@ options %}
       trigger="hover"
       hoist
     >
-      <sl-option value="encounters">Encounters</sl-option>
+      <sl-option value="all_encounters">Encounters</sl-option>
     </sl-tooltip>
     <sl-tooltip content="Positive tests" trigger="hover" hoist>
-      <sl-option value="positive-tests">Positive Tests</sl-option>
+      <sl-option value="positive_tests">Positive Tests</sl-option>
     </sl-tooltip>
     <sl-tooltip
       content="Average effective reproductive number"
       trigger="hover"
       hoist
     >
-      <sl-option value="rt">Transmission</sl-option>
+      <sl-option value="rate_of_transmission">Transmission</sl-option>
     </sl-tooltip>
   </sl-select>
 
@@ -136,24 +136,86 @@ options %}
 {% endblock %} {% block contents %}
 
 <div class="fill-width fill-height container">
-  <div class="row" style="height: 100%">
-    <div class="col-md-10">
-      <div class="row" style="width: 100%; height: 18%">
+  <div class="row" style="height: 100%; position: relative">
+    <div
+      id="loading-spinner"
+      class="col-md-12"
+      style="
+        height: 100%;
+        margin: 0px;
+        padding: 0px;
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        background-color: rgba(211, 211, 211, 0.8);
+        visibility: hidden;
+      "
+    >
+      <div
+        class="spinner-border spinner-border-lg text-primary"
+        role="status "
+        style="position: absolute; width: 60px; height: 60px"
+      >
+        <!-- <span class="sr-only" >Loading...</span> -->
+      </div>
+    </div>
+    <div class="col-md-10" style="margin: 0px; padding: 0px">
+      <!-- <div class="row" style="width: 100%; height: 18%">
         <div id="state-hospitalizations-div" style="height: 100%; width: 100%">
-          <!-- <sl-resize-observer id="state-hospitalizations-resizer"> -->
+          
           <svg
             id="state-hospitalizations-svg"
             class="state-hospitalizations"
             style="height: 100%; width: 100%"
           ></svg>
-          <!-- </sl-resize-observer> -->
+          
+        </div>
+      </div> -->
+      <div
+        class="row"
+        style="width: 100%; height: 50%; padding: 0.5rem; margin: 0px"
+      >
+        <div class="col-md-12">
+          <div
+            class="fill-width fill-height"
+            id="focus-map-div"
+            style="
+              border-radius: 0.5rem;
+              border: 1px solid lightgray;
+              box-shadow: 0.2rem 0.2rem #888888;
+            "
+          >
+            <!-- <div
+              id="pause"
+              style="
+                position: relative;
+                top: 75%;
+                left: 3%;
+                z-index: 99;
+                background-color: lightgray;
+                opacity: 0.7;
+                width: 40%;
+                height: fit-content;
+                margin: 0;
+                padding: 5px;
+              "
+            >
+              Zip Map <br />
+              Color Scheme:
+            </div> -->
+          </div>
         </div>
       </div>
-      <div class="row" style="width: 100%; height: 41%">
+      <div
+        class="row"
+        style="width: 100%; height: 50%; padding: 0.5rem; margin: 0px"
+      >
         <div class="col-md-6">
           <div
             class="fill-width fill-height"
-            id="state-map-div"
+            id="sub-map1-div"
             style="
               border-radius: 0.5rem;
               border: 1px solid lightgray;
@@ -183,7 +245,7 @@ options %}
         <div class="col-md-6">
           <div
             class="fill-width fill-height"
-            id="county-map-div"
+            id="sub-map2-div"
             style="
               border-radius: 0.5rem;
               border: 1px solid lightgray;
@@ -211,77 +273,20 @@ options %}
           </div>
         </div>
       </div>
-      <div class="row" style="width: 100%; height: 41%">
-        <div class="col-md-12">
-          <div
-            class="fill-width fill-height"
-            id="zip-map-div"
-            style="
-              border-radius: 0.5rem;
-              border: 1px solid lightgray;
-              box-shadow: 0.2rem 0.2rem #888888;
-            "
-          >
-            <!-- <div
-              id="pause"
-              style="
-                position: relative;
-                top: 75%;
-                left: 3%;
-                z-index: 99;
-                background-color: lightgray;
-                opacity: 0.7;
-                width: 40%;
-                height: fit-content;
-                margin: 0;
-                padding: 5px;
-              "
-            >
-              Zip Map <br />
-              Color Scheme:
-            </div> -->
-          </div>
-        </div>
-      </div>
     </div>
 
     <div
       class="col-md-2"
       style="border-left: 1px solid lightgray; height: 100%"
     >
-      <div
-        class="fill-width"
-        style="
-          display: flex;
-          flex-direction: column;
-          height: 15vh;
-          padding: 5%;
-          border-bottom: 1px solid lightgray;
-          font-size: 0.3rem !important;
-        "
-      >
-        <!-- region selector -->
-        <p
-          slot="label"
-          style="font-size: 0.7rem; margin-bottom: 0; color: black"
-        >
-          Geographic unit
-        </p>
-        <sl-select
-          value="county"
-          id="map-resolution-selector"
-          class="fill-width"
-          size="small"
-        >
-          {% for region, name in metadata['region_sizes'].items() %}
-          <sl-option value="{{ region }}">{{ name }}</sl-option>
-          {% endfor %}
-        </sl-select>
-      </div>
+      <p style="font-size: 0.8rem; margin-top: 1rem; margin-bottom: 0">
+        Past Hospitalization Records
+      </p>
+      <hr style="margin-top: 0px" />
       <div
         id="respiratory-smallMultiples-container"
         class="fill-width"
-        style="height: calc(100% - 15vh); overflow-y: auto"
+        style="height: 90%; width: 95%; overflow-y: auto; overflow-x: hidden"
       ></div>
     </div>
   </div>
@@ -320,10 +325,10 @@ options %}
 />
 
 <!-- 5) Your module code—now deck, loaders & maplibregl are ready -->
-<script
+<!-- <script
   src="{{ url_for('static', filename='js/respiratory/dyhan/state-hospitalization-info.js') }}"
   type="module"
-></script>
+></script> -->
 <script
   src="{{ url_for('static', filename='js/respiratory/dyhan/smallMultiples-hospitalization.js') }}"
   type="module"

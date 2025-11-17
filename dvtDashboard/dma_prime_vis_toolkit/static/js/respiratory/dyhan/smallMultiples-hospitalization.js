@@ -21,14 +21,61 @@ async function getSpatialData() {
     "map-data-source-selector"
   ).value;
 
+  const mapOutcomeSelector = document.getElementById(
+    "map-data-variable-selector"
+  ).value;
+
   let regionData = await d3.json(
     `/data/respiratory/${mapSpatialResoultion}/${mapDiseaseSelector}?data_version=current&${parseInt(
       Math.random() * 9999999999
     )}`
   );
 
-  console.log(regionData);
-  console.log(mapSpatialResoultion);
+  let valueTypeSwitch = document.getElementById("map-type-switch").value;
+  let allowImputations = document.getElementById(
+    "map-include-imputations"
+  ).checked;
+
+  function getValueOfInterest(valueType, featureProperties, allowImputations) {
+    // console.log(featureProperties);
+    if (!allowImputations && featureProperties.historical.imputed) {
+      return null;
+    }
+
+    let historicalVals = featureProperties.historical.values;
+    let projectedVals = featureProperties.projected.values;
+    let vals = historicalVals.concat(projectedVals);
+
+    let transformed;
+
+    if (valueType === "percentDifference") {
+      // Percent difference from the previous week for each element
+      transformed = vals.map((current, i, arr) => {
+        if (
+          i === 0 ||
+          arr[i - 1] === 0 ||
+          arr[i - 1] == null ||
+          isNaN(arr[i - 1])
+        ) {
+          return null; // or 0, depending on how you want to handle the first item
+        }
+        const prev = arr[i - 1];
+
+        return ((current - prev) / Math.abs(prev)) * 100;
+      });
+    } else if (valueType === "rate") {
+      // Convert each value to rate per 1,000 people
+      transformed = vals.map((v) => (v / scPopulation) * 1000);
+    } else if (valueType === "count") {
+      // Raw counts (no transformation)
+      transformed = vals;
+    } else {
+      // Default: no transformation
+      transformed = vals;
+    }
+    return transformed;
+  }
+
   return regionData.features.map((d) => {
     let returnValue = {
       name: d.properties.NAME,
@@ -40,6 +87,7 @@ async function getSpatialData() {
 
     if (mapSpatialResoultion == "state") {
     } else if (mapSpatialResoultion == "region") {
+      returnValue.name = d.properties.Region;
     } else if (mapSpatialResoultion == "county") {
       returnValue.name = d.properties.NAME;
       returnValue.countyName = d.properties.NAME;
@@ -49,12 +97,20 @@ async function getSpatialData() {
       returnValue.countyName = d.properties.county;
     }
 
-    if (mapDataSourceSelector == "health-system")
-      returnValue.data =
-        d.properties.data["health_system"]["all_encounters"]["historical"];
-    else
-      returnValue.data =
-        d.properties.data["general_population"]["all_encounters"]["historical"];
+    returnValue.data = getValueOfInterest(
+      valueTypeSwitch,
+      d.properties.data[mapDataSourceSelector][mapOutcomeSelector],
+      allowImputations
+    );
+
+    // console.log(returnValue.data)
+
+    // if (mapDataSourceSelector == "health-system")
+    //   returnValue.data =
+    //     d.properties.data["health_system"]["all_encounters"]["historical"];
+    // else
+    //   returnValue.data =
+    //     d.properties.data["general_population"]["all_encounters"]["historical"];
 
     return returnValue;
   });
@@ -77,7 +133,7 @@ function trendStrict(arr) {
 }
 
 function drawingSmallMultipleUnit(svg, data) {
-//   console.log(data);
+  console.log(data);
 
   svg.attr("id", `small-multiple-${data.name.replaceAll(" ", "-")}`);
   // space label
@@ -90,15 +146,18 @@ function drawingSmallMultipleUnit(svg, data) {
     .attr("fill", "black")
     .style("font-style", "italic");
 
-  if (data.data.values.length == 0) {
+  if (data.data.length == 0) {
     svg.style("background-color", "gray");
     return;
   }
 
+  console.log(data);
   // let values = data.data.values;
-  const processed = data.data.values.map((d, i) => ({ x: i, y: d }));
+  const processed = data.data.map((d, i) => ({ x: i, y: d }));
 
-  const margin = { top: 10, right: 10, bottom: 0, left: 0 };
+  console.log(processed);
+
+  const margin = { top: 10, right: 20, bottom: 0, left: 0 };
   const width = svg.node().clientWidth;
   const height = svg.node().clientHeight;
 
@@ -112,12 +171,16 @@ function drawingSmallMultipleUnit(svg, data) {
 
   const y = d3
     .scaleLinear()
-    .domain([0, d3.max(processed, (d) => d.y)])
+    .domain([
+      d3.min([0, d3.min(processed, (d) => d.y)]),
+      d3.max(processed, (d) => d.y),
+    ])
     .nice()
     .range([height, margin.top]);
 
   const line = d3
     .line()
+    .defined(d => d.y !== null && !isNaN(d.y))
     .x((d) => x(d.x))
     .y((d) => y(d.y));
 
@@ -129,12 +192,14 @@ function drawingSmallMultipleUnit(svg, data) {
     .attr("stroke-width", 1)
     .attr("d", line);
 
-  const trend = trendStrict(data.data.values.slice(-7));
-  const processed_last10 =  processed.slice(-7);
+    const last7 = processed.slice(-7).filter(d => d.y !== null);
+     const trend = trendStrict(last7.map(d => d.y));
+  
+//   const processed_last10 = processed.slice(-7);
 
   svg
     .append("path")
-    .datum(processed_last10)
+    .datum(last7)
     .attr("fill", "none")
     .attr("stroke", trend === 1 ? "green" : trend === -1 ? "red" : "gray")
     .attr("stroke-width", 3)
@@ -143,7 +208,7 @@ function drawingSmallMultipleUnit(svg, data) {
   svg
     .append("circle")
     .attr("cx", x(processed.length - 1))
-    .attr("cy", y(data.data.values.slice(-1)[0]))
+    .attr("cy", y(data.data.slice(-1)[0]))
     .attr("r", 3)
     .attr("stroke", "black")
     .attr("fill", trend === 1 ? "green" : trend === -1 ? "red" : "gray");
@@ -158,8 +223,6 @@ function drawingSmallMultiples(dataBySpace) {
 
   const unitHeight = 40;
   const unitWidth = svgContainer.clientWidth;
-
-//   console.log(dataBySpace);
 
   for (const data of dataBySpace) {
     // console.log(data);
@@ -218,6 +281,24 @@ function callInitSmallMultipleView() {
 
   document
     .getElementById("map-data-source-selector")
+    .addEventListener("sl-change", (event) => {
+      initSmallMultipleView();
+    });
+
+  document
+    .getElementById("map-type-switch")
+    .addEventListener("sl-change", (event) => {
+      initSmallMultipleView();
+    });
+
+  document
+    .getElementById("map-include-imputations")
+    .addEventListener("sl-change", (event) => {
+      initSmallMultipleView();
+    });
+
+  document
+    .getElementById("map-data-variable-selector")
     .addEventListener("sl-change", (event) => {
       initSmallMultipleView();
     });

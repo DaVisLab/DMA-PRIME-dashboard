@@ -12,7 +12,7 @@ import {
 export function drawRegionMap(targetMap, featuresDataBySpace, maps) {
   const map = targetMap;
 
-  initMap(targetMap, document.getElementById("state-map-div"));
+  initMap(targetMap);
 
   let values = featuresDataBySpace.map(
     (d) =>

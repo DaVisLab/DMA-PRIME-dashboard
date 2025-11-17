@@ -10,7 +10,7 @@ import {
 } from "./map-utiles.js";
 
 export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
-  initMap(targetMap, document.getElementById("county-map-div"));
+  initMap(targetMap);
 
   const featuresDataBySpace_region = maps.regional_data;
 

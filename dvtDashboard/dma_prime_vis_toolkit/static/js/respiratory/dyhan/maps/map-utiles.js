@@ -1,10 +1,7 @@
-export function initMap(
-  map,
-  divComponent,
-  options = { panning: false, zooming: false }
-) {
-  const el = divComponent.querySelector(".maplibregl-ctrl-bottom-right");
-  if (el) el.innerHTML = "";
+export function initMap(map, options = { panning: false, zooming: false }) {
+  document
+    .querySelectorAll(".maplibregl-ctrl-bottom-right")
+    .forEach((d) => d.remove());
 
   map.dragRotate.disable();
   if (options.panning === false) {
@@ -56,6 +53,8 @@ export function dehighlightLineComplete(map, layer) {
   map.setPaintProperty(layer, "line-width", 0);
 }
 
+
+
 export async function getSpatialData(space_resolution = "region") {
   const mapSpatialResoultion = space_resolution;
 
@@ -67,11 +66,44 @@ export async function getSpatialData(space_resolution = "region") {
     "map-data-source-selector"
   ).value;
 
+  const mapOutcomeSelector = document.getElementById(
+    "map-data-variable-selector"
+  ).value;
+
   let regionData = await d3.json(
     `/data/respiratory/${mapSpatialResoultion}/${mapDiseaseSelector}?data_version=current&${parseInt(
       Math.random() * 9999999999
     )}`
   );
+
+  let valueTypeSwitch = document.getElementById("map-type-switch").value;
+  let allowImputations = document.getElementById(
+    "map-include-imputations"
+  ).checked;
+
+  
+  function getValueOfInterest(valueType, featureProperties, allowImputations) {
+    if (!allowImputations && featureProperties.projected.imputed) {
+      return null;
+    }
+
+    let vals = featureProperties.projected.values;
+
+    if (valueType == "percentDifference") {
+      let thisWeekDatum = parseFloat(vals.at(-1));
+      let lastWeekDatum = parseFloat(vals.at(-2));
+
+      return ((thisWeekDatum - lastWeekDatum) / Math.abs(lastWeekDatum)) * 100;
+    } else if (valueType == "rate") {
+      return (vals.at(-1) / scPopulation) * 1000;
+    } else if (valueType == "count") {
+      // count
+      return vals.at(-1);
+    } else {
+      //default
+      return vals.at(-1);
+    }
+  }
 
   return regionData.features.map((d) => {
     if (mapSpatialResoultion == "state") {
@@ -82,8 +114,13 @@ export async function getSpatialData(space_resolution = "region") {
     } else if (mapSpatialResoultion == "zcta") {
       d.properties.id = d.properties.ZCTA;
     }
-    d.properties.projected_value =
-      d.properties.data.health_system.positive_tests.projected.values[1];
+
+    d.properties.projected_value = getValueOfInterest(
+      valueTypeSwitch,
+      d.properties.data[mapDataSourceSelector][mapOutcomeSelector],
+      allowImputations
+    );
+  
     return d;
   });
 }
@@ -97,31 +134,28 @@ export function fillAreaGeoJSONLayer(map, sourceID, layerID, paintOptions) {
     paint: {
       //   "fill-color": "#088",
       "fill-color": paintOptions["fill-color"],
-      "fill-opacity": paintOptions["fill-opacity"] != undefined
-        ? paintOptions["fill-opacity"]
-        : 1,
+      "fill-opacity":
+        paintOptions["fill-opacity"] != undefined
+          ? paintOptions["fill-opacity"]
+          : 1,
     },
   });
 }
 
-export function drawLineGeoJSONLayer(
-  map,
-  sourceID,
-  layerID,
-  paintOptions
-) {
+export function drawLineGeoJSONLayer(map, sourceID, layerID, paintOptions) {
   // draw line
   map.addLayer({
     id: layerID,
     type: "line", // Or 'fill', 'line', 'symbol' depending on your GeoJSON type
     source: sourceID,
     paint: {
-      "line-width": paintOptions["line-width"]
-        ? paintOptions["line-width"]
-        : 0.5,
       "line-color": paintOptions["line-color"]
         ? paintOptions["line-color"]
         : "gray",
+      "line-width":
+        paintOptions["line-width"] !== undefined
+          ? paintOptions["line-width"]
+          : 0.5,
     },
   });
 }

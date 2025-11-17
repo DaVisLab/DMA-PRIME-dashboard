@@ -11,7 +11,7 @@ import {
 
 export function drawZipMap(targetMap, featuresDataBySpace, maps) {
   // Add any initialization logic here
-  initMap(targetMap, document.getElementById("zip-map-div"), {
+  initMap(targetMap, {
     panning: true,
     zooming: true,
   });
@@ -91,7 +91,7 @@ export function drawZipMap(targetMap, featuresDataBySpace, maps) {
     maps.layers.region_map_layer.sourceID,
     maps.layers.region_map_layer.lineLayerID,
     {
-      "line-width": 0.5,
+      "line-width": 0.0,
       "line-color": "gray",
     }
   );
@@ -120,7 +120,7 @@ export function drawZipMap(targetMap, featuresDataBySpace, maps) {
     maps.layers.county_map_layer.sourceID,
     maps.layers.county_map_layer.lineLayerID,
     {
-      "line-width": 0.5,
+      "line-width": 0.0,
       "line-color": "gray",
     }
   );

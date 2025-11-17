@@ -1,8 +1,8 @@
-import { initMap, getSpatialData } from "./maps/map-utiles.js";
+import { getSpatialData } from "./maps/map-utiles.js";
 import { drawRegionMap } from "./maps/map-regionLevel.js";
 import { drawCountyMap } from "./maps/map-countyLevel.js";
 import { drawZipMap } from "./maps/map-zipLevel.js";
-export const maps = {};
+export let maps = {};
 
 function returnSCMaps(divID) {
   return new maplibregl.Map({
@@ -15,11 +15,31 @@ function returnSCMaps(divID) {
 }
 
 async function drawMap() {
-  maps.region_map = returnSCMaps("state-map-div");
 
-  maps.county_map = returnSCMaps("county-map-div");
+  document.getElementById('loading-spinner').style.visibility = 'visible';
 
-  maps.zip_map = returnSCMaps("zip-map-div");
+  const mapSpatialResoultion = document.getElementById(
+    "map-resolution-selector"
+  ).value;
+  console.log(mapSpatialResoultion);
+  maps = {};
+  maps.region_map = undefined;
+  maps.county_map = undefined;
+  maps.zip_map = undefined;
+
+  if (mapSpatialResoultion == "region") {
+    maps.region_map = returnSCMaps("focus-map-div");
+    maps.county_map = returnSCMaps("sub-map1-div");
+    maps.zip_map = returnSCMaps("sub-map2-div");
+  } else if (mapSpatialResoultion == "county") {
+    maps.county_map = returnSCMaps("focus-map-div");
+    maps.region_map = returnSCMaps("sub-map1-div");
+    maps.zip_map = returnSCMaps("sub-map2-div");
+  } else if (mapSpatialResoultion == "zcta") {
+    maps.zip_map = returnSCMaps("focus-map-div");
+    maps.region_map = returnSCMaps("sub-map1-div");
+    maps.county_map = returnSCMaps("sub-map2-div");
+  }
 
   Object.values(maps).forEach(async (map) => {
     map.on("load", function () {
@@ -58,6 +78,7 @@ async function drawMap() {
   drawZipMap(maps.zip_map, zip_data, maps);
 
   // console.log(maps.regional_data);
+  document.getElementById('loading-spinner').style.visibility = 'hidden';
 }
 
 await Promise.allSettled([
@@ -67,8 +88,49 @@ await Promise.allSettled([
   customElements.whenDefined("sl-button"),
 ]);
 
+function callInitSmallMultipleView() {
+  drawMap();
+
+  document
+    .getElementById("map-resolution-selector")
+    .addEventListener("sl-change", (event) => {
+      drawMap();
+    });
+
+  document
+    .getElementById("map-disease-selector")
+    .addEventListener("sl-change", (event) => {
+      drawMap();
+    });
+
+  document
+    .getElementById("map-data-source-selector")
+    .addEventListener("sl-change", (event) => {
+      drawMap();
+    });
+
+  document
+    .getElementById("map-type-switch")
+    .addEventListener("sl-change", (event) => {
+      drawMap();
+    });
+
+  document
+    .getElementById("map-include-imputations")
+    .addEventListener("sl-change", (event) => {
+      drawMap();
+    });
+
+  document
+    .getElementById("map-data-variable-selector")
+    .addEventListener("sl-change", (event) => {
+      drawMap();
+    });
+}
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", async () => drawMap());
+  document.addEventListener("DOMContentLoaded", () =>
+    callInitSmallMultipleView()
+  );
 } else {
-  (async () => drawMap())();
+  (async () => callInitSmallMultipleView())();
 }
