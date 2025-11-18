@@ -2,10 +2,10 @@
 options %}
 <div id="map-options" class="sidebar-container">
   <!-- reset map button (zoom & zcta selection) -->
-  <sl-button pill id="map-reset-button" class="center-self" size="small"
+  <!-- <sl-button pill id="map-reset-button" class="center-self" size="small"
     >Reset Map</sl-button
   >
-  <sl-divider class="options-divider"></sl-divider>
+  <sl-divider class="options-divider"></sl-divider> -->
 
   <!-- count vs rate switch -->
   <sl-radio-group
@@ -221,26 +221,7 @@ options %}
               border: 1px solid lightgray;
               box-shadow: 0.2rem 0.2rem #888888;
             "
-          >
-            <!-- <div
-              id="pause"
-              style="
-                position: relative;
-                top: 75%;
-                left: 3%;
-                z-index: 1;
-                background-color: lightgray;
-                opacity: 0.7;
-                width: 40%;
-                height: fit-content;
-                margin: 0;
-                padding: 5px;
-              "
-            >
-              State Map <br />
-              Color Scheme:
-            </div> -->
-          </div>
+          ></div>
         </div>
         <div class="col-md-6">
           <div
@@ -251,26 +232,7 @@ options %}
               border: 1px solid lightgray;
               box-shadow: 0.2rem 0.2rem #888888;
             "
-          >
-            <!-- <div
-              id="pause"
-              style="
-                position: relative;
-                top: 75%;
-                left: 3%;
-                z-index: 99;
-                background-color: lightgray;
-                opacity: 0.7;
-                width: 40%;
-                height: fit-content;
-                margin: 0;
-                padding: 5px;
-              "
-            >
-              County Map <br />
-              Color Scheme:
-            </div> -->
-          </div>
+          ></div>
         </div>
       </div>
     </div>
@@ -279,14 +241,101 @@ options %}
       class="col-md-2"
       style="border-left: 1px solid lightgray; height: 100%"
     >
-      <p style="font-size: 0.8rem; margin-top: 1rem; margin-bottom: 0">
-        Past Hospitalization Records
-      </p>
-      <hr style="margin-top: 0px" />
+      <div
+        style="
+          height: 18%;
+          border-bottom: 1px double lightgray;
+          font-size: 0.8rem;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        "
+      >
+        <div style="height: 20%; margin-top: 0.5rem; margin-bottom: 0">
+          Past Hospitalization Records
+        </div>
+
+        <div
+          style="
+            display: flex;
+            font-size: 0.7rem;
+            height: 30%;
+            flex-direction: column;
+            align-items: self-end;
+          "
+        >
+          <label
+            style="
+              padding: 0.25rem 0.5rem;
+              font-size: 0.75rem;
+              font-weight: bold;
+              margin: 0px;
+              padding: 0px;
+            "
+            >Sort By</label
+          >
+          <select
+            class="form-select form-select-sm input-sm"
+            id="floatingSelect"
+            aria-label="Floating label select example"
+            style="line-height: 14px; font-size: 0.7rem"
+          >
+            <option value="value-high">Value High-Low</option>
+            <option value="value-low">Value Low-High</option>
+            <option selected value="alphabetical-low">
+              Alphabetical A-Z-0-9
+            </option>
+            <option value="alphabetical-high">Alphanumerical 9-0-Z-A</option>
+          </select>
+        </div>
+
+        <div
+          style="
+            display: flex;
+            font-size: 0.7rem;
+            height: 30%;
+            flex-direction: column;
+            align-items: self-end;
+          "
+        >
+          <label
+            style="
+              padding: 0.25rem 0.5rem;
+              font-size: 0.75rem;
+              font-weight: bold;
+              padding: 0px;
+              margin: 0px;
+            "
+            >Filter By</label
+          >
+          <input
+            class="form-control form-control-sm"
+            id="floatingInput"
+            placeholder="ZCTA or County"
+            style="line-height: 14px; font-size: 0.7rem"
+          />
+        </div>
+
+        <hr style="margin: 0px" />
+      </div>
+
+      <div
+        id="respiratory-smallMultiples-region-of-interest"
+        style="
+          height: fit-content;
+          max-height: 82%;
+          width: fit-content;
+          background-color: white;
+          /* border: 2px solid black; */
+          border-radius: 0.1rem;
+          box-shadow: 0 0.2rem 0.2rem gray;
+          overflow-y: auto;
+          z-index: 10;
+        "
+      ></div>
       <div
         id="respiratory-smallMultiples-container"
-        class="fill-width"
-        style="height: 90%; width: 95%; overflow-y: auto; overflow-x: hidden"
+        style="height: 82%; width: 100%; overflow-y: auto; overflow-x: hidden"
       ></div>
     </div>
   </div>

@@ -8,6 +8,20 @@ import {
   drawStateHospitalizations,
 } from "/static/js/respiratory/script.js";
 
+import {
+  unitHeight,
+  pin_icon_path,
+  getCombinedBBox,
+  moveSmallMultipleUnitToROI,
+  resetSmallMultipleUnitPosition,
+} from "./smallMultiple-utils.js";
+
+import {
+  targetMapsAndLayersByCurrentSpatialResolution,
+  highlightLine,
+  dehighlightLine,
+} from "./maps/map-utiles.js";
+
 async function getSpatialData() {
   const mapSpatialResoultion = document.getElementById(
     "map-resolution-selector"
@@ -133,29 +147,82 @@ function trendStrict(arr) {
 }
 
 function drawingSmallMultipleUnit(svg, data) {
-  console.log(data);
-
-  svg.attr("id", `small-multiple-${data.name.replaceAll(" ", "-")}`);
-  // space label
   svg
+    .attr("id", `small-multiple-${data.name.replaceAll(" ", "-")}`)
+    .attr(
+      "class",
+      `small-multiple-unit small-multiple-item-${data.name.replaceAll(
+        " ",
+        "-"
+      )}`
+    )
+    .attr("isROI", "false")
+    .on("mouseover", function () {
+      let targets = targetMapsAndLayersByCurrentSpatialResolution();
+
+      highlightLine(
+        targets.targetMap,
+        targets.targetLayer.lineLayerID,
+        data.name
+      );
+    })
+    .on("mouseout", function () {
+      let targets = targetMapsAndLayersByCurrentSpatialResolution();
+
+      dehighlightLine(targets.targetMap, targets.targetLayer.lineLayerID);
+    });
+
+  let pinIcon = svg
+    .append("path")
+    .attr("class", "pin-feature")
+    .attr("d", pin_icon_path)
+    .attr("stroke", "gray")
+    .style("stroke-width", 1)
+    .style("transform", "scale(0.8)")
+    .attr("x", 1)
+    .attr("y", 3);
+
+  let textPlace = svg
     .append("text")
     .text(data.name)
-    .attr("x", 5)
+    .attr("x", 12)
     .attr("y", 12)
     .attr("font-size", 10)
     .attr("fill", "black")
     .style("font-style", "italic");
+
+  const box = getCombinedBBox(textPlace, pinIcon);
+
+  svg
+    .append("rect")
+    .attr("class", "pin-button")
+    .attr("x", box.minX)
+    .attr("y", box.minY)
+    .attr("width", box.width)
+    .attr("height", box.height)
+    .attr("fill", "white")
+    .attr("opacity", 0)
+    .style("cursor", "pointer")
+    .on("click", function () {
+      let selectionROI = d3.select(
+        `#small-multiple-${data.name.replaceAll(" ", "-")}`
+      );
+
+      if (selectionROI.attr("isROI") === "false") {
+        moveSmallMultipleUnitToROI(selectionROI, data.name);
+      } else {
+        resetSmallMultipleUnitPosition(data.name);
+      }
+    });
 
   if (data.data.length == 0) {
     svg.style("background-color", "gray");
     return;
   }
 
-  console.log(data);
+  //   console.log(data);
   // let values = data.data.values;
   const processed = data.data.map((d, i) => ({ x: i, y: d }));
-
-  console.log(processed);
 
   const margin = { top: 10, right: 20, bottom: 0, left: 0 };
   const width = svg.node().clientWidth;
@@ -180,7 +247,7 @@ function drawingSmallMultipleUnit(svg, data) {
 
   const line = d3
     .line()
-    .defined(d => d.y !== null && !isNaN(d.y))
+    .defined((d) => d.y !== null && !isNaN(d.y))
     .x((d) => x(d.x))
     .y((d) => y(d.y));
 
@@ -192,10 +259,10 @@ function drawingSmallMultipleUnit(svg, data) {
     .attr("stroke-width", 1)
     .attr("d", line);
 
-    const last7 = processed.slice(-7).filter(d => d.y !== null);
-     const trend = trendStrict(last7.map(d => d.y));
-  
-//   const processed_last10 = processed.slice(-7);
+  const last7 = processed.slice(-7).filter((d) => d.y !== null);
+  const trend = trendStrict(last7.map((d) => d.y));
+
+  //   const processed_last10 = processed.slice(-7);
 
   svg
     .append("path")
@@ -212,6 +279,8 @@ function drawingSmallMultipleUnit(svg, data) {
     .attr("r", 3)
     .attr("stroke", "black")
     .attr("fill", trend === 1 ? "green" : trend === -1 ? "red" : "gray");
+
+  return svg;
 }
 
 function drawingSmallMultiples(dataBySpace) {
@@ -221,19 +290,19 @@ function drawingSmallMultiples(dataBySpace) {
 
   svgContainer.innerHTML = "";
 
-  const unitHeight = 40;
+  //   const unitHeight = unitHeight;
   const unitWidth = svgContainer.clientWidth;
 
   for (const data of dataBySpace) {
-    // console.log(data);
-    // // svgContainer
+    // check whether the item is already positioned in ROI component
+
+    // if not draw new small multiple unit
     let svgUnitContainer = d3
       .select("#respiratory-smallMultiples-container")
       .append("div")
       .style("border-bottom", "2px solid lightgray")
       .style("height", unitHeight + "px")
       .style("width", unitWidth + "px")
-      // .style("background-color", "red")
       .style("margin-bottom", "0.2rem");
 
     let svg = svgUnitContainer
@@ -241,7 +310,19 @@ function drawingSmallMultiples(dataBySpace) {
       .attr("height", unitHeight)
       .attr("width", unitWidth);
 
-    drawingSmallMultipleUnit(svg, data);
+    let smallMultipleUnit = drawingSmallMultipleUnit(svg, data);
+
+    // if (
+    //   d3.select(`#small-multiple-${data.name.replaceAll(" ", "-")}`).empty() ==
+    //   false
+    // ) {
+    //   d3.select(`#small-multiple-${data.name.replaceAll(" ", "-")}`)
+    //     .node()
+    //     .parentNode.remove();
+    //   smallMultipleUnit.attr("isROI", "true");
+    //   moveSmallMultipleUnitToROI(smallMultipleUnit);
+    //   // already drawn small multiple unit
+    // }
   }
 }
 
@@ -257,11 +338,11 @@ async function initSmallMultipleView() {
   console.log(diseaseDataBySpace);
   drawingSmallMultiples(diseaseDataBySpace);
 
-  const ro = new ResizeObserver(() => {
-    drawingSmallMultiples(diseaseDataBySpace);
-  });
+  //   const ro = new ResizeObserver(() => {
+  //     drawingSmallMultiples(diseaseDataBySpace);
+  //   });
 
-  ro.observe(d3.select("#respiratory-smallMultiples-container").node());
+  //   ro.observe(d3.select("#respiratory-smallMultiples-container").node());
 }
 
 function callInitSmallMultipleView() {

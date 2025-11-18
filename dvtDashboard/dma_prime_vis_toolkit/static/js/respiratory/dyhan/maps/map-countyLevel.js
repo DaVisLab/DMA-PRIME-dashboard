@@ -9,6 +9,11 @@ import {
   fillAreaGeoJSONLayer,
 } from "./map-utiles.js";
 
+import {
+  highlightSmallMultipleUnit,
+  deHighlightSmallMultipleUnit,
+} from "../smallMultiple-utils.js";
+
 export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
   initMap(targetMap);
 
@@ -128,6 +133,8 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
       //     .setLngLat(coordinates)
       //     .setHTML('<h3>' + properties.name + '</h3>' + properties.description)
       //     .addTo(map);
+
+      highlightSmallMultipleUnit(`#small-multiple-${features.properties.id}`);
     }
   );
 
@@ -142,5 +149,7 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
       maps.zip_map,
       maps.layers.county_map_layer.fillLayerID
     );
+
+    deHighlightSmallMultipleUnit();
   });
 }

@@ -9,6 +9,11 @@ import {
   fillAreaGeoJSONLayer,
 } from "./map-utiles.js";
 
+import {
+  highlightSmallMultipleUnit,
+  deHighlightSmallMultipleUnit,
+} from "../smallMultiple-utils.js";
+
 export function drawRegionMap(targetMap, featuresDataBySpace, maps) {
   const map = targetMap;
 
@@ -113,6 +118,8 @@ export function drawRegionMap(targetMap, featuresDataBySpace, maps) {
         features.properties.id
       );
 
+      highlightSmallMultipleUnit(`#small-multiple-${features.properties.id}`);
+
       // // Create and add a popup
       // new maplibregl.Popup()
       //     .setLngLat(coordinates)
@@ -124,10 +131,24 @@ export function drawRegionMap(targetMap, featuresDataBySpace, maps) {
   targetMap.on("mouseout", maps.layers.region_map_layer.fillLayerID, () => {
     dehighlightLine(targetMap, maps.layers.region_map_layer.lineLayerID);
 
-    dehighlightLineComplete(maps.county_map, maps.layers.region_map_layer.lineLayerID);
-    removeDehighlightArea(maps.county_map, maps.layers.region_map_layer.fillLayerID);
+    dehighlightLineComplete(
+      maps.county_map,
+      maps.layers.region_map_layer.lineLayerID
+    );
+    removeDehighlightArea(
+      maps.county_map,
+      maps.layers.region_map_layer.fillLayerID
+    );
 
-    dehighlightLineComplete(maps.zip_map, maps.layers.region_map_layer.lineLayerID);
-    removeDehighlightArea(maps.zip_map, maps.layers.region_map_layer.fillLayerID);
+    dehighlightLineComplete(
+      maps.zip_map,
+      maps.layers.region_map_layer.lineLayerID
+    );
+    removeDehighlightArea(
+      maps.zip_map,
+      maps.layers.region_map_layer.fillLayerID
+    );
+
+    deHighlightSmallMultipleUnit();
   });
 }

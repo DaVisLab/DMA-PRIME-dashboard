@@ -15,7 +15,6 @@ function returnSCMaps(divID) {
 }
 
 async function drawMap() {
-
   document.getElementById('loading-spinner').style.visibility = 'visible';
 
   const mapSpatialResoultion = document.getElementById(

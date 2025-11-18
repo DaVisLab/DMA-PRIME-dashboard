@@ -1,3 +1,5 @@
+import { maps } from "../mapManager.js";
+
 export function initMap(map, options = { panning: false, zooming: false }) {
   document
     .querySelectorAll(".maplibregl-ctrl-bottom-right")
@@ -53,8 +55,6 @@ export function dehighlightLineComplete(map, layer) {
   map.setPaintProperty(layer, "line-width", 0);
 }
 
-
-
 export async function getSpatialData(space_resolution = "region") {
   const mapSpatialResoultion = space_resolution;
 
@@ -81,7 +81,6 @@ export async function getSpatialData(space_resolution = "region") {
     "map-include-imputations"
   ).checked;
 
-  
   function getValueOfInterest(valueType, featureProperties, allowImputations) {
     if (!allowImputations && featureProperties.projected.imputed) {
       return null;
@@ -120,7 +119,7 @@ export async function getSpatialData(space_resolution = "region") {
       d.properties.data[mapDataSourceSelector][mapOutcomeSelector],
       allowImputations
     );
-  
+
     return d;
   });
 }
@@ -158,4 +157,27 @@ export function drawLineGeoJSONLayer(map, sourceID, layerID, paintOptions) {
           : 0.5,
     },
   });
+}
+
+export function targetMapsAndLayersByCurrentSpatialResolution() {
+  const mapSpatialResoultion = document.getElementById(
+    "map-resolution-selector"
+  ).value;
+
+  if (mapSpatialResoultion == "region") {
+    return {
+      targetMap: maps.region_map,
+      targetLayer: maps.layers.region_map_layer,
+    };
+  } else if (mapSpatialResoultion == "county") {
+    return {
+      targetMap: maps.county_map,
+      targetLayer: maps.layers.county_map_layer,
+    };
+  } else if (mapSpatialResoultion == "zcta") {
+    return {
+      targetMap: maps.zip_map,
+      targetLayer: maps.layers.zip_map_layer,
+    };
+  }
 }

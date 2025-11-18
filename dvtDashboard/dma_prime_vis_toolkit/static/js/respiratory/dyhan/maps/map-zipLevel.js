@@ -9,6 +9,13 @@ import {
   fillAreaGeoJSONLayer,
 } from "./map-utiles.js";
 
+import {
+  highlightSmallMultipleUnit,
+  deHighlightSmallMultipleUnit,
+  moveSmallMultipleUnitToROI,
+  resetSmallMultipleUnitPosition,
+} from "../smallMultiple-utils.js";
+
 export function drawZipMap(targetMap, featuresDataBySpace, maps) {
   // Add any initialization logic here
   initMap(targetMap, {
@@ -137,6 +144,14 @@ export function drawZipMap(targetMap, featuresDataBySpace, maps) {
     //     .setLngLat(coordinates)
     //     .setHTML('<h3>' + properties.name + '</h3>' + properties.description)
     //     .addTo(map);
+
+    console.log(features.properties.id);
+    const smallMultipleId = d3.select(
+      `#small-multiple-${features.properties.id}`
+    );
+
+    moveSmallMultipleUnitToROI(smallMultipleId, features.properties.id);
+    console.log(maps.layers.zip_map_layer.fillLayerID);
   });
 
   targetMap.on(
@@ -154,11 +169,9 @@ export function drawZipMap(targetMap, featuresDataBySpace, maps) {
         maps.layers.zip_map_layer.lineLayerID,
         features.properties.id
       );
-      // // Create and add a popup
-      // new maplibregl.Popup()
-      //     .setLngLat(coordinates)
-      //     .setHTML('<h3>' + properties.name + '</h3>' + properties.description)
-      //     .addTo(map);
+
+      // console.log(features.properties.id);
+      highlightSmallMultipleUnit(`#small-multiple-${features.properties.id}`);
     }
   );
 
@@ -167,6 +180,7 @@ export function drawZipMap(targetMap, featuresDataBySpace, maps) {
     maps.layers.zip_map_layer.fillLayerID,
     () => {
       dehighlightLine(targetMap, maps.layers.zip_map_layer.lineLayerID);
+      deHighlightSmallMultipleUnit();
     }
     //   function (e) {
     //   targetMap.setPaintProperty("my-geojson-layer2", "line-color", "gray");
