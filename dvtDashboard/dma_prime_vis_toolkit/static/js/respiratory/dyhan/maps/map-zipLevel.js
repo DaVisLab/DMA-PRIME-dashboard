@@ -14,7 +14,7 @@ import {
   deHighlightSmallMultipleUnit,
   moveSmallMultipleUnitToROI,
   resetSmallMultipleUnitPosition,
-} from "../smallMultiple-utils.js";
+} from "../smallMultiples/smallMultiple-utils.js";
 
 export function drawZipMap(targetMap, featuresDataBySpace, maps) {
   // Add any initialization logic here
@@ -139,18 +139,30 @@ export function drawZipMap(targetMap, featuresDataBySpace, maps) {
     const features = e.features[0];
     const coordinates = features.geometry.coordinates;
     const properties = features.properties;
-    // // Create and add a popup
-    // new maplibregl.Popup()
-    //     .setLngLat(coordinates)
-    //     .setHTML('<h3>' + properties.name + '</h3>' + properties.description)
-    //     .addTo(map);
 
-    console.log(features.properties.id);
-    const smallMultipleId = d3.select(
-      `#small-multiple-${features.properties.id}`
-    );
+    // console.log(features.properties.id);
+    //
 
-    moveSmallMultipleUnitToROI(smallMultipleId, features.properties.id);
+    if (!maps.regionOfInterest.includes(features.properties.id)) {
+      const smallMultipleId = d3.select(
+        `#small-multiple-${features.properties.id}`
+      );
+      moveSmallMultipleUnitToROI(smallMultipleId, features.properties.id);
+
+      maps.regionOfInterest.push(features.properties.id);
+    } else {
+      maps.regionOfInterest = maps.regionOfInterest.filter(
+        (d) => d !== features.properties.id
+      );
+      resetSmallMultipleUnitPosition(features.properties.id);
+    }
+
+    // if (features.properties.clicked === true) {
+    //   features.properties.clicked = false;
+    // } else {
+    //   features.properties.clicked = true;
+    // }
+
     console.log(maps.layers.zip_map_layer.fillLayerID);
   });
 
@@ -164,11 +176,10 @@ export function drawZipMap(targetMap, featuresDataBySpace, maps) {
       const properties = features.properties;
       // console.log(features);
 
-      highlightLine(
-        targetMap,
-        maps.layers.zip_map_layer.lineLayerID,
-        features.properties.id
-      );
+      highlightLine(targetMap, maps.layers.zip_map_layer.lineLayerID, [
+        features.properties.id,
+        ...maps.regionOfInterest,
+      ]);
 
       // console.log(features.properties.id);
       highlightSmallMultipleUnit(`#small-multiple-${features.properties.id}`);
@@ -179,7 +190,12 @@ export function drawZipMap(targetMap, featuresDataBySpace, maps) {
     "mouseout",
     maps.layers.zip_map_layer.fillLayerID,
     () => {
-      dehighlightLine(targetMap, maps.layers.zip_map_layer.lineLayerID);
+      dehighlightLine(
+        targetMap,
+        maps.layers.zip_map_layer.lineLayerID,
+        maps.regionOfInterest
+      );
+      // dehighlightLine(targetMap, maps.layers.zip_map_layer.lineLayerID);
       deHighlightSmallMultipleUnit();
     }
     //   function (e) {

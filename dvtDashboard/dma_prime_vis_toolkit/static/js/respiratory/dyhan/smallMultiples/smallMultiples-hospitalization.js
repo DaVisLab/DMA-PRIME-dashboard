@@ -20,7 +20,9 @@ import {
   targetMapsAndLayersByCurrentSpatialResolution,
   highlightLine,
   dehighlightLine,
-} from "./maps/map-utiles.js";
+} from "../maps/map-utiles.js";
+
+import { maps } from "../mapManager.js";
 
 async function getSpatialData() {
   const mapSpatialResoultion = document.getElementById(
@@ -101,16 +103,19 @@ async function getSpatialData() {
 
     if (mapSpatialResoultion == "state") {
     } else if (mapSpatialResoultion == "region") {
+      returnValue.id = d.properties.Region;
       returnValue.name = d.properties.Region;
     } else if (mapSpatialResoultion == "county") {
+      returnValue.id = d.properties.NAME;
       returnValue.name = d.properties.NAME;
       returnValue.countyName = d.properties.NAME;
     } else if (mapSpatialResoultion == "zcta") {
+      returnValue.id = d.properties.ZCTA;
       returnValue.name = d.properties.ZCTA;
       returnValue.zipName = d.properties.ZCTA;
       returnValue.countyName = d.properties.county;
     }
-
+    returnValue.id = returnValue.id.toLowerCase().replaceAll(" ", "_");
     returnValue.data = getValueOfInterest(
       valueTypeSwitch,
       d.properties.data[mapDataSourceSelector][mapOutcomeSelector],
@@ -147,29 +152,27 @@ function trendStrict(arr) {
 }
 
 function drawingSmallMultipleUnit(svg, data) {
+  console.log(data);
   svg
-    .attr("id", `small-multiple-${data.name.replaceAll(" ", "-")}`)
-    .attr(
-      "class",
-      `small-multiple-unit small-multiple-item-${data.name.replaceAll(
-        " ",
-        "-"
-      )}`
-    )
+    .attr("id", `small-multiple-${data.id}`)
+    .attr("class", `small-multiple-unit small-multiple-item-${data.id}`)
     .attr("isROI", "false")
     .on("mouseover", function () {
       let targets = targetMapsAndLayersByCurrentSpatialResolution();
 
-      highlightLine(
-        targets.targetMap,
-        targets.targetLayer.lineLayerID,
-        data.name
-      );
+      highlightLine(targets.targetMap, targets.targetLayer.lineLayerID, [
+        data.id,
+        ...maps.regionOfInterest,
+      ]);
     })
     .on("mouseout", function () {
       let targets = targetMapsAndLayersByCurrentSpatialResolution();
 
-      dehighlightLine(targets.targetMap, targets.targetLayer.lineLayerID);
+      dehighlightLine(
+        targets.targetMap,
+        targets.targetLayer.lineLayerID,
+        maps.regionOfInterest
+      );
     });
 
   let pinIcon = svg
@@ -204,15 +207,29 @@ function drawingSmallMultipleUnit(svg, data) {
     .attr("opacity", 0)
     .style("cursor", "pointer")
     .on("click", function () {
-      let selectionROI = d3.select(
-        `#small-multiple-${data.name.replaceAll(" ", "-")}`
-      );
+      let selectionROI = d3.select(`#small-multiple-${data.id}`);
 
-      if (selectionROI.attr("isROI") === "false") {
-        moveSmallMultipleUnitToROI(selectionROI, data.name);
+      if (!maps.regionOfInterest.includes(data.id)) {
+        moveSmallMultipleUnitToROI(selectionROI, data.id);
+        maps.regionOfInterest.push(data.id);
       } else {
-        resetSmallMultipleUnitPosition(data.name);
+        resetSmallMultipleUnitPosition(data.id);
+        maps.regionOfInterest = maps.regionOfInterest.filter(
+          (d) => d !== data.id
+        );
       }
+
+      // if (selectionROI.attr("isROI") === "false") {
+      //   moveSmallMultipleUnitToROI(selectionROI, data.name);
+      //   maps.regionOfInterest.push(data.name);
+      // } else {
+      //   resetSmallMultipleUnitPosition(data.name);
+      //   console.log("???")
+      //   maps.regionOfInterest = maps.regionOfInterest.filter(
+      //     (d) => d !== data.name
+      //   );
+
+      // }
     });
 
   if (data.data.length == 0) {
@@ -310,19 +327,7 @@ function drawingSmallMultiples(dataBySpace) {
       .attr("height", unitHeight)
       .attr("width", unitWidth);
 
-    let smallMultipleUnit = drawingSmallMultipleUnit(svg, data);
-
-    // if (
-    //   d3.select(`#small-multiple-${data.name.replaceAll(" ", "-")}`).empty() ==
-    //   false
-    // ) {
-    //   d3.select(`#small-multiple-${data.name.replaceAll(" ", "-")}`)
-    //     .node()
-    //     .parentNode.remove();
-    //   smallMultipleUnit.attr("isROI", "true");
-    //   moveSmallMultipleUnitToROI(smallMultipleUnit);
-    //   // already drawn small multiple unit
-    // }
+    drawingSmallMultipleUnit(svg, data);
   }
 }
 
@@ -335,14 +340,18 @@ if (document.readyState === "loading") {
 async function initSmallMultipleView() {
   const diseaseDataBySpace = await getSpatialData();
 
-  console.log(diseaseDataBySpace);
+  // console.log(diseaseDataBySpace);
   drawingSmallMultiples(diseaseDataBySpace);
 
-  //   const ro = new ResizeObserver(() => {
-  //     drawingSmallMultiples(diseaseDataBySpace);
-  //   });
+  window.addEventListener("resize", () => {
+    drawingSmallMultiples(diseaseDataBySpace);
+  });
 
-  //   ro.observe(d3.select("#respiratory-smallMultiples-container").node());
+  // const ro = new ResizeObserver(() => {
+  //   drawingSmallMultiples(diseaseDataBySpace);
+  // });
+
+  // ro.observe(d3.select("#respiratory-smallMultiples-container").node());
 }
 
 function callInitSmallMultipleView() {

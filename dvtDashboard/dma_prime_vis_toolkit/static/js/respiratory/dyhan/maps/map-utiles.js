@@ -16,25 +16,59 @@ export function initMap(map, options = { panning: false, zooming: false }) {
   }
 }
 
-export function highlightLine(map, layer, lineId) {
+export function highlightLine(map, layer, ROIs) {
   map.setPaintProperty(layer, "line-color", [
     "case",
-    ["==", ["get", "id"], lineId],
+    ["in", ["get", "id"], ["literal", ROIs]],
+    "blue",
+    "gray",
+  ]);
+
+  // map.setPaintProperty(layer, "line-color", [
+  //   "case",
+  //   ["==", ["get", "id"], lineId],
+  //   "blue",
+  //   "gray",
+  // ]);
+
+  // map.setPaintProperty(layer, "line-width", [
+  //   "case",
+  //   ["==", ["get", "id"], lineId],
+  //   2,
+  //   0.5,
+  // ]);
+
+  map.setPaintProperty(layer, "line-width", [
+    "case",
+    ["in", ["get", "id"], ["literal", ROIs]],
+    2,
+    0.5,
+  ]);
+}
+
+// export function dehighlightLine(map, layer) {
+//   map.setPaintProperty(layer, "line-color", "gray");
+//   map.setPaintProperty(layer, "line-width", 0.5);
+// }
+
+export function dehighlightLine(map, layer, ROIs) {
+
+  // map.setPaintProperty(layer, "line-color", "gray");
+  // map.setPaintProperty(layer, "line-width", 0.5);
+
+  map.setPaintProperty(layer, "line-color", [
+    "case",
+    ["in", ["get", "id"], ["literal", ROIs]],
     "blue",
     "gray",
   ]);
 
   map.setPaintProperty(layer, "line-width", [
     "case",
-    ["==", ["get", "id"], lineId],
+    ["in", ["get", "id"], ["literal", ROIs]],
     2,
     0.5,
   ]);
-}
-
-export function dehighlightLine(map, layer) {
-  map.setPaintProperty(layer, "line-color", "gray");
-  map.setPaintProperty(layer, "line-width", 0.5);
 }
 
 export function dehighlightArea(map, layer, areaID) {
@@ -108,12 +142,16 @@ export async function getSpatialData(space_resolution = "region") {
     if (mapSpatialResoultion == "state") {
     } else if (mapSpatialResoultion == "region") {
       d.properties.id = d.properties.Region;
+      d.properties.name = d.properties.Region;
     } else if (mapSpatialResoultion == "county") {
       d.properties.id = d.properties.NAME;
+      d.properties.name = d.properties.NAME;
     } else if (mapSpatialResoultion == "zcta") {
       d.properties.id = d.properties.ZCTA;
+      d.properties.name = d.properties.ZCTA;
     }
 
+    d.properties.id = d.properties.id.toLowerCase().replaceAll(" ", "_");
     d.properties.projected_value = getValueOfInterest(
       valueTypeSwitch,
       d.properties.data[mapDataSourceSelector][mapOutcomeSelector],
@@ -131,7 +169,6 @@ export function fillAreaGeoJSONLayer(map, sourceID, layerID, paintOptions) {
     type: "fill",
     source: sourceID,
     paint: {
-      //   "fill-color": "#088",
       "fill-color": paintOptions["fill-color"],
       "fill-opacity":
         paintOptions["fill-opacity"] != undefined

@@ -25,6 +25,7 @@ async function drawMap() {
   maps.region_map = undefined;
   maps.county_map = undefined;
   maps.zip_map = undefined;
+  
 
   if (mapSpatialResoultion == "region") {
     maps.region_map = returnSCMaps("focus-map-div");
@@ -46,6 +47,7 @@ async function drawMap() {
     });
   });
 
+  maps.regionOfInterest = [];
   const regional_data = await getSpatialData();
   const county_data = await getSpatialData("county");
   const zip_data = await getSpatialData("zcta");

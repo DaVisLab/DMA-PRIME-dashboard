@@ -340,14 +340,6 @@ options %}
     </div>
   </div>
 </div>
-<!-- 
-<div class="fill-width fill-height" id="map-div"></div>
-<div id="choropleth-legend">
-  <svg id="choropleth-legend-svg"></svg>
-</div>
-<div id="map-title-container" class="fill-width">
-  <p id="map-title">Count of COVID-19 Hospitalizations in South Carolina by Region</p>
-</div> -->
 
 {% endblock %} {% block scripts %}
 <!-- 1) MapLibre GL CSS & JS (required for maplibregl.Map) -->
@@ -379,27 +371,11 @@ options %}
   type="module"
 ></script> -->
 <script
-  src="{{ url_for('static', filename='js/respiratory/dyhan/smallMultiples-hospitalization.js') }}"
+  src="{{ url_for('static', filename='js/respiratory/dyhan/smallMultiples/smallMultiples-hospitalization.js') }}"
   type="module"
 ></script>
 <script
   src="{{ url_for('static', filename='js/respiratory/dyhan/mapManager.js') }}"
   type="module"
 ></script>
-<!-- <script
-  src="{{ url_for('static', filename='js/respiratory/dyhan/maps/map-stateLevel.js') }}"
-  type="module"
-></script>
-<script
-  src="{{ url_for('static', filename='js/respiratory/dyhan/maps/map-countyLevel.js') }}"
-  type="module"
-></script>
-<script
-  src="{{ url_for('static', filename='js/respiratory/dyhan/maps/map-zipLevel.js') }}"
-  type="module"
-></script> -->
-<!-- <script
-  src="{{ url_for('static', filename='js/respiratory/dyhan/map-interactions.js') }}"
-  type="module"
-></script> -->
 {% endblock %}

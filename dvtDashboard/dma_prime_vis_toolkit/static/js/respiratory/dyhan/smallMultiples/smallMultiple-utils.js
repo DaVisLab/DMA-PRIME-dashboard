@@ -79,7 +79,6 @@ export function moveSmallMultipleUnitToROI(smallMultipleROI, featureID) {
   const cloneSelection = d3.select(`#cloned-small-multiple-${key}`);
 
   originalSelection.select(".pin-feature").attr("stroke", "red");
-  originalSelection.attr("isROI", "true");
   cloneSelection
     .on("mouseover", () => {
       originalSelection.node().dispatchEvent(new MouseEvent("mouseover"));
@@ -88,10 +87,15 @@ export function moveSmallMultipleUnitToROI(smallMultipleROI, featureID) {
       originalSelection.node().dispatchEvent(new MouseEvent("mouseout"));
     }); // disable hover effect on clone
   cloneSelection.select(".pin-feature").attr("stroke", "red");
+
   cloneSelection.select(".pin-button").on("click", function () {
-    resetSmallMultipleUnitPosition(featureID);
+    // resetSmallMultipleUnitPosition(featureID);
+    originalSelection
+      .select(".pin-button")
+      .node()
+      .dispatchEvent(new MouseEvent("click"));
   });
-  cloneSelection.attr("isROI", "true");
+
   let numberOfChildren = roiContainer.childElementCount;
   document.getElementById(
     "respiratory-smallMultiples-container"

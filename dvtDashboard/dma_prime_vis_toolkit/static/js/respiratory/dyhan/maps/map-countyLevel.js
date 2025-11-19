@@ -12,7 +12,9 @@ import {
 import {
   highlightSmallMultipleUnit,
   deHighlightSmallMultipleUnit,
-} from "../smallMultiple-utils.js";
+  moveSmallMultipleUnitToROI,
+  resetSmallMultipleUnitPosition,
+} from "../smallMultiples/smallMultiple-utils.js";
 
 export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
   initMap(targetMap);
@@ -95,6 +97,20 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
     const coordinates = features.geometry.coordinates;
     const properties = features.properties;
     // // Create and add a popup
+
+    if (!maps.regionOfInterest.includes(features.properties.id)) {
+      const smallMultipleId = d3.select(
+        `#small-multiple-${features.properties.id}`
+      );
+      moveSmallMultipleUnitToROI(smallMultipleId, features.properties.id);
+
+      maps.regionOfInterest.push(features.properties.id);
+    } else {
+      maps.regionOfInterest = maps.regionOfInterest.filter(
+        (d) => d !== features.properties.id
+      );
+      resetSmallMultipleUnitPosition(features.properties.id);
+    }
     // new maplibregl.Popup()
     //     .setLngLat(coordinates)
     //     .setHTML('<h3>' + properties.name + '</h3>' + properties.description)
@@ -111,11 +127,10 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
       const properties = features.properties;
       // console.log(features);
 
-      highlightLine(
-        targetMap,
-        maps.layers.county_map_layer.lineLayerID,
-        features.properties.id
-      );
+      highlightLine(targetMap, maps.layers.county_map_layer.lineLayerID, [
+        features.properties.id,
+        ...maps.regionOfInterest,
+      ]);
 
       highlightLine(
         maps.zip_map,
@@ -139,7 +154,11 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
   );
 
   targetMap.on("mouseout", maps.layers.county_map_layer.fillLayerID, () => {
-    dehighlightLine(targetMap, maps.layers.county_map_layer.lineLayerID);
+    dehighlightLine(
+      targetMap,
+      maps.layers.county_map_layer.lineLayerID,
+      maps.regionOfInterest
+    );
 
     dehighlightLineComplete(
       maps.zip_map,
