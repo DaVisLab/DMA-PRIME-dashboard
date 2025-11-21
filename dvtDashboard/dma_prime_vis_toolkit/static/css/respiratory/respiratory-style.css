@@ -18,6 +18,10 @@
 }
 
 /* for ttp */
+.tooltip-outer-svg {
+  overflow: visible;
+}
+
 .tooltip-div {
   background-color: white;
 }

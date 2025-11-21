@@ -433,6 +433,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
 
 // Reset svg and get it ready for new viz
     ttpSVG.node().innerHTML = ""
+    var dataPointTTP = ttpSVG.append("g").attr("class", "data-point-ttp")
     var graphSVG = ttpSVG.append("svg")
         .attr("class", "tooltip-graph-svg")
         .attr("height", ttpHeight)
@@ -445,7 +446,6 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
     var xAxisPrediction = ttpSVG.append("g")
         .attr("class", "x-axis-prediction")
     
-    var dataPointTTP = ttpSVG.append("g").attr("class", "data-point-ttp")
 // create scales
     // apply rate if necessaryand figure find max y value
     var countMax = panelType == "rate" ? 1/d.population : 1 // so y scale is never 0-0
@@ -467,7 +467,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
     // figure out how much space is needed for the y-axis text
     var temp = ttpSVG.append("text").text(d3.format(".2r")(countMax)).attr("x", 0).attr("y", 0)
     var ttpMargins = {
-        "top": 1*em, 
+        "top": 2*em, 
         "bottom": 2.5*em,
         "left": Math.max(20, temp.node().getBBox().width) + 2*em,
         "right": em,
@@ -549,12 +549,19 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
                 valueTypeStr = "Count"
                 break;
         } 
-        
+                
         dataPointTTP.append("text").text(dateStr)
         dataPointTTP.append("text").text(`${valueTypeStr}: ${valueStr}`)
             .attr("transform", `translate(0, ${.75*em})`)
+        dataPointTTP.append("path")
+            .attr("stroke", "black")
+            .attr("stroke-width", 1)
+            .attr("d", `M 0 0 l 0 ${ttpHeight - (ttpMargins.bottom + 2*em )}`)
+            .attr("transform", `translate(0, ${1*em})`)
 
-        dataPointTTP.attr("transform", `translate(${dataShapeBBox.x + dataShapeBBox.width/2}, ${dataShapeBBox.y-.75*em})`)
+
+        dataPointTTP.attr("transform", `translate(${dataShapeBBox.x + dataShapeBBox.width/2 + thisDataPointShape.getCTM().e}, ${1*em})`)
+        console.log(thisDataPointShape)
     }
 
 // visualize historical

@@ -41,10 +41,12 @@ d3.select(popup.getElement()).style("color", "var(--sl-color-neutral-0)")
 
 const deckOverlay = new MapboxOverlay({
     interleaved: true,
+    getCursor: ({isHovering, isDragging}) => {if (isHovering) {return 'pointer'} else if (isDragging) {return 'grabbing'} else {return 'grab'}},
 })
 
 map.addControl(deckOverlay)
 map.addControl(new maplibregl.NavigationControl())
+map.setMaxPitch(0)
 
 await Promise.allSettled([ // wait for following to be defined/load in
     customElements.whenDefined('sl-select'),

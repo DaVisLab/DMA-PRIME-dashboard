@@ -31,15 +31,15 @@
   <!-- region selector -->
   <sl-select value="county" id="map-geographic-unit-selector" class="fill-width map-option" size="small" disabled>
     <p slot="label">Geographic unit</p>
-    {% for region in metadata['available_models']['covid_19'].keys() %}
+    {% for region in metadata['available_models']['respiratory_diseases'].keys() %}
     <sl-option class="map-geographic-unit-option" value="{{ region }}">{{ metadata['region_sizes'][region] }}</sl-option>
     {% endfor %}
   </sl-select>
 
   <!-- population -->
-  <sl-select value="general_population" id="map-population-selector" class="fill-width map-option" size="small" disabled>
+  <sl-select value="{{ metadata['available_models']['respiratory_diseases']['county'] | list | first }}" id="map-population-selector" class="fill-width map-option" size="small" disabled>
     <p slot="label">Select population</p>
-    {% for population in metadata['available_models']['covid_19']['region'].keys() %}
+    {% for population in metadata['available_models']['respiratory_diseases']['county'].keys() %}
     <sl-tooltip class="map-population-tooltip" content="{{ metadata['populations_tooltips'][population] }}" trigger="hover" hoist>
       <sl-option class="map-population-option" value="{{ population }}">{{ metadata['populations'][population] }}</sl-option>
     </sl-tooltip>
@@ -49,7 +49,7 @@
   <!-- outcome variable -->
   <sl-select value="all_encounters" id="map-outcome-variable-selector" class="fill-width map-option" size="small" disabled>
     <p slot="label">Select outcome variable</p>
-    {% for outcome in metadata['available_models']['covid_19']['region']['general_population'] %}
+    {% for outcome in metadata['available_models']['respiratory_diseases']['county'].values() | first %}
     <sl-tooltip class="map-outcome-tooltip" content="{{ metadata['outcome_variables_tooltips'][outcome] }}" trigger="hover" hoist>
       <sl-option class="map-outcome-option" value="{{ outcome }}">{{ metadata['outcome_variables'][outcome] }}</sl-option>
     </sl-tooltip>

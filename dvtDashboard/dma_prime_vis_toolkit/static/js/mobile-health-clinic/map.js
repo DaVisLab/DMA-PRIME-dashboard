@@ -1,4 +1,4 @@
-const {DeckGL, IconLayer, FlyToInterpolator} = deck;
+const {DeckGL, GeoJsonLayer, IconLayer, FlyToInterpolator} = deck;
 
 var mobileHealthClinics = [
 ]
@@ -23,6 +23,26 @@ function redraw(highlightIndex=-1) {
   hIndex = highlightIndex == null ? deckgl.layerManager.layers[0].props.highlightedObjectIndex : highlightIndex
   deckgl.setProps({
     layers: [
+    new GeoJsonLayer({
+      id: 'state_outline',
+      pickable: false,
+      data: d3.json('/data/map/state'),
+      stroked: true,
+      filled: false,
+      lineWidthMinPixels: 2,
+      getLineWidth: 40,
+      getLineColor: [64, 64, 64],
+    }),
+    new GeoJsonLayer({
+      id: 'county_outline',
+      pickable: false,
+      data: d3.json('/data/map/county'),
+      stroked: true,
+      filled: false,
+      lineWidthMinPixels: 1,
+      getLineWidth: 20,
+      getLineColor: [64, 64, 64],
+    }),
     new IconLayer({
       id: 'mobile-health-clinic',
       data: d3.json(`/data/mobile-health-clinic-events?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`).then(data => {
