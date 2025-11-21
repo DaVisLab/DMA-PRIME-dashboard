@@ -1,4 +1,4 @@
-import { getSpatialData } from "./maps/map-utiles.js";
+import { addMapLegendTitle, getSpatialData,  } from "./maps/map-utiles.js";
 import { drawRegionMap } from "./maps/map-regionLevel.js";
 import { drawCountyMap } from "./maps/map-countyLevel.js";
 import { drawZipMap } from "./maps/map-zipLevel.js";
@@ -15,7 +15,7 @@ function returnSCMaps(divID) {
 }
 
 async function drawMap() {
-  document.getElementById('loading-spinner').style.visibility = 'visible';
+  document.getElementById("loading-spinner").style.visibility = "visible";
 
   const mapSpatialResoultion = document.getElementById(
     "map-resolution-selector"
@@ -25,20 +25,25 @@ async function drawMap() {
   maps.region_map = undefined;
   maps.county_map = undefined;
   maps.zip_map = undefined;
-  
 
   if (mapSpatialResoultion == "region") {
     maps.region_map = returnSCMaps("focus-map-div");
     maps.county_map = returnSCMaps("sub-map1-div");
     maps.zip_map = returnSCMaps("sub-map2-div");
+
+    addMapLegendTitle("region");
   } else if (mapSpatialResoultion == "county") {
     maps.county_map = returnSCMaps("focus-map-div");
     maps.region_map = returnSCMaps("sub-map1-div");
     maps.zip_map = returnSCMaps("sub-map2-div");
+
+    addMapLegendTitle("county");
   } else if (mapSpatialResoultion == "zcta") {
     maps.zip_map = returnSCMaps("focus-map-div");
     maps.region_map = returnSCMaps("sub-map1-div");
     maps.county_map = returnSCMaps("sub-map2-div");
+
+    addMapLegendTitle("zcta");
   }
 
   Object.values(maps).forEach(async (map) => {
@@ -48,6 +53,7 @@ async function drawMap() {
   });
 
   maps.regionOfInterest = [];
+  
   const regional_data = await getSpatialData();
   const county_data = await getSpatialData("county");
   const zip_data = await getSpatialData("zcta");
@@ -79,7 +85,7 @@ async function drawMap() {
   drawZipMap(maps.zip_map, zip_data, maps);
 
   // console.log(maps.regional_data);
-  document.getElementById('loading-spinner').style.visibility = 'hidden';
+  document.getElementById("loading-spinner").style.visibility = "hidden";
 }
 
 await Promise.allSettled([

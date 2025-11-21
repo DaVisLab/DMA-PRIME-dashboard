@@ -1062,6 +1062,7 @@ async function changeDataColumn() {
     regionData = await d3.json(`/data/outbreak-detection/${mapRegionSelector.value}/${mapOutcomeVariableSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`)
     stateFeature = regionData.features.find(d => d.properties.identifier == "state")
 
+    console.log(regionData)
     if (selectedItems.region) {
         selectedItems.region = regionData.features.find(d => d.properties.identifier == selectedItems.region.properties.identifier)
     }

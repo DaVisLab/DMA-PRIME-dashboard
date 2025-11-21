@@ -152,7 +152,7 @@ function trendStrict(arr) {
 }
 
 function drawingSmallMultipleUnit(svg, data) {
-  console.log(data);
+  // console.log(data);
   svg
     .attr("id", `small-multiple-${data.id}`)
     .attr("class", `small-multiple-unit small-multiple-item-${data.id}`)

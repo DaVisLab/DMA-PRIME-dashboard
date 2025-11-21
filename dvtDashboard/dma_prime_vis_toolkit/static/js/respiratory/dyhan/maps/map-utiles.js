@@ -52,7 +52,6 @@ export function highlightLine(map, layer, ROIs) {
 // }
 
 export function dehighlightLine(map, layer, ROIs) {
-
   // map.setPaintProperty(layer, "line-color", "gray");
   // map.setPaintProperty(layer, "line-width", 0.5);
 
@@ -217,4 +216,162 @@ export function targetMapsAndLayersByCurrentSpatialResolution() {
       targetLayer: maps.layers.zip_map_layer,
     };
   }
+}
+
+export function addMapLegendTitle(mapSpatialResoultion) {
+  d3.select("#focus-map-legend-svg").selectAll("text").remove();
+  d3.select("#sub-map1-legend-svg").selectAll("text").remove();
+  d3.select("#sub-map2-legend-svg").selectAll("text").remove();
+
+  let focusMapLegendTitle = d3
+    .select("#focus-map-legend-svg")
+    .append("text")
+    .attr("x", 10)
+    .attr("y", 20)
+    .attr("font-weight", "bold")
+    .attr("font-style", "italic")
+    .attr("font-size", "0.8rem");
+  let subMap1LegendTitle = d3
+    .select("#sub-map1-legend-svg")
+    .append("text")
+    .attr("x", 10)
+    .attr("y", 20)
+    .attr("font-weight", "bold")
+    .attr("font-style", "italic")
+    .attr("font-size", "0.8rem");
+  let subMap2LegendTitle = d3
+    .select("#sub-map2-legend-svg")
+    .append("text")
+    .attr("x", 10)
+    .attr("y", 20)
+    .attr("font-weight", "bold")
+    .attr("font-style", "italic")
+    .attr("font-size", "0.8rem");
+
+  if (mapSpatialResoultion == "region") {
+    focusMapLegendTitle.text("Regional Level Map");
+
+    subMap1LegendTitle.text("County Level Map");
+    subMap2LegendTitle.text("Zip Level Map");
+  } else if (mapSpatialResoultion == "county") {
+    focusMapLegendTitle.text("County Level Map");
+    subMap1LegendTitle.text("Regional Level Map");
+    subMap2LegendTitle.text("Zip Level Map");
+  } else if (mapSpatialResoultion == "zcta") {
+    focusMapLegendTitle.text("Zip Level Map");
+
+    subMap1LegendTitle.text("Regional Level Map");
+
+    subMap2LegendTitle.text("County Level Map");
+  }
+}
+
+export const legendStyleOptions = {
+  width: 200,
+  height: 10,
+  marginTop: 10,
+  marginLeft: 10,
+  ticks: 5,
+};
+
+export function addMapColorSchemeInfo(thisSpatialResolution, colorScale) {
+  const mapSpatialResoultion = document.getElementById(
+    "map-resolution-selector"
+  ).value;
+  let { width, height, marginTop, marginLeft, ticks } = legendStyleOptions;
+  // console.log("Current map spatial resolution:", mapSpatialResoultion);
+
+  let svg = null;
+  if (mapSpatialResoultion == thisSpatialResolution) {
+    svg = d3.select("#focus-map-legend-svg");
+  } else {
+    if (thisSpatialResolution == "region") {
+      svg = d3.select("#sub-map1-legend-svg");
+    }
+    if (thisSpatialResolution == "county") {
+      if (mapSpatialResoultion == "region") {
+        svg = d3.select("#sub-map1-legend-svg");
+      } else {
+        svg = d3.select("#sub-map2-legend-svg");
+      }
+    }
+    if (thisSpatialResolution == "zcta") {
+      svg = d3.select("#sub-map2-legend-svg");
+    }
+  }
+
+  // Clear previous legend
+  svg.select("#colorLegendGroup").remove();
+
+  const textPos = svg.select("text").node().getBBox();
+
+  marginTop = textPos.y + textPos.height + 5;
+  const legend = svg
+    .append("g")
+    .attr("id", "colorLegendGroup")
+    .attr("transform", `translate(${marginLeft}, ${marginTop})`);
+  const gradientId = "legend-gradient";
+
+  const defs = svg.append("defs");
+
+  const gradient = defs
+    .append("linearGradient")
+    .attr("id", gradientId)
+    .attr("x1", "0%")
+    .attr("x2", "100%")
+    .attr("y1", "0%")
+    .attr("y2", "0%");
+
+  // Create gradient stops (0 → 1)
+  const domain = colorScale.domain();
+  const min = domain[0];
+  const max = domain[1];
+
+  gradient
+    .append("stop")
+    .attr("offset", "0%")
+    .attr("stop-color", colorScale(min));
+
+  gradient
+    .append("stop")
+    .attr("offset", "100%")
+    .attr("stop-color", colorScale(max));
+
+  // Legend bar
+  legend
+    .append("rect")
+    .attr("width", width)
+    .attr("height", height)
+    .style("fill", `url(#${gradientId})`);
+
+  // Legend axis scale
+  const xScale = d3.scaleLinear().domain([min, max]).range([0, width]);
+
+  const xAxis = d3.axisBottom(xScale).ticks(ticks);
+
+  legend.append("g").attr("transform", `translate(0, ${height})`).call(xAxis);
+
+  // point indicator when user hovers over the map
+  let legendHoverIndicator = legend
+    .append("g")
+    .attr("id", `${thisSpatialResolution}-legend-hover-indicator-group`)
+    .style("opacity", 0);
+
+  legendHoverIndicator
+    .append("circle")
+    .attr("r", 2)
+    .attr("cy", height / 2-2)
+    .attr("stroke", "black")
+    .attr("stroke-width", 1)
+    .style("fill", "white");
+
+  legendHoverIndicator
+    .append("text")
+    .attr("x", 5)
+    .attr("y", height / 2 - 3)
+    .style("alignment-baseline", "central")
+    .style("font-size", "0.7rem")
+    .style("fill", "black");
+
+  return xScale;
 }

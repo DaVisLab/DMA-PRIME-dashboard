@@ -18,6 +18,8 @@ var zctaData = await d3.json(`/data/opioid-hcv-hiv/${mapDiseaseSelector.value}?d
 var zctaFeatures = zctaData.features
 var countyData = await d3.json(`/data/map/county`)
 
+// console.log(zctaData)
+// console.log(countyData)
 let selectedZCTA = {
     zcta: undefined,
 }
@@ -461,6 +463,7 @@ function clearBrushes() {
 async function changeDisease() {
     dataVersion++
     zctaData = await d3.json(`/data/opioid-hcv-hiv/${mapDiseaseSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`)
+    console.log(zctaData)
     zctaFeatures = zctaData.features
     await Promise.allSettled([updateHistogram("hospitalizations"), updateHistogram("deaths") ])
     clearBrushes()

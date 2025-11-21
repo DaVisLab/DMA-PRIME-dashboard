@@ -7,6 +7,7 @@ import {
   removeDehighlightArea,
   drawLineGeoJSONLayer,
   fillAreaGeoJSONLayer,
+  addMapColorSchemeInfo,
 } from "./map-utiles.js";
 
 import {
@@ -27,17 +28,7 @@ export function drawZipMap(targetMap, featuresDataBySpace, maps) {
   const featuresDataBySpace_region = maps.regional_data;
   const featuresDataBySpace_county = maps.county_data;
 
-  let values = featuresDataBySpace.map(
-    (d) =>
-      d.properties.data["health_system"]["positive_tests"]["projected"][
-        "values"
-      ][1]
-  );
-
-  const color = d3
-    .scaleLinear()
-    .domain(d3.extent(values)) // input values
-    .range(["white", "red"]); // output color range
+  let values = featuresDataBySpace.map((d) => d.properties.projected_value);
 
   targetMap.addSource(maps.layers.zip_map_layer.sourceID, {
     type: "geojson",
@@ -63,6 +54,13 @@ export function drawZipMap(targetMap, featuresDataBySpace, maps) {
       ],
     }
   );
+
+  const color = d3
+    .scaleLinear()
+    .domain(d3.extent(values)) // input values
+    .range(["white", "red"]); // output color range
+
+  const colorXScale = addMapColorSchemeInfo("zcta", color);
 
   drawLineGeoJSONLayer(
     targetMap,
@@ -133,7 +131,6 @@ export function drawZipMap(targetMap, featuresDataBySpace, maps) {
   );
 
   // Add interaction events
-
   targetMap.on("click", maps.layers.zip_map_layer.fillLayerID, function (e) {
     // Access the clicked feature's data
     const features = e.features[0];
@@ -183,6 +180,22 @@ export function drawZipMap(targetMap, featuresDataBySpace, maps) {
 
       // console.log(features.properties.id);
       highlightSmallMultipleUnit(`#small-multiple-${features.properties.id}`);
+
+      // show label indicator
+      // console.log(e.features[0].properties.projected_value);
+
+      let legendIndicator = d3.select("#zcta-legend-hover-indicator-group");
+      legendIndicator
+        .attr(
+          "transform",
+          `translate(${colorXScale(
+            e.features[0].properties.projected_value
+          )}, 0)`
+        )
+        .style("opacity", 1);
+      legendIndicator
+        .select("text")
+        .text(`${e.features[0].properties.projected_value}`);
     }
   );
 
@@ -197,6 +210,7 @@ export function drawZipMap(targetMap, featuresDataBySpace, maps) {
       );
       // dehighlightLine(targetMap, maps.layers.zip_map_layer.lineLayerID);
       deHighlightSmallMultipleUnit();
+      d3.select("#zcta-legend-hover-indicator-group").style("opacity", 0);
     }
     //   function (e) {
     //   targetMap.setPaintProperty("my-geojson-layer2", "line-color", "gray");

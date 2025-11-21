@@ -7,6 +7,7 @@ import {
   removeDehighlightArea,
   drawLineGeoJSONLayer,
   fillAreaGeoJSONLayer,
+  addMapColorSchemeInfo,
 } from "./map-utiles.js";
 
 import {
@@ -21,12 +22,7 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
 
   const featuresDataBySpace_region = maps.regional_data;
 
-  let values = featuresDataBySpace.map(
-    (d) =>
-      d.properties.data["health_system"]["positive_tests"]["projected"][
-        "values"
-      ][1]
-  );
+  let values = featuresDataBySpace.map((d) => d.properties.projected_value);
 
   targetMap.addSource(maps.layers.county_map_layer.sourceID, {
     type: "geojson",
@@ -52,6 +48,13 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
       ],
     }
   );
+
+  const color = d3
+    .scaleLinear()
+    .domain(d3.extent(values)) // input values
+    .range(["white", "red"]); // output color range
+
+  let colorXScale = addMapColorSchemeInfo("county", color);
 
   drawLineGeoJSONLayer(
     targetMap,
@@ -150,6 +153,25 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
       //     .addTo(map);
 
       highlightSmallMultipleUnit(`#small-multiple-${features.properties.id}`);
+
+      maps.zip_map.jumpTo({
+        center: e.lngLat,
+        duration: 50,
+        zoom: 7,
+      });
+
+      let legendIndicator = d3.select("#county-legend-hover-indicator-group");
+      legendIndicator
+        .attr(
+          "transform",
+          `translate(${colorXScale(
+            e.features[0].properties.projected_value
+          )}, 0)`
+        )
+        .style("opacity", 1);
+      legendIndicator
+        .select("text")
+        .text(`${e.features[0].properties.projected_value}`);
     }
   );
 
@@ -170,5 +192,13 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
     );
 
     deHighlightSmallMultipleUnit();
+
+    maps.zip_map.easeTo({
+      center: [-80.3, 33.5],
+      duration: 500,
+      zoom: 5.5,
+    });
+
+    d3.select("#county-legend-hover-indicator-group").style("opacity", 0);
   });
 }

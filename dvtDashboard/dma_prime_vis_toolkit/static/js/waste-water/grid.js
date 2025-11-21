@@ -1,7 +1,9 @@
 
 function drawCharts() {
+    console.log(metadata)
     Object.keys(metadata['site_info']).forEach(site => {
         data = d3.select(`#${site}-div`).datum()
+        console.log(data)
 
         domSvg = document.getElementById(`${site}-svg`)
         domSvg.innerHTML = ""
@@ -136,6 +138,7 @@ function drawMap(height=0, width=0) {
             [[mapMargins.left, mapMargins.top], [mapWidth-mapMargins.right,mapHeight-mapMargins.bottom]],
             mapdata)
 
+            console.log(mapdata)
         pathGenerator = d3.geoPath(mapProjection)
         d3.select(gridMapSvg).selectAll("path")
             .data(mapdata.features)
