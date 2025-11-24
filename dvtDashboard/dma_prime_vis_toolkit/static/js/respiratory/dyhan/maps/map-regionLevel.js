@@ -24,6 +24,16 @@ export function drawRegionMap(targetMap, featuresDataBySpace, maps) {
 
   let values = featuresDataBySpace.map((d) => d.properties.projected_value);
 
+  // console.log(featuresDataBySpace)
+  // featuresDataBySpace.forEach(element => {
+  //   // if (element.properties.projected_value == null || element.properties.projected_value == undefined) {
+  //     element.properties.projected_value=1
+  //   // }
+  // });
+  // ((d) => d.properties.projected_value)
+
+  // console.log(values);
+
   targetMap.addSource(maps.layers.region_map_layer.sourceID, {
     type: "geojson",
     data: {
