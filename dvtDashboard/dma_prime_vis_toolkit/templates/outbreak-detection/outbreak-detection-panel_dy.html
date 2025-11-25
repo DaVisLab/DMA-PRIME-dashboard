@@ -1,0 +1,456 @@
+{% set min_width = "350px" %} {% extends "subtemplates/panel.html" %} {% block
+options %}
+<div id="map-options" class="sidebar-container">
+  <!-- reset map button (zoom & zcta selection) -->
+  <!-- <sl-button pill id="map-reset-button" class="center-self map-option" size="small" disabled>Reset Map</sl-button> -->
+  <sl-divider class="options-divider"></sl-divider>
+
+  <!-- count vs rate switch -->
+  <sl-radio-group
+    value="count"
+    id="map-rate-switch"
+    class="center-self"
+    size="small"
+  >
+    <sl-tooltip content="Count of hospitalizations">
+      <sl-radio-button class="map-option" value="count" pill disabled
+        >Count</sl-radio-button
+      >
+    </sl-tooltip>
+    <sl-tooltip content="Hospitalizations per 1000 people">
+      <sl-radio-button class="map-option" value="rate" pill disabled
+        >Rate</sl-radio-button
+      >
+    </sl-tooltip>
+    <sl-tooltip content="Percent change from last period">
+      <sl-radio-button class="map-option" value="percent" pill disabled
+        >Percent Change</sl-radio-button
+      >
+    </sl-tooltip>
+  </sl-radio-group>
+
+  <sl-radio-group
+    value="weekly"
+    id="surveillance-time-window-switch"
+    class="center-self"
+    size="small"
+  >
+    <sl-tooltip id="map-weekly-tooltip" content="Count for the week">
+      <sl-radio-button class="map-option" value="weekly" pill disabled
+        >Week</sl-radio-button
+      >
+    </sl-tooltip>
+    <sl-tooltip id="map-monthly-tooltip" content="Count for the past 4 weeks">
+      <sl-radio-button class="map-option" value="monthly" pill disabled
+        >Month</sl-radio-button
+      >
+    </sl-tooltip>
+    <sl-tooltip id="map-yearly-tooltip" content="Count for the past 52 weeks">
+      <sl-radio-button class="map-option" value="yearly" pill disabled
+        >Year</sl-radio-button
+      >
+    </sl-tooltip>
+  </sl-radio-group>
+
+  <sl-select
+    value="encounters"
+    id="map-outcome-variable-selector"
+    class="fill-width map-option"
+    size="small"
+    disabled
+  >
+    <p slot="label">Risk Index</p>
+    <sl-tooltip content="Unique recorded diagnoses or positive tests">
+      <sl-option value="encounters">Encounters</sl-option>
+    </sl-tooltip>
+    <sl-tooltip content="Unique diagnosis">
+      <sl-option value="diagnoses">Diagnoses</sl-option>
+    </sl-tooltip>
+    <sl-option value="positive_tests">Positive Tests</sl-option>
+    <sl-option value="emergency_department_visits"
+      >Emergency Department Visits</sl-option
+    >
+    <sl-option value="inpatient_hospitalizations"
+      >Inpatient Hospitalizations</sl-option
+    >
+  </sl-select>
+
+  <!-- disease selector -->
+  <sl-details id="map-disease-selector-container" open>
+    <p slot="summary">Select a disease or group of diseases</p>
+    <p id="disease-explanation">
+      Disease (<sl-tooltip
+        content="Please be advised, the numbers shown here reflect the current state of the data. They may differ from the previous week due to reporting delay."
+        ><tspan class="disease-last-week-value">Last Week*</tspan></sl-tooltip
+      >, <tspan class="disease-current-week-value">Current Week</tspan>,
+      <tspan class="disease-current-week-value">Percent Change</tspan>)
+    </p>
+    <sl-checkbox
+      id="map-all-disease-selector"
+      class="map-option"
+      size="small"
+      disabled
+      >All Diseases <span id="map-all-count"></span
+    ></sl-checkbox>
+    {% for disease in metadata['diseases'] %}
+    <sl-checkbox
+      id="map-{{ disease['disease-name'] }}-selector"
+      class="disease-checkbox map-option"
+      disease="{{ disease['disease-name'] }}"
+      size="small"
+      disabled
+      >{{ disease['display-name'] }}
+      <span id="map-{{ disease['disease-name'] }}-count"></span
+    ></sl-checkbox>
+    {% endfor %}
+  </sl-details>
+
+  <sl-divider class="options-divider"></sl-divider>
+
+  <!-- map icon inclusion checkboxes (hospital, mobile health clinic, community partners) -->
+</div>
+
+<sl-resize-observer id="aggregated-disease-history-resizer">
+  <div id="aggregated-disease-history-container" class="fill-width">
+    <p id="aggregated-disease-history-title">State Wide Disease Encounters</p>
+    <p id="aggregated-disease-history-subtitle">N/A</p>
+    <svg id="aggregated-disease-history"></svg>
+  </div>
+</sl-resize-observer>
+
+<sl-dialog id="aggregated-disease-history-large" class="dialog-width">
+  <div slot="label">
+    <p id="aggregated-disease-history-large-title">
+      State Wide Disease Encounters
+    </p>
+    <p id="aggregated-disease-history-large-subtitle">N/A</p>
+  </div>
+  <sl-resize-observer id="aggregated-disease-history-resizer-large">
+    <svg id="aggregated-disease-history-large-svg"></svg>
+  </sl-resize-observer>
+</sl-dialog>
+{% endblock %} {% block contents %}
+
+<div class="fill-width fill-height container">
+  <div class="row" style="height: 100%; position: relative">
+    <div
+      id="loading-spinner"
+      class="col-md-12"
+      style="
+        height: 100%;
+        margin: 0px;
+        padding: 0px;
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        background-color: rgba(211, 211, 211, 0.8);
+        visibility: hidden;
+      "
+    >
+      <div
+        class="spinner-border spinner-border-lg text-primary"
+        role="status "
+        style="position: absolute; width: 60px; height: 60px"
+      >
+        <!-- <span class="sr-only" >Loading...</span> -->
+      </div>
+    </div>
+
+    <div
+      class="col-md-2"
+      style="border-left: 1px solid lightgray; height: 100%"
+    >
+      <div
+        style="
+          height: 30%;
+          /* border-bottom: 1px double lightgray; */
+          font-size: 0.8rem;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          padding: 1rem 0px 0.5rem 0px;
+        "
+      >
+        <div style=" height: fit-content">
+          <p slot="label" style="margin:0; padding:0; font-weight: bold;">Geographic Unit</p>
+                    <select id="map-resolution-selector" class="form-select form-select-sm" aria-label="Default select example">
+            <option selected value="region">Region</option>
+            <option value="county">County</option>
+            <option value="zcta">Zip-Code Tabulation Area (ZCTA)</option>
+          </select>
+        </div>
+          <!-- <p style="margin-top: 1em; margin-bottom: 0.5em; font-weight: bold">
+            Map Resources
+          </p> -->
+          <!-- <sl-checkbox
+            id="map-options-hospital-icons-toggle"
+            class="map-icons-toggle map-option"
+            size="small"
+            disabled
+            >Hospitals</sl-checkbox
+          >
+          <sl-checkbox
+            id="map-options-mobile-clinic-icons-toggle"
+            class="map-icons-toggle map-option"
+            size="small"
+            disabled
+            >Mobile Health Clinics</sl-checkbox
+          >
+          <sl-checkbox
+            id="map-options-community-partner-icons-toggle"
+            class="map-icons-toggle map-option"
+            size="small"
+            disabled
+            >Community Partners</sl-checkbox
+          >
+
+          <sl-divider class="options-divider"></sl-divider>
+          <sl-checkbox
+            id="map-options-geographic-labels-toggle"
+            class="map-toggle map-option"
+            size="small"
+            disabled
+            >Geography Labels</sl-checkbox
+          > -->
+
+          <div
+            style="
+              display: flex;
+              font-size: 0.7rem;
+              height: fit-content;
+              flex-direction: column;
+              
+            "
+          >
+          <div style="display:flex; justify-content: flex-start;">
+            <label
+              style="
+                font-size: 0.75rem;
+                font-weight: bold;
+                padding: 0px;
+                margin: 0px;
+              "
+              >Filter By</label
+            >
+            </div>
+            <div style="display:flex; justify-content: flex-end;">
+            <input
+              class="form-control form-control-sm"
+              id="floatingInput"
+              placeholder="ZCTA or County"
+              style="line-height: 14px; font-size: 0.7rem"
+            />
+            </div>
+          </div>
+
+          <!-- Sort By Switch -->
+          <div style="margin-top: 0.5rem; padding: 0 0; width: 100%; ">
+            <label
+              style="
+                font-size: 0.75rem;
+                font-weight: bold;
+                padding: 0px;
+                /* margin: 0px 0px 0.25rem 0px; */
+              "
+              >Sort By</label
+            >
+            <div>
+            <div class="form-check" style="display:flex; justify-content: flex-end;">
+              
+        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" style="margin-right:0.3rem">
+        <label class="form-check-label" for="flexRadioDefault1">
+          Risk Index
+        </label>
+      </div>
+      <div class="form-check" style="display:flex; justify-content: flex-end;">
+        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" checked style="margin-right:0.3rem">
+        <label class="form-check-label" for="flexRadioDefault2">
+          Risk Increase
+        </label>
+      </div>
+      </div>
+      </div>
+          
+          <hr style="margin: 0px" />
+           <hr style="margin: 0px" />
+        
+      </div>
+      <div
+        style="
+          height: 82%;
+          border-bottom: 1px double lightgray;
+          font-size: 0.8rem;
+          display: flex;
+          flex-direction: column;
+          /* justify-content: space-between; */
+        "
+      >
+        <div
+          id="respiratory-smallMultiples-region-of-interest"
+          style="
+            height: fit-content;
+            max-height: 82%;
+            width: fit-content;
+            background-color: white;
+            /* border: 2px solid black; */
+            border-radius: 0.1rem;
+            box-shadow: 0 0.2rem 0.2rem gray;
+            overflow-y: auto;
+            z-index: 10;
+          "
+        ></div>
+        <div
+          id="respiratory-smallMultiples-container"
+          style="height: 82%; width: 100%; overflow-y: auto; overflow-x: hidden"
+        ></div>
+      </div>
+      </div>
+      <div class="col-md-10" style="margin: 0px; padding: 0px">
+        <div
+          class="row"
+          style="width: 100%; height: 60%; padding: 0.5rem; margin: 0px"
+        >
+          <div class="col-md-7" style="position: relative">
+            <div
+              class="fill-width fill-height"
+              id="focus-map-div"
+              style="
+                border-radius: 0.5rem;
+                border: 1px solid lightgray;
+                box-shadow: 0.2rem 0.2rem #888888;
+              "
+            >
+              <svg
+                id="focus-map-legend-svg"
+                style="
+                  position: absolute;
+                  height: 4rem;
+                  width: 15rem;
+                  bottom: 3%;
+                  left: 3%;
+                  background-color: rgb(248, 248, 248, 0.8);
+                  z-index: 1;
+                  border: 1px solid gray;
+                  border-radius: 0.5rem;
+                "
+              ></svg>
+            </div>
+          </div>
+
+          <div class="col-md-5" style="position: relative">
+            <div
+              class="fill-width"
+              id="sub-map1-div"
+              style="
+                border-radius: 0.5rem;
+                border: 1px solid lightgray;
+                box-shadow: 0.2rem 0.2rem #888888;
+                height: 50%;
+              "
+            ></div>
+            <svg
+              id="sub-map1-legend-svg"
+              style="
+                position: absolute;
+                height: 4rem;
+                width: 15rem;
+                bottom: 3%;
+                left: calc(6% + var(--bs-gutter-x) * 0.5);
+                background-color: rgb(248, 248, 248, 0.8);
+                z-index: 1;
+                border: 1px solid gray;
+                border-radius: 0.5rem;
+              "
+            ></svg>
+            <div
+              class="fill-width"
+              id="sub-map2-div"
+              style="
+                border-radius: 0.5rem;
+                border: 1px solid lightgray;
+                box-shadow: 0.2rem 0.2rem #888888;
+                height: 50%;
+              "
+            ></div>
+            <svg
+              id="sub-map2-legend-svg"
+              style="
+                position: absolute;
+                height: 4rem;
+                width: 15rem;
+                bottom: 3%;
+                left: calc(6% + var(--bs-gutter-x) * 0.5);
+                background-color: rgb(248, 248, 248, 0.8);
+                z-index: 1;
+                border: 1px solid gray;
+                border-radius: 0.5rem;
+              "
+            ></svg>
+          </div>
+        </div>
+        <div
+        id="table-view-container"
+          class="row"
+          style="width: 100%; height: 40%; padding: 0.5rem; margin: 0px"
+        >
+          table view here
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endblock %} {% block scripts %}
+
+  <script type="module">
+    await Promise.allSettled([ // wait for following to be defined/load in
+          customElements.whenDefined('sl-tab-group'),
+          customElements.whenDefined('sl-button'),
+          customElements.whenDefined('sl-select'),
+          customElements.whenDefined('sl-option'),
+          customElements.whenDefined('sl-resize-observer'),
+          customElements.whenDefined('sl-split-panel'),
+          customElements.whenDefined('sl-tab'),
+      ])
+
+    set{{panel.name}}Panel()
+  </script>
+
+  <link
+    href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css"
+    rel="stylesheet"
+  />
+  <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+
+  <!-- 2) Deck.gl UMD bundle (pin to 8.9.27) -->
+  <!-- <script src="https://unpkg.com/deck.gl@8.9.27/dist.min.js"></script> -->
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js"
+    integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
+    crossorigin="anonymous"
+  ></script>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+    crossorigin="anonymous"
+  />
+
+  <script
+    src="{{ url_for('static', filename='js/outbreak-detection/dyhan/dataManager.js') }}"
+    type="module"
+  ></script>
+  <!-- <script
+    src="{{ url_for('static', filename='js/outbreak-detection/dyhan/smallMultipleManager.js') }}"
+    type="module"
+  ></script>
+  <script
+    src="{{ url_for('static', filename='js/outbreak-detection/dyhan/mapManager.js') }}"
+    type="module"
+  ></script> -->
+  <!-- <script src="{{ url_for('static', filename='js/outbreak-detection/map.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/outbreak-detection/map-interactions.js') }}" type="module"></script> -->
+  {% endblock %}
+</div>

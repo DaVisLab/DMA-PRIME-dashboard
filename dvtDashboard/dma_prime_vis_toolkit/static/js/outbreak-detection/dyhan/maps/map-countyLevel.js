@@ -32,8 +32,6 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
     },
   });
 
-  console.log(values);
-  console.log(d3.max(values));
   fillAreaGeoJSONLayer(
     targetMap,
     maps.layers.county_map_layer.sourceID,

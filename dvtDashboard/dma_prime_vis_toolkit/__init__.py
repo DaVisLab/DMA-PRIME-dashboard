@@ -274,8 +274,16 @@ def create_app(development=False, dataDir=None):
             {
                 'name': 'map',
                 'displayName': 'Map View',
-                'active': True,
+                # 'active': True,
                 'html': 'outbreak-detection/outbreak-detection-map-panel.html'
+            },
+            {
+                'name': 'map2',
+                'displayName': 'Outbreak Detection - dy',
+                # 'active': True,
+                                'active': True,
+
+                'html': 'outbreak-detection/outbreak-detection-panel_dy.html'
             },
         ]
         return render_template('outbreak-detection/outbreak-detection-base.html', panels=panels, metadata=metadata)

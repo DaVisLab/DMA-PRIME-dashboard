@@ -17,14 +17,20 @@ import {
   resetSmallMultipleUnitPosition,
 } from "../smallMultiples/smallMultiple-utils.js";
 
-export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
-  initMap(targetMap);
+export function drawZipMap(targetMap, featuresDataBySpace, maps) {
+  // Add any initialization logic here
+  initMap(targetMap, {
+    panning: true,
+    zooming: true,
+  });
 
+  // const featuresDataBySpace = await getSpatialData("zcta");
   const featuresDataBySpace_region = maps.regional_data;
+  const featuresDataBySpace_county = maps.county_data;
 
   let values = featuresDataBySpace.map((d) => d.properties.projected_value);
 
-  targetMap.addSource(maps.layers.county_map_layer.sourceID, {
+  targetMap.addSource(maps.layers.zip_map_layer.sourceID, {
     type: "geojson",
     data: {
       type: "FeatureCollection",
@@ -32,12 +38,10 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
     },
   });
 
-  console.log(values);
-  console.log(d3.max(values));
   fillAreaGeoJSONLayer(
     targetMap,
-    maps.layers.county_map_layer.sourceID,
-    maps.layers.county_map_layer.fillLayerID,
+    maps.layers.zip_map_layer.sourceID,
+    maps.layers.zip_map_layer.fillLayerID,
     {
       "fill-color": [
         "interpolate",
@@ -56,18 +60,19 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
     .domain(d3.extent(values)) // input values
     .range(["white", "red"]); // output color range
 
-  let colorXScale = addMapColorSchemeInfo("county", color);
+  const colorXScale = addMapColorSchemeInfo("zcta", color);
 
   drawLineGeoJSONLayer(
     targetMap,
-    maps.layers.county_map_layer.sourceID,
-    maps.layers.county_map_layer.lineLayerID,
+    maps.layers.zip_map_layer.sourceID,
+    maps.layers.zip_map_layer.lineLayerID,
     {
       "line-width": 0.5,
       "line-color": "gray",
     }
   );
 
+  // add regional boundaries
   targetMap.addSource(maps.layers.region_map_layer.sourceID, {
     type: "geojson",
     data: {
@@ -91,17 +96,49 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
     maps.layers.region_map_layer.sourceID,
     maps.layers.region_map_layer.lineLayerID,
     {
-      "line-width": 0,
+      "line-width": 0.0,
       "line-color": "gray",
     }
   );
 
-  targetMap.on("click", maps.layers.county_map_layer.fillLayerID, function (e) {
+  // add county boundaries
+  targetMap.addSource(maps.layers.county_map_layer.sourceID, {
+    type: "geojson",
+    data: {
+      type: "FeatureCollection",
+      features: featuresDataBySpace_county,
+    },
+  });
+
+  fillAreaGeoJSONLayer(
+    targetMap,
+    maps.layers.county_map_layer.sourceID,
+    maps.layers.county_map_layer.fillLayerID,
+    {
+      "fill-color": "lightgray",
+      "fill-opacity": 0.0,
+    }
+  );
+
+  drawLineGeoJSONLayer(
+    targetMap,
+    maps.layers.county_map_layer.sourceID,
+    maps.layers.county_map_layer.lineLayerID,
+    {
+      "line-width": 0.0,
+      "line-color": "gray",
+    }
+  );
+
+  // Add interaction events
+  targetMap.on("click", maps.layers.zip_map_layer.fillLayerID, function (e) {
     // Access the clicked feature's data
     const features = e.features[0];
     const coordinates = features.geometry.coordinates;
     const properties = features.properties;
-    // // Create and add a popup
+
+    // console.log(features.properties.id);
+    //
 
     if (!maps.regionOfInterest.includes(features.properties.id)) {
       const smallMultipleId = d3.select(
@@ -116,15 +153,19 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
       );
       resetSmallMultipleUnitPosition(features.properties.id);
     }
-    // new maplibregl.Popup()
-    //     .setLngLat(coordinates)
-    //     .setHTML('<h3>' + properties.name + '</h3>' + properties.description)
-    //     .addTo(map);
+
+    // if (features.properties.clicked === true) {
+    //   features.properties.clicked = false;
+    // } else {
+    //   features.properties.clicked = true;
+    // }
+
+    console.log(maps.layers.zip_map_layer.fillLayerID);
   });
 
   targetMap.on(
     "mousemove",
-    maps.layers.county_map_layer.fillLayerID,
+    maps.layers.zip_map_layer.fillLayerID,
     function (e) {
       // Access the clicked feature's data
       const features = e.features[0];
@@ -132,37 +173,18 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
       const properties = features.properties;
       // console.log(features);
 
-      highlightLine(targetMap, maps.layers.county_map_layer.lineLayerID, [
+      highlightLine(targetMap, maps.layers.zip_map_layer.lineLayerID, [
         features.properties.id,
         ...maps.regionOfInterest,
       ]);
 
-      highlightLine(
-        maps.zip_map,
-        maps.layers.county_map_layer.lineLayerID,
-        features.properties.id
-      );
-
-      dehighlightArea(
-        maps.zip_map,
-        maps.layers.county_map_layer.fillLayerID,
-        features.properties.id
-      );
-      // // Create and add a popup
-      // new maplibregl.Popup()
-      //     .setLngLat(coordinates)
-      //     .setHTML('<h3>' + properties.name + '</h3>' + properties.description)
-      //     .addTo(map);
-
+      // console.log(features.properties.id);
       highlightSmallMultipleUnit(`#small-multiple-${features.properties.id}`);
 
-      maps.zip_map.jumpTo({
-        center: e.lngLat,
-        duration: 50,
-        zoom: 7,
-      });
+      // show label indicator
+      // console.log(e.features[0].properties.projected_value);
 
-      let legendIndicator = d3.select("#county-legend-hover-indicator-group");
+      let legendIndicator = d3.select("#zcta-legend-hover-indicator-group");
       legendIndicator
         .attr(
           "transform",
@@ -177,30 +199,21 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
     }
   );
 
-  targetMap.on("mouseout", maps.layers.county_map_layer.fillLayerID, () => {
-    dehighlightLine(
-      targetMap,
-      maps.layers.county_map_layer.lineLayerID,
-      maps.regionOfInterest
-    );
-
-    dehighlightLineComplete(
-      maps.zip_map,
-      maps.layers.county_map_layer.lineLayerID
-    );
-    removeDehighlightArea(
-      maps.zip_map,
-      maps.layers.county_map_layer.fillLayerID
-    );
-
-    deHighlightSmallMultipleUnit();
-
-    maps.zip_map.easeTo({
-      center: [-80.3, 33.5],
-      duration: 500,
-      zoom: 5.5,
-    });
-
-    d3.select("#county-legend-hover-indicator-group").style("opacity", 0);
-  });
+  targetMap.on(
+    "mouseout",
+    maps.layers.zip_map_layer.fillLayerID,
+    () => {
+      dehighlightLine(
+        targetMap,
+        maps.layers.zip_map_layer.lineLayerID,
+        maps.regionOfInterest
+      );
+      // dehighlightLine(targetMap, maps.layers.zip_map_layer.lineLayerID);
+      deHighlightSmallMultipleUnit();
+      d3.select("#zcta-legend-hover-indicator-group").style("opacity", 0);
+    }
+    //   function (e) {
+    //   targetMap.setPaintProperty("my-geojson-layer2", "line-color", "gray");
+    // }
+  );
 }
