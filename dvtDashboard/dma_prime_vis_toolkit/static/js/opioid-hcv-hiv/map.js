@@ -465,6 +465,7 @@ async function changeDisease() {
     zctaData = await d3.json(`/data/opioid-hcv-hiv/${mapDiseaseSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`)
     console.log(zctaData)
     zctaFeatures = zctaData.features
+    
     await Promise.allSettled([updateHistogram("hospitalizations"), updateHistogram("deaths") ])
     clearBrushes()
     if (selectedZCTA.zcta) {

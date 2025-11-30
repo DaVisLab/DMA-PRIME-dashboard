@@ -1,6 +1,7 @@
 import { smallMultipleManager } from "./smallMultipleManager.js";
 import { mapManager } from "./mapManager.js";
 import { drawTableView } from "./tableView.js";
+
 export const outbreak_data = {
   region: null,
   county: null,
@@ -53,6 +54,9 @@ async function getOutbreakDataBySpatialResoultionIn(mapSpatialResoultion) {
     }
   });
 
+  // let  zctaData = await d3.json(`/data/opioid-hcv-hiv/${mapDiseaseSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`)
+  // let  zctaData = await d3.json(`/data/opioid-hcv-hiv/covid19?data_version=1&${parseInt(Math.random()*9999999999)}`)
+  // console.log(zctaData)
   //   console.log(data);
 
   return data;
@@ -163,6 +167,7 @@ async function getOutbreakDataAll() {
   mapManager.data = outbreak_data;
   mapManager.callInitMapViews(outbreak_data);
 
+  console.log(outbreak_data)
   drawTableView(outbreak_data.region.features);
   // d3.select("#map-loading-div").style("visibility", "hidden")
   // d3.selectAll("#map-loading-div circle").classed("animate", false)
