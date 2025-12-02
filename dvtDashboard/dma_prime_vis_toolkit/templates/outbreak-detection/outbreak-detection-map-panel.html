@@ -56,7 +56,7 @@
   <!-- disease selector -->
   <sl-details id="map-disease-selector-container" open>
     <p slot="summary">Select a disease or group of diseases</p>
-    <p id="disease-explanation">Disease (<sl-tooltip content="Please be advised, the numbers shown here reflect the current state of the data. They may differ from the previous week due to reporting delay."><tspan class="disease-last-week-value">Last Week*</tspan></sl-tooltip>, <tspan class="disease-current-week-value">Current Week</tspan>, <tspan class="disease-current-week-value">Percent Change</tspan>)</p>
+    <p id="disease-explanation">Disease (<sl-tooltip content="Please be advised, the numbers shown here reflect the current state of the data. They may differ from the previous week due to reporting delay."><tspan class="disease-last-week-value">Last <span class="disease-option-count">Week</span>*</tspan></sl-tooltip>, <tspan class="disease-current-week-value">Current <span class="disease-option-count">Week</span></tspan>, <tspan class="disease-current-week-value">Percent Change</tspan>)</p>
     <sl-checkbox id="map-all-disease-selector" class="map-option" size="small" disabled>All Diseases <span id="map-all-count"></span></sl-checkbox>
     {% for disease in metadata['diseases'] %}
     <sl-checkbox id="map-{{ disease['disease-name'] }}-selector" class="disease-checkbox map-option" disease="{{ disease['disease-name'] }}" size="small" disabled>{{ disease['display-name'] }} <span id="map-{{ disease['disease-name'] }}-count"></span></sl-checkbox>

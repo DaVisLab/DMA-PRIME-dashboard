@@ -24,7 +24,11 @@ mapRateSwitch.addEventListener("sl-change", () => {
     mapYearlyTooltip.content = `${d3.selectAll(`sl-radio-button[value=${mapRateSwitch.value}]`).html()} for the past 52 weeks`
 })
 
-mapTimeSwitch.addEventListener("sl-change", update)
+mapTimeSwitch.addEventListener("sl-change", () => {
+    d3.selectAll(".disease-option-count")
+        .html(d3.selectAll(`sl-radio-button[value=${mapTimeSwitch.value}]`).html())
+    update()
+})
 
 mapRegionSelector.addEventListener("sl-change", changeDataColumn)
 

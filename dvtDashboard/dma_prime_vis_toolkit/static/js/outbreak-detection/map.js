@@ -878,28 +878,14 @@ function getData(feature, timeFrame="weekly") {
         var otherDicts = Object.entries(feature.properties.other).filter(d => diseases.includes(d[0]) && d[1][timeFrame].length > 0)
         otherDicts = otherDicts.map(d => d[1])
 
-        var earliestDate = parseDate(regionData.metadata.start_date)
-        var latestDate = parseDate(regionData.metadata.end_date)
-        var periods
         if (dataDicts.length > 0) {
-            switch (timeFrame) {
-                case "weekly":
-                    periods = (d3.timeDay.count(earliestDate, latestDate)/7) + 1
-                    break;
-                case "monthly":
-                    periods = Math.ceil(d3.timeDay.count(earliestDate, latestDate)/28)
-                    break;
-                case "yearly":
-                    periods = Math.ceil(d3.timeDay.count(earliestDate, latestDate)/(52*7))
-                    break;
-            }
-            thisData.data = new Array(periods).fill(0)
+            thisData.data = new Array(dataDicts[0][timeFrame].length).fill(0)
             for (var data of dataDicts) {
                 for (var i=0; i < data[timeFrame].length; i++) {
                     thisData.data[i] += data[timeFrame][i]
                 }
             }
-            thisData.other = new Array(periods).fill(0)
+            thisData.other = new Array(dataDicts[0][timeFrame].length).fill(0)
             for (var other of otherDicts) {
                 for (var i=0; i < other[timeFrame].length; i++) {
                     thisData.other[i] += other[timeFrame][i]
