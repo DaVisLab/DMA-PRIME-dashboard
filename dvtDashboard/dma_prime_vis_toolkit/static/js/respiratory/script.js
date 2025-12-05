@@ -1,7 +1,6 @@
 
 export { zctaData, 
-    populationColorMap, dataSourceColorMap, unknownColor,
-    outcomeVariableStringCrosswalk, 
+    populationColorMap, dataSourceColorMap, unknownColor, 
     getFeatureValue, getAllValuesFromFeature, getAllFeaturesValue, getBoundsOfCoords, getCenter,
     drawTooltip, drawStateHospitalizations, drawLargeStateHospitalizations }
 
@@ -28,24 +27,6 @@ var dataSourceColorMap = {
 var populationColorMap = {
     "general_population": {"historical": "#FFB000", "projected": "#FE6100"},
     "health_system": {"historical": "#648FFF", "projected": "#345FAF"},
-}
-
-// lior nixed this :c
-// var outcomeVariableColorMap = {
-//     "encounters": "#FFB000",
-//     "encounters-projected": "#FE6100",
-//     "positive-tests": "#648FFF",
-//     "positive-tests-projected": "#785EF0",
-//     "rt": "#AA4499",
-//     "rt-projected": "#882255",
-// }
-
-var outcomeVariableStringCrosswalk = {
-    "all_encounters": "All Encounters",
-    "inpatient_hospitalizations": "Inpatient Hospitalizations",
-    "emergency_department_visits": "Emergency Department Visits",
-    "positive_tests": "Positive Tests",
-    "rate_of_transmission": "Transmission",
 }
 
 var ttpHistoryWidthPercentage = 3/4
@@ -218,7 +199,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
     ttpSVG.datum({"extraSources": extraSources})
 
 // create titles/subtitles
-    var outcomeVariableString = outcomeVariableStringCrosswalk[outcomeVariable]
+    var outcomeVariableString = metadata['outcome_variables'][outcomeVariable]
     
     var regionInfo = header.select(".tooltip-region-info")
     regionInfo.node().innerHTML = ""
@@ -277,12 +258,13 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
                     } else {
                         text += " (projected)"
                     }
-                } else {
-                    if (outcomeVariable == "all_encounters") {
-                        text = "All Historical Encounters"
-                    } else {
-                        text = "Historical " + text
-                    }
+                } else { 
+                    // if (outcomeVariable == "all_encounters") { /* Changed to hospitalizations and no longer is all */
+                    //     text = "All Historical Encounters"
+                    // } else {
+                    //     text = "Historical " + text
+                    // }
+                    text = "Historical " + text
                     if (panelType == "percentDifference") {
                         text = `Percent Change of ${text}`
                     } else {
@@ -305,11 +287,12 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
             .attr("color", "black")
             .text(() => {
                 var text = outcomeVariableString
-                if (outcomeVariable == "all_encounters") {
-                    text = "All Historical Encounters"
-                } else {
-                    text = "Historical " + text
-                }
+                // if (outcomeVariable == "all_encounters") { /* Changed to hospitalizations and no longer is all */
+                //     text = "All Historical Encounters"
+                // } else {
+                //     text = "Historical " + text
+                // }
+                text = "Historical " + text
                 text += data["historical"].reported ? ' (reported)' : ' (estimated)'
                 return text})
 
@@ -324,11 +307,12 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
             .attr("color", "black")
             .text(() => {
                 var text = outcomeVariableString
-                if (outcomeVariable == "all_encounters") {
-                    text = "All Historical Encounters"
-                } else {
-                    text = "Historical " + text
-                }
+                // if (outcomeVariable == "all_encounters") { /* Changed to hospitalizations and no longer is all */
+                //     text = "All Historical Encounters"
+                // } else {
+                //     text = "Historical " + text
+                // }
+                text = "Historical " + text
                 text += " (projected)"
                 return text})
     }
