@@ -1,5 +1,5 @@
 const { GeoJsonLayer, IconLayer, TextLayer, MapboxOverlay } = deck;
-import { outcomeVariableStringCrosswalk, populationColorMap, unknownColor, getCenter, getFeatureValue, getAllFeaturesValue, drawTooltip, drawStateHospitalizations } from "/static/js/respiratory/script.js";
+import { populationColorMap, unknownColor, getCenter, getFeatureValue, getAllFeaturesValue, drawTooltip, drawStateHospitalizations } from "/static/js/respiratory/script.js";
 export { map, popup, selectedItems, deckOverlay, 
     redraw, updateMapTitle, updateMapTooltip,
     updateMapOutcomeVariableOptions, updateMapPopulationOptions, updateMapGeographicUnitOptions
@@ -347,8 +347,8 @@ function drawLegend() {
             .html(d => `${d}%`)
 
         var otherColors = legend.append("g")
-        var others = [["white", `No ${outcomeVariableStringCrosswalk[mapOutcomeVariableSelector.value]}`], 
-        ["#ff8800", `New ${outcomeVariableStringCrosswalk[mapOutcomeVariableSelector.value]} from Last Period`],
+        var others = [["white", `No ${metadata['outcome_variables'][mapOutcomeVariableSelector.value]}`], 
+        ["#ff8800", `New ${metadata['outcome_variables'][mapOutcomeVariableSelector.value]} from Last Period`],
         [unknownColor, "Unknown"]]
 
         others.forEach((d, i) => {
@@ -376,7 +376,7 @@ function drawLegend() {
             .attr("width", legendWidth + legendMargins.left + legendMargins.right)
             .attr("height", 3*em + legendMargins.top + legendMargins.bottom)
 
-        // Discrete 5-bin legend for encounters/inpatient/ed and positive-tests
+        // Discrete 5-bin legend for hospitalizations/inpatient/ed and positive-tests
         if (mapOutcomeVariableSelector.value != "rate_of_transmission") {
             var edges = (choroplethDiscreteEdges && choroplethDiscreteEdges.length === 6)
                 ? choroplethDiscreteEdges
