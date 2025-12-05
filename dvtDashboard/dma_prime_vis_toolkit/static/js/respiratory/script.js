@@ -259,12 +259,11 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
                         text += " (projected)"
                     }
                 } else { 
-                    // if (outcomeVariable == "all_encounters") { /* Changed to hospitalizations and no longer is all */
-                    //     text = "All Historical Encounters"
-                    // } else {
-                    //     text = "Historical " + text
-                    // }
-                    text = "Historical " + text
+                    if (outcomeVariable == "all_encounters") {
+                        text = "All Historical Encounters"
+                    } else {
+                        text = "Historical " + text
+                    }
                     if (panelType == "percentDifference") {
                         text = `Percent Change of ${text}`
                     } else {
@@ -286,13 +285,12 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
             .attr("font-size", "var(--sl-font-size-small)")
             .attr("color", "black")
             .text(() => {
-                var text = outcomeVariableString
-                // if (outcomeVariable == "all_encounters") { /* Changed to hospitalizations and no longer is all */
-                //     text = "All Historical Encounters"
-                // } else {
-                //     text = "Historical " + text
-                // }
-                text = "Historical " + text
+                var text = outcomeVariableString 
+                if (outcomeVariable == "all_encounters") {
+                    text = "All Historical Encounters"
+                } else {
+                    text = "Historical " + text
+                }
                 text += data["historical"].reported ? ' (reported)' : ' (estimated)'
                 return text})
 
@@ -307,12 +305,11 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
             .attr("color", "black")
             .text(() => {
                 var text = outcomeVariableString
-                // if (outcomeVariable == "all_encounters") { /* Changed to hospitalizations and no longer is all */
-                //     text = "All Historical Encounters"
-                // } else {
-                //     text = "Historical " + text
-                // }
-                text = "Historical " + text
+                if (outcomeVariable == "all_encounters") {
+                    text = "All Historical Encounters"
+                } else {
+                    text = "Historical " + text
+                }
                 text += " (projected)"
                 return text})
     }
