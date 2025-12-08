@@ -58,59 +58,62 @@ function createBarGraph(svg, data, metadata, options = {}) {
     const xAxis = svg.append("g").attr("class", "x-axis");
     var dataPointTTP = svg.append("g").attr("class", "data-point-ttp")
 
-    function createDataPointTooltip(event, groupStartDate) {  
+    // Margins and scale definitions
+    var margins = {
+        "top": mapOutcomeVariableSelector.value == "positive_tests" ? 3*em : 2*em, 
+        "bottom": 2*em,
+        "left": 1.5*em,
+        "right": 1*em,
+    }
+
+    function createDataPointTooltip(event, groupStartDate, other=null) {  
         dataPointTTP.html("")
+
+        let tooltipDateFormat = d3.timeFormat("%b %d")
 
         let thisDataPointShape = event.target
         let dataShapeBBox = thisDataPointShape.getBBox()
 
-        let date = d3.timeDay.offset(groupStartDate, 7*([...event.target.parentElement.childNodes].findIndex(d => d == event.target)))
-        let dateStr = d3.timeFormat("%b %d, %Y")(date)
+        let thisIndex = [...event.target.parentElement.childNodes].findIndex(d => d == event.target)
+        let date = d3.timeDay.offset(groupStartDate, 7*thisIndex)
+        let dateStr = `${tooltipDateFormat(d3.timeDay.offset(date, -6))} - ${tooltipDateFormat(date)}`
 
-        let value = d3.select(thisDataPointShape).datum() 
-        let valueStr, valueTypeStr
+        let value = "rate" ? Math.round(d3.select(thisDataPointShape).datum() * 1000) / 1000.0: d3.select(thisDataPointShape).datum() 
+        let valueStr = panelType == "rate" ? `${value.toFixed(3)} per 1000` : value
+
+        let valueTypeStr
         switch (panelType) {
             case "count": 
                 valueTypeStr = "Count"
-                valueStr = `${value}`
                 break;
             case "rate":
                 valueTypeStr = "Rate"
-                valueStr = `${value.toFixed(2)} per 1000`
                 break;
-            case "percent":
-                // valueTypeStr = "Percent Change"
-                // valueStr = `${value.toFixed(2)}`
-                valueTypeStr = "Count"
-                valueStr = `${value}`
+            case "percentDifference":
+                valueTypeStr = "Percent Change"
                 break;
             default:
                 valueTypeStr = "Count"
                 break;
         } 
 
-        var dataPointTTPBackground = dataPointTTP.append("rect")
-        var dataPointTTPDate = dataPointTTP.append("text").text(`Date: ${dateStr}`)
+        var dataPointTTPHeight = 1*em
+        var dataPointTTPDate = dataPointTTP.append("text").text(dateStr)
         var dataPointTTPCount = dataPointTTP.append("text").text(`${valueTypeStr}: ${valueStr}`)
             .attr("transform", `translate(0, ${.75*em})`)
-        
-        dataPointTTPBackground
-            .attr("height", 1.75*em)
-            .attr("width", Math.max(dataPointTTPDate.node().getBBox().width, dataPointTTPCount.node().getBBox().width) + 10)
-            .attr("rx", 2)
-            .attr("fill", unknownColor)
-            .attr("opacity", .5)
-            .attr("transform", `translate(-5, ${-.75*em - 2.5})`)
+        if (mapOutcomeVariableSelector.value == "positive_tests") {
+            dataPointTTPHeight += 1.5*em
+            let thisPercentPos = percentages[thisIndex] * 100
+            var dataPointTTPCount = dataPointTTP.append("text").text(`Percent Positive Tests: ${thisPercentPos.toFixed(2)}`)
+                .attr("transform", `translate(0, ${1.5*em})`)
+        }
+        dataPointTTP.append("path")
+            .attr("stroke", "black")
+            .attr("stroke-width", 1)
+            .attr("d", `M 0 0 l 0 ${height - (margins.bottom + dataPointTTPHeight + 2*em )}`)
+            .attr("transform", `translate(0, ${dataPointTTPHeight})`)
 
-        dataPointTTP.attr("transform", `translate(${dataShapeBBox.x + dataShapeBBox.width/2 - dataPointTTPBackground.attr("width")/2}, ${dataShapeBBox.y-.75*em})`)
-    }
-
-    // Margins and scale definitions
-    var margins = {
-        "top": .5*em, 
-        "bottom": 2*em,
-        "left": 1*em,
-        "right": .5*em,
+        dataPointTTP.attr("transform", `translate(${dataShapeBBox.x + dataShapeBBox.width/2 + thisDataPointShape.getCTM().e}, ${1*em})`)
     }
     
     var minMaxVal = panelType == "rate" ? 1000.0/data.population : 1
@@ -127,7 +130,7 @@ function createBarGraph(svg, data, metadata, options = {}) {
 
     margins.left += Math.max(20, tempLeft.node().getBBox().width + 6)
     if (mapOutcomeVariableSelector.value == "positive_tests") {
-        var percentages = data.data.map((pos_test, i) => pos_test / Math.max(data.other[i], 1))
+        var percentages = data.data.map((pos_test, i) => pos_test / data.other[i])
         margins.right += Math.max(10, tempRight.node().getBBox().width) + (isLargeTooltip ? 1.25*em : .5*em) + 6
     }
 
@@ -149,7 +152,11 @@ function createBarGraph(svg, data, metadata, options = {}) {
         .attr("fill", "var(--sl-color-neutral-1000)")
         .on("mouseover", function(event, d) {
             if (!isNaN(d)) {
-                createDataPointTooltip(event, start_date)
+                if (mapOutcomeVariableSelector.value == "positive_tests") {
+                    createDataPointTooltip(event, start_date, percentages)
+                } else {
+                    createDataPointTooltip(event, start_date)
+                }
             }
         })
         .on("mouseout", function() {
@@ -262,39 +269,6 @@ function createBarGraph(svg, data, metadata, options = {}) {
             .attr("fill", secondaryColor);
         yAxis2Axis.selectAll("line,path")
             .style("stroke", secondaryColor);
-    }
-
-    // Restore original legend position: top left, stacked vertically
-    var legend = svg.append("g").attr("class", "legend");
-    legend.attr("transform", `translate(${xScale.range()[0] + .5*em}, 0)`);
-    var posTest = legend.append("g");
-    posTest.append("rect")
-        .attr("height", .5*em)
-        .attr("width", .5*em)
-        .attr("x", 0)
-        .attr("y", .5*em/4)
-        .attr("fill", "var(--sl-color-neutral-1000)");
-    posTest.append("text")
-        .attr("x", .5*1.5*em)
-        .attr("y", em/2)
-        .attr("dominant-baseline", "middle")
-        .attr("fill", "var(--sl-color-neutral-1000)")
-        .text(d3.select(`sl-option[value=${mapOutcomeVariableSelector.value}]`).html());
-    if (mapOutcomeVariableSelector.value == "positive_tests") {
-        var percentPosTest = legend.append("g");
-        percentPosTest.attr("transform", `translate(0, ${em})`);
-        percentPosTest.append("line")
-            .attr("x1", 0)
-            .attr("x2", .5*em)
-            .attr("y1", .5*em)
-            .attr("y2", .5*em)
-            .attr("stroke", secondaryColor);
-        percentPosTest.append("text")
-            .attr("x", .5*1.5*em)
-            .attr("y", em/2)
-            .attr("dominant-baseline", "middle")
-            .attr("fill", secondaryColor)
-            .text("Percent Positive Tests");
     }
 
     tempLeft.remove()

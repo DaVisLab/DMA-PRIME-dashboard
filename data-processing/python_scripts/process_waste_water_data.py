@@ -16,7 +16,7 @@ disease_names = {
     "RSV": "RSV"
 }
 
-with open(f'{aggregated_data_dir}/waste_water/site_info.json') as f:
+with open(f'{aggregated_data_dir}/waste_water/site_info.json', 'r') as f:
     site_info = json.load(f)
 
     files = glob.glob(f'{aggregated_data_dir}/waste_water/*.xlsx')
@@ -48,10 +48,10 @@ with open(f'{aggregated_data_dir}/waste_water/site_info.json') as f:
             temp.index = temp.index.strftime('%Y-%m-%d')
             data_dict[disease] = temp.to_dict(orient='dict')['GC/L WW AVG']
         
-        with open(f'{processed_data_dir}/waste_water/{site}.json', 'w') as f:
+        with open(get_file_descriptor(f'{processed_data_dir}/waste_water/{site}.json'), 'w') as f:
             json.dump(data_dict, f)
 
-    with open(f'{processed_data_dir}/waste_water/metadata.json', 'w') as f:
+    with open(get_file_descriptor(f'{processed_data_dir}/waste_water/metadata.json'), 'w') as f:
         metadata = {
             'site_info': site_info,
             'diseases': disease_names,

@@ -1,5 +1,5 @@
 import sys
-import os.path
+import os
 import io
 import json
 
@@ -39,7 +39,7 @@ try:
 
     file.seek(0)
 
-    with open(f'{aggregated_data_dir}/mhc/Clemson Rural Health Outreach.csv', 'wb') as f:
+    with open(get_file_descriptor(f'{aggregated_data_dir}/mhc/Clemson Rural Health Outreach.csv'), 'wb') as f:
         f.write(file.read())
         file.close()
     
@@ -112,5 +112,5 @@ for addr, county in set(zip(df['site_address'].astype(str), df['county'].astype(
         df.loc[mask, 'site_lon'] = address_translation.loc[addr, 'lon']
 
 address_translation.to_csv(f'{scripts_supporting_files_dir}/mobile_health_clinic_address_translation.csv')
-with open(f'{processed_data_dir}/mhc/clemson_rural_health_event_data.json', 'w') as f:
+with open(get_file_descriptor(f'{processed_data_dir}/mhc/clemson_rural_health_event_data.json'), 'w') as f:
     json.dump(list(df.to_dict(orient='index').values()), f)

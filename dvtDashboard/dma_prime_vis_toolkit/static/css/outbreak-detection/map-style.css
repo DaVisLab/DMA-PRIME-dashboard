@@ -3,35 +3,41 @@ svg {
   z-index: 1200;
 }
 
-.y-axis, .x-axis, .data-point-ttp {
+.y-axis,
+.x-axis,
+.data-point-ttp {
   pointer-events: none;
+}
+
+.data-point-ttp text {
+  text-anchor: middle;
 }
 
 /* map title */
 #map-title-container {
-    position:absolute; 
-    top: var(--sl-spacing-x-large);
+  position: absolute;
+  top: var(--sl-spacing-x-large);
 }
 
 #map-title {
-    text-align: center
+  text-align: center
 }
 
 /* map sidebar/options */
 
 #map-sidebar {
-    /* scroll vertically if the state aggregation overflows vertically */
-    overflow-y: auto;
-  }
-  
-  #map-content {
-    /* needed for choropleth legend to be in the correct spot */
-    position: relative;
+  /* scroll vertically if the state aggregation overflows vertically */
+  overflow-y: auto;
+}
+
+#map-content {
+  /* needed for choropleth legend to be in the correct spot */
+  position: relative;
 }
 
 #map-disease-selector-container::part(content) {
-    /* makes disease selector detail content look nicer - not so far from the summary */
-    padding-top: 0px;
+  /* makes disease selector detail content look nicer - not so far from the summary */
+  padding-top: 0px;
 }
 
 #disease-explanation {
@@ -39,8 +45,8 @@ svg {
 }
 
 .disease-checkbox {
-    /* ensures 1 disease per "line" */
-    width: 100%;
+  /* ensures 1 disease per "line" */
+  width: 100%;
 }
 
 .disease-last-week-value {
@@ -52,264 +58,300 @@ svg {
 }
 
 .map-toggle::part(control--checked) {
-    /* Hospital icons toggle color is grey */
-    border-color: var(--sl-color-neutral-400);
-    background-color: var(--sl-color-neutral-400);
+  /* Hospital icons toggle color is grey */
+  border-color: var(--sl-color-neutral-400);
+  background-color: var(--sl-color-neutral-400);
 }
 
 /* agg disease large */
 #aggregated-disease-history-large {
-    --width: 65vw;
-  }
-  
-  #aggregated-disease-history-large-svg {
-    width: 100%;
-    aspect-ratio: 2;
-  }
-  
-  #aggregated-disease-history-large-subtitle {
-    font-size: var(--sl-font-size-small);
-  }
-  
-  
-  /* ==========================================================================
+  --width: 65vw;
+}
+
+#aggregated-disease-history-large-svg {
+  width: 100%;
+  aspect-ratio: 2;
+}
+
+#aggregated-disease-history-large-subtitle {
+  font-size: var(--sl-font-size-small);
+}
+
+
+/* ==========================================================================
      3) Choropleth Legend
      ========================================================================== */
-  #choropleth-legend {
-    /* ensure legend sits above the base map */
-    z-index: 10;
-  }
-  
-  #choropleth-legend-svg text {
-    fill: black;
-    font-size: var(--sl-font-size-2x-small);
-  }
-  
-  #choropleth-legend-svg line,
-  #choropleth-legend-svg path {
-    stroke: black;
-  }
-  
-  .legend-other-colors {
-    font-size: var(--sl-font-size-x-small);
-  }
-  
-  
-  /* ==========================================================================
+#choropleth-legend {
+  /* ensure legend sits above the base map */
+  z-index: 10;
+}
+
+#choropleth-legend-svg text {
+  fill: black;
+  font-size: var(--sl-font-size-2x-small);
+}
+
+#choropleth-legend-svg line,
+#choropleth-legend-svg path {
+  stroke: black;
+}
+
+.legend-other-colors {
+  font-size: var(--sl-font-size-x-small);
+}
+
+
+/* ==========================================================================
      4) Inline State-Wide Chart (Sidebar Bottom)
      ========================================================================== */
-  #aggregated-disease-history-container {
-    /* push it to the bottom of the sidebar */
-    align-self: end;
-    text-align: center;
-  }
- 
-  #aggregated-disease-history-container p,
-  #aggregated-disease-history text {
-    font-size: var(--sl-font-size-x-small);
-  }
+#aggregated-disease-history-container {
+  /* push it to the bottom of the sidebar */
+  align-self: end;
+  text-align: center;
+}
 
-  #aggregated-disease-history .x-axis text {
-    font-size: var(--sl-font-size-2x-small);
-  } 
+#aggregated-disease-history-container p,
+#aggregated-disease-history text {
+  font-size: var(--sl-font-size-x-small);
+}
 
-  #aggregated-disease-history {
-    width: 90%;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  
-  /* ==========================================================================
+#aggregated-disease-history .x-axis text {
+  font-size: var(--sl-font-size-2x-small);
+}
+
+#aggregated-disease-history {
+  width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ==========================================================================
      5) MapLibre Popup Styling
      ========================================================================== */
-  .maplibregl-popup-content {
-    border-width: var(--sl-border-radius-small);
-    border-style: solid;
-    border-color: var(--sl-color-neutral-1000);
-  }
-  
-  .maplibregl-popup-tip {
-    border-top-color: black !important;
-  }
-  
-  
-  /* ==========================================================================
+.maplibregl-popup-content {
+  border-width: var(--sl-border-radius-small);
+  border-style: solid;
+  border-color: var(--sl-color-neutral-1000);
+}
+
+.maplibregl-popup-tip {
+  border-top-color: black !important;
+}
+
+
+/* ==========================================================================
      6) Small (Inline) Tooltip Layout
      ========================================================================== */
-  #map-tooltip-div p {
-    margin: 0;
-    padding: 0;
-  }
-  
-  #map-tooltip-div .tooltip-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-top: var(--sl-spacing-x-small);
-    margin-bottom: 0px;
-    font-size: var(--sl-font-size-x-small);
-  }
-  
-  #map-tooltip-div .tooltip-left-col {
-    flex: 1;
-  }
-  
-  #map-tooltip-div .tooltip-right-col {
-    flex: 0 0 120px;
-    text-align: right;
-    font-weight: bold;
-  }
-  
-  #map-tooltip-div p.tooltip-title {
-    text-align: left;
-    padding-top: var(--sl-spacing-x-small);
-  }
-  
-  #map-tooltip-div p.tooltip-subtitle {
-    display: block;
-    text-align: left;
-  }
+#map-tooltip-div p {
+  margin: 0;
+  padding: 0;
+}
 
-  #map-tooltip-svg text {
-    font-size: var(--sl-font-size-2x-small);
-  }
+#map-tooltip-div .tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: var(--sl-spacing-x-small);
+  margin-bottom: 0px;
+  font-size: var(--sl-font-size-x-small);
+}
 
-  #map-tooltip-svg .y-axis > text,
-  #map-tooltip-svg .legend text {
-    font-size: var(--sl-font-size-small);
-  }
-  
-  
-  /* ==========================================================================
+#map-tooltip-div .tooltip-left-col {
+  flex: 1;
+}
+
+#map-tooltip-div .tooltip-right-col {
+  flex: 0 0 120px;
+  text-align: right;
+  font-weight: bold;
+}
+
+#map-tooltip-div p.tooltip-title {
+  text-align: left;
+  padding-top: var(--sl-spacing-x-small);
+}
+
+#map-tooltip-div p.tooltip-subtitle {
+  display: block;
+  text-align: left;
+}
+
+#map-tooltip-svg text {
+  font-size: var(--sl-font-size-2x-small);
+}
+
+#map-tooltip-svg .y-axis>text,
+#map-tooltip-svg .legend text {
+  font-size: var(--sl-font-size-small);
+}
+
+#tooltip-legend,
+#large-tooltip-legend {
+  display: flex;
+  justify-content: space-evenly;
+  min-width: 100%;
+  max-width: min-content;
+  flex-wrap: wrap;
+}
+
+#tooltip-legend .tooltip-legend-group,
+#tooltip-legend .tooltip-legend-group-item,
+#large-tooltip-legend .tooltip-legend-group,
+#large-tooltip-legend .tooltip-legend-group-item {
+  display: flex;
+  align-items: center;
+  width: max-content;
+}
+
+#tooltip-legend .tooltip-legend-group-item,
+#large-tooltip-legend .tooltip-legend-group-item {
+  margin: var(--sl-spacing-2x-small);
+}
+
+#tooltip-legend p,
+#large-tooltip-legend p {
+  margin: 0 var(--sl-spacing-2x-small);
+}
+
+
+/* ==========================================================================
      7) Large (Expanded) Tooltip Dialog Layout
      ========================================================================== */
-  /* Make the dialog panel itself a column-flex container */
-  sl-dialog#map-tooltip-large::part(panel) {
-    display: flex ;
-    flex-direction: column ;
-    padding: 0 ;
-    --width: 65vw;
-  }
-  
-  sl-dialog#map-tooltip-large::part(header) {
-    padding-bottom: 0;
-  }
+/* Make the dialog panel itself a column-flex container */
+sl-dialog#map-tooltip-large::part(panel) {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  --width: 65vw;
+}
 
-  sl-dialog#map-tooltip-large::part(body) {
-    padding-top: 0;
-  }
+sl-dialog#map-tooltip-large::part(header) {
+  padding-bottom: 0;
+}
 
-  sl-dialog#map-tooltip-large p {
-    text-align: center;
-  }
+sl-dialog#map-tooltip-large::part(body) {
+  padding-top: 0;
+}
 
-  #map-tooltip-large-svg {
-    width: 100%;
-    aspect-ratio: 2;
-  }
+sl-dialog#map-tooltip-large p {
+  text-align: center;
+}
 
-  #map-tooltip-large-svg text {
-    font-size: var(--sl-font-size-x-small);
-  }
+#map-tooltip-large-svg {
+  width: 100%;
+  aspect-ratio: 2;
+}
 
-  #map-tooltip-large-svg .legend text {
-    font-size: var(--sl-font-size-small);
-  }
+#map-tooltip-large-svg text {
+  font-size: var(--sl-font-size-x-small);
+}
 
-  #map-tooltip-large-svg .y-axis > text {
-    font-size: var(--sl-font-size-medium);
-  }
-  
-  /* Container for your header + chart */
-  #map-tooltip-large-div.map-tooltip-large-content {
-    display: flex ;
-    flex-direction: column ;
-    flex: 1 1 auto ;
-    justify-content: flex-start ;
-    align-items: center ;
-  }
+#map-tooltip-large-svg .legend text {
+  font-size: var(--sl-font-size-small);
+}
 
-  /* ==========================================================================
+#map-tooltip-large-svg .y-axis>text {
+  font-size: var(--sl-font-size-medium);
+}
+
+/* Container for your header + chart */
+#map-tooltip-large-div.map-tooltip-large-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+/* ==========================================================================
     8) Loading animation
     ========================================================================== */
-  :root {
-    --loading-dot-size: var(--sl-spacing-x-small);
-    --loading-dot-gap: var(--sl-spacing-large);
-  }
-  #map-loading-div {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    flex-direction: column;
-    justify-items: center;
-    align-items: center;
-    pointer-events: none;
+:root {
+  --loading-dot-size: var(--sl-spacing-x-small);
+  --loading-dot-gap: var(--sl-spacing-large);
+}
+
+#map-loading-div {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  justify-items: center;
+  align-items: center;
+  pointer-events: none;
+}
+
+#loading-text {
+  font-family: var(--sl-font-sans);
+  font-size: var(--sl-font-size-2x-large);
+  font-weight: var(--sl-font-weight-semibold);
+  text-align: center;
+  margin-bottom: var(--sl-spacing-small);
+}
+
+#loading-dots-svg {
+  margin-left: auto;
+  margin-right: auto;
+  height: calc(var(--loading-dot-size) * 2 + 2px);
+  width: calc(var(--loading-dot-size) * 6 + var(--loading-dot-gap) * 2 + 2px);
+}
+
+.loading-dot {
+  cx: var(--loading-dot-size);
+  cy: var(--loading-dot-size);
+  r: var(--loading-dot-size);
+  stroke: grey;
+  stroke-width: 1px;
+  fill: white;
+}
+
+.animate {
+  animation: 1s steps(4, end) infinite
+}
+
+.loading-dot:nth-child(1) {
+  /* transform: translate(var(--loading-dot-size), 1px); */
+  animation-name: fill-dot-1;
+}
+
+.loading-dot:nth-child(2) {
+  transform: translate(calc(var(--loading-dot-size) * 2 + var(--loading-dot-gap)), 1px);
+  animation-name: fill-dot-2;
+}
+
+.loading-dot:nth-child(3) {
+  transform: translate(calc(var(--loading-dot-size) * 4 + var(--loading-dot-gap) * 2), 1px);
+  animation-name: fill-dot-3;
+}
+
+@keyframes fill-dot-1 {
+  0% {
+    fill: white
   }
 
-  #loading-text {
-    font-family: var(--sl-font-sans);
-    font-size: var(--sl-font-size-2x-large);
-    font-weight: var(--sl-font-weight-semibold);
-    text-align: center;
-    margin-bottom: var(--sl-spacing-small);
+  25% {
+    fill: black
+  }
+}
+
+@keyframes fill-dot-2 {
+  0% {
+    fill: white
   }
 
-  #loading-dots-svg {
-    margin-left: auto;
-    margin-right: auto;
-    height: calc(var(--loading-dot-size) * 2 + 2px);
-    width: calc(var(--loading-dot-size) * 6 + var(--loading-dot-gap) * 2 + 2px);
+  50% {
+    fill: black
+  }
+}
+
+@keyframes fill-dot-3 {
+  0% {
+    fill: white
   }
 
-  .loading-dot {
-    cx: var(--loading-dot-size);
-    cy: var(--loading-dot-size);
-    r: var(--loading-dot-size);
-    stroke: grey;
-    stroke-width: 1px;
-    fill: white;
+  75% {
+    fill: black
   }
-
-  .animate {
-    animation: 1s steps(4, end) infinite
-  }
-
-  .loading-dot:nth-child(1) { 
-    /* transform: translate(var(--loading-dot-size), 1px); */
-    animation-name: fill-dot-1;
-  }
-  .loading-dot:nth-child(2) { 
-    transform: translate(calc(var(--loading-dot-size) * 2 + var(--loading-dot-gap)), 1px);
-    animation-name: fill-dot-2;
-  }
-  .loading-dot:nth-child(3) { 
-    transform: translate(calc(var(--loading-dot-size) * 4 + var(--loading-dot-gap) * 2), 1px);
-    animation-name: fill-dot-3;
- }
-
-  @keyframes fill-dot-1 {
-    0% {
-      fill: white
-    }
-    25% {
-      fill: black
-    }
-  }
-  @keyframes fill-dot-2 {
-    0% {
-      fill: white
-    }
-    50% {
-      fill: black
-    }
-  }
-  @keyframes fill-dot-3 {
-    0% {
-      fill: white
-    }
-    75% {
-      fill: black
-    }
-  }
+}

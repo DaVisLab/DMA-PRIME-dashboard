@@ -24,7 +24,11 @@ mapRateSwitch.addEventListener("sl-change", () => {
     mapYearlyTooltip.content = `${d3.selectAll(`sl-radio-button[value=${mapRateSwitch.value}]`).html()} for the past 52 weeks`
 })
 
-mapTimeSwitch.addEventListener("sl-change", update)
+mapTimeSwitch.addEventListener("sl-change", () => {
+    d3.selectAll(".disease-option-count")
+        .html(d3.selectAll(`sl-radio-button[value=${mapTimeSwitch.value}]`).html())
+    update()
+})
 
 mapRegionSelector.addEventListener("sl-change", changeDataColumn)
 
@@ -167,14 +171,6 @@ map.on("click", e => {
 
     popup.setLngLat(coordinates)
         .setHTML(`<div id='map-tooltip-div' class='tooltip-div'>
-            <div class="tooltip-header">
-                <div class="tooltip-region-info"></div>
-                <div class="tooltip-data-info"></div>
-            </div>
-            <svg id="map-tooltip-svg" class="tooltip-outer-svg"></svg>
-            <div class="tooltip-footer">
-                <div class="tooltip-options"></div>
-            </div>
             </div>`)
 
     if (!popup.isOpen()) {

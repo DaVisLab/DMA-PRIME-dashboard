@@ -46,7 +46,7 @@ for disease, df in disease_dict.items():
     pivot_df = pd.pivot_table(new_df, values=['hospitalizations', 'deaths'], index=['zcta', 'year'], dropna=False)
 
     # shape into geojson with disease and sociodemographic data stuck into properties.data section of each feature
-    with open(f'{scripts_supporting_files_dir}/sc_zcta_population_simplified.json') as f:
+    with open(f'{scripts_supporting_files_dir}/sc_zcta_population_simplified.json', 'r') as f:
         gj = geojson.load(f)
 
         for thing in gj.features:
@@ -88,11 +88,11 @@ for disease, df in disease_dict.items():
 
             thing.properties['data'] = zcta_disease_data
 
-        with open(f'{processed_data_dir}/opioid_hcv_hiv/{disease}_zcta_hospitalization_data.json', 'w') as f:
+        with open(get_file_descriptor(f'{processed_data_dir}/opioid_hcv_hiv/{disease}_zcta_hospitalization_data.json'), 'w') as f:
             geojson.dump(gj, f)
 
 
-with open(f'{processed_data_dir}/opioid_hcv_hiv/metadata.json', 'w') as f:
+with open(get_file_descriptor(f'{processed_data_dir}/opioid_hcv_hiv/metadata.json'), 'w') as f:
     metadata = {
         'diseases': {d[0]: d[1] for d in zip(disease_dict.keys(), dirs)},
         'years': list(years),

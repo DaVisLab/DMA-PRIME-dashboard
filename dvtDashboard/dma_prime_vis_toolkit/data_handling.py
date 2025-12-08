@@ -11,10 +11,13 @@ bp = Blueprint('data', __name__, url_prefix='/data')
 from flask_login import login_required
 
 # Fetching
-@bp.route('/map/<type>', methods=['GET'])
+@bp.route('/map/<geographic_unit>', methods=['GET'])
 @login_required
-def map_data(type):
-    return send_file(f"{main_dir}/static/assets/GeoJSON/tl_2024_sc_{type}_simplified.json")
+def map_data(geographic_unit):
+    if geographic_unit == "state":
+        return send_file(f"{main_dir}/static/assets/GeoJSON/sc_state_population_simplified.json")
+    else:
+        return send_file(f"{main_dir}/static/assets/GeoJSON/tl_2024_sc_{geographic_unit}_simplified.json")
 
 
 @bp.route('/health-care-facility', methods=['GET'])

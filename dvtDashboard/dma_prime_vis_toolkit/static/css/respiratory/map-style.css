@@ -9,7 +9,7 @@
     top: var(--sl-spacing-x-large);
 }
 
-#map-title {
+#map-title, #map-disclaimer{
     text-align: center;
     color: black;
 }

@@ -4,6 +4,8 @@ from Cryptodome.Cipher import AES
 from base64 import b64encode
 import json
 
+from supporting_files.utility import * 
+
 if len(sys.argv) != 4:
 
     print("Usage: python3 encrypt.py <secret_key_file> <input_dir> <output_dir>")
@@ -32,5 +34,5 @@ for file in list(p.glob('**/*.*')):
 
     out_file = Path(sys.argv[3]) / file.relative_to(p)
     out_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(out_file, 'w') as f:
+    with open(get_file_descriptor(out_file), 'w') as f:
         json.dump(dict(zip(output_keys, output_values)), f)

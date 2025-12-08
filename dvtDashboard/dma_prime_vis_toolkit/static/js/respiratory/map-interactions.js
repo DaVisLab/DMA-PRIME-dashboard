@@ -193,6 +193,7 @@ mapGeographicUnitSelector.addEventListener("sl-change", async(event) => {
     }
 
     if (mapGeographicUnitSelector.value == "facility") {
+        mapOptionsGeographicLabelsToggle.checked = true
         hospitalIconsToggle.checked = false
         selectedItems.icons = selectedItems.icons.filter(check => check !== "hospital")
         d3.select(hospitalIconsToggle).attr("disabled", "")

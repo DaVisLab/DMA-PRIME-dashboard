@@ -344,12 +344,11 @@ for disease in diseases.keys():
     all_disease_data = geojson.FeatureCollection(facility_info.apply(get_facility_data, args=[extended_historical_data], axis=1).to_list())
     # create dirs if needed and save off file
     out_path = f'{processed_data_dir}/respiratory/facility/{disease}.json'
-    os.makedirs(os.path.dirname(out_path), exist_ok=True)
-    with open(out_path, 'w') as f:
+    with open(get_file_descriptor(out_path), 'w') as f:
         geojson.dump(all_disease_data, f)
 
     out_path = f'{processed_data_dir}/respiratory/facility/{disease}.extended.json'
-    with open(out_path, 'w') as f:
+    with open(get_file_descriptor(out_path), 'w') as f:
         json.dump(extended_historical_data, f)
 
 for region_size, identifier_column in region_geojson_identifiers.items():
@@ -358,7 +357,7 @@ for region_size, identifier_column in region_geojson_identifiers.items():
 
     metadata[region_size] = []
 
-    with open(f'{scripts_supporting_files_dir}/sc_{region_size}_population_simplified.json') as f:
+    with open(f'{scripts_supporting_files_dir}/sc_{region_size}_population_simplified.json', 'r') as f:
         gj = geojson.load(f)
 
         # add universal id key
@@ -413,12 +412,11 @@ for region_size, identifier_column in region_geojson_identifiers.items():
 
             # create dirs if needed and save off file
             out_path = f'{processed_data_dir}/respiratory/{region_size}/{disease}.json'
-            os.makedirs(os.path.dirname(out_path), exist_ok=True)
-            with open(out_path, 'w') as f:
+            with open(get_file_descriptor(out_path), 'w') as f:
                 geojson.dump(gj, f)
 
             out_path = f'{processed_data_dir}/respiratory/{region_size}/{disease}.extended.json'
-            with open(out_path, 'w') as f:
+            with open(get_file_descriptor(out_path), 'w') as f:
                 json.dump(extended_historical_data, f)
             
 ######## 4 ########
@@ -455,7 +453,7 @@ os.makedirs(os.path.dirname(out_path), exist_ok=True)
 df.to_json(out_path, orient='columns')
 
 ######## 5 ########
-with open(f'{processed_data_dir}/respiratory/metadata.json', 'w') as f:
+with open(get_file_descriptor(f'{processed_data_dir}/respiratory/metadata.json'), 'w') as f:
 
     metadata['outcome_variables_tooltips']['all_encounters'] = 'Inpatient and outpatient hospitalizations and emergency department visits'
     metadata['outcome_variables_tooltips']['rate_of_transmission'] = 'Average effective reproductive number'

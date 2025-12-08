@@ -32,8 +32,8 @@ for directory in dirs:
     disease = disease.strip()
     disease = '-'.join(disease.split(' '))
     diseases.append({'display-name': disease_display_name, 'disease-name': disease})
-    
-with open(f'{processed_data_dir}/other_infectious_diseases/metadata.json', 'w') as f:
+
+with open(get_file_descriptor(f'{processed_data_dir}/other_infectious_diseases/metadata.json'), 'w') as f:
     json.dump(diseases, f)
 
 for region_size, file_region_size in region_file_identifiers.items():
@@ -41,7 +41,7 @@ for region_size, file_region_size in region_file_identifiers.items():
 
     for column in other_column.keys():
 
-        with open(f'{scripts_supporting_files_dir}/sc_{region_size}_population_simplified.json') as f:
+        with open(f'{scripts_supporting_files_dir}/sc_{region_size}_population_simplified.json', 'r') as f:
             state_central_point = geojson.Point((-81, 33.65))
             state_properties = {
                 'identifier': 'state',
@@ -206,10 +206,6 @@ for region_size, file_region_size in region_file_identifiers.items():
                         state_aggregation.properties['other'][disease]['monthly'] += feature.properties['other'][disease]['monthly']
                         state_aggregation.properties['other'][disease]['yearly'] += feature.properties['other'][disease]['yearly']
                         
-                        #state_aggregation.properties['other'][disease]['weekly'] += feature_disease_other
-                        #state_aggregation.properties['other'][disease]['monthly'][0] += feature.properties['other'][disease]['monthly'][0]
-                        #state_aggregation.properties['other'][disease]['yearly'][0] += feature.properties['other'][disease]['yearly'][0]
-
                     # if data doesn't exist then add data source with empty array
                     except (IndexError, KeyError):
                         feature.properties['other'][disease] = {
@@ -228,6 +224,7 @@ for region_size, file_region_size in region_file_identifiers.items():
             gj.features.append(state_aggregation)
             
             out_path = f'{processed_data_dir}/other_infectious_diseases/{region_size}/{column}_data.json'
-            os.makedirs(os.path.dirname(out_path), exist_ok=True)
-            with open(out_path, 'w') as f:
-                geojson.dump(gj, f)
+
+            with open(get_file_descriptor(out_path), 'w') as f:
+                json.dump(gj, f)
+

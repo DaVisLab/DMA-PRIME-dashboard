@@ -1,5 +1,5 @@
 const { GeoJsonLayer, IconLayer, TextLayer, MapboxOverlay } = deck;
-import { outcomeVariableStringCrosswalk, populationColorMap, unknownColor, getCenter, getFeatureValue, getAllFeaturesValue, drawTooltip, drawStateHospitalizations } from "/static/js/respiratory/script.js";
+import { populationColorMap, unknownColor, getCenter, getFeatureValue, getAllFeaturesValue, drawTooltip, drawStateHospitalizations } from "/static/js/respiratory/script.js";
 export { map, popup, selectedItems, deckOverlay, 
     redraw, updateMapTitle, updateMapTooltip,
     updateMapOutcomeVariableOptions, updateMapPopulationOptions, updateMapGeographicUnitOptions
@@ -41,16 +41,22 @@ d3.select(popup.getElement()).style("color", "var(--sl-color-neutral-0)")
 
 const deckOverlay = new MapboxOverlay({
     interleaved: true,
+    getCursor: ({isHovering, isDragging}) => {if (isHovering) {return 'pointer'} else if (isDragging) {return 'grabbing'} else {return 'grab'}},
 })
 
 map.addControl(deckOverlay)
 map.addControl(new maplibregl.NavigationControl())
+map.setMaxPitch(0)
 
 await Promise.allSettled([ // wait for following to be defined/load in
     customElements.whenDefined('sl-select'),
     customElements.whenDefined('sl-option'),
     customElements.whenDefined('sl-button'),
 ])
+
+mapGeographicUnit = mapGeographicUnitSelector.value
+mapPopulation = mapPopulationSelector.value
+mapOutcomeVariable = mapOutcomeVariableSelector.value
 
 var regionData = await d3.json(`/data/respiratory/${mapGeographicUnitSelector.value}/${mapDiseaseSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`)
 
@@ -93,6 +99,16 @@ async function redraw(resetWarnings=false, fetchData=false, center=false) {
         )
     } else {
         layers.push(
+            new GeoJsonLayer({
+                id: 'state_outline',
+                pickable: false,
+                data: d3.json('/data/map/state'),
+                stroked: true,
+                filled: false,
+                lineWidthMinPixels: 1,
+                getLineWidth: 20,
+                getLineColor: [64, 64, 64],
+            }),
             new GeoJsonLayer({
                 id: 'respiratory_facility_background',
                 depthTest: false,
@@ -157,29 +173,55 @@ async function redraw(resetWarnings=false, fetchData=false, center=false) {
             }),
         )
     }
-    if (mapGeographicUnitSelector.value != "state" && mapOptionsGeographicLabelsToggle.checked) {
-        layers.push(
-            new TextLayer({
-                id: 'labels',
-                data: regionData.features,
-                getPosition: d => getCenter(d),
-                getText: d => d.properties.id.toString(),
-                getAlignmentBaseline: 'center',
-                getTextAnchor: 'middle',
-                getColor: [0, 0, 0],
-                background: true,
-                getBackgroundColor: [255, 255, 255, 32],
-                backgroundBorderRadius: 2,
-                backgroundPadding: [4, 4],
-                getSize: mapGeographicUnitSelector.value == "zcta" ? Math.min(Math.max(8, map.getZoom()*1.5), 16) : 16,
-                fontFamily:getComputedStyle(document.head).getPropertyValue("--sl-font-sans").replace(/\s/g,'').split(',') ,
-                collisionGroup: 'labels',
-                collisionTestProps: {sizeScale: 2.5},
-                updateTriggers: {
-                    getSize: [map.getZoom()],
-                },
-            })
-        )
+    if (mapOptionsGeographicLabelsToggle.checked) {
+        if (mapGeographicUnitSelector.value == "facility") {
+            layers.push(
+                new TextLayer({
+                    id: 'labels',
+                    data: regionData.features,
+                    getPosition: d => getCenter(d),
+                    getText: d => d.properties.display_name,
+                    maxWidth: 10,
+                    getAlignmentBaseline: 'center',
+                    getTextAnchor: 'middle',
+                    getColor: [0, 0, 0],
+                    background: true,
+                    getBackgroundColor: [255, 255, 255, 128],
+                    backgroundBorderRadius: 10,
+                    backgroundPadding: [2, 2],
+                    getSize: 12,
+                    fontFamily:getComputedStyle(document.head).getPropertyValue("--sl-font-sans").replace(/\s/g,'').split(',') ,
+                    collisionGroup: 'labels',
+                    collisionTestProps: {sizeScale: 2.5},
+                    updateTriggers: {
+                        getSize: [map.getZoom()],
+                    },
+                })
+            )
+        } else if (mapGeographicUnitSelector.value != "state") {
+            layers.push(
+                new TextLayer({
+                    id: 'labels',
+                    data: regionData.features,
+                    getPosition: d => getCenter(d),
+                    getText: d => d.properties.id.toString(),
+                    getAlignmentBaseline: 'center',
+                    getTextAnchor: 'middle',
+                    getColor: [0, 0, 0],
+                    background: true,
+                    getBackgroundColor: [255, 255, 255, 32],
+                    backgroundBorderRadius: 2,
+                    backgroundPadding: [4, 4],
+                    getSize: mapGeographicUnitSelector.value == "zcta" ? Math.min(Math.max(8, map.getZoom()*1.5), 16) : 16,
+                    fontFamily:getComputedStyle(document.head).getPropertyValue("--sl-font-sans").replace(/\s/g,'').split(',') ,
+                    collisionGroup: 'labels',
+                    collisionTestProps: {sizeScale: 2.5},
+                    updateTriggers: {
+                        getSize: [map.getZoom()],
+                    },
+                })
+            )
+        }
     }
     deckOverlay.setProps({
         layers: layers
@@ -309,8 +351,8 @@ function drawLegend() {
             .html(d => `${d}%`)
 
         var otherColors = legend.append("g")
-        var others = [["white", `No ${outcomeVariableStringCrosswalk[mapOutcomeVariableSelector.value]}`], 
-        ["#ff8800", `New ${outcomeVariableStringCrosswalk[mapOutcomeVariableSelector.value]} from Last Period`],
+        var others = [["white", `No ${metadata['outcome_variables'][mapOutcomeVariableSelector.value]}`], 
+        ["#ff8800", `New ${metadata['outcome_variables'][mapOutcomeVariableSelector.value]} from Last Period`],
         [unknownColor, "Unknown"]]
 
         others.forEach((d, i) => {
@@ -338,7 +380,7 @@ function drawLegend() {
             .attr("width", legendWidth + legendMargins.left + legendMargins.right)
             .attr("height", 3*em + legendMargins.top + legendMargins.bottom)
 
-        // Discrete 5-bin legend for encounters/inpatient/ed and positive-tests
+        // Discrete 5-bin legend for hospitalizations/inpatient/ed and positive-tests
         if (mapOutcomeVariableSelector.value != "rate_of_transmission") {
             var edges = (choroplethDiscreteEdges && choroplethDiscreteEdges.length === 6)
                 ? choroplethDiscreteEdges
@@ -567,7 +609,12 @@ async function updateMapGeographicUnitOptions() {
 
 async function updateMapPopulationOptions() {
     d3.selectAll(".map-population-tooltip").remove()
-    var availablePopulations = Object.keys(metadata.available_models[mapDiseaseSelector.value][mapGeographicUnitSelector.value])
+    var availablePopulations
+    if (metadata.available_models[mapDiseaseSelector.value][mapGeographicUnitSelector.value]) {
+        availablePopulations = Object.keys(metadata.available_models[mapDiseaseSelector.value][mapGeographicUnitSelector.value])
+    } else {
+        availablePopulations = Object.keys(Object.entries(metadata.available_models[mapDiseaseSelector.value])[0])
+    }
     d3.select(mapPopulationSelector)
         .selectAll(".map-population-tooltip")
         .data(availablePopulations)

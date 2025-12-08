@@ -1,6 +1,6 @@
 [project]
 name = "dma_prime_vis_toolkit"
-version = "1.9.10"
+version = "1.9.11"
 description = "DMA-PRIME July 2025 - 5 dashboards, user login/roles/creation/2fa, encryption + logging, data approval"
 dependencies = [
     "waitress",

@@ -20,7 +20,7 @@
     </sl-radio-group>
 
     <!-- disease selector -->
-    <sl-select value="covid_19" id="grid-disease-selector" class="fill-width grid-option" size="small" >
+    <sl-select value="respiratory_diseases" id="grid-disease-selector" class="fill-width grid-option" size="small" >
         <p slot="label">Select a disease or group of diseases</p>
         {% for disease, name in metadata['diseases'].items() %}
         <sl-option value="{{ disease }}" class="grid-disease-option">{{ name }}</sl-option>
@@ -28,18 +28,18 @@
     </sl-select>
 
     <!-- region selector -->
-    <sl-select value="region" id="grid-geographic-unit-selector" class="fill-width grid-option" size="small" >
+    <sl-select value="county" id="grid-geographic-unit-selector" class="fill-width grid-option" size="small" >
         <p slot="label">Geographic unit</p>
-        {% for region in metadata['available_models']['covid_19'].keys() %}
+        {% for region in metadata['available_models']['respiratory_diseases'].keys() %}
         <sl-option class="grid-geographic-unit-option" value="{{ region }}">{{ metadata['region_sizes'][region]
             }}</sl-option>
         {% endfor %}
     </sl-select>
 
     <!-- population -->
-    <sl-select value="general_population" id="grid-population-selector" class="fill-width grid-option" size="small" >
+    <sl-select value="{{ metadata['available_models']['respiratory_diseases']['county'] | list | first }}" id="grid-population-selector" class="fill-width grid-option" size="small" >
         <p slot="label">Select population</p>
-        {% for population in metadata['available_models']['covid_19']['region'].keys() %}
+        {% for population in metadata['available_models']['respiratory_diseases']['county'].keys() %}
         <sl-tooltip class="grid-population-tooltip" content="{{ metadata['populations_tooltips'][population] }}"
             trigger="hover" hoist>
             <sl-option class="grid-population-option" value="{{ population }}">{{ metadata['populations'][population]
@@ -49,9 +49,9 @@
     </sl-select>
 
     <!-- outcome variable -->
-    <sl-select value="all_encounters" id="grid-outcome-variable-selector" class="fill-width grid-option" size="small" >
+    <sl-select value="{{ metadata['available_models']['respiratory_diseases']['county'].values() | first | first }}" id="grid-outcome-variable-selector" class="fill-width grid-option" size="small" >
         <p slot="label">Select outcome variable</p>
-        {% for outcome in metadata['available_models']['covid_19']['region']['general_population'] %}
+        {% for outcome in metadata['available_models']['respiratory_diseases']['county'].values() | first %}
         <sl-tooltip class="grid-outcome-tooltip" content="{{ metadata['outcome_variables_tooltips'][outcome] }}"
             trigger="hover" hoist>
             <sl-option class="grid-outcome-option" value="{{ outcome }}">{{ metadata['outcome_variables'][outcome]
@@ -62,12 +62,12 @@
 
     <!-- grid item sort selection -->
     <sl-select value="alphabetical-low" id="grid-sort" class="fill-width" size="small">
-        <p slot="label">Sort zctas</p>
+        <p slot="label">Sort Locations</p>
         <sl-option value="value-high">Value (count or rate) High-Low</sl-option>
         <sl-option value="value-low">Value (count or rate) Low-High</sl-option>
         <sl-option value="alphabetical-low">Alphanumerical A-Z-0-9</sl-option>
         <sl-option value="alphabetical-high">Alphanumerical 9-0-Z-A </sl-option>
-    </sl-select>
+    </sl-select> 
 
     <!-- grid item filtration (text) -->
     <sl-input id="grid-text-filter" clearable size="small">
@@ -175,9 +175,9 @@
     gridStateHospitalizationsLargeSvg = document.getElementById("grid-state-hospitalizations-large-svg");
 
     // Options selected
-    gridGeographicUnit = "region"
-    gridPopulation = "general_population"
-    gridOutcomeVariable = "all_encounters"
+    gridGeographicUnit = undefined
+    gridPopulation = undefined
+    gridOutcomeVariable = undefined
 
     // Get scrollbar width - source: https://stackoverflow.com/questions/28360978/how-can-i-get-browser-scrollbar-width
     var scrollDiv = document.createElement("div");

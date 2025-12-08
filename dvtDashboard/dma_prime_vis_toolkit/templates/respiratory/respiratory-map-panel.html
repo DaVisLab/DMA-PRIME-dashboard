@@ -34,13 +34,7 @@ options %}
   </sl-radio-group>
 
   <!-- disease selector -->
-  <sl-select
-    value="covid_19"
-    id="map-disease-selector"
-    class="fill-width map-option"
-    size="small"
-    disabled
-  >
+  <sl-select value="respiratory_diseases" id="map-disease-selector" class="fill-width map-option" size="small" disabled>
     <p slot="label">Select a disease or group of diseases</p>
     {% for disease, name in metadata['diseases'].items() %}
     <sl-option value="{{ disease }}" class="map-disease-option"
@@ -50,41 +44,19 @@ options %}
   </sl-select>
 
   <!-- region selector -->
-  <sl-select
-    value="region"
-    id="map-geographic-unit-selector"
-    class="fill-width map-option"
-    size="small"
-    disabled
-  >
+  <sl-select value="county" id="map-geographic-unit-selector" class="fill-width map-option" size="small" disabled>
     <p slot="label">Geographic unit</p>
-    {% for region in metadata['available_models']['covid_19'].keys() %}
-    <sl-option class="map-geographic-unit-option" value="{{ region }}"
-      >{{ metadata['region_sizes'][region] }}</sl-option
-    >
+    {% for region in metadata['available_models']['respiratory_diseases'].keys() %}
+    <sl-option class="map-geographic-unit-option" value="{{ region }}">{{ metadata['region_sizes'][region] }}</sl-option>
     {% endfor %}
   </sl-select>
 
   <!-- population -->
-  <sl-select
-    value="general_population"
-    id="map-population-selector"
-    class="fill-width map-option"
-    size="small"
-    disabled
-  >
+  <sl-select value="{{ metadata['available_models']['respiratory_diseases']['county'] | list | first }}" id="map-population-selector" class="fill-width map-option" size="small" disabled>
     <p slot="label">Select population</p>
-    {% for population in
-    metadata['available_models']['covid_19']['region'].keys() %}
-    <sl-tooltip
-      class="map-population-tooltip"
-      content="{{ metadata['populations_tooltips'][population] }}"
-      trigger="hover"
-      hoist
-    >
-      <sl-option class="map-population-option" value="{{ population }}"
-        >{{ metadata['populations'][population] }}</sl-option
-      >
+    {% for population in metadata['available_models']['respiratory_diseases']['county'].keys() %}
+    <sl-tooltip class="map-population-tooltip" content="{{ metadata['populations_tooltips'][population] }}" trigger="hover" hoist>
+      <sl-option class="map-population-option" value="{{ population }}">{{ metadata['populations'][population] }}</sl-option>
     </sl-tooltip>
     {% endfor %}
   </sl-select>
@@ -98,17 +70,9 @@ options %}
     disabled
   >
     <p slot="label">Select outcome variable</p>
-    {% for outcome in
-    metadata['available_models']['covid_19']['region']['general_population'] %}
-    <sl-tooltip
-      class="map-outcome-tooltip"
-      content="{{ metadata['outcome_variables_tooltips'][outcome] }}"
-      trigger="hover"
-      hoist
-    >
-      <sl-option class="map-outcome-option" value="{{ outcome }}"
-        >{{ metadata['outcome_variables'][outcome] }}</sl-option
-      >
+    {% for outcome in metadata['available_models']['respiratory_diseases']['county'].values() | first %}
+    <sl-tooltip class="map-outcome-tooltip" content="{{ metadata['outcome_variables_tooltips'][outcome] }}" trigger="hover" hoist>
+      <sl-option class="map-outcome-option" value="{{ outcome }}">{{ metadata['outcome_variables'][outcome] }}</sl-option>
     </sl-tooltip>
     {% endfor %}
   </sl-select>
@@ -390,4 +354,109 @@ options %}
   src="{{ url_for('static', filename='js/respiratory/smallMultiples-hospitalization.js') }}"
   type="module"
 ></script>
+{% endblock %}
+
+{% block contents %}
+<div class="fill-width fill-height" id="map-div"></div>
+<div id="map-legend">
+  <svg id="map-shape-legend" height="48px" width="200" display="initial">
+    <path fill="#CCCCCC" stroke="black" d="M 12 0 L 22 20 L 2 20 Z"> </path>
+    <text x="26" y="16" font-size="var(--sl-font-size-medium)">Prisma Health System</text>
+    <circle r="10" fill="#CCCCCC" stroke="black" cx="12" cy="36"></circle>
+    <text x="26" font-size="var(--sl-font-size-medium)" y="42">MUSC Health System</text>
+  </svg>
+  <svg id="choropleth-legend-svg"></svg>
+</div>
+<div id="map-title-container" class="fill-width">
+  <p id="map-title">Count of COVID-19 All Encounters in South Carolina by Region</p>
+  <p id="map-disclaimer"></p>
+</div>
+<div id="map-loading-div">
+  <p id="loading-text">Loading</p>
+  <svg id="loading-dots-svg">
+    <circle class="loading-dot animate"></circle>
+    <circle class="loading-dot animate"></circle>
+    <circle class="loading-dot animate"></circle>
+  </svg>
+</div>
+
+<div id="map-alert-container">
+  <sl-alert id="map-mixed-forecast-this-week-alert" variant="warning" class="map-alert" closable >
+    <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+    <strong>Partial forecast submissions available for this week</strong><br />
+    Only locations with this week's forecasts are shown on the map. 
+  </sl-alert>
+
+  <sl-alert id="map-no-forecast-this-week-alert" variant="warning" class="map-alert" closable >
+    <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+    <strong>No forecasts submitted for this week</strong><br />
+  </sl-alert>
+
+  <sl-alert id="map-no-forecast-alert" variant="warning" class="map-alert" >
+    <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+    <strong>No forecast submissions available</strong><br />
+  </sl-alert>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+  <!-- 1) MapLibre GL CSS & JS (required for maplibregl.Map) -->
+  <link
+    href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css"
+    rel="stylesheet"
+  />
+  <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+
+  <!-- 2) Deck.gl UMD bundle (pin to 8.9.27) -->
+  <script src="https://unpkg.com/deck.gl@8.9.27/dist.min.js"></script>
+
+  <!-- 3) Your initialization + controls (unchanged) -->
+  <script>
+    dataVersion = 0;
+
+    // Map controls
+    mapResetButton                  = document.getElementById("map-reset-button");
+    mapTypeSwitch                   = document.getElementById("map-type-switch");
+    mapDiseaseSelector              = document.getElementById("map-disease-selector");
+    mapGeographicUnitSelector       = document.getElementById("map-geographic-unit-selector");
+    mapPopulationSelector           = document.getElementById("map-population-selector")
+    mapOutcomeVariableSelector      = document.getElementById("map-outcome-variable-selector")
+    mapIncludeImputations           = document.getElementById("map-include-imputations");
+
+    // Optional toggles
+    mapOptionsGeographicLabelsToggle= document.getElementById("map-options-geographic-labels-toggle");
+    hospitalIconsToggle             = document.getElementById("map-options-hospital-icons-toggle");
+    mobileClinicIconsToggle         = document.getElementById("map-options-mobile-clinic-icons-toggle");
+    communityPartnerIconsToggle     = document.getElementById("map-options-community-partner-icons-toggle");
+
+    // State–level chart elements
+    mapStateHospitalizationsSubtitle      = document.getElementById("map-state-hospitalizations-subtitle");
+    mapStateHospitalizationsResizer       = document.getElementById("map-state-hospitalizations-resizer");
+    mapStateHospitalizationsSvg           = document.getElementById("map-state-hospitalizations-svg");
+    mapStateHospitalizationsLarge         = document.getElementById("map-state-hospitalizations-large");
+    mapStateHospitalizationsLargeSubtitle = document.getElementById("map-state-hospitalizations-large-subtitle");
+    mapStateHospitalizationsLargeResizer  = document.getElementById("map-state-hospitalizations-large-resizer");
+    mapStateHospitalizationsLargeSvg      = document.getElementById("map-state-hospitalizations-large-svg");
+
+    // Main map, legend, title & tooltip
+    mapDiv                        = document.getElementById("map-div");
+    mapShapeLegend              = document.getElementById("map-shape-legend")
+    choroplethLegendSVG           = document.getElementById("choropleth-legend-svg");
+    mapTitle                      = document.getElementById("map-title");
+    mapDisclaimer                = document.getElementById("map-disclaimer")
+    mapNoForecastAlert            = document.getElementById("map-no-forecast-alert")
+    mapNoForecastThisWeekAlert    = document.getElementById("map-no-forecast-this-week-alert")
+    mapMixedForecastThisWeekAlert = document.getElementById("map-mixed-forecast-this-week-alert")
+
+    // Options selected
+    mapGeographicUnit = undefined
+    mapPopulation = undefined
+    mapOutcomeVariable = undefined
+  </script>
+
+  <!-- 5) Your module code—now deck, loaders & maplibregl are ready -->
+  <script src="{{ url_for('static', filename='js/respiratory/map.js') }}" type="module"></script>
+  <script src="{{ url_for('static', filename='js/respiratory/map-interactions.js') }}" type="module"></script>
 {% endblock %}

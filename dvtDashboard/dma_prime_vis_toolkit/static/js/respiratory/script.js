@@ -1,7 +1,6 @@
 
 export { zctaData, 
-    populationColorMap, dataSourceColorMap, unknownColor,
-    outcomeVariableStringCrosswalk, 
+    populationColorMap, dataSourceColorMap, unknownColor, 
     getFeatureValue, getAllValuesFromFeature, getAllFeaturesValue, getBoundsOfCoords, getCenter,
     drawTooltip, drawStateHospitalizations, drawLargeStateHospitalizations }
 
@@ -28,24 +27,6 @@ var dataSourceColorMap = {
 var populationColorMap = {
     "general_population": {"historical": "#FFB000", "projected": "#FE6100"},
     "health_system": {"historical": "#648FFF", "projected": "#345FAF"},
-}
-
-// lior nixed this :c
-// var outcomeVariableColorMap = {
-//     "encounters": "#FFB000",
-//     "encounters-projected": "#FE6100",
-//     "positive-tests": "#648FFF",
-//     "positive-tests-projected": "#785EF0",
-//     "rt": "#AA4499",
-//     "rt-projected": "#882255",
-// }
-
-var outcomeVariableStringCrosswalk = {
-    "all_encounters": "All Encounters",
-    "inpatient_hospitalizations": "Inpatient Hospitalizations",
-    "emergency_department_visits": "Emergency Department Visits",
-    "positive_tests": "Positive Tests",
-    "rate_of_transmission": "Transmission",
 }
 
 var ttpHistoryWidthPercentage = 3/4
@@ -218,7 +199,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
     ttpSVG.datum({"extraSources": extraSources})
 
 // create titles/subtitles
-    var outcomeVariableString = outcomeVariableStringCrosswalk[outcomeVariable]
+    var outcomeVariableString = metadata['outcome_variables'][outcomeVariable]
     
     var regionInfo = header.select(".tooltip-region-info")
     regionInfo.node().innerHTML = ""
@@ -277,7 +258,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
                     } else {
                         text += " (projected)"
                     }
-                } else {
+                } else { 
                     if (outcomeVariable == "all_encounters") {
                         text = "All Historical Encounters"
                     } else {
@@ -304,7 +285,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
             .attr("font-size", "var(--sl-font-size-small)")
             .attr("color", "black")
             .text(() => {
-                var text = outcomeVariableString
+                var text = outcomeVariableString 
                 if (outcomeVariable == "all_encounters") {
                     text = "All Historical Encounters"
                 } else {
@@ -433,13 +414,11 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
 
 // Reset svg and get it ready for new viz
     ttpSVG.node().innerHTML = ""
+    var dataPointTTP = ttpSVG.append("g").attr("class", "data-point-ttp")
     var graphSVG = ttpSVG.append("svg")
         .attr("class", "tooltip-graph-svg")
         .attr("height", ttpHeight)
         .attr("width", ttpWidth)
-    ttpSVG.append("line")
-        .attr("class", "tooltip-prediction-separator")
-        .style("pointer-events", "none")
 
     var yAxis = ttpSVG.append("g")
         .attr("class", "y-axis")
@@ -448,7 +427,6 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
     var xAxisPrediction = ttpSVG.append("g")
         .attr("class", "x-axis-prediction")
     
-    var dataPointTTP = ttpSVG.append("g").attr("class", "data-point-ttp")
 // create scales
     // apply rate if necessaryand figure find max y value
     var countMax = panelType == "rate" ? 1/d.population : 1 // so y scale is never 0-0
@@ -470,7 +448,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
     // figure out how much space is needed for the y-axis text
     var temp = ttpSVG.append("text").text(d3.format(".2r")(countMax)).attr("x", 0).attr("y", 0)
     var ttpMargins = {
-        "top": 1*em, 
+        "top": 2*em, 
         "bottom": 2.5*em,
         "left": Math.max(20, temp.node().getBBox().width) + 2*em,
         "right": em,
@@ -552,12 +530,23 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
                 valueTypeStr = "Count"
                 break;
         } 
-        
-        dataPointTTP.append("text").text(dateStr)
-        dataPointTTP.append("text").text(`${valueTypeStr}: ${valueStr}`)
-            .attr("transform", `translate(0, ${.75*em})`)
 
-        dataPointTTP.attr("transform", `translate(${dataShapeBBox.x + dataShapeBBox.width/2}, ${dataShapeBBox.y-.75*em})`)
+        var dx = dataShapeBBox.x + dataShapeBBox.width/2 + thisDataPointShape.getCTM().e
+        var dy = 1*em
+                
+        dataPointTTP.append("text").text(dateStr)
+            .attr("x", dx)
+            .attr("y", dy)
+        dataPointTTP.append("text").text(`${valueTypeStr}: ${valueStr}`)
+            .attr("x", dx)
+            .attr("y", dy + .75*em)
+        dataPointTTP.append("line")
+            .attr("stroke", "black")
+            .attr("stroke-width", 1)
+            .attr("x1", dx)
+            .attr("y1", dy + 1*em)
+            .attr("x2", dx)
+            .attr("y2", ttpHeight - ttpMargins.bottom)
     }
 
 // visualize historical
@@ -598,13 +587,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
             })
     }
 
-// draw line and box for future projections
-    ttpSVG.select(".tooltip-prediction-separator")
-        .attr("x1", xScaleForwardProjection.range()[0])
-        .attr("y1", ttpMargins.top)
-        .attr("x2", xScaleForwardProjection.range()[0])
-        .attr("y2", ttpHeight - ttpMargins.bottom)
-
+// draw box to highlight future projections
     graphSVG.append("rect")
         .attr("class", "tooltip-prediction-highlighter")
         .attr("x", xScaleForwardProjection.range()[0])
