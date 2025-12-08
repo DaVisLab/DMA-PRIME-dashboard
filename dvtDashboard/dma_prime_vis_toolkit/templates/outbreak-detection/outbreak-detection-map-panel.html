@@ -32,7 +32,7 @@
     </sl-tooltip>
   </sl-radio-group>
 
-  <sl-select value="state" id="map-region-selector" class="fill-width map-option" size="small" disabled>
+  <sl-select value="zcta" id="map-region-selector" class="fill-width map-option" size="small" disabled>
     <p slot="label">Geographic Unit</p>
     <sl-option value="state">State</sl-option>
     <sl-option value="region">Region</sl-option>
@@ -57,9 +57,9 @@
   <sl-details id="map-disease-selector-container" open>
     <p slot="summary">Select a disease or group of diseases</p>
     <p id="disease-explanation">Disease (<sl-tooltip content="Please be advised, the numbers shown here reflect the current state of the data. They may differ from the previous week due to reporting delay."><tspan class="disease-last-week-value">Last Week*</tspan></sl-tooltip>, <tspan class="disease-current-week-value">Current Week</tspan>, <tspan class="disease-current-week-value">Percent Change</tspan>)</p>
-    <sl-checkbox id="map-all-disease-selector" class="map-option" size="small" disabled>All Diseases <span id="map-all-count"></span></sl-checkbox>
+    <sl-checkbox id="map-all-disease-selector" class="map-option" size="small" checked>All Diseases <span id="map-all-count"></span></sl-checkbox>
     {% for disease in metadata['diseases'] %}
-    <sl-checkbox id="map-{{ disease['disease-name'] }}-selector" class="disease-checkbox map-option" disease="{{ disease['disease-name'] }}" size="small" disabled>{{ disease['display-name'] }} <span id="map-{{ disease['disease-name'] }}-count"></span></sl-checkbox>
+    <sl-checkbox id="map-{{ disease['disease-name'] }}-selector" class="disease-checkbox map-option" disease="{{ disease['disease-name'] }}" size="small" checked>{{ disease['display-name'] }} <span id="map-{{ disease['disease-name'] }}-count"></span></sl-checkbox>
     {% endfor %}
   </sl-details>  
   
@@ -168,10 +168,12 @@
         customElements.whenDefined('sl-split-panel'),
         customElements.whenDefined('sl-tab'),
     ])
+
   set{{panel.name}}Panel()
 
 </script>
 
 <script src="{{ url_for('static', filename='js/outbreak-detection/map.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/outbreak-detection/map-interactions.js') }}" type="module"></script>
+
 {% endblock %}

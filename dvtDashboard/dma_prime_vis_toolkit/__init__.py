@@ -139,11 +139,17 @@ def create_app(development=False, dataDir=None):
                 'displayName': 'DMA-PRIME',
             },
             {
-                'name': 'map2',
-                'displayName': 'Map View dy',
+                'name': 'map3',
+                'displayName': 'Map View revision',
                 'active': True,
-                'html': 'respiratory/respiratory-map-panel_dy.html'
+                'html': 'respiratory/respiratory-map-panel_dy2.html'
             },
+            # {
+            #     'name': 'map2',
+            #     'displayName': 'Map View dy',
+            #     # 'active': True,
+            #     'html': 'respiratory/respiratory-map-panel_dy.html'
+            # },
             # {
             #     'name': 'map',
             #     'displayName': 'Map View',
@@ -274,17 +280,15 @@ def create_app(development=False, dataDir=None):
             {
                 'name': 'map',
                 'displayName': 'Map View',
-                # 'active': True,
+                'active': True,
                 'html': 'outbreak-detection/outbreak-detection-map-panel.html'
             },
-            {
-                'name': 'map2',
-                'displayName': 'Outbreak Detection - dy',
-                # 'active': True,
-                                'active': True,
-
-                'html': 'outbreak-detection/outbreak-detection-panel_dy.html'
-            },
+            # {
+            #     'name': 'map2',
+            #     'displayName': 'Outbreak Detection - dy',
+            #     # 'active': True,
+            #     'html': 'outbreak-detection/outbreak-detection-panel_dy.html'
+            # },
         ]
         return render_template('outbreak-detection/outbreak-detection-base.html', panels=panels, metadata=metadata)
 
