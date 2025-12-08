@@ -18,6 +18,10 @@ await Promise.allSettled([ // wait for following to be defined/load in
     customElements.whenDefined('sl-button'),
 ])
 
+gridGeographicUnit = gridGeographicUnitSelector.value
+gridPopulation = gridPopulationSelector.value
+gridOutcomeVariable = gridOutcomeVariableSelector.value
+
 var regionData = await d3.json(`/data/respiratory/${gridGeographicUnitSelector.value}/${gridDiseaseSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random() * 9999999999)}`)
 
 updateGrid(true)

@@ -54,6 +54,10 @@ await Promise.allSettled([ // wait for following to be defined/load in
     customElements.whenDefined('sl-button'),
 ])
 
+mapGeographicUnit = mapGeographicUnitSelector.value
+mapPopulation = mapPopulationSelector.value
+mapOutcomeVariable = mapOutcomeVariableSelector.value
+
 var regionData = await d3.json(`/data/respiratory/${mapGeographicUnitSelector.value}/${mapDiseaseSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`)
 
 redraw(true, true)
@@ -605,7 +609,12 @@ async function updateMapGeographicUnitOptions() {
 
 async function updateMapPopulationOptions() {
     d3.selectAll(".map-population-tooltip").remove()
-    var availablePopulations = Object.keys(metadata.available_models[mapDiseaseSelector.value][mapGeographicUnitSelector.value])
+    var availablePopulations
+    if (metadata.available_models[mapDiseaseSelector.value][mapGeographicUnitSelector.value]) {
+        availablePopulations = Object.keys(metadata.available_models[mapDiseaseSelector.value][mapGeographicUnitSelector.value])
+    } else {
+        availablePopulations = Object.keys(Object.entries(metadata.available_models[mapDiseaseSelector.value])[0])
+    }
     d3.select(mapPopulationSelector)
         .selectAll(".map-population-tooltip")
         .data(availablePopulations)
