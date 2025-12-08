@@ -34,7 +34,13 @@ options %}
   </sl-radio-group>
 
   <!-- disease selector -->
-  <sl-select value="respiratory_diseases" id="map-disease-selector" class="fill-width map-option" size="small" disabled>
+  <sl-select
+    value="respiratory_diseases"
+    id="map-disease-selector"
+    class="fill-width map-option"
+    size="small"
+    disabled
+  >
     <p slot="label">Select a disease or group of diseases</p>
     {% for disease, name in metadata['diseases'].items() %}
     <sl-option value="{{ disease }}" class="map-disease-option"
@@ -44,19 +50,42 @@ options %}
   </sl-select>
 
   <!-- region selector -->
-  <sl-select value="county" id="map-geographic-unit-selector" class="fill-width map-option" size="small" disabled>
+  <sl-select
+    value="county"
+    id="map-geographic-unit-selector"
+    class="fill-width map-option"
+    size="small"
+    disabled
+  >
     <p slot="label">Geographic unit</p>
-    {% for region in metadata['available_models']['respiratory_diseases'].keys() %}
-    <sl-option class="map-geographic-unit-option" value="{{ region }}">{{ metadata['region_sizes'][region] }}</sl-option>
+    {% for region in metadata['available_models']['respiratory_diseases'].keys()
+    %}
+    <sl-option class="map-geographic-unit-option" value="{{ region }}"
+      >{{ metadata['region_sizes'][region] }}</sl-option
+    >
     {% endfor %}
   </sl-select>
 
   <!-- population -->
-  <sl-select value="{{ metadata['available_models']['respiratory_diseases']['county'] | list | first }}" id="map-population-selector" class="fill-width map-option" size="small" disabled>
+  <sl-select
+    value="{{ metadata['available_models']['respiratory_diseases']['county'] | list | first }}"
+    id="map-population-selector"
+    class="fill-width map-option"
+    size="small"
+    disabled
+  >
     <p slot="label">Select population</p>
-    {% for population in metadata['available_models']['respiratory_diseases']['county'].keys() %}
-    <sl-tooltip class="map-population-tooltip" content="{{ metadata['populations_tooltips'][population] }}" trigger="hover" hoist>
-      <sl-option class="map-population-option" value="{{ population }}">{{ metadata['populations'][population] }}</sl-option>
+    {% for population in
+    metadata['available_models']['respiratory_diseases']['county'].keys() %}
+    <sl-tooltip
+      class="map-population-tooltip"
+      content="{{ metadata['populations_tooltips'][population] }}"
+      trigger="hover"
+      hoist
+    >
+      <sl-option class="map-population-option" value="{{ population }}"
+        >{{ metadata['populations'][population] }}</sl-option
+      >
     </sl-tooltip>
     {% endfor %}
   </sl-select>
@@ -70,9 +99,18 @@ options %}
     disabled
   >
     <p slot="label">Select outcome variable</p>
-    {% for outcome in metadata['available_models']['respiratory_diseases']['county'].values() | first %}
-    <sl-tooltip class="map-outcome-tooltip" content="{{ metadata['outcome_variables_tooltips'][outcome] }}" trigger="hover" hoist>
-      <sl-option class="map-outcome-option" value="{{ outcome }}">{{ metadata['outcome_variables'][outcome] }}</sl-option>
+    {% for outcome in
+    metadata['available_models']['respiratory_diseases']['county'].values() |
+    first %}
+    <sl-tooltip
+      class="map-outcome-tooltip"
+      content="{{ metadata['outcome_variables_tooltips'][outcome] }}"
+      trigger="hover"
+      hoist
+    >
+      <sl-option class="map-outcome-option" value="{{ outcome }}"
+        >{{ metadata['outcome_variables'][outcome] }}</sl-option
+      >
     </sl-tooltip>
     {% endfor %}
   </sl-select>
@@ -166,33 +204,130 @@ options %}
     <div
       class="col-md-2"
       style="border-left: 1px solid lightgray; height: 100%"
-    ></div>
+    >
+      <div
+        style="
+          height: 15%;
+          border-bottom: 1px double lightgray;
+          font-size: 0.8rem;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        "
+      >
+        <!-- <div style="height: 20%; margin-top: 0.5rem; margin-bottom: 0">
+          Past Hospitalization Records
+        </div> -->
+
+        <div
+          style="
+            display: flex;
+            font-size: 0.7rem;
+            height: 50%;
+            flex-direction: column;
+            align-items: self-end;
+          "
+        >
+          <label
+            style="
+              padding: 0.25rem 0.5rem;
+              font-size: 0.75rem;
+              font-weight: bold;
+              margin: 0px;
+              padding: 0px;
+            "
+            >Sort By</label
+          >
+          <select
+            class="form-select form-select-sm input-sm"
+            id="sortSelecter"
+            aria-label="Floating label select example"
+            style="line-height: 14px; font-size: 0.7rem"
+          >
+            <option value="value-high">Value High-Low</option>
+            <option value="value-low">Value Low-High</option>
+            <option selected value="alphabetical-low">
+              Alphabetical A-Z-0-9
+            </option>
+            <option value="alphabetical-high">Alphanumerical 9-0-Z-A</option>
+          </select>
+        </div>
+
+        <div
+          style="
+            display: flex;
+            font-size: 0.7rem;
+            height: 50%;
+            flex-direction: column;
+            align-items: self-end;
+          "
+        >
+          <label
+            style="
+              padding: 0.25rem 0.5rem;
+              font-size: 0.75rem;
+              font-weight: bold;
+              padding: 0px;
+              margin: 0px;
+            "
+            >Filter By</label
+          >
+          <input
+            class="form-control form-control-sm"
+            id="filterInput"
+            placeholder="ZCTA or County"
+            style="line-height: 14px; font-size: 0.7rem"
+          />
+        </div>
+
+        <hr style="margin: 0px" />
+      </div>
+
+      <!-- <div
+        id="respiratory-smallMultiples-region-of-interest"
+        style="
+          height: fit-content;
+          max-height: 85%;
+          width: fit-content;
+          background-color: white;
+          /* border: 2px solid black; */
+          border-radius: 0.1rem;
+          box-shadow: 0 0.2rem 0.2rem gray;
+          overflow-y: auto;
+          z-index: 10;
+        "
+      ></div> -->
+      <div
+        id="respiratory-smallMultiples-container"
+        style="height: 85%; width: 100%; overflow-y: auto; overflow-x: hidden"
+      ></div>
+    </div>
     <div
       class="col-md-10"
-      style="border-left: 1px solid lightgray; height: 100%"
+      style="border-left: 1px solid lightgray; height: 100%; position:relative"
     >
       <div class="fill-width fill-height" id="map-div"></div>
       <div id="map-legend">
-        <svg id="map-shape-legend" height="34px" width="200" display="none">
-          <rect
-            x="2"
-            y="0"
-            height="12"
-            width="12"
+        <svg id="map-shape-legend" height="48px" width="200" display="initial">
+          <path
             fill="#CCCCCC"
             stroke="black"
-          ></rect>
-          <text x="20" y="11" font-size="var(--sl-font-size-small)">
+            d="M 12 0 L 22 20 L 2 20 Z"
+          ></path>
+          <text x="26" y="16" font-size="var(--sl-font-size-medium)">
             Prisma Health System
           </text>
-          <circle cx="8" cy="26" r="6" fill="#CCCCCC" stroke="black"></circle>
-          <text x="20" y="31" font-size="var(--sl-font-size-small)">
+          <circle r="10" fill="#CCCCCC" stroke="black" cx="12" cy="36"></circle>
+          <text x="26" font-size="var(--sl-font-size-medium)" y="42">
             MUSC Health System
           </text>
         </svg>
         <svg id="choropleth-legend-svg"></svg>
       </div>
-      <div id="map-title-container" class="fill-width">
+      <div
+        id="map-title-container"
+        style="width: 100%; "
+      >
         <p id="map-title">
           Count of COVID-19 All Encounters in South Carolina by Region
         </p>
@@ -242,7 +377,6 @@ options %}
     </div>
   </div>
 </div>
-
 {% endblock %} {% block scripts %}
 <!-- 1) MapLibre GL CSS & JS (required for maplibregl.Map) -->
 <link
@@ -253,6 +387,7 @@ options %}
 
 <!-- 2) Deck.gl UMD bundle (pin to 8.9.27) -->
 <script src="https://unpkg.com/deck.gl@8.9.27/dist.min.js"></script>
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
 <script
@@ -336,9 +471,9 @@ options %}
   );
 
   // Options selected
-  mapGeographicUnit = "region";
-  mapPopulation = "general_population";
-  mapOutcomeVariable = "all_encounters";
+  mapGeographicUnit = undefined;
+  mapPopulation = undefined;
+  mapOutcomeVariable = undefined;
 </script>
 
 <!-- 5) Your module code—now deck, loaders & maplibregl are ready -->
@@ -354,109 +489,4 @@ options %}
   src="{{ url_for('static', filename='js/respiratory/smallMultiples-hospitalization.js') }}"
   type="module"
 ></script>
-{% endblock %}
-
-{% block contents %}
-<div class="fill-width fill-height" id="map-div"></div>
-<div id="map-legend">
-  <svg id="map-shape-legend" height="48px" width="200" display="initial">
-    <path fill="#CCCCCC" stroke="black" d="M 12 0 L 22 20 L 2 20 Z"> </path>
-    <text x="26" y="16" font-size="var(--sl-font-size-medium)">Prisma Health System</text>
-    <circle r="10" fill="#CCCCCC" stroke="black" cx="12" cy="36"></circle>
-    <text x="26" font-size="var(--sl-font-size-medium)" y="42">MUSC Health System</text>
-  </svg>
-  <svg id="choropleth-legend-svg"></svg>
-</div>
-<div id="map-title-container" class="fill-width">
-  <p id="map-title">Count of COVID-19 All Encounters in South Carolina by Region</p>
-  <p id="map-disclaimer"></p>
-</div>
-<div id="map-loading-div">
-  <p id="loading-text">Loading</p>
-  <svg id="loading-dots-svg">
-    <circle class="loading-dot animate"></circle>
-    <circle class="loading-dot animate"></circle>
-    <circle class="loading-dot animate"></circle>
-  </svg>
-</div>
-
-<div id="map-alert-container">
-  <sl-alert id="map-mixed-forecast-this-week-alert" variant="warning" class="map-alert" closable >
-    <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
-    <strong>Partial forecast submissions available for this week</strong><br />
-    Only locations with this week's forecasts are shown on the map. 
-  </sl-alert>
-
-  <sl-alert id="map-no-forecast-this-week-alert" variant="warning" class="map-alert" closable >
-    <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
-    <strong>No forecasts submitted for this week</strong><br />
-  </sl-alert>
-
-  <sl-alert id="map-no-forecast-alert" variant="warning" class="map-alert" >
-    <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
-    <strong>No forecast submissions available</strong><br />
-  </sl-alert>
-</div>
-
-
-{% endblock %}
-
-{% block scripts %}
-  <!-- 1) MapLibre GL CSS & JS (required for maplibregl.Map) -->
-  <link
-    href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css"
-    rel="stylesheet"
-  />
-  <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
-
-  <!-- 2) Deck.gl UMD bundle (pin to 8.9.27) -->
-  <script src="https://unpkg.com/deck.gl@8.9.27/dist.min.js"></script>
-
-  <!-- 3) Your initialization + controls (unchanged) -->
-  <script>
-    dataVersion = 0;
-
-    // Map controls
-    mapResetButton                  = document.getElementById("map-reset-button");
-    mapTypeSwitch                   = document.getElementById("map-type-switch");
-    mapDiseaseSelector              = document.getElementById("map-disease-selector");
-    mapGeographicUnitSelector       = document.getElementById("map-geographic-unit-selector");
-    mapPopulationSelector           = document.getElementById("map-population-selector")
-    mapOutcomeVariableSelector      = document.getElementById("map-outcome-variable-selector")
-    mapIncludeImputations           = document.getElementById("map-include-imputations");
-
-    // Optional toggles
-    mapOptionsGeographicLabelsToggle= document.getElementById("map-options-geographic-labels-toggle");
-    hospitalIconsToggle             = document.getElementById("map-options-hospital-icons-toggle");
-    mobileClinicIconsToggle         = document.getElementById("map-options-mobile-clinic-icons-toggle");
-    communityPartnerIconsToggle     = document.getElementById("map-options-community-partner-icons-toggle");
-
-    // State–level chart elements
-    mapStateHospitalizationsSubtitle      = document.getElementById("map-state-hospitalizations-subtitle");
-    mapStateHospitalizationsResizer       = document.getElementById("map-state-hospitalizations-resizer");
-    mapStateHospitalizationsSvg           = document.getElementById("map-state-hospitalizations-svg");
-    mapStateHospitalizationsLarge         = document.getElementById("map-state-hospitalizations-large");
-    mapStateHospitalizationsLargeSubtitle = document.getElementById("map-state-hospitalizations-large-subtitle");
-    mapStateHospitalizationsLargeResizer  = document.getElementById("map-state-hospitalizations-large-resizer");
-    mapStateHospitalizationsLargeSvg      = document.getElementById("map-state-hospitalizations-large-svg");
-
-    // Main map, legend, title & tooltip
-    mapDiv                        = document.getElementById("map-div");
-    mapShapeLegend              = document.getElementById("map-shape-legend")
-    choroplethLegendSVG           = document.getElementById("choropleth-legend-svg");
-    mapTitle                      = document.getElementById("map-title");
-    mapDisclaimer                = document.getElementById("map-disclaimer")
-    mapNoForecastAlert            = document.getElementById("map-no-forecast-alert")
-    mapNoForecastThisWeekAlert    = document.getElementById("map-no-forecast-this-week-alert")
-    mapMixedForecastThisWeekAlert = document.getElementById("map-mixed-forecast-this-week-alert")
-
-    // Options selected
-    mapGeographicUnit = undefined
-    mapPopulation = undefined
-    mapOutcomeVariable = undefined
-  </script>
-
-  <!-- 5) Your module code—now deck, loaders & maplibregl are ready -->
-  <script src="{{ url_for('static', filename='js/respiratory/map.js') }}" type="module"></script>
-  <script src="{{ url_for('static', filename='js/respiratory/map-interactions.js') }}" type="module"></script>
 {% endblock %}

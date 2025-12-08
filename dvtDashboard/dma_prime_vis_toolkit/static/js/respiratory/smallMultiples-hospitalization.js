@@ -1,37 +1,34 @@
-
-
 import {
   unitHeight,
   pin_icon_path,
   getCombinedBBox,
   moveSmallMultipleUnitToROI,
   resetSmallMultipleUnitPosition,
+  returnSortedData,
+  returnFilteredDataByName,
 } from "./smallMultiple-utils.js";
 
+import { showMapTooltip } from "./map-interactions.js";
+
+import { selectedItems, redraw } from "./map.js";
 // import { maps } from "../mapManager.js";
 
 async function getSpatialData() {
-  const mapSpatialResoultion = document.getElementById(
-    "map-resolution-selector"
-  ).value;
+  const mapSpatialResoultion = mapGeographicUnitSelector.value;
 
-  const mapDiseaseSelector = document.getElementById(
-    "map-disease-selector"
-  ).value;
+  const mapDiseaseSelected = mapDiseaseSelector.value;
 
-  const mapDataSourceSelector = document.getElementById(
-    "map-data-source-selector"
-  ).value;
+  const mapDataSourceSelector = mapPopulationSelector.value;
 
-  const mapOutcomeSelector = document.getElementById(
-    "map-data-variable-selector"
-  ).value;
+  const mapOutcomeSelector = mapOutcomeVariableSelector.value;
 
   let regionData = await d3.json(
-    `/data/respiratory/${mapSpatialResoultion}/${mapDiseaseSelector}?data_version=current&${parseInt(
+    `/data/respiratory/${mapSpatialResoultion}/${mapDiseaseSelected}?data_version=current&${parseInt(
       Math.random() * 9999999999
     )}`
   );
+
+  console.log(regionData);
 
   let valueTypeSwitch = document.getElementById("map-type-switch").value;
   let allowImputations = document.getElementById(
@@ -78,6 +75,8 @@ async function getSpatialData() {
     return transformed;
   }
 
+  // console.log(regionData);
+
   return regionData.features.map((d) => {
     let returnValue = {
       name: d.properties.NAME,
@@ -85,6 +84,7 @@ async function getSpatialData() {
       countyName: null,
       zipName: null,
       data: null,
+      dataObject: d,
     };
 
     if (mapSpatialResoultion == "state") {
@@ -105,21 +105,15 @@ async function getSpatialData() {
       returnValue.name = d.properties.display_name;
     }
 
-    returnValue.id = returnValue.id.toLowerCase().replaceAll("-", " ").replaceAll(" ", "_")
+    returnValue.id = returnValue.id
+      // .toLowerCase()
+      .replaceAll("-", " ")
+      .replaceAll(" ", "_");
     returnValue.data = getValueOfInterest(
       valueTypeSwitch,
       d.properties.data[mapDataSourceSelector][mapOutcomeSelector],
       allowImputations
     );
-
-    // console.log(returnValue.data)
-
-    // if (mapDataSourceSelector == "health-system")
-    //   returnValue.data =
-    //     d.properties.data["health_system"]["all_encounters"]["historical"];
-    // else
-    //   returnValue.data =
-    //     d.properties.data["general_population"]["all_encounters"]["historical"];
 
     return returnValue;
   });
@@ -141,6 +135,8 @@ function trendStrict(arr) {
   return 0;
 }
 
+let isSmallMultipleClicked = false;
+
 function drawingSmallMultipleUnit(svg, data) {
   // console.log(data);
   svg
@@ -148,49 +144,32 @@ function drawingSmallMultipleUnit(svg, data) {
     .attr("class", `small-multiple-unit small-multiple-item-${data.id}`)
     .attr("isROI", "false")
     .on("mouseover", function () {
-      // let targets = targetMapsAndLayersByCurrentSpatialResolution();
+      if (isSmallMultipleClicked) return;
 
-      // console.log(targets);
-      // if (targets.mapSpatialResoultion !== "facility") {
-      //   highlightLine(targets.targetMap, targets.targetLayer.lineLayerID, [
-      //     data.id,
-      //     ...maps.regionOfInterest,
-      //   ]);
-      // } else {
-      //   console.log( data.id)
-      //   highlightSymbol(targets.targetMap, targets.targetLayer.symbolLayerID, [
-      //     data.id,
-      //     ...maps.regionOfInterest,
-      //   ]);
-      // }
+      selectedItems.feature = data.dataObject;
+      dataVersion++;
+      redraw();
     })
     .on("mouseout", function () {
-      // let targets = targetMapsAndLayersByCurrentSpatialResolution();
+      if (isSmallMultipleClicked) return;
 
-      // if (targets.mapSpatialResoultion !== "facility") {
-      //   dehighlightLine(
-      //     targets.targetMap,
-      //     targets.targetLayer.lineLayerID,
-      //     maps.regionOfInterest
-      //   );
-      // } else {
-      //   dehighlightSymbol(
-      //     targets.targetMap,
-      //     targets.targetLayer.symbolLayerID,
-      //     maps.regionOfInterest
-      //   );
-      // }
+      selectedItems.feature = undefined;
+      dataVersion++;
+      redraw();
+    })
+    .on("click", function () {
+      let dataObject = data.dataObject;
+
+      if (isSmallMultipleClicked) {
+        showMapTooltip(dataObject);
+      } else {
+        selectedItems.feature = undefined;
+
+        showMapTooltip(dataObject);
+      }
+
+      isSmallMultipleClicked = !isSmallMultipleClicked;
     });
-
-  let pinIcon = svg
-    .append("path")
-    .attr("class", "pin-feature")
-    .attr("d", pin_icon_path)
-    .attr("stroke", "gray")
-    .style("stroke-width", 1)
-    .style("transform", "scale(0.8)")
-    .attr("x", 1)
-    .attr("y", 3);
 
   let textPlace = svg
     .append("text")
@@ -200,44 +179,6 @@ function drawingSmallMultipleUnit(svg, data) {
     .attr("font-size", 10)
     .attr("fill", "black")
     .style("font-style", "italic");
-
-  const box = getCombinedBBox(textPlace, pinIcon);
-
-  svg
-    .append("rect")
-    .attr("class", "pin-button")
-    .attr("x", box.minX)
-    .attr("y", box.minY)
-    .attr("width", box.width)
-    .attr("height", box.height)
-    .attr("fill", "white")
-    .attr("opacity", 0)
-    .style("cursor", "pointer")
-    .on("click", function () {
-      let selectionROI = d3.select(`#small-multiple-${data.id}`);
-
-      // if (!maps.regionOfInterest.includes(data.id)) {
-      //   moveSmallMultipleUnitToROI(selectionROI, data.id);
-      //   maps.regionOfInterest.push(data.id);
-      // } else {
-      //   resetSmallMultipleUnitPosition(data.id);
-      //   maps.regionOfInterest = maps.regionOfInterest.filter(
-      //     (d) => d !== data.id
-      //   );
-      // }
-
-      // if (selectionROI.attr("isROI") === "false") {
-      //   moveSmallMultipleUnitToROI(selectionROI, data.name);
-      //   maps.regionOfInterest.push(data.name);
-      // } else {
-      //   resetSmallMultipleUnitPosition(data.name);
-      //   console.log("???")
-      //   maps.regionOfInterest = maps.regionOfInterest.filter(
-      //     (d) => d !== data.name
-      //   );
-
-      // }
-    });
 
   if (data.data.length == 0) {
     svg.style("background-color", "gray");
@@ -317,6 +258,11 @@ function drawingSmallMultiples(dataBySpace) {
   //   const unitHeight = unitHeight;
   const unitWidth = svgContainer.clientWidth;
 
+  // if (listOrder === "value-high") {
+  //   dataBySpace.sort((a, b) => {
+  //     let aLast = a.data.slice().reverse().find((d) => d != null);
+  //     let bLast = b.data.slice().reverse().find((d) => d != null);
+
   for (const data of dataBySpace) {
     // check whether the item is already positioned in ROI component
 
@@ -347,12 +293,14 @@ if (document.readyState === "loading") {
 async function initSmallMultipleView() {
   const diseaseDataBySpace = await getSpatialData();
 
-  console.log(diseaseDataBySpace);
+  const filteredDataByName = returnFilteredDataByName(diseaseDataBySpace);
+  const sortedData = returnSortedData(filteredDataByName);
+
   // console.log(diseaseDataBySpace);
-  drawingSmallMultiples(diseaseDataBySpace);
+  drawingSmallMultiples(sortedData);
 
   window.addEventListener("resize", () => {
-    drawingSmallMultiples(diseaseDataBySpace);
+    drawingSmallMultiples(sortedData);
   });
 
   // const ro = new ResizeObserver(() => {
@@ -365,39 +313,26 @@ async function initSmallMultipleView() {
 function callInitSmallMultipleView() {
   initSmallMultipleView();
 
+  [
+    mapTypeSwitch,
+    mapDiseaseSelector,
+    mapGeographicUnitSelector,
+    mapPopulationSelector,
+    mapOutcomeVariableSelector,
+    mapIncludeImputations,
+  ].forEach((el) => {
+    el.addEventListener("sl-change", (event) => {
+      initSmallMultipleView();
+    });
+  });
+
   document
-    .getElementById("map-resolution-selector")
-    .addEventListener("sl-change", (event) => {
+    .getElementById("sortSelecter")
+    .addEventListener("change", (event) => {
       initSmallMultipleView();
     });
 
-  document
-    .getElementById("map-disease-selector")
-    .addEventListener("sl-change", (event) => {
-      initSmallMultipleView();
-    });
-
-  document
-    .getElementById("map-data-source-selector")
-    .addEventListener("sl-change", (event) => {
-      initSmallMultipleView();
-    });
-
-  document
-    .getElementById("map-type-switch")
-    .addEventListener("sl-change", (event) => {
-      initSmallMultipleView();
-    });
-
-  document
-    .getElementById("map-include-imputations")
-    .addEventListener("sl-change", (event) => {
-      initSmallMultipleView();
-    });
-
-  document
-    .getElementById("map-data-variable-selector")
-    .addEventListener("sl-change", (event) => {
-      initSmallMultipleView();
-    });
+  document.getElementById("filterInput").addEventListener("input", (event) => {
+    initSmallMultipleView();
+  });
 }

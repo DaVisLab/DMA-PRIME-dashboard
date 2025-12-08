@@ -124,3 +124,61 @@ export function resetSmallMultipleUnitPosition(featureID) {
     "respiratory-smallMultiples-container"
   ).style.height = `calc(82% - ${numberOfChildren * unitHeight}px)`;
 }
+
+export function returnSortedData(dataBySpace) {
+  const listOrder = document.getElementById("sortSelecter").value;
+
+  if (listOrder === "alphabetical-high") {
+    dataBySpace.sort((a, b) => {
+      return b.name.localeCompare(a.name);
+    });
+    return dataBySpace;
+  }
+  if (listOrder === "alphabetical-low") {
+    dataBySpace.sort((a, b) => {
+      return a.name.localeCompare(b.name);
+    });
+    return dataBySpace;
+  }
+  if (listOrder === "value-high") {
+    dataBySpace.sort((a, b) => {
+      let aLast = a.data
+        .slice()
+        .reverse()
+        .find((d) => d != null);
+      let bLast = b.data
+        .slice()
+        .reverse()
+        .find((d) => d != null);
+      return bLast - aLast;
+    });
+    return dataBySpace;
+  }
+  if (listOrder === "value-low") {
+    dataBySpace.sort((a, b) => {
+      let aLast = a.data
+        .slice()
+        .reverse()
+        .find((d) => d != null);
+      let bLast = b.data
+        .slice()
+        .reverse()
+        .find((d) => d != null);
+      return aLast - bLast;
+    });
+    return dataBySpace;
+  }
+}
+
+export function returnFilteredDataByName(dataBySpace) {
+  const filterText = document.getElementById("filterInput").value.toLowerCase();
+
+  if (filterText === "") {
+    return dataBySpace;
+  } else {
+    const filteredData = dataBySpace.filter(
+      (d) => d.name.toLowerCase().indexOf(filterText) == 0
+    );
+    return filteredData;
+  }
+}
