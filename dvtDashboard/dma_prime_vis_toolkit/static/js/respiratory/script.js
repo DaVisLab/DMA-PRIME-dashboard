@@ -826,7 +826,6 @@ function drawStateHospitalizations(disease, panelType, stateSvg, stateSubtitle) 
             .attr("transform", `translate(-12, 6) rotate(-90)`)
     }
     drawStateBarChart(disease, panelType, stateSvg, stateSubtitle, stateMargins, yAxisDisplayFunc, xAxisDisplayFunc)
-    
 }
 
 function drawLargeStateHospitalizations(disease, panelType, stateSvg, stateSubtitle) {

@@ -133,6 +133,23 @@ options %}
   >
 </div>
 
+<div id="map-state-hospitalizations" class="state-hospitalizations">
+  <p id="map-state-hospitalizations-title" class="state-hospitalizations-title">CDC-Reported State Hospitalizations</p>
+  <p id="map-state-hospitalizations-subtitle" class="state-hospitalizations-subtitle">N/A</p>
+  <sl-resize-observer id="map-state-hospitalizations-resizer">
+    <svg id="map-state-hospitalizations-svg" class="state-hospitalizations-svg"></svg>
+  </sl-resize-observer>
+</div>
+<sl-dialog id="map-state-hospitalizations-large" class="dialog-width state-hospitalizations" >
+  <div slot="label">
+    <p id="map-state-hospitalizations-large-title" class="state-hospitalizations-title">CDC-Reported State Hospitalizations</p>
+    <p id="map-state-hospitalizations-large-subtitle" class="state-hospitalizations-subtitle">N/A</p>
+  </div>
+  <sl-resize-observer id="map-state-hospitalizations-large-resizer">
+    <svg id="map-state-hospitalizations-large-svg" class="state-hospitalizations-large-svg"></svg>
+  </sl-resize-observer>
+</sl-dialog>
+
 {% endblock %} {% block contents %}
 
 <div class="fill-width fill-height container">
@@ -378,10 +395,14 @@ options %}
   integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
   crossorigin="anonymous"
 />
-
 <!-- 5) Your module code—now deck, loaders & maplibregl are ready -->
 <!-- <script
   src="{{ url_for('static', filename='js/respiratory/dyhan/state-hospitalization-info.js') }}"
+  type="module"
+></script> -->
+
+<!-- <script
+  src="{{ url_for('static', filename='js/respiratory/dyhan2/drawHospitalization.js') }}"
   type="module"
 ></script> -->
 <script

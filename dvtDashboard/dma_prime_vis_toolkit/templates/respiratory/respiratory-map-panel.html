@@ -1,14 +1,25 @@
-{% set min_width = "350px" %}
-{% extends "subtemplates/panel.html" %}
-
-{% block options %}
+{% set min_width = "350px" %} {% extends "subtemplates/panel.html" %} {% block
+options %}
 <div id="map-options" class="sidebar-container">
   <!-- reset map button (zoom & zcta selection) -->
-  <sl-button pill id="map-reset-button" class="center-self map-option" size="small" disabled>Reset Map</sl-button>
+  <sl-button
+    pill
+    id="map-reset-button"
+    class="center-self map-option"
+    size="small"
+    disabled
+    >Reset Map</sl-button
+  >
   <sl-divider class="options-divider"></sl-divider>
 
   <!-- count vs rate switch -->
-  <sl-radio-group value="count" id="map-type-switch" class="center-self map-option" size="small" disabled>
+  <sl-radio-group
+    value="count"
+    id="map-type-switch"
+    class="center-self map-option"
+    size="small"
+    disabled
+  >
     <sl-tooltip content="Count of hospitalizations">
       <sl-radio-button pill value="count">Count</sl-radio-button>
     </sl-tooltip>
@@ -16,182 +27,367 @@
       <sl-radio-button pill value="rate">Rate</sl-radio-button>
     </sl-tooltip>
     <sl-tooltip content="Percent change from last week">
-      <sl-radio-button pill value="percentDifference">Percent Change</sl-radio-button>
+      <sl-radio-button pill value="percentDifference"
+        >Percent Change</sl-radio-button
+      >
     </sl-tooltip>
   </sl-radio-group>
 
   <!-- disease selector -->
-  <sl-select value="covid_19" id="map-disease-selector" class="fill-width map-option" size="small" disabled>
+  <sl-select
+    value="covid_19"
+    id="map-disease-selector"
+    class="fill-width map-option"
+    size="small"
+    disabled
+  >
     <p slot="label">Select a disease or group of diseases</p>
     {% for disease, name in metadata['diseases'].items() %}
-    <sl-option value="{{ disease }}" class="map-disease-option">{{ name }}</sl-option>
+    <sl-option value="{{ disease }}" class="map-disease-option"
+      >{{ name }}</sl-option
+    >
     {% endfor %}
   </sl-select>
 
   <!-- region selector -->
-  <sl-select value="region" id="map-geographic-unit-selector" class="fill-width map-option" size="small" disabled>
+  <sl-select
+    value="region"
+    id="map-geographic-unit-selector"
+    class="fill-width map-option"
+    size="small"
+    disabled
+  >
     <p slot="label">Geographic unit</p>
     {% for region in metadata['available_models']['covid_19'].keys() %}
-    <sl-option class="map-geographic-unit-option" value="{{ region }}">{{ metadata['region_sizes'][region] }}</sl-option>
+    <sl-option class="map-geographic-unit-option" value="{{ region }}"
+      >{{ metadata['region_sizes'][region] }}</sl-option
+    >
     {% endfor %}
   </sl-select>
 
   <!-- population -->
-  <sl-select value="general_population" id="map-population-selector" class="fill-width map-option" size="small" disabled>
+  <sl-select
+    value="general_population"
+    id="map-population-selector"
+    class="fill-width map-option"
+    size="small"
+    disabled
+  >
     <p slot="label">Select population</p>
-    {% for population in metadata['available_models']['covid_19']['region'].keys() %}
-    <sl-tooltip class="map-population-tooltip" content="{{ metadata['populations_tooltips'][population] }}" trigger="hover" hoist>
-      <sl-option class="map-population-option" value="{{ population }}">{{ metadata['populations'][population] }}</sl-option>
+    {% for population in
+    metadata['available_models']['covid_19']['region'].keys() %}
+    <sl-tooltip
+      class="map-population-tooltip"
+      content="{{ metadata['populations_tooltips'][population] }}"
+      trigger="hover"
+      hoist
+    >
+      <sl-option class="map-population-option" value="{{ population }}"
+        >{{ metadata['populations'][population] }}</sl-option
+      >
     </sl-tooltip>
     {% endfor %}
   </sl-select>
 
   <!-- outcome variable -->
-  <sl-select value="all_encounters" id="map-outcome-variable-selector" class="fill-width map-option" size="small" disabled>
+  <sl-select
+    value="all_encounters"
+    id="map-outcome-variable-selector"
+    class="fill-width map-option"
+    size="small"
+    disabled
+  >
     <p slot="label">Select outcome variable</p>
-    {% for outcome in metadata['available_models']['covid_19']['region']['general_population'] %}
-    <sl-tooltip class="map-outcome-tooltip" content="{{ metadata['outcome_variables_tooltips'][outcome] }}" trigger="hover" hoist>
-      <sl-option class="map-outcome-option" value="{{ outcome }}">{{ metadata['outcome_variables'][outcome] }}</sl-option>
+    {% for outcome in
+    metadata['available_models']['covid_19']['region']['general_population'] %}
+    <sl-tooltip
+      class="map-outcome-tooltip"
+      content="{{ metadata['outcome_variables_tooltips'][outcome] }}"
+      trigger="hover"
+      hoist
+    >
+      <sl-option class="map-outcome-option" value="{{ outcome }}"
+        >{{ metadata['outcome_variables'][outcome] }}</sl-option
+      >
     </sl-tooltip>
     {% endfor %}
   </sl-select>
-  
+
   <!-- imputation inclusion checkbox -->
-  <sl-checkbox id="map-include-imputations" class="map-option" checked disabled>Include imputated data</sl-checkbox>
+  <sl-checkbox id="map-include-imputations" class="map-option" checked disabled
+    >Include imputated data</sl-checkbox
+  >
 
   <!-- Map Resources section -->
-  <p style="margin-top: 1em; margin-bottom: 0.5em; font-weight: bold;">Map Resources</p>
+  <p style="margin-top: 1em; margin-bottom: 0.5em; font-weight: bold">
+    Map Resources
+  </p>
   <sl-tooltip content="All hospitals in SC">
-    <sl-checkbox id="map-options-hospital-icons-toggle" class="map-icons-toggle map-option" disabled>Hospitals</sl-checkbox>
+    <sl-checkbox
+      id="map-options-hospital-icons-toggle"
+      class="map-icons-toggle map-option"
+      disabled
+      >Hospitals</sl-checkbox
+    >
   </sl-tooltip>
-  <sl-checkbox id="map-options-mobile-clinic-icons-toggle" class="map-icons-toggle map-option" disabled>Mobile Health Clinics</sl-checkbox>
-  <sl-checkbox id="map-options-community-partner-icons-toggle" class="map-icons-toggle map-option" disabled>Community Partners</sl-checkbox>
+  <sl-checkbox
+    id="map-options-mobile-clinic-icons-toggle"
+    class="map-icons-toggle map-option"
+    disabled
+    >Mobile Health Clinics</sl-checkbox
+  >
+  <sl-checkbox
+    id="map-options-community-partner-icons-toggle"
+    class="map-icons-toggle map-option"
+    disabled
+    >Community Partners</sl-checkbox
+  >
   <sl-divider class="options-divider"></sl-divider>
   <!-- map options -->
-  <sl-checkbox id="map-options-geographic-labels-toggle" class="map-toggle map-option" disabled>Geographic Labels</sl-checkbox>
-  
+  <sl-checkbox
+    id="map-options-geographic-labels-toggle"
+    class="map-toggle map-option"
+    disabled
+    >Geographic Labels</sl-checkbox
+  >
 </div>
 
 <div id="map-state-hospitalizations" class="state-hospitalizations">
-  <p id="map-state-hospitalizations-title" class="state-hospitalizations-title">CDC-Reported State Hospitalizations</p>
-  <p id="map-state-hospitalizations-subtitle" class="state-hospitalizations-subtitle">N/A</p>
+  <p id="map-state-hospitalizations-title" class="state-hospitalizations-title">
+    CDC-Reported State Hospitalizations
+  </p>
+  <p
+    id="map-state-hospitalizations-subtitle"
+    class="state-hospitalizations-subtitle"
+  >
+    N/A
+  </p>
   <sl-resize-observer id="map-state-hospitalizations-resizer">
-    <svg id="map-state-hospitalizations-svg" class="state-hospitalizations-svg"></svg>
+    <svg
+      id="map-state-hospitalizations-svg"
+      class="state-hospitalizations-svg"
+    ></svg>
   </sl-resize-observer>
 </div>
-<sl-dialog id="map-state-hospitalizations-large" class="dialog-width state-hospitalizations" >
+<sl-dialog
+  id="map-state-hospitalizations-large"
+  class="dialog-width state-hospitalizations"
+>
   <div slot="label">
-    <p id="map-state-hospitalizations-large-title" class="state-hospitalizations-title">CDC-Reported State Hospitalizations</p>
-    <p id="map-state-hospitalizations-large-subtitle" class="state-hospitalizations-subtitle">N/A</p>
+    <p
+      id="map-state-hospitalizations-large-title"
+      class="state-hospitalizations-title"
+    >
+      CDC-Reported State Hospitalizations
+    </p>
+    <p
+      id="map-state-hospitalizations-large-subtitle"
+      class="state-hospitalizations-subtitle"
+    >
+      N/A
+    </p>
   </div>
   <sl-resize-observer id="map-state-hospitalizations-large-resizer">
-    <svg id="map-state-hospitalizations-large-svg" class="state-hospitalizations-large-svg"></svg>
+    <svg
+      id="map-state-hospitalizations-large-svg"
+      class="state-hospitalizations-large-svg"
+    ></svg>
   </sl-resize-observer>
 </sl-dialog>
 
-{% endblock %}
+{% endblock %} {% block contents %}
 
-{% block contents %}
-<div class="fill-width fill-height" id="map-div"></div>
-<div id="map-legend">
-  <svg id="map-shape-legend" height="34px" width="200" display="none">
-    <rect x="2" y="0" height="12" width="12" fill="#CCCCCC" stroke="black"></rect>
-    <text x="20" y="11" font-size="var(--sl-font-size-small)">Prisma Health System</text>
-    <circle cx="8" cy="26" r="6" fill="#CCCCCC" stroke="black"></circle>
-    <text x="20" y="31" font-size="var(--sl-font-size-small)">MUSC Health System</text>
-  </svg>
-  <svg id="choropleth-legend-svg"></svg>
+<div class="fill-width fill-height container">
+  <div class="row" style="height: 100%; position: relative">
+    <div
+      class="col-md-2"
+      style="border-left: 1px solid lightgray; height: 100%"
+    ></div>
+    <div
+      class="col-md-10"
+      style="border-left: 1px solid lightgray; height: 100%"
+    >
+      <div class="fill-width fill-height" id="map-div"></div>
+      <div id="map-legend">
+        <svg id="map-shape-legend" height="34px" width="200" display="none">
+          <rect
+            x="2"
+            y="0"
+            height="12"
+            width="12"
+            fill="#CCCCCC"
+            stroke="black"
+          ></rect>
+          <text x="20" y="11" font-size="var(--sl-font-size-small)">
+            Prisma Health System
+          </text>
+          <circle cx="8" cy="26" r="6" fill="#CCCCCC" stroke="black"></circle>
+          <text x="20" y="31" font-size="var(--sl-font-size-small)">
+            MUSC Health System
+          </text>
+        </svg>
+        <svg id="choropleth-legend-svg"></svg>
+      </div>
+      <div id="map-title-container" class="fill-width">
+        <p id="map-title">
+          Count of COVID-19 All Encounters in South Carolina by Region
+        </p>
+        <p id="map-disclaimer"></p>
+      </div>
+      <div id="map-loading-div">
+        <p id="loading-text">Loading</p>
+        <svg id="loading-dots-svg">
+          <circle class="loading-dot animate"></circle>
+          <circle class="loading-dot animate"></circle>
+          <circle class="loading-dot animate"></circle>
+        </svg>
+      </div>
+
+      <div id="map-alert-container">
+        <sl-alert
+          id="map-mixed-forecast-this-week-alert"
+          variant="warning"
+          class="map-alert"
+          closable
+        >
+          <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+          <strong>Partial forecast submissions available for this week</strong
+          ><br />
+          Only locations with this week's forecasts are shown on the map.
+        </sl-alert>
+
+        <sl-alert
+          id="map-no-forecast-this-week-alert"
+          variant="warning"
+          class="map-alert"
+          closable
+        >
+          <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+          <strong>No forecasts submitted for this week</strong><br />
+        </sl-alert>
+
+        <sl-alert
+          id="map-no-forecast-alert"
+          variant="warning"
+          class="map-alert"
+        >
+          <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+          <strong>No forecast submissions available</strong><br />
+        </sl-alert>
+      </div>
+    </div>
+  </div>
 </div>
-<div id="map-title-container" class="fill-width">
-  <p id="map-title">Count of COVID-19 All Encounters in South Carolina by Region</p>
-  <p id="map-disclaimer"></p>
-</div>
-<div id="map-loading-div">
-  <p id="loading-text">Loading</p>
-  <svg id="loading-dots-svg">
-    <circle class="loading-dot animate"></circle>
-    <circle class="loading-dot animate"></circle>
-    <circle class="loading-dot animate"></circle>
-  </svg>
-</div>
 
-<div id="map-alert-container">
-  <sl-alert id="map-mixed-forecast-this-week-alert" variant="warning" class="map-alert" closable >
-    <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
-    <strong>Partial forecast submissions available for this week</strong><br />
-    Only locations with this week's forecasts are shown on the map. 
-  </sl-alert>
+{% endblock %} {% block scripts %}
+<!-- 1) MapLibre GL CSS & JS (required for maplibregl.Map) -->
+<link
+  href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css"
+  rel="stylesheet"
+/>
+<script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
 
-  <sl-alert id="map-no-forecast-this-week-alert" variant="warning" class="map-alert" closable >
-    <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
-    <strong>No forecasts submitted for this week</strong><br />
-  </sl-alert>
+<!-- 2) Deck.gl UMD bundle (pin to 8.9.27) -->
+<script src="https://unpkg.com/deck.gl@8.9.27/dist.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
-  <sl-alert id="map-no-forecast-alert" variant="warning" class="map-alert" >
-    <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
-    <strong>No forecast submissions available</strong><br />
-  </sl-alert>
-</div>
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js"
+  integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
+  crossorigin="anonymous"
+></script>
+<link
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+  rel="stylesheet"
+  integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+  crossorigin="anonymous"
+/>
 
+<!-- 3) Your initialization + controls (unchanged) -->
+<script>
+  dataVersion = 0;
 
-{% endblock %}
+  // Map controls
+  mapResetButton = document.getElementById("map-reset-button");
+  mapTypeSwitch = document.getElementById("map-type-switch");
+  mapDiseaseSelector = document.getElementById("map-disease-selector");
+  mapGeographicUnitSelector = document.getElementById(
+    "map-geographic-unit-selector"
+  );
+  mapPopulationSelector = document.getElementById("map-population-selector");
+  mapOutcomeVariableSelector = document.getElementById(
+    "map-outcome-variable-selector"
+  );
+  mapIncludeImputations = document.getElementById("map-include-imputations");
 
-{% block scripts %}
-  <!-- 1) MapLibre GL CSS & JS (required for maplibregl.Map) -->
-  <link
-    href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css"
-    rel="stylesheet"
-  />
-  <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+  // Optional toggles
+  mapOptionsGeographicLabelsToggle = document.getElementById(
+    "map-options-geographic-labels-toggle"
+  );
+  hospitalIconsToggle = document.getElementById(
+    "map-options-hospital-icons-toggle"
+  );
+  mobileClinicIconsToggle = document.getElementById(
+    "map-options-mobile-clinic-icons-toggle"
+  );
+  communityPartnerIconsToggle = document.getElementById(
+    "map-options-community-partner-icons-toggle"
+  );
 
-  <!-- 2) Deck.gl UMD bundle (pin to 8.9.27) -->
-  <script src="https://unpkg.com/deck.gl@8.9.27/dist.min.js"></script>
+  // State–level chart elements
+  mapStateHospitalizationsSubtitle = document.getElementById(
+    "map-state-hospitalizations-subtitle"
+  );
+  mapStateHospitalizationsResizer = document.getElementById(
+    "map-state-hospitalizations-resizer"
+  );
+  mapStateHospitalizationsSvg = document.getElementById(
+    "map-state-hospitalizations-svg"
+  );
+  mapStateHospitalizationsLarge = document.getElementById(
+    "map-state-hospitalizations-large"
+  );
+  mapStateHospitalizationsLargeSubtitle = document.getElementById(
+    "map-state-hospitalizations-large-subtitle"
+  );
+  mapStateHospitalizationsLargeResizer = document.getElementById(
+    "map-state-hospitalizations-large-resizer"
+  );
+  mapStateHospitalizationsLargeSvg = document.getElementById(
+    "map-state-hospitalizations-large-svg"
+  );
 
-  <!-- 3) Your initialization + controls (unchanged) -->
-  <script>
-    dataVersion = 0;
+  // Main map, legend, title & tooltip
+  mapDiv = document.getElementById("map-div");
+  mapShapeLegend = document.getElementById("map-shape-legend");
+  choroplethLegendSVG = document.getElementById("choropleth-legend-svg");
+  mapTitle = document.getElementById("map-title");
+  mapDisclaimer = document.getElementById("map-disclaimer");
+  mapNoForecastAlert = document.getElementById("map-no-forecast-alert");
+  mapNoForecastThisWeekAlert = document.getElementById(
+    "map-no-forecast-this-week-alert"
+  );
+  mapMixedForecastThisWeekAlert = document.getElementById(
+    "map-mixed-forecast-this-week-alert"
+  );
 
-    // Map controls
-    mapResetButton                  = document.getElementById("map-reset-button");
-    mapTypeSwitch                   = document.getElementById("map-type-switch");
-    mapDiseaseSelector              = document.getElementById("map-disease-selector");
-    mapGeographicUnitSelector       = document.getElementById("map-geographic-unit-selector");
-    mapPopulationSelector           = document.getElementById("map-population-selector")
-    mapOutcomeVariableSelector      = document.getElementById("map-outcome-variable-selector")
-    mapIncludeImputations           = document.getElementById("map-include-imputations");
+  // Options selected
+  mapGeographicUnit = "region";
+  mapPopulation = "general_population";
+  mapOutcomeVariable = "all_encounters";
+</script>
 
-    // Optional toggles
-    mapOptionsGeographicLabelsToggle= document.getElementById("map-options-geographic-labels-toggle");
-    hospitalIconsToggle             = document.getElementById("map-options-hospital-icons-toggle");
-    mobileClinicIconsToggle         = document.getElementById("map-options-mobile-clinic-icons-toggle");
-    communityPartnerIconsToggle     = document.getElementById("map-options-community-partner-icons-toggle");
-
-    // State–level chart elements
-    mapStateHospitalizationsSubtitle      = document.getElementById("map-state-hospitalizations-subtitle");
-    mapStateHospitalizationsResizer       = document.getElementById("map-state-hospitalizations-resizer");
-    mapStateHospitalizationsSvg           = document.getElementById("map-state-hospitalizations-svg");
-    mapStateHospitalizationsLarge         = document.getElementById("map-state-hospitalizations-large");
-    mapStateHospitalizationsLargeSubtitle = document.getElementById("map-state-hospitalizations-large-subtitle");
-    mapStateHospitalizationsLargeResizer  = document.getElementById("map-state-hospitalizations-large-resizer");
-    mapStateHospitalizationsLargeSvg      = document.getElementById("map-state-hospitalizations-large-svg");
-
-    // Main map, legend, title & tooltip
-    mapDiv                        = document.getElementById("map-div");
-    mapShapeLegend              = document.getElementById("map-shape-legend")
-    choroplethLegendSVG           = document.getElementById("choropleth-legend-svg");
-    mapTitle                      = document.getElementById("map-title");
-    mapDisclaimer                = document.getElementById("map-disclaimer")
-    mapNoForecastAlert            = document.getElementById("map-no-forecast-alert")
-    mapNoForecastThisWeekAlert    = document.getElementById("map-no-forecast-this-week-alert")
-    mapMixedForecastThisWeekAlert = document.getElementById("map-mixed-forecast-this-week-alert")
-
-    // Options selected
-    mapGeographicUnit = "region"
-    mapPopulation = "general_population"
-    mapOutcomeVariable = "all_encounters"
-  </script>
-
-  <!-- 5) Your module code—now deck, loaders & maplibregl are ready -->
-  <script src="{{ url_for('static', filename='js/respiratory/map.js') }}" type="module"></script>
-  <script src="{{ url_for('static', filename='js/respiratory/map-interactions.js') }}" type="module"></script>
+<!-- 5) Your module code—now deck, loaders & maplibregl are ready -->
+<script
+  src="{{ url_for('static', filename='js/respiratory/map.js') }}"
+  type="module"
+></script>
+<script
+  src="{{ url_for('static', filename='js/respiratory/map-interactions.js') }}"
+  type="module"
+></script>
+<script
+  src="{{ url_for('static', filename='js/respiratory/smallMultiples-hospitalization.js') }}"
+  type="module"
+></script>
 {% endblock %}

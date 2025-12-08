@@ -34,7 +34,21 @@ export function highlightLine(map, layer, ROIs) {
 
 export function highlightSymbol(map, layer, ROIs) {
   // console.log(ROIs);
-  map.setPaintProperty(layer, "icon-halo-color", [
+  // map.setPaintProperty(layer, "icon-halo-color", [
+  //   "case",
+  //   ["in", ["get", "id"], ["literal", ROIs]],
+  //   "blue",
+  //   "#cccccc",
+  // ]);
+
+  // map.setLayoutProperty(layer, "text-size", [
+  //   "case",
+  //   ["in", ["get", "id"], ["literal", ROIs]],
+  //   12,
+  //   0,
+  // ]);
+
+  map.setPaintProperty(layer, "icon-color", [
     "case",
     ["in", ["get", "id"], ["literal", ROIs]],
     "blue",
@@ -47,12 +61,15 @@ export function highlightSymbol(map, layer, ROIs) {
     12,
     0,
   ]);
+
+  // map.setLayoutProperty(layer, "symbol-sort-key", [
+  //   "case",
+  //   ["in", ["get", "id"], ["literal", ROIs]],
+  //   999,
+  //   0,
+  // ]);
 }
 
-// export function dehighlightLine(map, layer) {
-//   map.setPaintProperty(layer, "line-color", "gray");
-//   map.setPaintProperty(layer, "line-width", 0.5);
-// }
 
 export function dehighlightLine(map, layer, ROIs) {
   map.setPaintProperty(layer, "line-color", [
@@ -94,7 +111,7 @@ export function dehighlightSymbol(map, layer, ROIs) {
   //   0,
   // ]);
 
-  map.setPaintProperty(layer, "icon-halo-color", "#cccccc");
+  map.setPaintProperty(layer, "icon-color", "gray");
 
   map.setLayoutProperty(layer, "text-size", 0);
 }
