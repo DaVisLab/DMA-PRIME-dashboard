@@ -259,8 +259,8 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
                         text += " (projected)"
                     }
                 } else { 
-                    if (outcomeVariable == "all_encounters") {
-                        text = "All Historical Encounters"
+                    if (outcomeVariable == "all_hospitalizations") {
+                        text = "All Historical Hospitalizations"
                     } else {
                         text = "Historical " + text
                     }
@@ -286,8 +286,8 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
             .attr("color", "black")
             .text(() => {
                 var text = outcomeVariableString 
-                if (outcomeVariable == "all_encounters") {
-                    text = "All Historical Encounters"
+                if (outcomeVariable == "all_hospitalizations") {
+                    text = "All Historical Hospitalizations"
                 } else {
                     text = "Historical " + text
                 }
@@ -305,8 +305,8 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
             .attr("color", "black")
             .text(() => {
                 var text = outcomeVariableString
-                if (outcomeVariable == "all_encounters") {
-                    text = "All Historical Encounters"
+                if (outcomeVariable == "all_hospitalizations") {
+                    text = "All Historical Hospitalizations"
                 } else {
                     text = "Historical " + text
                 }
@@ -346,7 +346,7 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
         })
     }
 
-    if (['all_encounters', 'inpatient_hospitalizations', 'emergency_department_visits'].includes(outcomeVariable)) {
+    if (['all_hospitalizations', 'inpatient_hospitalizations', 'emergency_department_visits'].includes(outcomeVariable)) {
         function ttpOptionsHandler(extraSources, dataSource) {
             // toggle data source-var combo
             if (extraSources.includes(dataSource)) {

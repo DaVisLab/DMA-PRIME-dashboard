@@ -232,14 +232,17 @@ async function redraw(
       new TextLayer({
         id: "text_labels",
         data: regionData.features,
-        getPosition: (d) => getCenter(d),
+        getPosition: (d) => {
+          const coords = getCenter(d);
+          return [coords[0], coords[1]];
+        },
         getText: (d) => d.properties.display_name,
         maxWidth: 10,
         getAlignmentBaseline: "center",
         getTextAnchor: "middle",
         getColor: [0, 0, 0],
         background: true,
-        getBackgroundColor: [255, 255, 255, 128],
+        getBackgroundColor: [255, 255, 255, 0],
         backgroundBorderRadius: 10,
         backgroundPadding: [2, 2],
         getSize: (d) => getTextSize(d),

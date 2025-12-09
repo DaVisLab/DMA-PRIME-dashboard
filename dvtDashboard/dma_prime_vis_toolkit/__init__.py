@@ -170,8 +170,10 @@ def create_app(development=False, dataDir=None):
             geographic_unit = 'region'
         if population is None:
             population = 'general_population'
+        # if outcome_variable is None:
+        #     outcome_variable = 'all_encounters'
         if outcome_variable is None:
-            outcome_variable = 'all_encounters'
+            outcome_variable = 'all_hospitalizations'
         if location is None:
             location = ''
 
