@@ -264,6 +264,8 @@ mapGeographicUnitSelector.addEventListener("sl-change", async (event) => {
     popup.remove();
   }
 
+  document.getElementById("filterInput").placeholder = mapGeographicUnit;
+
   if (mapGeographicUnitSelector.value == "facility") {
     // mapOptionsGeographicLabelsToggle.checked = true;
     hospitalIconsToggle.checked = false;

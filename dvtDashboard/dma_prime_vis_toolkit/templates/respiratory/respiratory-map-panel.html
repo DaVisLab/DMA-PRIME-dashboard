@@ -200,90 +200,87 @@ options %}
 {% endblock %} {% block contents %}
 
 <!-- <div class="fill-width fill-height container"> -->
-  <div class="row" style="height: 100%; position: relative">
+<div class="row" style="height: 100%; position: relative">
+  <div class="col-md-2" style="border-left: 1px solid lightgray; height: 100%">
     <div
-      class="col-md-2"
-      style="border-left: 1px solid lightgray; height: 100%"
+      style="
+        height: 15%;
+        border-bottom: 1px double lightgray;
+        font-size: 0.8rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      "
     >
-      <div
-        style="
-          height: 15%;
-          border-bottom: 1px double lightgray;
-          font-size: 0.8rem;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-        "
-      >
-        <!-- <div style="height: 20%; margin-top: 0.5rem; margin-bottom: 0">
+      <!-- <div style="height: 20%; margin-top: 0.5rem; margin-bottom: 0">
           Past Hospitalization Records
         </div> -->
 
-        <div
+      <div
+        style="
+          display: flex;
+          font-size: 0.7rem;
+          height: 50%;
+          flex-direction: column;
+          align-items: self-end;
+        "
+      >
+        <label
           style="
-            display: flex;
-            font-size: 0.7rem;
-            height: 50%;
-            flex-direction: column;
-            align-items: self-end;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin: 0px;
+            padding: 0px;
           "
+          >Sort By</label
         >
-          <label
-            style="
-              padding: 0.25rem 0.5rem;
-              font-size: 0.75rem;
-              font-weight: bold;
-              margin: 0px;
-              padding: 0px;
-            "
-            >Sort By</label
-          >
-          <select
-            class="form-select form-select-sm input-sm"
-            id="sortSelecter"
-            aria-label="Floating label select example"
-            style="line-height: 14px; font-size: 0.7rem"
-          >
-            <option value="value-high">Value High-Low</option>
-            <option value="value-low">Value Low-High</option>
-            <option selected value="alphabetical-low">
-              Alphabetical A-Z-0-9
-            </option>
-            <option value="alphabetical-high">Alphanumerical 9-0-Z-A</option>
-          </select>
-        </div>
-
-        <div
-          style="
-            display: flex;
-            font-size: 0.7rem;
-            height: 50%;
-            flex-direction: column;
-            align-items: self-end;
-          "
+        <select
+          class="form-select form-select-sm input-sm"
+          id="sortSelecter"
+          aria-label="Floating label select example"
+          style="line-height: 14px; font-size: 0.7rem"
         >
-          <label
-            style="
-              padding: 0.25rem 0.5rem;
-              font-size: 0.75rem;
-              font-weight: bold;
-              padding: 0px;
-              margin: 0px;
-            "
-            >Filter By</label
-          >
-          <input
-            class="form-control form-control-sm"
-            id="filterInput"
-            placeholder="ZCTA or County"
-            style="line-height: 14px; font-size: 0.7rem"
-          />
-        </div>
-
-        <hr style="margin: 0px" />
+          <option value="value-high">Value High-Low</option>
+          <option value="value-low">Value Low-High</option>
+          <option selected value="alphabetical-low">
+            Alphabetical A-Z-0-9
+          </option>
+          <option value="alphabetical-high">Alphanumerical 9-0-Z-A</option>
+        </select>
       </div>
 
-      <!-- <div
+      <div
+        style="
+          display: flex;
+          font-size: 0.7rem;
+          height: 50%;
+          flex-direction: column;
+          align-items: self-end;
+        "
+      >
+        <label
+          style="
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 0px;
+            margin: 0px;
+          "
+          >Filter By</label
+        >
+        <input
+          class="form-control form-control-sm"
+          id="filterInput"
+          placeholder="ZCTA or County"
+          style="line-height: 14px; font-size: 0.7rem"
+        />
+      </div>
+
+      <hr style="margin: 0px" />
+    </div>
+
+    <!-- <div
         id="respiratory-smallMultiples-region-of-interest"
         style="
           height: fit-content;
@@ -297,84 +294,73 @@ options %}
           z-index: 10;
         "
       ></div> -->
-      <div
-        id="respiratory-smallMultiples-container"
-        style="height: 85%; width: 100%; overflow-y: auto; overflow-x: hidden"
-      ></div>
-    </div>
     <div
-      class="col-md-10"
-      style="border-left: 1px solid lightgray; height: 100%; position:relative"
-    >
-      <div class="fill-width fill-height" id="map-div"></div>
-      <div id="map-legend">
-        <svg id="map-shape-legend" height="48px" width="200" display="initial">
-          <path
-            fill="#CCCCCC"
-            stroke="black"
-            d="M 12 0 L 22 20 L 2 20 Z"
-          ></path>
-          <text x="26" y="16" font-size="var(--sl-font-size-medium)">
-            Prisma Health System
-          </text>
-          <circle r="10" fill="#CCCCCC" stroke="black" cx="12" cy="36"></circle>
-          <text x="26" font-size="var(--sl-font-size-medium)" y="42">
-            MUSC Health System
-          </text>
-        </svg>
-        <svg id="choropleth-legend-svg"></svg>
-      </div>
-      <div
-        id="map-title-container"
-        style="width: 100%; "
-      >
-        <p id="map-title">
-          Count of COVID-19 All Hospitalizations in South Carolina by Region
-        </p>
-        <p id="map-disclaimer"></p>
-      </div>
-      <div id="map-loading-div">
-        <p id="loading-text">Loading</p>
-        <svg id="loading-dots-svg">
-          <circle class="loading-dot animate"></circle>
-          <circle class="loading-dot animate"></circle>
-          <circle class="loading-dot animate"></circle>
-        </svg>
-      </div>
-
-      <div id="map-alert-container">
-        <sl-alert
-          id="map-mixed-forecast-this-week-alert"
-          variant="warning"
-          class="map-alert"
-          closable
-        >
-          <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
-          <strong>Partial forecast submissions available for this week</strong
-          ><br />
-          Only locations with this week's forecasts are shown on the map.
-        </sl-alert>
-
-        <sl-alert
-          id="map-no-forecast-this-week-alert"
-          variant="warning"
-          class="map-alert"
-          closable
-        >
-          <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
-          <strong>No forecasts submitted for this week</strong><br />
-        </sl-alert>
-
-        <sl-alert
-          id="map-no-forecast-alert"
-          variant="warning"
-          class="map-alert"
-        >
-          <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
-          <strong>No forecast submissions available</strong><br />
-        </sl-alert>
-      </div>
+      id="respiratory-smallMultiples-container"
+      style="height: 85%; width: 100%; overflow-y: auto; overflow-x: hidden"
+    ></div>
+  </div>
+  <div
+    class="col-md-10"
+    style="border-left: 1px solid lightgray; height: 100%; position: relative"
+  >
+    <div class="fill-width fill-height" id="map-div"></div>
+    <div id="map-legend">
+      <svg id="map-shape-legend" height="48px" width="200" display="initial">
+        <path fill="#CCCCCC" stroke="black" d="M 12 0 L 22 20 L 2 20 Z"></path>
+        <text x="26" y="16" font-size="var(--sl-font-size-medium)">
+          Prisma Health System
+        </text>
+        <circle r="10" fill="#CCCCCC" stroke="black" cx="12" cy="36"></circle>
+        <text x="26" font-size="var(--sl-font-size-medium)" y="42">
+          MUSC Health System
+        </text>
+      </svg>
+      <svg id="choropleth-legend-svg"></svg>
     </div>
+    <div id="map-title-container" style="width: 100%">
+      <p id="map-title">
+        Count of COVID-19 All Hospitalizations in South Carolina by Region
+      </p>
+      <p id="map-disclaimer"></p>
+    </div>
+    <div id="map-loading-div">
+      <p id="loading-text">Loading</p>
+      <svg id="loading-dots-svg">
+        <circle class="loading-dot animate"></circle>
+        <circle class="loading-dot animate"></circle>
+        <circle class="loading-dot animate"></circle>
+      </svg>
+    </div>
+
+    <div id="map-alert-container">
+      <sl-alert
+        id="map-mixed-forecast-this-week-alert"
+        variant="warning"
+        class="map-alert"
+        closable
+      >
+        <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+        <strong>Partial forecast submissions available for this week</strong
+        ><br />
+        Only locations with this week's forecasts are shown on the map.
+      </sl-alert>
+
+      <sl-alert
+        id="map-no-forecast-this-week-alert"
+        variant="warning"
+        class="map-alert"
+        closable
+      >
+        <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+        <strong>No forecasts submitted for this week</strong><br />
+      </sl-alert>
+
+      <sl-alert id="map-no-forecast-alert" variant="warning" class="map-alert">
+        <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+        <strong>No forecast submissions available</strong><br />
+      </sl-alert>
+    </div>
+  </div>
   <!-- </div> -->
 </div>
 {% endblock %} {% block scripts %}
@@ -469,6 +455,19 @@ options %}
   mapMixedForecastThisWeekAlert = document.getElementById(
     "map-mixed-forecast-this-week-alert"
   );
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      () =>
+        (document.getElementById("filterInput").placeholder =
+          mapGeographicUnitSelector.value)
+    );
+  } else {
+    (async () =>
+      (document.getElementById("filterInput").placeholder =
+        mapGeographicUnitSelector.value))();
+  }
 
   // Options selected
   mapGeographicUnit = undefined;

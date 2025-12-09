@@ -40,7 +40,6 @@ gridDiseaseSelector.addEventListener("sl-change", async (event) => {
 gridGeographicUnitSelector.addEventListener("sl-change", async (event) => {
     await updateGridPopulationOptions()
     gridGeographicUnit = gridGeographicUnitSelector.value
-
     updateGrid(true)
 })
 
