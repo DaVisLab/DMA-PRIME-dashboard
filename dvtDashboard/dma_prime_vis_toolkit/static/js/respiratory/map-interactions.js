@@ -264,7 +264,14 @@ mapGeographicUnitSelector.addEventListener("sl-change", async (event) => {
     popup.remove();
   }
 
-  document.getElementById("filterInput").placeholder = mapGeographicUnit;
+  if (mapGeographicUnit === "zcta") {
+    document.getElementById("filterInput").placeholder = "ZCTA";
+  } else {
+    document.getElementById("filterInput").placeholder =
+      mapGeographicUnit.charAt(0).toUpperCase() + mapGeographicUnit.slice(1);
+
+      console.log(document.getElementById("filterInput").placeholder)
+  }
 
   if (mapGeographicUnitSelector.value == "facility") {
     // mapOptionsGeographicLabelsToggle.checked = true;

@@ -456,23 +456,45 @@ options %}
     "map-mixed-forecast-this-week-alert"
   );
 
-  if (document.readyState === "loading") {
-    document.addEventListener(
-      "DOMContentLoaded",
-      () =>
-        (document.getElementById("filterInput").placeholder =
-          mapGeographicUnitSelector.value)
-    );
-  } else {
-    (async () =>
-      (document.getElementById("filterInput").placeholder =
-        mapGeographicUnitSelector.value))();
-  }
-
   // Options selected
   mapGeographicUnit = undefined;
   mapPopulation = undefined;
   mapOutcomeVariable = undefined;
+</script>
+
+<script>
+  // init the filter placeholder based on geographic unit selection
+  (function waitForSelectorAndSetPlaceholder() {
+    const setPlaceholder = () => {
+      const selector = document.getElementById("map-geographic-unit-selector");
+      const input = document.getElementById("filterInput");
+      if (selector && input) {
+        if(selector.value === "zcta" ){
+          input.placeholder = "ZCTA";  
+        }else{
+          input.placeholder = selector.value.charAt(0).toUpperCase() + selector.value.slice(1);
+        }
+        
+        return true;
+      }
+      return false;
+    };
+
+    const observeUntilFound = () => {
+      const mo = new MutationObserver((_, obs) => {
+        if (setPlaceholder()) obs.disconnect();
+      });
+      mo.observe(document.body, { childList: true, subtree: true });
+    };
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => {
+        if (!setPlaceholder()) observeUntilFound();
+      });
+    } else {
+      if (!setPlaceholder()) observeUntilFound();
+    }
+  })();
 </script>
 
 <!-- 5) Your module code—now deck, loaders & maplibregl are ready -->
