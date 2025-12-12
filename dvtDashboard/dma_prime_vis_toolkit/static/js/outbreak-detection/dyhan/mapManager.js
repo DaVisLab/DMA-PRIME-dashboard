@@ -122,12 +122,12 @@ export const mapManager = {
   },
 };
 
-await Promise.allSettled([
-  // wait for following to be defined/load in
-  customElements.whenDefined("sl-select"),
-  customElements.whenDefined("sl-option"),
-  customElements.whenDefined("sl-button"),
-]);
+// await Promise.allSettled([
+//   // wait for following to be defined/load in
+//   customElements.whenDefined("sl-select"),
+//   customElements.whenDefined("sl-option"),
+//   customElements.whenDefined("sl-button"),
+// ]);
 
 function callInitSmallMultipleView() {
   drawMap();
@@ -176,3 +176,4 @@ function callInitSmallMultipleView() {
 // } else {
 //   (async () => callInitSmallMultipleView())();
 // }
+

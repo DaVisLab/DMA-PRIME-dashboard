@@ -42,14 +42,14 @@ function trendStrict(arr) {
 
 function drawingSmallMultipleUnit(svg, data) {
   svg
-    .attr("id", `small-multiple-${data.id}`)
-    .attr("class", `small-multiple-unit small-multiple-item-${data.id}`)
+    .attr("id", `small-multiple-${data.nameID}`)
+    .attr("class", `small-multiple-unit small-multiple-item-${data.nameID}`)
     .attr("isROI", "false")
     .on("mouseover", function () {
       let targets = targetMapsAndLayersByCurrentSpatialResolution();
 
       highlightLine(targets.targetMap, targets.targetLayer.lineLayerID, [
-        data.id,
+        data.nameID,
         ...maps.regionOfInterest,
       ]);
     })

@@ -73,8 +73,12 @@
         customElements.whenDefined('sl-tab-group'),
     ])
 
+    console.log(metadata)
     var arr = Object.keys(metadata['site_info']).map(site =>
         d3.json(`/data/waste-water/${site}?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`).then(d => {
+
+            console.log("ffff")
+            console.log(d)
             d3.select(`#${site}-div`).datum(d)
             return d
         }).then(d => {

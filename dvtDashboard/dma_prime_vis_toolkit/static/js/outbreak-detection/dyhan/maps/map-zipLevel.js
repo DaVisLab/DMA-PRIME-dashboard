@@ -77,7 +77,7 @@ export function drawZipMap(targetMap, featuresDataBySpace, maps) {
     type: "geojson",
     data: {
       type: "FeatureCollection",
-      features: featuresDataBySpace_region,
+      features: featuresDataBySpace_region.features,
     },
   });
 
@@ -106,7 +106,7 @@ export function drawZipMap(targetMap, featuresDataBySpace, maps) {
     type: "geojson",
     data: {
       type: "FeatureCollection",
-      features: featuresDataBySpace_county,
+      features: featuresDataBySpace_county.features,
     },
   });
 
@@ -195,7 +195,7 @@ export function drawZipMap(targetMap, featuresDataBySpace, maps) {
         .style("opacity", 1);
       legendIndicator
         .select("text")
-        .text(`${e.features[0].properties.projected_value}`);
+        .text(`${e.features[0].properties.projected_value.toFixed(2)}`);
     }
   );
 

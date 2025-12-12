@@ -1,6 +1,7 @@
 import { smallMultipleManager } from "./smallMultipleManager.js";
 import { mapManager } from "./mapManager.js";
 import { drawTableView } from "./tableView.js";
+import { generateCheckboxListForRiskIndexPanel, setRiskIndexByDiseaseInPanel } from "./sidebarManager.js";
 
 export const outbreak_data = {
   region: null,
@@ -9,8 +10,6 @@ export const outbreak_data = {
 };
 
 async function getOutbreakDataBySpatialResoultionIn(mapSpatialResoultion) {
-  // d3.select("#map-loading-div").style("visibility", "visible")
-  // d3.selectAll("#map-loading-div circle").classed("animate", true)
   const mapOutcomeVariableSelector = document.getElementById(
     "map-outcome-variable-selector"
   );
@@ -53,11 +52,6 @@ async function getOutbreakDataBySpatialResoultionIn(mapSpatialResoultion) {
       item.countyName = item.properties.county;
     }
   });
-
-  // let  zctaData = await d3.json(`/data/opioid-hcv-hiv/${mapDiseaseSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`)
-  // let  zctaData = await d3.json(`/data/opioid-hcv-hiv/covid19?data_version=1&${parseInt(Math.random()*9999999999)}`)
-  // console.log(zctaData)
-  //   console.log(data);
 
   return data;
 }
@@ -158,8 +152,14 @@ async function getRiskIndexBySpatialResoultionIn(mapSpatialResoultion) {
 async function getOutbreakDataAll() {
   //   outbreak_data.state = await getRiskIndexBySpatialResoultionIn("state");
   outbreak_data.region = await getRiskIndexBySpatialResoultionIn("region");
+  // console.log(data)
   outbreak_data.county = await getRiskIndexBySpatialResoultionIn("county");
   outbreak_data.zcta = await getRiskIndexBySpatialResoultionIn("zcta");
+
+  // console.log(Object.keys(outbreak_data.region.features[0].properties));
+  // console.log(Object.keys(outbreak_data.region.features[0].properties.data));
+  // generateCheckboxListForRiskIndexPanel(outbreak_data.region.features[0].properties.final_historical_disease_risk_index);
+  setRiskIndexByDiseaseInPanel(outbreak_data.region);
 
   smallMultipleManager.data = outbreak_data;
   smallMultipleManager.initSmallMultipleView(outbreak_data);
@@ -167,13 +167,14 @@ async function getOutbreakDataAll() {
   mapManager.data = outbreak_data;
   mapManager.callInitMapViews(outbreak_data);
 
-  console.log(outbreak_data)
+  console.log(outbreak_data);
   drawTableView(outbreak_data.region.features);
   // d3.select("#map-loading-div").style("visibility", "hidden")
   // d3.selectAll("#map-loading-div circle").classed("animate", false)
 }
 
 if (document.readyState === "loading") {
+  console.log("ffffff");
   document.addEventListener("DOMContentLoaded", () => getOutbreakDataAll());
 } else {
   getOutbreakDataAll();

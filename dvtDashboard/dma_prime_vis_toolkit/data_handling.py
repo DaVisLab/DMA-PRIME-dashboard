@@ -81,7 +81,8 @@ def get_opioid_hcv_hiv(disease='opioid'):
 
 @bp.route('/outbreak-detection/<region_size>/<column>', methods=['GET'])
 @login_required
-def get_state_disease_hospitalizations(region_size='region', column='encounters'):
+# def get_state_disease_hospitalizations(region_size='region', column='encounters'):
+def get_state_disease_hospitalizations(region_size='region', column='all_hospitalizations'):
     data_version = get_data_version_from_request(request, current_user)
     file = os.path.join(current_app.config['DATADIR'], 'processed', data_version, 'other_infectious_diseases',region_size, f'{column}_data.json')
     decrypt_key = os.path.join(current_app.config['DATADIR'], 'processed', data_version, 'other_infectious_diseases', 'encrypt_key.bin')
@@ -90,6 +91,7 @@ def get_state_disease_hospitalizations(region_size='region', column='encounters'
 @bp.route('/waste-water/<site>', methods=['GET'])
 @login_required
 def get_wastewater_data(site):
+    
     data_version = get_data_version_from_request(request, current_user)
     file = os.path.join(current_app.config['DATADIR'], 'processed', data_version, 'waste_water', f'{site}.json')
     decrypt_key = os.path.join(current_app.config['DATADIR'], 'processed', data_version, 'waste_water', 'encrypt_key.bin')

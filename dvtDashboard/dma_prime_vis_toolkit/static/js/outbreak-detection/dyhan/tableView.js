@@ -45,7 +45,6 @@ export function drawTableView(
   }
 
   const diseasesFeatures = Object.keys(dataBySpace[0].properties.data);
-  console.log(diseasesFeatures);
 
   console.log(dataBySpace);
   // If caller did not pass a presorted array, sort by final risk index (descending) by default
@@ -102,7 +101,7 @@ export function drawTableView(
 
   // add trailing headers for trend and change columns, then open tbody
   tableHTML += `
-          <th style="width: ${otherColWidth}px; text-align: center;">Social Variables <span class="sort-indicator"></span></th>
+          <th style="width: ${otherColWidth}px; text-align: center;">S.V <span class="sort-indicator"></span></th>
           <th style="width: ${otherColWidth}px; text-align: center;">... <span class="sort-indicator"></span></th>
         </tr>
       </thead>

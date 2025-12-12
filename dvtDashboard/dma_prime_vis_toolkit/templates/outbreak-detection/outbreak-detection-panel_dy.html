@@ -1,33 +1,6 @@
 {% set min_width = "350px" %} {% extends "subtemplates/panel.html" %} {% block
 options %}
-<div id="map-options" class="sidebar-container">
-  <!-- reset map button (zoom & zcta selection) -->
-  <!-- <sl-button pill id="map-reset-button" class="center-self map-option" size="small" disabled>Reset Map</sl-button> -->
-  <sl-divider class="options-divider"></sl-divider>
-
-  <!-- count vs rate switch -->
-  <sl-radio-group
-    value="count"
-    id="map-rate-switch"
-    class="center-self"
-    size="small"
-  >
-    <sl-tooltip content="Count of hospitalizations">
-      <sl-radio-button class="map-option" value="count" pill disabled
-        >Count</sl-radio-button
-      >
-    </sl-tooltip>
-    <sl-tooltip content="Hospitalizations per 1000 people">
-      <sl-radio-button class="map-option" value="rate" pill disabled
-        >Rate</sl-radio-button
-      >
-    </sl-tooltip>
-    <sl-tooltip content="Percent change from last period">
-      <sl-radio-button class="map-option" value="percent" pill disabled
-        >Percent Change</sl-radio-button
-      >
-    </sl-tooltip>
-  </sl-radio-group>
+<div id="map-options" class="sidebar-container" style="display: inline-block;">
 
   <sl-radio-group
     value="weekly"
@@ -36,18 +9,13 @@ options %}
     size="small"
   >
     <sl-tooltip id="map-weekly-tooltip" content="Count for the week">
-      <sl-radio-button class="map-option" value="weekly" pill disabled
-        >Week</sl-radio-button
+      <sl-radio-button class="map-option" value="weekly" pill
+        >Weekly Comparison</sl-radio-button
       >
     </sl-tooltip>
     <sl-tooltip id="map-monthly-tooltip" content="Count for the past 4 weeks">
-      <sl-radio-button class="map-option" value="monthly" pill disabled
-        >Month</sl-radio-button
-      >
-    </sl-tooltip>
-    <sl-tooltip id="map-yearly-tooltip" content="Count for the past 52 weeks">
-      <sl-radio-button class="map-option" value="yearly" pill disabled
-        >Year</sl-radio-button
+      <sl-radio-button class="map-option" value="monthly" pill 
+        >Monthly Comparison</sl-radio-button
       >
     </sl-tooltip>
   </sl-radio-group>
@@ -55,13 +23,14 @@ options %}
   <sl-select
     value="encounters"
     id="map-outcome-variable-selector"
-    class="fill-width map-option"
+    class="map-option"
     size="small"
-    disabled
+    style="margin-bottom:1rem;"
   >
-    <p slot="label">Risk Index</p>
+    <p slot="label">Risk Index (RI)</p>
     <sl-tooltip content="Unique recorded diagnoses or positive tests">
       <sl-option value="encounters">Encounters</sl-option>
+       <!-- <sl-option value="all_hospitalizations">Hospitalizations</sl-option> -->
     </sl-tooltip>
     <sl-tooltip content="Unique diagnosis">
       <sl-option value="diagnoses">Diagnoses</sl-option>
@@ -77,62 +46,93 @@ options %}
 
   <!-- disease selector -->
   <sl-details id="map-disease-selector-container" open>
-    <p slot="summary">Select a disease or group of diseases</p>
+    <p slot="summary">Select diseases of interest</p>
     <p id="disease-explanation">
-      Disease (<sl-tooltip
-        content="Please be advised, the numbers shown here reflect the current state of the data. They may differ from the previous week due to reporting delay."
-        ><tspan class="disease-last-week-value">Last Week*</tspan></sl-tooltip
-      >, <tspan class="disease-current-week-value">Current Week</tspan>,
-      <tspan class="disease-current-week-value">Percent Change</tspan>)
+      Disease (<tspan class="disease-current-week-value">Current RI</tspan>,
+      <tspan >RI Change</tspan>)
     </p>
     <sl-checkbox
       id="map-all-disease-selector"
       class="map-option"
       size="small"
-      disabled
+      checked
       >All Diseases <span id="map-all-count"></span
     ></sl-checkbox>
-    {% for disease in metadata['diseases'] %}
-    <sl-checkbox
-      id="map-{{ disease['disease-name'] }}-selector"
-      class="disease-checkbox map-option"
-      disease="{{ disease['disease-name'] }}"
-      size="small"
-      disabled
-      >{{ disease['display-name'] }}
-      <span id="map-{{ disease['disease-name'] }}-count"></span
-    ></sl-checkbox>
-    {% endfor %}
+     <hr/>
+     <div>
+      <div style="display: flex; justify-content: space-between;">
+        <label
+        style="
+          font-size: 0.75rem;
+          font-weight: bold;
+          padding: 0px;
+        "
+        >Sort By</label>
+            <div style="display: flex; justify-content: flex-end; align-items: end;">
+              <input
+                  class="form-check-input"
+                  type="radio"
+                  name="diseaseSortInPanel"
+                  id="flexRadioDefault1"
+                  style="margin-right: 0.3rem"
+                  
+                />
+                <label class="form-check-label" for="flexRadioDefault1" style="font-size: 0.75rem;">
+                  Risk Index
+                </label>
+                </div>
+                <div style="display: flex; justify-content: flex-end; align-items: end;">
+            <input
+                class="form-check-input"
+                type="radio"
+                name="diseaseSortInPanel"
+                id="flexRadioDefault2"
+                style="margin-right: 0.3rem"
+                
+              />
+              <label class="form-check-label" for="flexRadioDefault2" style="font-size: 0.75rem;">
+                Risk Increase
+              </label>
+          </div>
+      </div>
+         <div style="display: flex; justify-content: flex-end; align-items: end;">
+            <input
+                class="form-check-input"
+                type="radio"
+                name="diseaseSortInPanel"
+                id="flexRadioDefault3"
+                style="margin-right: 0.3rem"
+                checked
+              />
+              <label class="form-check-label" for="flexRadioDefault3" style="font-size: 0.75rem;">
+                Alphabetical Order
+              </label>
+          </div>
+    </div>
+
+    <div style="overflow-y: auto; height: 50vh;">
+      {% for disease in metadata['diseases'] %}
+        <sl-checkbox
+          id="map-{{ disease['disease-name'] }}-selector"
+          class="disease-checkbox map-option"
+          disease="{{ disease['disease-name'] }}"
+          size="small"
+          checked
+          >{{ disease['display-name'] }}
+          <span>(<span id="riskindex-{{ disease['disease-name'] }}-curRI"></span
+          >; <span id="riskindex-{{ disease['disease-name'] }}-RIChange"></span
+          >)</span>
+       </sl-checkbox>
+      {% endfor %}
+    </div>
   </sl-details>
 
   <sl-divider class="options-divider"></sl-divider>
-
-  <!-- map icon inclusion checkboxes (hospital, mobile health clinic, community partners) -->
 </div>
 
-<sl-resize-observer id="aggregated-disease-history-resizer">
-  <div id="aggregated-disease-history-container" class="fill-width">
-    <p id="aggregated-disease-history-title">State Wide Disease Encounters</p>
-    <p id="aggregated-disease-history-subtitle">N/A</p>
-    <svg id="aggregated-disease-history"></svg>
-  </div>
-</sl-resize-observer>
-
-<sl-dialog id="aggregated-disease-history-large" class="dialog-width">
-  <div slot="label">
-    <p id="aggregated-disease-history-large-title">
-      State Wide Disease Encounters
-    </p>
-    <p id="aggregated-disease-history-large-subtitle">N/A</p>
-  </div>
-  <sl-resize-observer id="aggregated-disease-history-resizer-large">
-    <svg id="aggregated-disease-history-large-svg"></svg>
-  </sl-resize-observer>
-</sl-dialog>
 {% endblock %} {% block contents %}
 
-<div class="fill-width fill-height container">
-  <div class="row" style="height: 100%; position: relative">
+  <div class="row" style="height: 100%; position: relative; padding:0.5rem">
     <div
       id="loading-spinner"
       class="col-md-12"
@@ -187,40 +187,6 @@ options %}
             <option value="zcta">Zip-Code Tabulation Area (ZCTA)</option>
           </select>
         </div>
-        <!-- <p style="margin-top: 1em; margin-bottom: 0.5em; font-weight: bold">
-            Map Resources
-          </p> -->
-        <!-- <sl-checkbox
-            id="map-options-hospital-icons-toggle"
-            class="map-icons-toggle map-option"
-            size="small"
-            disabled
-            >Hospitals</sl-checkbox
-          >
-          <sl-checkbox
-            id="map-options-mobile-clinic-icons-toggle"
-            class="map-icons-toggle map-option"
-            size="small"
-            disabled
-            >Mobile Health Clinics</sl-checkbox
-          >
-          <sl-checkbox
-            id="map-options-community-partner-icons-toggle"
-            class="map-icons-toggle map-option"
-            size="small"
-            disabled
-            >Community Partners</sl-checkbox
-          >
-
-          <sl-divider class="options-divider"></sl-divider>
-          <sl-checkbox
-            id="map-options-geographic-labels-toggle"
-            class="map-toggle map-option"
-            size="small"
-            disabled
-            >Geography Labels</sl-checkbox
-          > -->
-
         <div
           style="
             display: flex;
@@ -252,7 +218,8 @@ options %}
 
         <!-- Sort By Switch -->
         <div style="margin-top: 0.5rem; padding: 0 0; width: 100%">
-          <label
+          <div style="display: flex; justify-content: space-between;">
+            <label
             style="
               font-size: 0.75rem;
               font-weight: bold;
@@ -260,29 +227,23 @@ options %}
               /* margin: 0px 0px 0.25rem 0px; */
             "
             >Sort By</label
-          >
-          <div>
-            <div
-              class="form-check"
-              style="display: flex; justify-content: flex-end"
             >
+            <div style="display: flex; justify-content: flex-end">
               <input
-                class="form-check-input"
-                type="radio"
-                name="flexRadioDefault"
-                id="flexRadioDefault1"
-                style="margin-right: 0.3rem"
-                checked
-              />
-              <label class="form-check-label" for="flexRadioDefault1">
-                Risk Index
-              </label>
+                  class="form-check-input"
+                  type="radio"
+                  name="flexRadioDefault"
+                  id="flexRadioDefault1"
+                  style="margin-right: 0.3rem"
+                  checked
+                />
+                <label class="form-check-label" for="flexRadioDefault1">
+                  Risk Index
+                </label>
+                </div>
             </div>
-            <div
-              class="form-check"
-              style="display: flex; justify-content: flex-end"
-            >
-              <input
+          <div style="display: flex; justify-content: flex-end">
+            <input
                 class="form-check-input"
                 type="radio"
                 name="flexRadioDefault"
@@ -292,12 +253,14 @@ options %}
               <label class="form-check-label" for="flexRadioDefault2">
                 Risk Increase
               </label>
-            </div>
           </div>
+        
         </div>
 
-        <hr style="margin: 0px" />
-        <hr style="margin: 0px" />
+        <div style="height: fit-content;">
+          <hr style="margin: 0px; margin-bottom: 0.3rem;" />
+          <hr style="margin: 0px" />
+        </div>
       </div>
       <div
         style="
@@ -338,6 +301,26 @@ options %}
           class="col-md-7"
           style="position: relative; padding: 0px; margin: 0px"
         >
+          <div style="position: absolute; 
+                      z-index: 10; 
+                      height: fit-content; 
+                      width: fit-content; 
+                      display: flex; font-size: 0.7rem; 
+                      flex-direction: column;
+                      margin: 1rem;
+                      bottom: 0px;
+                      right: 0px;
+                      background-color: rgba(255, 255, 255, 0.8);
+                      border: 1px solid gray;
+                      border-radius: 0.5rem;
+                      padding: 0.5rem
+                      "> 
+           <p style="margin-top: 1em; margin-bottom: 0.5em; font-weight: bold;">Public Health Resources</p>
+            <sl-checkbox id="map-options-hospital-icons-toggle" class="map-icons-toggle map-option" size="small" disabled>Hospitals</sl-checkbox>
+            <sl-checkbox id="map-options-mobile-clinic-icons-toggle" class="map-icons-toggle map-option" size="small" disabled>Mobile Health Clinics</sl-checkbox>
+            <sl-checkbox id="map-options-community-partner-icons-toggle" class="map-icons-toggle map-option" size="small" disabled>Community Partners</sl-checkbox>
+
+          </div>
           <div
             class="fill-width fill-height"
             id="focus-map-div"
@@ -364,8 +347,9 @@ options %}
           </div>
         </div>
 
-        <div class="col-md-5" style="position: relative">
-          <ul class="nav nav-tabs nav-fill mb-3" id="ex1" role="tablist" style="height:10%;margin:0rem !important">
+        <div class="col-md-5" style=" display: flex;
+                flex-direction: column; height: 100%;position: relative">
+          <ul class="nav nav-tabs nav-fill mb-3" id="ex1" role="tablist" style="height:fit-content;margin:0rem !important">
             <li class="nav-item" role="presentation">
               <a
                 data-bs-toggle="tab"
@@ -396,7 +380,7 @@ options %}
 
           <!-- Tabs content -->
           <div class="tab-content" id="ex1-content"
-          style="height:90%; width: 100%; padding:0px; margin:0px">
+              style=" flex: 1; min-height: 0;width: 100%; padding:0px; margin:0px">
             <div
               class="tab-pane fade show active"
               id="ex1-tabs-1"
@@ -463,13 +447,7 @@ options %}
           </div>
         </div>
       </div>
-          <!-- <div
-              class="tab-pane fade show active"
-              id="ex1-tabs-1"
-              role="tabpanel"
-              aria-labelledby="ex1-tab-1"
-            >
-            -->
+        
           <div
             class="row"
             style="width: 100%; height: 40%; padding: 0.5rem; margin: 0rem"
@@ -477,24 +455,63 @@ options %}
             <div
               class="col-md-12"
               style="
-                border: 1px solid lightgray;
+                /* border: 1px solid lightgray; */
                 /* box-shadow: 0.2rem 0.2rem #888888; */
                 border-radius: 0.5rem;
                 padding:0px;
                 overflow-x: hidden;
+                display: flex;
               "
             >
               <div
                 id="table-col-selector"
-                style="width: 100%; height: 10%; padding: 0rem; margin: 0px"
+                style="width: 20%; height: 100%; padding: 0rem; margin: 0px; font-size: 0.7rem !important; 
+                display: flex;
+                flex-direction: column;
+                /* justify-content: space-between; */
+                gap: 2%; 
+                "
               >
                 <!-- table column selector here -->
-                <div>Table View + add sth</div>
+                <div style="
+                   width:100%;
+                    flex: 0 0 49%;
+                    border: 1px solid lightgray;
+                    border-radius: .5rem;
+                    display:flex;
+                    flex-direction:column;
+                    min-height:0;
+                ">
+                  <div style="font-size: 0.8rem; color: white; background-color: gray; display:flex; height:fit-content; justify-content: center; border-radius: 0.5rem 0.5rem 0 0">Disease Selector</div>
+                  <div id="table-disease-list" style="min-height: 0;overflow-y: auto; padding:0.5rem">
+                   <!-- {% for disease in metadata['diseases'] %}
+                    <sl-checkbox
+                      id="table-disease-{{ disease['disease-name'] }}-selector"
+                      class="disease-checkbox map-option"
+                      disease="{{ disease['disease-name'] }}"
+                      size="small"
+                      checked
+                      >{{ disease['display-name'] }}
+                    </sl-checkbox>
+                    {% endfor %}   -->
+                  </div>
+                </div>
+                <!-- <div style="width: 100%; height: 2%"></div> -->
+                <div style=" width:100%;
+                      flex: 0 0 49%;
+                      border: 1px solid lightgray;
+                      border-radius: .5rem;
+                      display:flex;
+                      flex-direction:column;
+                      min-height:0;">
+                  <div style="font-size: 0.8rem; color: white; background-color: gray; display:flex; justify-content: center; border-radius: 0.5rem 0.5rem 0 0">Social Variable Selector</div>
+                  <div id="table-variable-list"> ... </div>
+                </div>
               </div>
               <div
                 id="table-view-container"
                 class="row"
-                style="width: 100%; height: 90%; padding: 0rem; margin: 0.5rem"
+                style="width: 80%; height: 100%; padding: 0.5rem; margin: 0.0rem"
               >
                 table view here
               </div>
@@ -502,7 +519,6 @@ options %}
           </div>
         </div>
       </div>
-    </div>
     {% endblock %} {% block scripts %}
 
     <link
@@ -522,20 +538,11 @@ options %}
     />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="" crossorigin="anonymous"></script>
 
+    
     <script
       src="{{ url_for('static', filename='js/outbreak-detection/dyhan/dataManager.js') }}"
       type="module"
     ></script>
-    <!-- <script
-    src="{{ url_for('static', filename='js/outbreak-detection/dyhan/smallMultipleManager.js') }}"
-    type="module"
-  ></script>
-  <script
-    src="{{ url_for('static', filename='js/outbreak-detection/dyhan/mapManager.js') }}"
-    type="module"
-  ></script> -->
-    <!-- <script src="{{ url_for('static', filename='js/outbreak-detection/map.js') }}" type="module"></script>
-<script src="{{ url_for('static', filename='js/outbreak-detection/map-interactions.js') }}" type="module"></script> -->
     {% endblock %}
   </div>
 </div>

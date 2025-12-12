@@ -408,7 +408,6 @@ function drawTooltip(d, ttpSVG, header, footer, population, outcomeVariable, pan
                 button.attr("disabled", true)
                 icon.style("color", "var(--sl-color-gray-500)")
             }
-
         })
     }
 

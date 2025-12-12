@@ -268,11 +268,23 @@ def create_app(development=False, dataDir=None):
                 'displayName': 'DMA-PRIME'
             },
             {
-                'name': 'map',
-                'displayName': 'Map View',
+                'name': 'outbreak-detection',
+                'displayName': 'Outbreak Detection',
                 'active': True,
-                'html': 'outbreak-detection/outbreak-detection-map-panel.html'
+                'html': 'outbreak-detection/outbreak-detection-panel_dy.html'
             },
+            {
+                'name': 'riskindex-assessment',
+                'displayName': 'Risk Index Assessment',
+                # 'active': True,
+                'html': 'outbreak-detection/riskindex-analysis.html'
+            },
+            # {
+            #     'name': 'map',
+            #     'displayName': 'Map View',
+            #     'active': True,
+            #     'html': 'outbreak-detection/outbreak-detection-map-panel.html'
+            # },
         ]
         return render_template('outbreak-detection/outbreak-detection-base.html', panels=panels, metadata=metadata)
 

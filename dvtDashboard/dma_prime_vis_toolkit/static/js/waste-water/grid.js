@@ -3,8 +3,11 @@ function drawCharts() {
     console.log(metadata)
     Object.keys(metadata['site_info']).forEach(site => {
         data = d3.select(`#${site}-div`).datum()
-        console.log(data)
 
+
+        console.log(site)
+        console.log(data)
+        
         domSvg = document.getElementById(`${site}-svg`)
         domSvg.innerHTML = ""
         svg = d3.select(domSvg)

@@ -105,14 +105,12 @@ export function drawRegionMap(targetMap, featuresDataBySpace, maps) {
     function (e) {
       // Access the clicked feature's data
       const features = e.features[0];
-      // const coordinates = features.geometry.coordinates;
-      // const properties = features.properties;
-      // console.log(features);
 
       highlightLine(targetMap, maps.layers.region_map_layer.lineLayerID, [
         features.properties.id,
         ...maps.regionOfInterest,
       ]);
+
 
       highlightLine(
         maps.county_map,
@@ -140,10 +138,17 @@ export function drawRegionMap(targetMap, featuresDataBySpace, maps) {
 
       highlightSmallMultipleUnit(`#small-multiple-${features.properties.id}`);
 
+      maps.county_map.jumpTo({
+        center: e.lngLat,
+        duration: 50,
+        zoom: 6,
+      });
+
+
       maps.zip_map.jumpTo({
         center: e.lngLat,
         duration: 50,
-        zoom: 7,
+        zoom: 6,
       });
 
       let legendIndicator = d3.select("#region-legend-hover-indicator-group");
@@ -158,7 +163,7 @@ export function drawRegionMap(targetMap, featuresDataBySpace, maps) {
 
       legendIndicator
         .select("text")
-        .text(`${e.features[0].properties.projected_value}`);
+        .text(`${e.features[0].properties.projected_value.toFixed(2)}`);
     }
   );
 
@@ -188,6 +193,12 @@ export function drawRegionMap(targetMap, featuresDataBySpace, maps) {
     );
 
     deHighlightSmallMultipleUnit();
+
+    maps.county_map.easeTo({
+      center: [-80.3, 33.5],
+      duration: 500,
+      zoom: 5.5,
+    });
 
     maps.zip_map.easeTo({
       center: [-80.3, 33.5],

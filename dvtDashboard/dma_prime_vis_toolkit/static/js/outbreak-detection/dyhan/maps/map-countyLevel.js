@@ -18,7 +18,10 @@ import {
 } from "../smallMultiples/smallMultiple-utils.js";
 
 export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
-  initMap(targetMap);
+  initMap(targetMap, {
+    panning: true,
+    zooming: true,
+  });
 
   const featuresDataBySpace_region = maps.regional_data;
 
@@ -66,11 +69,12 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
     }
   );
 
+  console.log(featuresDataBySpace_region)
   targetMap.addSource(maps.layers.region_map_layer.sourceID, {
     type: "geojson",
     data: {
       type: "FeatureCollection",
-      features: featuresDataBySpace_region,
+      features: featuresDataBySpace_region.features,
     },
   });
 
@@ -80,7 +84,7 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
     maps.layers.region_map_layer.fillLayerID,
     {
       "fill-color": "lightgray",
-      "fill-opacity": 0.0,
+      "fill-opacity": 0,
     }
   );
 
@@ -171,7 +175,7 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
         .style("opacity", 1);
       legendIndicator
         .select("text")
-        .text(`${e.features[0].properties.projected_value}`);
+        .text(`${e.features[0].properties.projected_value.toFixed(2)}`);
     }
   );
 
