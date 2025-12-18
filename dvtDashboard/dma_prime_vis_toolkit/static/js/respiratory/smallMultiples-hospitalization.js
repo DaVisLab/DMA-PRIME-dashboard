@@ -29,6 +29,37 @@ async function getSpatialData() {
   );
 
   console.log(regionData);
+  let imputedDataAvailable =regionData.features.filter(d=>{
+    const data = d.properties.data;
+
+    const generalPopulationData = data["general_population"] || {};
+    const healthSystyemData = data["health_system"] || {};
+
+    
+    let hasImputed = false;
+
+    if(Object.keys(generalPopulationData).length>0)
+      Object.keys(generalPopulationData).forEach((outcomeVar)=>{
+        const outcomeData = generalPopulationData[outcomeVar];
+        if (outcomeData.historical.imputed || outcomeData.projected.imputed) {
+          hasImputed = true;
+        }
+      })
+
+    if(Object.keys(healthSystyemData).length > 0 )
+      Object.keys(healthSystyemData).forEach((outcomeVar)=>{
+        const outcomeData = generalPopulationData[outcomeVar];
+        if (outcomeData.historical.imputed || outcomeData.projected.imputed) {
+          hasImputed = true;
+        }
+      })
+
+    return hasImputed;
+  })
+
+  console.log(imputedDataAvailable)
+
+
 
   let valueTypeSwitch = document.getElementById("map-type-switch").value;
   let allowImputations = document.getElementById(
