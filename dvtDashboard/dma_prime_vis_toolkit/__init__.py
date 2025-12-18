@@ -133,6 +133,7 @@ def create_app(development=False, dataDir=None):
         metadata = dict(decrypt(file, decrypt_key))
         metadata['data_version'] = data_version
         
+        print(metadata['available_models'] )
         panels = [
             {
                 'name': 'main',
