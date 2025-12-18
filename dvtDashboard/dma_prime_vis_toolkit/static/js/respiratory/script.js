@@ -636,6 +636,19 @@ function drawTooltip(
     .nice()
     .range([ttpHeight - ttpMargins.bottom, ttpMargins.top]);
 
+    
+  let defs = graphSVG.append("defs");
+  let clipPath = defs
+    .append("clipPath")
+    .attr("id", "ttp-clip-path-def")
+    .attr("clipPathUnits", "userSpaceOnUse") 
+    .append("rect")
+    .attr("x", ttpMargins.left)
+    .attr("y", ttpMargins.top)
+    .attr("width", ttpWidth - ttpMargins.right - ttpMargins.left)
+    .attr("height", ttpHeight - ttpMargins.bottom - ttpMargins.top);
+
+
   if (panelType == "percentDifference") {
     var percentDifferenceHistoricalValues = getAllValuesFromFeature(
       featureData,
@@ -807,7 +820,6 @@ function drawTooltip(
       (ttpGraphWidth * ttpHistoryWidthPercentage) / historicalDatesArray.length
     );
 
-    console.log(panelType);
     historicalGroup
       .append("g")
       .selectAll("rect")
@@ -882,12 +894,14 @@ function drawTooltip(
     } else {
       projectedValues.splice(0, 0, projectedValues[0]);
     }
+
     predictiveGroup
       .selectAll("path")
       .data(projectedValues.slice(1))
       .enter()
       .append("path")
       .attr("class", "ttp-data-point")
+      .attr("clip-path", "url(#ttp-clip-path-def)")
       .attr("d", (_, i1) =>
         d3
           .area()
@@ -928,6 +942,7 @@ function drawTooltip(
       .enter()
       .append("circle")
       .attr("class", "ttp-data-point")
+      .attr("clip-path", "url(#ttp-clip-path-def)")
       .attr("r", 3)
       .attr("cx", (_, i) =>
         xScale(d3.timeDay.offset(data.projected.start_date, 7 * (i - 1)))
@@ -1077,6 +1092,7 @@ function drawTooltip(
       .style("fill", populationColorMap[population]["historical"])
       .attr("font-size", "var(--sl-font-size-small)")
       .text("Percent Change");
+
     mainYAxis
       .append("g")
       .attr("transform", `translate(${ttpMargins.left},0)`)
@@ -1084,6 +1100,7 @@ function drawTooltip(
       .selectAll("text")
       .attr("class", "tooltip-label")
       .style("fill", populationColorMap[population]["historical"]);
+
     mainYAxis
       .selectAll("path, line")
       .style("stroke", populationColorMap[population]["historical"]);
@@ -1398,7 +1415,7 @@ async function drawStateBarChart(
     .attr("x", (d) => stateXScale(d["Date"]))
     .attr("y", (d) => stateYScale(d["count"]))
     .attr("height", (d) => {
-    //   console.log(stateYScale(0) - stateYScale(d["count"]));
+      //   console.log(stateYScale(0) - stateYScale(d["count"]));
       return stateYScale(0) - stateYScale(d["count"]);
     })
     .attr("width", barWidth)
