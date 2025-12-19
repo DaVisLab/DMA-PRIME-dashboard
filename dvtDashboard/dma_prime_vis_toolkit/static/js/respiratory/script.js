@@ -471,6 +471,8 @@ function drawTooltip(
           system: data.system,
         };
 
+        console.log(ttpData);
+
         drawTooltip(
           ttpData,
           largeTtp.select(".tooltip-outer-svg"),
@@ -636,11 +638,14 @@ function drawTooltip(
     .nice()
     .range([ttpHeight - ttpMargins.bottom, ttpMargins.top]);
 
-    
+
+    console.log( ttpWidth - ttpMargins.right - ttpMargins.left)
+    console.log(ttpHeight)
   let defs = graphSVG.append("defs");
+  const clipPathId = `ttp-clip-path-def-${allDates ? "all-dates" : "short-history"}`; 
   let clipPath = defs
     .append("clipPath")
-    .attr("id", "ttp-clip-path-def")
+    .attr("id", clipPathId)
     .attr("clipPathUnits", "userSpaceOnUse") 
     .append("rect")
     .attr("x", ttpMargins.left)
@@ -901,7 +906,7 @@ function drawTooltip(
       .enter()
       .append("path")
       .attr("class", "ttp-data-point")
-      .attr("clip-path", "url(#ttp-clip-path-def)")
+      .attr("clip-path", `url(#${clipPathId})`)
       .attr("d", (_, i1) =>
         d3
           .area()
@@ -942,7 +947,7 @@ function drawTooltip(
       .enter()
       .append("circle")
       .attr("class", "ttp-data-point")
-      .attr("clip-path", "url(#ttp-clip-path-def)")
+      .attr("clip-path", `url(#${clipPathId})`)
       .attr("r", 3)
       .attr("cx", (_, i) =>
         xScale(d3.timeDay.offset(data.projected.start_date, 7 * (i - 1)))
