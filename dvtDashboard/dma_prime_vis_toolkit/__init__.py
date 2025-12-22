@@ -14,6 +14,7 @@ from .authenticate import login_manager
 from .admin import admin_required
 from .database import User
 from .data_handling import get_data_date, data_approver_required
+# from .ai_prompt import bp as ai_bp
 
 # ensure the authenticate module itself is available for blueprint registration
 from . import authenticate
@@ -89,6 +90,9 @@ def create_app(development=False, dataDir=None):
 
     from . import data_handling
     app.register_blueprint(data_handling.bp)
+
+    from . import ai_prompt
+    app.register_blueprint(ai_prompt.bp)
 
     from . import admin
     app.register_blueprint(admin.bp)
@@ -268,24 +272,30 @@ def create_app(development=False, dataDir=None):
                 'name': 'main',
                 'displayName': 'DMA-PRIME'
             },
-            # {
-            #     'name': 'outbreak-detection',
-            #     'displayName': 'Outbreak Detection',
-            #     'active': True,
-            #     'html': 'outbreak-detection/outbreak-detection-panel_dy.html'
-            # },
-            # {
-            #     'name': 'riskindex-assessment',
-            #     'displayName': 'Risk Index Assessment',
-            #     # 'active': True,
-            #     'html': 'outbreak-detection/riskindex-analysis.html'
-            # },
             {
-                'name': 'map',
-                'displayName': 'Map View',
-                'active': True,
-                'html': 'outbreak-detection/outbreak-detection-map-panel.html'
+                'name': 'outbreak-detection',
+                'displayName': 'Outbreak Detection',
+                # 'active': True,
+                'html': 'outbreak-detection/outbreak-detection-panel_dy.html'
             },
+            {
+                'name': 'riskindex-assessment',
+                'displayName': 'Risk Index Assessment',
+                # 'active': True,
+                'html': 'outbreak-detection/riskindex-analysis.html'
+            },
+            {
+                'name': 'outbreak-exploration',
+                'displayName': 'Test Interface',
+                'active': True,
+                'html': 'outbreak-detection/test-page.html'
+            },
+            # {
+            #     'name': 'map',
+            #     'displayName': 'Map View',
+            #     'active': True,
+            #     'html': 'outbreak-detection/outbreak-detection-map-panel.html'
+            # },
         ]
         return render_template('outbreak-detection/outbreak-detection-base.html', panels=panels, metadata=metadata)
 

@@ -13,7 +13,7 @@ options %}
       >
     </sl-tooltip>
     <sl-tooltip id="map-monthly-tooltip" content="Count for the past 4 weeks">
-      <sl-radio-button class="map-option" value="monthly" pill
+      <sl-radio-button class="map-option" value="monthly" pill 
         >Monthly Comparison</sl-radio-button
       >
     </sl-tooltip>
@@ -28,7 +28,6 @@ options %}
     <p slot="label">Risk Index (RI)</p>
     <sl-tooltip content="Unique recorded diagnoses or positive tests">
       <sl-option value="encounters">Encounters</sl-option>
-      <!-- <sl-option value="all_hospitalizations">Hospitalizations</sl-option> -->
     </sl-tooltip>
     <sl-tooltip content="Unique diagnosis">
       <sl-option value="diagnoses">Diagnoses</sl-option>
@@ -42,7 +41,6 @@ options %}
     >
   </sl-select>
 
-  <!-- disease selector -->
   <sl-details id="map-disease-selector-container" open>
     <p slot="summary">Select diseases of interest</p>
     <p id="disease-explanation">
@@ -52,10 +50,13 @@ options %}
       >, <tspan class="disease-current-week-value">Current RI</tspan>,
       <tspan class="disease-current-week-value">RI Change</tspan>)
     </p>
-    <sl-checkbox id="map-all-disease-selector" class="map-option" size="small"
+    <sl-checkbox
+      id="map-all-disease-selector"
+      class="map-option"
+      size="small"
       >All Diseases <span id="map-all-count"></span
     ></sl-checkbox>
-    <hr />
+     <hr/>
     {% for disease in metadata['diseases'] %}
     <sl-checkbox
       id="map-{{ disease['disease-name'] }}-selector"
@@ -63,10 +64,8 @@ options %}
       disease="{{ disease['disease-name'] }}"
       size="small"
       >{{ disease['display-name'] }}
-      <span id="map-{{ disease['disease-name'] }}-count"
-        >(temp*, *, *)</span
-      ></sl-checkbox
-    >
+      <span id="map-{{ disease['disease-name'] }}-count">(temp*, *, *)</span
+    ></sl-checkbox>
     {% endfor %}
   </sl-details>
 
@@ -101,7 +100,46 @@ options %}
     </div>
   </div>
 
-  empty
+  <div class="col-md-12" style="height: 100%; margin: 0px; padding: .5rem; display: flex; flex-direction: column;">
+    <div id="vis-container" style="height: 70%">
+
+    </div>
+    <div id="ai-prompt-container" style="height: 10%; padding: 0.25rem;">
+      <div class="d-flex align-items-center" style="gap:0.5rem;">
+        <select id="ai-model-select" class="form-select form-select-sm" style="width:190px;">
+          <option value="groq">groq</option>
+          <!-- <option value="gpt-4">gpt-4</option>
+          <option value="gpt-3.5">gpt-3.5</option> -->
+        </select>
+
+        <textarea id="ai-prompt-input" class="form-control form-control-sm" placeholder="Ask a question about the data (e.g. 'Show top 5 counties by RI')" rows="1" style="resize:none;"></textarea>
+
+        <button id="ai-send-btn" class="btn btn-primary btn-sm">Send</button>
+        <button id="ai-clear-btn" class="btn btn-outline-secondary btn-sm">Clear</button>
+      </div>
+
+      <div id="ai-prompt-examples" style="margin-top:4px; font-size:0.8rem; color:#444;">
+        <a href="#" class="ai-example">Show top 5 counties by RI</a>
+        &nbsp;|&nbsp;
+        <a href="#" class="ai-example">Explain sudden spike in County X</a>
+        &nbsp;|&nbsp;
+        <a href="#" class="ai-example">Summarize recent trend statewide</a>
+      </div>
+    </div>
+
+    <div id="ai-explanation-container" style="height: 20%; overflow-y: auto; padding: 0.5rem; border-top: 1px solid #eaeaea; background: #fff;">
+      <div id="ai-response" style="font-size:0.95rem; color:#111;">
+        <!-- AI response will be injected here -->
+      </div>
+
+      <hr style="margin:0.5rem 0;" />
+
+      <div id="ai-conversation" style="font-size:0.85rem; color:#333;">
+        <!-- Conversation history (user prompts and AI replies) -->
+      </div>
+    </div>
+
+  </div>
 </div>
 {% endblock %} {% block scripts %}
 
@@ -112,7 +150,6 @@ options %}
 <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
 
 <!-- 2) Deck.gl UMD bundle (pin to 8.9.27) -->
-<!-- <script src="https://unpkg.com/deck.gl@8.9.27/dist.min.js"></script> -->
 
 <link
   href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
@@ -124,6 +161,10 @@ options %}
   src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
   integrity=""
   crossorigin="anonymous"
+></script>
+<script
+  src="{{ url_for('static', filename='js/outbreak-detection/dyhan/ai-test/test.js') }}"
+  type="module"
 ></script>
 
 {% endblock %}

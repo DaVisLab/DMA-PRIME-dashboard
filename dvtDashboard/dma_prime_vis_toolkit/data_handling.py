@@ -247,4 +247,3 @@ def get_data_date(data_version, dashboard):
         output = None
 
     return output
-
