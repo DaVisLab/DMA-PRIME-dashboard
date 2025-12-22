@@ -30,6 +30,7 @@ outcome_variables = {
     'Weekly_ED_Visits': 'Emergency Department Visits',
     'Weekly_Positive_Tests': 'Positive Tests',
     'rt': 'Rate of Transmission',
+    'Weekly_Hospitalizations': 'All Hospitalizations',
 }
 
 outcome_variables_code_friendly = {k:'_'.join(v.lower().split()) for k, v in list(OrderedDict.fromkeys(outcome_variables.items()))}
@@ -51,6 +52,7 @@ o_v_crosswalk = {
     4: 'Weekly_ED_Visits',
     5: 'Weekly_Outpatient',
     6: 'Weekly_Positive_Tests', 
+    7: 'Weekly_Hospitalizations',
 }
 
 # populations
@@ -111,42 +113,42 @@ metadata = {
     'available_models': {
         'covid_19': {
             'region': {
-                'general_population': ['all_encounters'],
+                'general_population': ['all_hospitalizations'],
                 'health_system': ['positive_tests', 'rate_of_transmission'] },
             'county': {
-                'general_population': ['all_encounters'],
+                'general_population': ['all_hospitalizations'],
                 'health_system': ['positive_tests', 'rate_of_transmission'] },
             'zcta': {
-                'general_population': ['all_encounters'],
+                'general_population': ['all_hospitalizations'],
                 'health_system': ['positive_tests', 'rate_of_transmission'] },
             'facility': {
                 'health_system': ['positive_tests', 'rate_of_transmission'] },
         },
         'influenza': {
             'region': {
-                'general_population': ['all_encounters'],
+                'general_population': ['all_hospitalizations'],
                 'health_system': ['positive_tests', 'rate_of_transmission'] },
             'county': {
-                'general_population': ['all_encounters'],
+                'general_population': ['all_hospitalizations'],
                 'health_system': ['positive_tests', 'rate_of_transmission'] },
             'zcta': {
-                'general_population': ['all_encounters'],
+                'general_population': ['all_hospitalizations'],
                 'health_system': ['positive_tests', 'rate_of_transmission'] },
             'facility': {
                 'health_system': ['positive_tests', 'rate_of_transmission'] },
         },
         'RSV': {
             'region': {
-                'general_population': ['all_encounters'] },
+                'general_population': ['all_hospitalizations'] },
 
         },
         'respiratory_diseases': {
             'region': {
-                'general_population': ['all_encounters'] },
+                'general_population': ['all_hospitalizations'] },
             'county': {
-                'general_population': ['all_encounters'] },
+                'general_population': ['all_hospitalizations'] },
             'zcta': {
-                'general_population': ['all_encounters'] },
+                'general_population': ['all_hospitalizations'] },
         },
 
     }
@@ -455,7 +457,8 @@ df.to_json(out_path, orient='columns')
 ######## 5 ########
 with open(get_file_descriptor(f'{processed_data_dir}/respiratory/metadata.json'), 'w') as f:
 
-    metadata['outcome_variables_tooltips']['all_encounters'] = 'Inpatient and outpatient hospitalizations and emergency department visits'
+    #metadata['outcome_variables_tooltips']['all_encounters'] = 'Inpatient and outpatient hospitalizations and emergency department visits'
+    metadata['outcome_variables_tooltips']['hospitalizations'] = 'Inpatient and emergency department visits'
     metadata['outcome_variables_tooltips']['rate_of_transmission'] = 'Average effective reproductive number'
 
     metadata['current_date'] = current_date.strftime('%Y-%m-%d')
