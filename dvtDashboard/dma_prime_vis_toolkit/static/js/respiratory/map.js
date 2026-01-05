@@ -256,7 +256,7 @@ async function redraw(
         // onHover: (info) => {
         //   selectedItems.feature = info.object
         //   dataVersion++;
-        //   // redraw();
+        //   redraw();
         // },
       }),
 
@@ -268,6 +268,7 @@ async function redraw(
           return [coords[0], coords[1]];
         },
         getText: (d) => d.properties.display_name,
+        getPixelOffset: (d) => [0, 35],
         maxWidth: 10,
         getAlignmentBaseline: "center",
         getTextAnchor: "middle",

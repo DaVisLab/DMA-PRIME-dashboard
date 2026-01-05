@@ -262,7 +262,7 @@ function drawingSmallMultipleUnit(svg, data) {
     .append("path")
     .datum(last7)
     .attr("fill", "none")
-    .attr("stroke", trend === 1 ? "green" : trend === -1 ? "red" : "gray")
+    .attr("stroke", trend === 1 ? "red" : trend === -1 ? "green" : "gray")
     .attr("stroke-width", 3)
     .attr("d", line);
 
@@ -272,7 +272,7 @@ function drawingSmallMultipleUnit(svg, data) {
     .attr("cy", y(data.data.slice(-1)[0]))
     .attr("r", 3)
     .attr("stroke", "black")
-    .attr("fill", trend === 1 ? "green" : trend === -1 ? "red" : "gray");
+    .attr("fill", trend === 1 ? "red" : trend === -1 ? "green" : "gray");
 
   return svg;
 }
