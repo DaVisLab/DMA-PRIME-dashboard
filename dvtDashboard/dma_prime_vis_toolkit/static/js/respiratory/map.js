@@ -125,7 +125,6 @@ async function redraw(
     updateMapWarnings();
   }
 
-  console.log(regionData);
   createChoropleth(
     regionData,
     mapTypeSwitch.value,
@@ -162,7 +161,19 @@ async function redraw(
       })
     );
   } else {
+  
     layers.push(
+      new GeoJsonLayer({
+        id: "county_outline",
+        pickable: false,
+        data: d3.json("/data/map/county"),
+        stroked: true,
+        filled: false,
+        lineWidthMinPixels: 1,
+        getLineWidth: 10,
+        getLineColor: [128, 128, 128],
+      }),
+
       new GeoJsonLayer({
         id: "state_outline",
         pickable: false,
@@ -179,29 +190,39 @@ async function redraw(
         depthTest: false,
         pickable: false,
         data: regionData,
-        pointType: "icon+text",
-        iconAtlas: icons.iconAtlas,
-        iconMapping: icons.iconMapping,
-        getIconSize: 22,
-        getIcon: (d) => d.properties.system,
-        getIconColor: (d) => {
-          let val = getFeatureValue(
-            d,
-            mapPopulationSelector.value,
-            mapOutcomeVariableSelector.value,
-            mapTypeSwitch.value,
-            mapIncludeImputations.checked
-          );
-          if (val === undefined) {
-            let c = unknownColor.rgb();
-            return [c.r, c.g, c.b];
-          } else if (val.length) {
-            val = val[2];
-          }
-          let c = unknownColor.rgb();
-          return isNaN(val) ? [c.r, c.g, c.b] : [0, 0, 0, 255];
+        pointType: "icon",
+        // iconAtlas: icons.iconAtlas,
+        iconAtlas: "/static/assets/Icons/health-facility-icon.png",
+        // iconMapping: icons.iconMapping,
+        iconMapping: {
+          marker: { x: 0, y: 0, width: 1128, height: 992, mask: true },
         },
-        iconSizeMinPixels: 12,
+        getIconSize: 95,
+        // getIcon: (d) => d.properties.system,
+        // {
+        //   console.log(d);
+        //   return d.properties.system;
+        // },
+        getIcon: () => "marker",
+        // getIconColor: (d) => {
+        //   let val = getFeatureValue(
+        //     d,
+        //     mapPopulationSelector.value,
+        //     mapOutcomeVariableSelector.value,
+        //     mapTypeSwitch.value,
+        //     mapIncludeImputations.checked
+        //   );
+        //   if (val === undefined) {
+        //     let c = unknownColor.rgb();
+        //     return [c.r, c.g, c.b];
+        //   } else if (val.length) {
+        //     val = val[2];
+        //   }
+        //   let c = unknownColor.rgb();
+        //   return isNaN(val) ? [c.r, c.g, c.b] : [0, 0, 0, 255];
+        // },
+        getIconColor: () => [0, 0, 0, 255],
+        iconSizeMinPixels: 20,
         updateTriggers: {
           data: [mapGeographicUnitSelector.value, dataVersion],
         },
@@ -212,11 +233,16 @@ async function redraw(
         depthTest: false,
         pickable: true,
         data: regionData,
-        pointType: "icon+text",
-        iconAtlas: icons.iconAtlas,
-        iconMapping: icons.iconMapping,
-        getIconSize: 20,
-        getIcon: (d) => d.properties.system,
+        pointType: "icon",
+        // iconAtlas: icons.iconAtlas,
+        iconAtlas: "/static/assets/Icons/health-facility-icon.png",
+        // iconMapping: icons.iconMapping,
+        iconMapping: {
+          marker: { x: 0, y: 0, width: 1128, height: 992, mask: true },
+        },
+        getIconSize: 80,
+        getIcon: () => "marker",
+        // getIcon: (d) => d.properties.system,
         getIconColor: (d) => getColor(d),
         iconSizeMinPixels: 10,
         updateTriggers: {
@@ -227,6 +253,11 @@ async function redraw(
             dataVersion,
           ],
         },
+        // onHover: (info) => {
+        //   selectedItems.feature = info.object
+        //   dataVersion++;
+        //   // redraw();
+        // },
       }),
 
       new TextLayer({

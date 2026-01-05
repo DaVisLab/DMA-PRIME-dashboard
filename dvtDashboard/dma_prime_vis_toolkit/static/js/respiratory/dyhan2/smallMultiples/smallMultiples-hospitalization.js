@@ -1,14 +1,4 @@
 import {
-  populationColorMap,
-  unknownColor,
-  getFeatureValue,
-  getAllValuesFromFeature,
-  getAllFeaturesValue,
-  drawTooltip,
-  drawStateHospitalizations,
-} from "/static/js/respiratory/script.js";
-
-import {
   unitHeight,
   pin_icon_path,
   getCombinedBBox,

@@ -35,7 +35,6 @@ async function getSpatialData() {
   //   const generalPopulationData = data["general_population"] || {};
   //   const healthSystyemData = data["health_system"] || {};
 
-    
   //   let hasImputed = false;
 
   //   if(Object.keys(generalPopulationData).length>0)
@@ -58,8 +57,6 @@ async function getSpatialData() {
   // })
 
   // console.log(imputedDataAvailable)
-
-
 
   let valueTypeSwitch = document.getElementById("map-type-switch").value;
   let allowImputations = document.getElementById(
@@ -178,7 +175,6 @@ function drawingSmallMultipleUnit(svg, data) {
     .attr("isROI", "false")
     .on("mouseover", function () {
       if (isSmallMultipleClicked) return;
-
       selectedItems.feature = data.dataObject;
       dataVersion++;
       redraw();

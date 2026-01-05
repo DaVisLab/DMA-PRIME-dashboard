@@ -4,6 +4,7 @@ import {
   drawStateHospitalizations,
   drawLargeStateHospitalizations,
 } from "/static/js/respiratory/script.js";
+
 import {
   map,
   popup,

@@ -277,6 +277,9 @@ function drawTooltip(
   // create titles/subtitles
   var outcomeVariableString = metadata["outcome_variables"][outcomeVariable];
 
+  const diseaseVariable = mapDiseaseSelector.value;
+  const diseaseVariableString = metadata["diseases"][diseaseVariable];
+
   var regionInfo = header.select(".tooltip-region-info");
   regionInfo.node().innerHTML = "";
   if (geographicUnit != "state") {
@@ -311,13 +314,19 @@ function drawTooltip(
 
   var dataInfo = header.select(".tooltip-data-info");
   dataInfo.node().innerHTML = "";
+
   if (panelType == "rate") {
     dataInfo
       .append("p")
-      .html(`Rate of ${outcomeVariableString} (per 1000 people)`);
+      .html(
+        `Rate of ${outcomeVariableString} (per 1000 people) - ${diseaseVariableString}`
+      );
   } else {
-    dataInfo.append("p").html(`Count of ${outcomeVariableString}`);
+    dataInfo
+      .append("p")
+      .html(`Count of ${outcomeVariableString} - ${diseaseVariableString}`);
   }
+
   if (data.historical.values.length) {
     var tooltipString = `${
       data["historical"].reported ? "Reported" : ""
@@ -638,21 +647,19 @@ function drawTooltip(
     .nice()
     .range([ttpHeight - ttpMargins.bottom, ttpMargins.top]);
 
-
-    console.log( ttpWidth - ttpMargins.right - ttpMargins.left)
-    console.log(ttpHeight)
   let defs = graphSVG.append("defs");
-  const clipPathId = `ttp-clip-path-def-${allDates ? "all-dates" : "short-history"}`; 
+  const clipPathId = `ttp-clip-path-def-${
+    allDates ? "all-dates" : "short-history"
+  }`;
   let clipPath = defs
     .append("clipPath")
     .attr("id", clipPathId)
-    .attr("clipPathUnits", "userSpaceOnUse") 
+    .attr("clipPathUnits", "userSpaceOnUse")
     .append("rect")
     .attr("x", ttpMargins.left)
     .attr("y", ttpMargins.top)
     .attr("width", ttpWidth - ttpMargins.right - ttpMargins.left)
     .attr("height", ttpHeight - ttpMargins.bottom - ttpMargins.top);
-
 
   if (panelType == "percentDifference") {
     var percentDifferenceHistoricalValues = getAllValuesFromFeature(
@@ -1056,21 +1063,33 @@ function drawTooltip(
     .style("text-anchor", "end")
     .attr("fill", "var(--sl-color-neutral-1000)")
     .attr("transform", "rotate(-40)");
+
   xAxisPrediction
     .selectAll("path, line")
     .attr("stroke", "var(--sl-color-neutral-1000)");
-
   // display y-axis on the left
-  yAxis
+  const yAxisTitle = yAxis
     .append("text")
     .attr(
       "transform",
-      `translate(${1.25 * em},${yScale(d3.mean(yScale.domain()))})rotate(-90)`
+      `translate(${0.6 * em}, ${yScale(d3.mean(yScale.domain()))})rotate(-90)`
     )
     .attr("text-anchor", "middle")
     .attr("fill", "var(--sl-color-neutral-1000)")
-    .attr("font-size", "var(--sl-font-size-small)")
+    .attr("font-size", "var(--sl-font-size-small)");
+
+  // Use tspans for a line break in SVG text
+  yAxisTitle
+    .append("tspan")
+    .attr("x", 0)
+    .attr("dy", 0)
     .text(outcomeVariableString);
+  yAxisTitle
+    .append("tspan")
+    .attr("x", 0)
+    .attr("dy", "1.1em")
+    .attr("font-size", "var(--sl-font-size-x-small)")
+    .text(`(${diseaseVariableString})`);
 
   yAxis
     .append("g")
@@ -1110,18 +1129,30 @@ function drawTooltip(
       .selectAll("path, line")
       .style("stroke", populationColorMap[population]["historical"]);
 
-    lesserYAxis
+    const lesserYAxisTitle = lesserYAxis
       .append("text")
       .attr(
         "transform",
-        `translate(${ttpWidth - 1.25 * em},${yScale(
+        `translate(${ttpWidth - 1 * em}, ${yScale(
           d3.mean(yScale.domain())
         )})rotate(-90)`
       )
       .attr("text-anchor", "middle")
       .attr("fill", "var(--sl-color-neutral-1000)")
-      .attr("font-size", "var(--sl-font-size-small)")
+      .attr("font-size", "var(--sl-font-size-small)");
+
+    lesserYAxisTitle
+      .append("tspan")
+      .attr("x", 0)
+      .attr("dy", 0)
       .text(outcomeVariableString);
+
+    lesserYAxisTitle
+      .append("tspan")
+      .attr("x", 0)
+      .attr("dy", "1.1em")
+      .attr("font-size", "var(--sl-font-size-x-small)")
+      .text(`(${diseaseVariableString})`);
 
     lesserYAxis
       .append("g")
