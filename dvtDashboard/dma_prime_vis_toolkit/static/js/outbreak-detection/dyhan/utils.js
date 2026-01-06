@@ -45,3 +45,35 @@ export async function getOutbreakDataBySpatialResoultionIn(mapSpatialResoultion)
 
   return data;
 }
+
+export function categorizeStringOrNumber(data) {
+  const field = [];
+  if (!data || data.length === 0) return field;
+
+  const columns = Object.keys(data[0]);
+  
+  for (const col of columns) {
+    const values = data
+      .map(d => d[col])
+      .filter(v => v !== null && v !== undefined);
+
+    if (values.length === 0) {
+      field.push({
+        name: col,
+        type: "string"
+      });
+      continue;
+    }
+
+    const isNumber = values.every(v =>
+      typeof v === "number" && !Number.isNaN(v)
+    );
+
+    field.push({
+      name: col,
+      type: isNumber ? "number" : "string"
+    });
+  }
+
+  return field;
+}
