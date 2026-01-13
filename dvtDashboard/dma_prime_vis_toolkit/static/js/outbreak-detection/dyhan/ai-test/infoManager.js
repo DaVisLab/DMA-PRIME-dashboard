@@ -1,5 +1,6 @@
 import { getOutbreakDataBySpatialResoultionIn } from "../utils.js";
 import { drawTableView } from "../tableView.js";
+import { drawVegaMap } from "./drawVegaMap.js";
 
 export const data = {};
 
@@ -32,7 +33,7 @@ async function getOutbreakData() {
     }
   }
 
-  return dataRestructured;
+  return [data.regionData, dataRestructured];
   // drawTableView(data.regionData.features, "table-view-container-aiPage");
 }
 
@@ -54,7 +55,13 @@ function drawDataTable(data) {
   });
 }
 
-let curData = await getOutbreakData();
+let [spatialData, curData] = await getOutbreakData();
+
+console.log(spatialData)
+console.log(curData);
+
+data.spatialData = spatialData;
 data.tableData = curData;
 
 drawDataTable(curData);
+drawVegaMap(spatialData, "map-container");

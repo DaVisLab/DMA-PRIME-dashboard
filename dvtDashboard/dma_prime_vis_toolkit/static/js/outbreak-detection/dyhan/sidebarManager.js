@@ -24,7 +24,7 @@ export function setRiskIndexByDiseaseInPanel(data) {
       curRI += areaData[disease].at(-1);
     }
 
-    console.log(disease, lastRI, curRI);
+    // console.log(disease, lastRI, curRI);
     const spanCurRI = document.getElementById(`riskindex-${disease}-curRI`);
     const spanRIChange = document.getElementById(
       `riskindex-${disease}-RIChange`
@@ -45,5 +45,5 @@ export function setRiskIndexByDiseaseInPanel(data) {
     }
   }
 
-  console.log(normalizedRIByDiseaseAndArea);
+  // console.log(normalizedRIByDiseaseAndArea);
 }

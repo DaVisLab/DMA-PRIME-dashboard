@@ -1,14 +1,16 @@
 import functools
-
+import base64, re
+from pydantic import BaseModel
+from typing import Any
 from .utility import * 
 from flask import (
     Blueprint, flash, send_file, redirect, url_for, render_template, current_app, request
 )
 import os
 import shutil
-
 from groq import Groq
 import textwrap
+from pathlib import Path
 
 bp = Blueprint('ai', __name__, url_prefix='/ai')
 
@@ -59,16 +61,7 @@ def ai_prompt_request_chart():
     returnValue = ai_return_visChart(prompt)
     return {"response": returnValue}
 
-@bp.route('/request_insights_from_data', methods=['POST'])
-def ai_prompt_request_insights_from_data():
-    params = request.get_json()
-    # Flask passes route variables as keyword args; the parameter name must match
-    prompt = params["prompt"]
-    
-    print(prompt)
-    returnValue = ai_return_insights_from_data_attributes(prompt)
-    
-    return {"response": returnValue}
+
     
 def ai_input_categorization(prompt):
     # Build a clean, dedented prompt to send to the model
@@ -140,23 +133,97 @@ def ai_return_visChart(prompt):
     
     return chat_completion.choices[0].message.content.strip()
 
-def ai_return_insights_from_data_attributes(prompt):
-    print("ai_return_visChart received prompt:", prompt)  # Debug log to check the incoming prompt
+
+
+@bp.route('/request_insights_from_data', methods=['POST'])
+def ai_prompt_request_insights_from_data():
+    # params = request.get_json()
+    # # Flask passes route variables as keyword args; the parameter name must match
+    # prompt = params["prompt"]
+     # ---- Text field ----
+    print(request.form)
+    user_prompt = request.form.get("prompt")
+
+    # ---- JSON fields (sent as strings) ----
+    vega_lite_spec_structure = json.loads(request.form.get("vega_lite_spec_structure", "{}"))
+    transformed_data = json.loads(request.form.get("transformed_data", "[]"))
+
+    # ---- File field ----
+    image_file = request.files.get("image_file")
+    img_bytes = image_file.read()    
+    img_base64 = base64.b64encode(img_bytes).decode("utf-8")
+
+    # if image_file:
+
+
+    #     upload_dir = Path("uploads")
+    #     upload_dir.mkdir(exist_ok=True)
+        
+    #     img_path = upload_dir / image_file.filename 
+    #     img_path.write_bytes(img_bytes)
+    # else:
+    #     img_bytes = None
+    #     img_path = None
+        
+    # print(user_prompt)
+    # print(vega_lite_spec_structure)
+    # print(transformed_data)
+    # print(image_file)
     
-    SYSTEM_PROMPT = '''You are an analytical assistant.
-                      Given a tabular dataset description, your task is to suggest actions for insightful observations from the data. 
-                      Considering field names and types, you should:
-                      1) Propose plausible insight hypotheses (e.g.,comparisons, trends, associations)
-                      2) Indicate what summary statistics would be required to validate each hypothesis
-                      3) Avoid making claims without sufficient data
-                      - Do NOT generate visualizations yet.
-                      - Do NOT assume access to full raw data.
-                      '''
+    returnValue = ai_return_insights_from_data_attributes(user_prompt,
+                                                          vega_lite_spec_structure,
+                                                        transformed_data,
+                                                        img_base64)
+    
+    return {"response": returnValue}
+
+def png_bytes_to_data_url(img_bytes: bytes) -> str:
+    b64 = base64.b64encode(img_bytes).decode("utf-8")
+    return f"data:image/png;base64,{b64}"
+
+def ai_return_insights_from_data_attributes(user_prompt,
+                                            vega_lite_spec_structure,
+                                            transformed_data,
+                                            img_base64):
+    print("ai_return_insights_from_data_attributes received prompt:", user_prompt)  # Debug log to check the incoming prompt
+
+    SYSTEM_PROMPT =f"""
+You are an analytics assistant for a Vega-Lite v6 geoshape map.
+
+VEGA_LITE_SPEC_STRUCTURE_SUMMARY:
+{vega_lite_spec_structure}
+
+TRANSFORMED_DATA_SUMMARY:
+{transformed_data}
+
+
+
+Task:
+Return 4–6 insight-and-code pairs.
+- insight_text: 1–3 factual sentences grounded in TRANSFORMED_DATA_SUMMARY.
+- vega_lite_patch: a small Vega-Lite v6 patch (layer/transform/encoding) consistent with the structure.
+
+Output STRICT JSON only with the following shape:
+{{
+  "pairs": [
+    {{
+      "title": "short title",
+      "insight_text": "…",
+      "evidence": {{"fields_used": [], "method": "", "notes": ""}},
+      "vega_lite_patch": {{
+        "description": "",
+        "patch_type": "layer_addition|transform_addition|encoding_change|parameter_addition",
+        "patch": {{}}
+      }}
+    }}
+  ]
+}}
+"""
     
     chat_completion = client.chat.completions.create(
         messages=[
              {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": prompt}],
+            {"role": "user", "content": user_prompt}],
         model="llama-3.3-70b-versatile",
         temperature=0.1,     # 🔑 형식 안정성
     )

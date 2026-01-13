@@ -43,44 +43,34 @@ document.getElementById("ai-send-btn").addEventListener("click", async () => {
     const aiReply = data.response || JSON.stringify(data);
     const promptType = data.prompt_type;
 
-    switch (promptType) {
-      case "GeneralRequest":
-        makeAction4GeneralRequest(aiReply);
-        break;
-      case "VisRequest":
-        console.log(
-          "vis request: make action4VisRequest with data and userInput"
-        );
-        makeAction4VisRequest(userInput);
-        break;
-      case "InsightRequestFromVis":
-        console.log(
-          "insight request: make action4InsightRequestFromVisPrompt with userInput"
-        );
-        break;
-      case "InsightRequestFromData":
-        console.log(
-          "insight request: make action4InsightRequestFromDataPrompt with userInput"
-        );
-        makeAction4InsightRequestFromDataPrompt(userInput);
-        break;
+    makeAction4InsightRequestFromDataPrompt(userInput);
+    // switch (promptType) {
+    //   case "GeneralRequest":
+    //     makeAction4GeneralRequest(aiReply);
+    //     break;
+    //   case "VisRequest":
+    //     console.log(
+    //       "vis request: make action4VisRequest with data and userInput"
+    //     );
+    //     makeAction4VisRequest(userInput);
+    //     break;
+    //   case "InsightRequestFromVis":
+    //     console.log(
+    //       "insight request: make action4InsightRequestFromVisPrompt with userInput"
+    //     );
+    //     break;
+    //   case "InsightRequestFromData":
+    //     console.log(
+    //       "insight request: make action4InsightRequestFromDataPrompt with userInput"
+    //     );
+    //     makeAction4InsightRequestFromDataPrompt(userInput);
+    //     break;
 
-      default:
-        makeAction4GeneralRequest(aiReply);
-        break;
-    }
-    // const userEntry = document.createElement("div");
-    // userEntry.className = "ai-history-item";
-    // userEntry.innerHTML = `<strong>You:</strong> ${escapeHtml(promptText)}`;
-    // convoEl.appendChild(userEntry);
-
-    // const aiEntry = document.createElement("div");
-    // aiEntry.className = "ai-history-item";
-    // aiEntry.innerHTML = `<strong>AI:</strong> ${escapeHtml(aiReply)}`;
-    // convoEl.appendChild(aiEntry);
-
-    // // scroll to bottom
-    // convoEl.scrollTop = convoEl.scrollHeight;
+    //   default:
+    //     makeAction4GeneralRequest(aiReply);
+    //     break;
+    // }
+    
   } catch (err) {
     // responseEl.innerText = `Request failed: ${err.message}`;
   }
