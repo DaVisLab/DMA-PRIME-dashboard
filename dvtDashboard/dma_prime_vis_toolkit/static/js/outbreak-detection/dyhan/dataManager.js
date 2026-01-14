@@ -3,6 +3,7 @@ import { mapManager } from "./mapManager.js";
 import { drawTableView } from "./tableView.js";
 import { generateCheckboxListForRiskIndexPanel, setRiskIndexByDiseaseInPanel } from "./sidebarManager.js";
 import  {getOutbreakDataBySpatialResoultionIn} from "./utils.js"
+import { inferAllDates } from "./utils.js";
 
 export const outbreak_data = {
   region: null,
@@ -22,6 +23,17 @@ async function getRiskIndexBySpatialResoultionIn(mapSpatialResoultion) {
   const surveillanceTimeWindow = surveillanceTimeWindowSwitch.value;
   // get historical normalized risk index for all time points
   const historicalDiseaseStats = {};
+
+  const timeMeta = data.metadata;
+  const tempData = data.features[0].properties.data.adenovirus;
+
+  const inferredDates = inferAllDates({
+    t2: timeMeta.end_date,
+    yearlyValues: tempData.yearly,
+    monthlyValues: tempData.monthly,
+    weeklyValues: tempData.weekly,
+  });
+
 
   // Collect all historical values for each disease and time point
   data.features.forEach((d) => {
@@ -99,7 +111,10 @@ async function getRiskIndexBySpatialResoultionIn(mapSpatialResoultion) {
       d.properties.final_historical_disease_risk_index.push(sumAtTimePoint);
     }
   });
-
+  
+  console.log(data)
+  data.metadata.inferred_dates = inferredDates;
+ 
   return data;
 }
 
@@ -110,6 +125,7 @@ async function getOutbreakDataAll() {
   outbreak_data.county = await getRiskIndexBySpatialResoultionIn("county");
   outbreak_data.zcta = await getRiskIndexBySpatialResoultionIn("zcta");
 
+  console.log(outbreak_data)
   // console.log(Object.keys(outbreak_data.region.features[0].properties));
   // console.log(Object.keys(outbreak_data.region.features[0].properties.data));
   // generateCheckboxListForRiskIndexPanel(outbreak_data.region.features[0].properties.final_historical_disease_risk_index);

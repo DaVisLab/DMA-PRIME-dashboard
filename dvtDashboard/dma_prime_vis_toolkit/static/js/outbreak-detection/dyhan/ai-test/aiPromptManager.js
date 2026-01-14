@@ -1,6 +1,8 @@
 import { makeAction4GeneralRequest } from "./actions4GeneralRequest.js";
 import { makeAction4VisRequest } from "./actions4VisRequest.js";
 import { makeAction4InsightRequestFromDataPrompt } from "./actions4InsightRequestPrompt.js";
+import { validateVegaLite } from "./helper.js";
+import { data } from "./infoManager.js";
 
 document.getElementById("ai-send-btn").addEventListener("click", async () => {
   const userInput = document.getElementById("ai-prompt-input").value;
@@ -75,3 +77,77 @@ document.getElementById("ai-send-btn").addEventListener("click", async () => {
     // responseEl.innerText = `Request failed: ${err.message}`;
   }
 });
+
+
+
+export async function presentAIResponse(response) {
+  let responseEl = document.getElementById("ai-response");
+
+  let factItems = response.facts
+    .map(
+      (fact) => `<div id="${fact.id}">
+      <div style="font-weight: bold;">${fact.title}</div> 
+      ${fact.statement}
+      <hr/>
+      </div>`
+    )
+    .join("");
+
+  responseEl.innerHTML = `${factItems}`;
+
+  response.highlight_patches.forEach(async (d) => {
+    const highligh_id = d.fact_id;
+    const corresponsidingFactId = `F${highligh_id.replace("F", "")}`;
+
+    const factEl = document.getElementById(corresponsidingFactId);
+
+    factEl.addEventListener("mouseover", async () => {
+      const highlightedVegaSpec = structuredClone(
+        data.mapVegaSpecs.originalMapVegaSpec
+      );
+
+      // Modify the spec to highlight patches
+      highlightedVegaSpec.layer = highlightedVegaSpec.layer || [];
+      console.log(d)
+      console.log(d.patch.layer)
+      highlightedVegaSpec.layer.push(...d.patch.layer);
+      await vegaEmbed("#map-container", highlightedVegaSpec, {
+        actions: true,
+      });
+    });
+
+    factEl.addEventListener("mouseout", async () => {
+      await vegaEmbed("#map-container", data.mapVegaSpecs.originalMapVegaSpec, {
+        actions: true,
+      });
+    });
+  });
+
+  response.optional_additional_charts.forEach((d) => {
+    const chart_id = d.chart_id;
+    const corresponsidingFactId = `F${chart_id.replace("C", "")}`;
+
+    const factEl = document.getElementById(corresponsidingFactId);
+    const width = factEl.getBoundingClientRect().width;
+    const height = factEl.getBoundingClientRect().height;
+    d.width = width / 2;
+    d.height = height;
+
+    factEl.addEventListener("mouseover", async () => {
+      let validation = validateVegaLite(d.vega_lite_spec);
+
+      console.log("Validation result:", validation);
+      await vegaEmbed(
+        `#ai-generated-helper-vis-container`,
+        // vegaSpec,
+        d.vega_lite_spec,
+        { actions: false }
+      );
+    });
+
+    factEl.addEventListener("mouseout", async () => {
+      document.getElementById("ai-generated-helper-vis-container").innerHTML =
+        "";
+    });
+  });
+}

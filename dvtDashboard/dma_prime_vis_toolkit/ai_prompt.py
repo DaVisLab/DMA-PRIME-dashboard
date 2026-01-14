@@ -213,7 +213,7 @@ Important rules:
 - MAP_IMAGE is only for validating spatial patterns (clusters, boundaries, gradients).
 - Do not rely on raw time-series arrays unless they already exist in TRANSFORMED_DATA.
 - Keep the original map style (geoshape, projection, color encoding).
-- Output must be executable Vega-Lite v6 JSON.
+- Output must be executable Vega-Lite V6 JSON ($schema must "https://vega.github.io/schema/vega-lite/v6.json").
 - Output must be STRICT valid JSON only (no markdown, no commentary e.g., Do NOT wrap the output in json fences.).
 - Do NOT invent data fields.
 - Do NOT output markdown, code fences, or extra text.
@@ -238,20 +238,24 @@ Each fact must include:
 
 B) HIGHLIGHT_PATCHES
 
-For each fact, provide at least one Vega-Lite patch that highlights it.
+For each FACT in FACTS, output at least one Vega-Lite v6 *patch* that can be merged into the provided VEGA_LITE_SPEC_STRUCTURE to visually highlight the fact.
 
-Patch styles you may use:
-1) Threshold highlight (filter + outline)
-2) Top-N highlight (rank + outline)
-3) Conditional emphasis (opacity/strokeWidth rules)
-4) Interaction (hover/select parameter)
-
+For example, allowed highlight strategies include:
+- Threshold highlight:
+   - overlay layer with transform filter (datum[field] >= threshold etc.)
+   - mark: {{fillOpacity: 0, stroke: "...", strokeWidth: ...}}
+- Top-N highlight:
+   - transform: window rank + filter rank <= N
+   - MUST include a deterministic sort using a known quantitative field
+- Conditional emphasis:
+   - parameter + condition to vary opacity/strokeWidth on overlay only
+   
 Rules:
-- Patches must be mergeable into the existing Vega-Lite spec.
+- Patches must be mergeable into the existing Vega-Lite v6 JSON spec.
 - Prefer layer-based overlays (keep existing color encoding).
 - No new geometry or external datasets.
-- Vega-Lite v6 compatible JSON only.
-
+- Must return patch in "layer" format
+   
 ------------------------------------------------------------
 
 C) OPTIONAL_ADDITIONAL_CHARTS (only if useful)
@@ -264,20 +268,19 @@ Examples:
 - Distribution histogram
 
 Rules:
-- You MUST output exactly ONE COMPLETE Vega-Lite specification as a single JSON object.
-                        - The output MUST include the following top-level properties:
-                        1) "$schema"
-                        2) "data" (or "datasets" with a named data source)
-                        3) "mark" OR "layer" OR "hconcat" / "vconcat" / "facet"
-                        4) "encoding" (unless using layered specs where encoding is inside layers)
-                        - The "$schema" MUST be "https://vega.github.io/schema/vega-lite/v5.json".
-                        - Do NOT output partial specifications (e.g., mark-only or encoding-only).
-                        - Do NOT output explanations, markdown, code fences, or extra text.
-                        - Do NOT use Python, Plotly, Altair, R, or any non–Vega-Lite library.
-                        - Do NOT invent data fields.
-                        - Include axis titles and tooltips when applicable.
-                        - Output ONLY raw JSON. Do NOT wrap the JSON in markdown code fences.
-                        - If you cannot comply, output exactly: {{"error":"cannot_comply"}}
+- You MUST output exactly ONE COMPLETE Vega-Lite V6 specification as a single JSON object.
+- The output MUST include the following top-level properties:
+1) "$schema"
+2) "data" (or "datasets" with a named data source)
+3) "layer" format
+- The "$schema" MUST be "https://vega.github.io/schema/vega-lite/v6.json".
+- Do NOT output partial specifications (e.g., mark-only or encoding-only).
+- Do NOT output explanations, markdown, code fences, or extra text.
+- Do NOT use Python, Plotly, Altair, R, or any non–Vega-Lite library.
+- Do NOT invent data fields.
+- Include axis titles, encoding details with field and type, tooltips when applicable.
+- Output ONLY raw JSON. Do NOT wrap the JSON in markdown code fences.
+- If you cannot comply, output exactly: {{"error":"cannot_comply"}}
 ------------------------------------------------------------
 
 Output format (STRICT JSON ONLY):
@@ -305,9 +308,17 @@ Output format (STRICT JSON ONLY):
       "patch": {{
         "layer": [
           {{
-            "transform": [],
-            "mark": {{ "type": "geoshape", "fillOpacity": 0, "strokeWidth": 3 }},
-            "encoding": {{ "stroke": {{ "value": "black" }} }}
+            "transform": [ ...optional... ],
+
+            "mark": {{
+              "type": "<REQUIRED: one of 'geoshape'|'bar'|'line'|'point'|'rect'|'area'...>",
+              "...": "optional mark properties (fillOpacity/stroke/strokeWidth/etc.)"
+            }},
+
+            "encoding": {{
+              "<REQUIRED>": "Must include the minimum position channels to draw the mark.",
+              "tooltip": [ ...optional... ]
+            }}
           }}
         ]
       }}
@@ -318,7 +329,7 @@ Output format (STRICT JSON ONLY):
     {{
       "chart_id": "C1",
       "purpose": "what this chart explains",
-      "vega_lite_spec": {{ }}
+      "vega_lite_spec": {{<REQUIRED>}}
     }}
   ]
 }}

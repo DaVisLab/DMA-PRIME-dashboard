@@ -14,7 +14,7 @@ export const smallMultipleManager = {
 
     // console.log(mapResolutionSelected);
     // console.log(data);
-    drawingSmallMultiples(data[mapResolutionSelected].features);
+    drawingSmallMultiples(data[mapResolutionSelected].features, data[mapResolutionSelected].metadata.inferred_dates);
   },
   callInitSmallMultipleView: function (data) {
     this.initSmallMultipleView(data);

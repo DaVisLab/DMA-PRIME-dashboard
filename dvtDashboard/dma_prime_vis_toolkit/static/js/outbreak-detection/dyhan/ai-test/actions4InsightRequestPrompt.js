@@ -2,6 +2,8 @@ import { categorizeStringOrNumber } from "../utils.js";
 import { makeAction4GeneralRequest } from "./actions4GeneralRequest.js";
 import { dataUrlToBlob } from "./helper.js";
 import { data } from "./infoManager.js";
+import { presentAIResponse } from "./aiPromptManager.js";
+
 // console.log(data)
 export async function makeAction4InsightRequestFromDataPrompt(userInput) {
   //   const dataOfInterest = data.tableData;
@@ -29,7 +31,9 @@ export async function makeAction4InsightRequestFromDataPrompt(userInput) {
   console.log("Insights from data response:", resp);
 
   // Continue your pipeline
-  makeAction4GeneralRequest(resp);
+//   makeAction4GeneralRequest(resp);
+console.log(typeof(resp));
+  presentAIResponse(JSON.parse(resp));
   //   console.log("Insights from data response:", resp);
 
   //   makeAction4GeneralRequest(resp);
@@ -68,10 +72,10 @@ async function generateInsightsFromData(payload, userRequest) {
     body = await output.text();
   }
 
-  console.log("body:", body);
+//   console.log("body:", body);
   body = body.response;
 
-  console.log(body);
+//   console.log(body);
   return body;
 }
 

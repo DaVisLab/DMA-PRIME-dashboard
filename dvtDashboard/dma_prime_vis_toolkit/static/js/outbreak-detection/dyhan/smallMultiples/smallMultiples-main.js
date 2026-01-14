@@ -40,7 +40,8 @@ function trendStrict(arr) {
   return 0;
 }
 
-function drawingSmallMultipleUnit(svg, data) {
+function drawingSmallMultipleUnit(svg, data, dateInfo) {
+  console.log(data);
   svg
     .attr("id", `small-multiple-${data.nameID}`)
     .attr("class", `small-multiple-unit small-multiple-item-${data.nameID}`)
@@ -117,8 +118,18 @@ function drawingSmallMultipleUnit(svg, data) {
     return;
   }
 
+  const yearlySplittedDateInfo = {};
   // let values = data.data.values;
-  const processed = dataValues.map((d, i) => ({ x: i, y: d }));
+  // const processed = dataValues.map((d, i) => ({ x: i, y: d }));
+
+  dateInfo.forEach((d, i) => {
+    const [yy, mm, dd] = d.split("-").map(Number);
+    yearlySplittedDateInfo[yy] = yearlySplittedDateInfo[yy] || [];
+    yearlySplittedDateInfo[yy].push(i);
+  });
+
+  const yearKeys = Object.keys(yearlySplittedDateInfo);
+  const maxYear = Math.max(...yearKeys);
 
   const margin = { top: 10, right: 60, bottom: 0, left: 0 };
   const width = svg.node().clientWidth;
@@ -126,39 +137,77 @@ function drawingSmallMultipleUnit(svg, data) {
 
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
+  let processed;
+  let line;
+  let x, y;
 
-  const x = d3
-    .scaleLinear()
-    .domain([0, processed.length - 1])
-    .range([0, innerWidth]);
+  for (const year of yearKeys) {
+    const indices = yearlySplittedDateInfo[year];
 
-  const y = d3
-    .scaleLinear()
-    .domain([
-      d3.min([0, d3.min(processed, (d) => d.y)]),
-      d3.max(processed, (d) => d.y),
-    ])
-    .nice()
-    .range([height, margin.top]);
+    const yearDataValues = indices.map((idx) => dataValues[idx]);
 
-  const line = d3
-    .line()
-    .defined((d) => d.y !== null && !isNaN(d.y))
-    .x((d) => x(d.x))
-    .y((d) => y(d.y));
+    console.log(yearDataValues);
+    const transformedDataInfo = indices.map((d) => {
+      const [yy, mm, dd] = dateInfo[d].split("-").map(Number);
+      return new Date(2020, mm - 1, dd);
+    });
 
-  svg
-    .append("path")
-    .datum(processed)
-    .attr("fill", "none")
-    .attr("stroke", "#1f77b4")
-    .attr("stroke-width", 0.5)
-    .attr("d", line);
+    processed = yearDataValues.map((d, i) => ({
+      x: transformedDataInfo[i],
+      y: d,
+    }));
+
+    x = d3
+      .scaleTime()
+      // .domain(d3.extent(processed, (d) => d.x))
+      .domain([new Date(2020, 0, 1), new Date(2020, 11, 31)])
+      .range([0, innerWidth]);
+
+    y = d3
+      .scaleLinear()
+      .domain([
+        d3.min([0, d3.min(processed, (d) => d.y)]),
+        d3.max(processed, (d) => d.y),
+      ])
+      .nice()
+      .range([margin.top + innerHeight, margin.top]);
+
+    line = d3
+      .line()
+      .defined((d) => d.y !== null && !isNaN(d.y))
+      .x((d) => x(d.x))
+      .y((d) => y(d.y));
+
+    svg
+      .append("path")
+      .datum(processed)
+      .attr("fill", "none")
+      .attr("stroke", () => {
+        if (year == maxYear) {
+          return "#1f77b4";
+        } else {
+          return "gray";
+        }
+      })
+      .attr("stroke-width", () => {
+        if (year == maxYear) {
+          return "2";
+        } else {
+          return "0.5";
+        }
+      })
+      .attr("stroke-opacity", () => {
+        if (year == maxYear) {
+          return "1";
+        } else {
+          return "0.5";
+        }
+      })
+      .attr("d", line);
+  }
 
   const last2 = processed.slice(-2).filter((d) => d.y !== null);
   const trend = trendStrict(last2.map((d) => d.y));
-
-  //   const processed_last10 = processed.slice(-7);
 
   svg
     .append("path")
@@ -200,7 +249,7 @@ function drawingSmallMultipleUnit(svg, data) {
   return svg;
 }
 
-export function drawingSmallMultiples(dataBySpace) {
+export function drawingSmallMultiples(dataBySpace, dateInfo) {
   const svgContainer = document.getElementById(
     "respiratory-smallMultiples-container"
   );
@@ -220,6 +269,8 @@ export function drawingSmallMultiples(dataBySpace) {
       ]
   );
   console.log(dataBySpace);
+  console.log(dateInfo);
+
   for (const data of dataBySpace) {
     // check whether the item is already positioned in ROI component
 
@@ -237,6 +288,6 @@ export function drawingSmallMultiples(dataBySpace) {
       .attr("height", unitHeight)
       .attr("width", unitWidth);
 
-    drawingSmallMultipleUnit(svg, data);
+    drawingSmallMultipleUnit(svg, data, dateInfo.weekly);
   }
 }
