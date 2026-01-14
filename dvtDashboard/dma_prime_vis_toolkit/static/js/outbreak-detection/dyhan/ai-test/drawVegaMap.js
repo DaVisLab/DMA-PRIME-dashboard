@@ -17,7 +17,6 @@ export async function drawVegaMap(spatialData, containerID) {
     data: {
       values: spatialData.features,
     },
-    mark: { type: "geoshape", stroke: "white", strokeWidth: 1 },
     projection: {
       type: "identity",
       reflectY: true,
@@ -36,22 +35,46 @@ export async function drawVegaMap(spatialData, containerID) {
       { window: [{ op: "row_number", as: "rn" }], groupby: ["properties.id"] },
       { filter: "datum.rn === 1" },
     ],
-    encoding: {
-      color: {
-        field: "avg_value",
-        type: "quantitative",
-        title: "Adenovirus",
-        scale: { scheme: "reds" },
-      },
-      tooltip: [
-        { field: "properties.Region", type: "nominal", title: "Region" },
-        {
-          field: "adenovirus value",
-          type: "quantitative",
-          title: "Adenovirus Value",
+    layer: [
+      // 1) Base filled choropleth layer (your original)
+      {
+        mark: { type: "geoshape", stroke: "white", strokeWidth: 1 },
+        encoding: {
+          color: {
+            field: "avg_value",
+            type: "quantitative",
+            title: "Adenovirus",
+            scale: { scheme: "reds" },
+          },
+          tooltip: [
+            { field: "properties.Region", type: "nominal", title: "Region" },
+            {
+              field: "avg_value",
+              type: "quantitative",
+              title: "Average Adenovirus",
+            },
+          ],
         },
-      ],
-    },
+      },
+    ],
+    // mark: { type: "geoshape", stroke: "white", strokeWidth: 1 },
+
+    // encoding: {
+    //   color: {
+    //     field: "avg_value",
+    //     type: "quantitative",
+    //     title: "Adenovirus",
+    //     scale: { scheme: "reds" },
+    //   },
+    //   tooltip: [
+    //     { field: "properties.Region", type: "nominal", title: "Region" },
+    //     {
+    //       field: "adenovirus value",
+    //       type: "quantitative",
+    //       title: "Adenovirus Value",
+    //     },
+    //   ],
+    // },
     config: {
       view: { stroke: null },
     },
@@ -70,20 +93,21 @@ export async function drawVegaMap(spatialData, containerID) {
     delete data.geometry;
     delete data.properties;
     delete data["weekly"];
-    data.__proto__ = null; 
+    data.__proto__ = null;
   });
 
-  console.log(transformedData)
+  console.log(transformedData);
   //   console.log(vegaView.data("source_0"));
   const pngDataUrl = await vegaView.toImageURL("png", 2);
 
   data.mapVegaSpecs = {
+    originalMapVegaSpec: vegaSpec,
     mapViewPng: pngDataUrl,
     mapSpecStructure: summarizeVegaLiteSpecGeneral(vegaSpec),
     transformedData: transformedData,
   };
 
-  console.log(data)
+  console.log(data);
   //   vegaEmbed("#" + containerID, vegaSpec, { actions: true })
   //     .then((result) => {
   //       // result.view is the Vega View instance

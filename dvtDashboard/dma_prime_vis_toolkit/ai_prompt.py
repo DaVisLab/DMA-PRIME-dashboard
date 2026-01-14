@@ -150,20 +150,19 @@ def ai_prompt_request_insights_from_data():
 
     # ---- File field ----
     image_file = request.files.get("image_file")
-    img_bytes = image_file.read()    
-    img_base64 = base64.b64encode(img_bytes).decode("utf-8")
 
-    # if image_file:
+    if image_file:
+        img_bytes = image_file.read()    
+        img_base64 = base64.b64encode(img_bytes).decode("utf-8")
 
-
-    #     upload_dir = Path("uploads")
-    #     upload_dir.mkdir(exist_ok=True)
+        upload_dir = Path("uploads")
+        upload_dir.mkdir(exist_ok=True)
         
-    #     img_path = upload_dir / image_file.filename 
-    #     img_path.write_bytes(img_bytes)
-    # else:
-    #     img_bytes = None
-    #     img_path = None
+        img_path = upload_dir / image_file.filename 
+        img_path.write_bytes(img_bytes)
+    else:
+        img_bytes = None
+        img_path = None
         
     # print(user_prompt)
     # print(vega_lite_spec_structure)
@@ -171,7 +170,7 @@ def ai_prompt_request_insights_from_data():
     # print(image_file)
     
     returnValue = ai_return_insights_from_data_attributes(user_prompt,
-                                                          vega_lite_spec_structure,
+                                                        vega_lite_spec_structure,
                                                         transformed_data,
                                                         img_base64)
     
@@ -188,47 +187,190 @@ def ai_return_insights_from_data_attributes(user_prompt,
     print("ai_return_insights_from_data_attributes received prompt:", user_prompt)  # Debug log to check the incoming prompt
 
     SYSTEM_PROMPT =f"""
-You are an analytics assistant for a Vega-Lite v6 geoshape map.
+You are an analytics assistant specialized in Vega-Lite v6 geoshape maps.
 
-VEGA_LITE_SPEC_STRUCTURE_SUMMARY:
-{vega_lite_spec_structure}
+You are given:
+1) USER_PROMPT: the user's analytical question or intent
+2) VEGA_LITE_SPEC_STRUCTURE: a structural summary of the current Vega-Lite map spec
+   (projection, encoding, transform style, aggregation logic)
+3) TRANSFORMED_DATA: region-level aggregated rows used to render the map
+   (exactly one row per region)
+4) MAP_IMAGE: a rendered screenshot of the map (for validating spatial patterns only)
 
-TRANSFORMED_DATA_SUMMARY:
-{transformed_data}
+Your goal:
+Using the data, structure, and image, discover meaningful and defensible facts
+and propose visualization enhancements that help the user explore those facts
+directly in the existing Vega-Lite map.
 
+You must produce:
+A) FACTS — 4 to 6 discoverable, data-grounded insights
+B) HIGHLIGHT_PATCHES — Vega-Lite v6 patch snippets that highlight each fact
+   in the existing map style (geoshape, same projection, same color scale)
+C) OPTIONAL_ADDITIONAL_CHARTS — 0 to 2 auxiliary Vega-Lite charts when useful
 
+Important rules:
+- Every fact must be supported by TRANSFORMED_DATA.
+- MAP_IMAGE is only for validating spatial patterns (clusters, boundaries, gradients).
+- Do not rely on raw time-series arrays unless they already exist in TRANSFORMED_DATA.
+- Keep the original map style (geoshape, projection, color encoding).
+- Output must be executable Vega-Lite v6 JSON.
+- Output must be STRICT valid JSON only (no markdown, no commentary e.g., Do NOT wrap the output in json fences.).
+- Do NOT invent data fields.
+- Do NOT output markdown, code fences, or extra text.
+- Do NOT use Python, Plotly, Altair, R, or any non–Vega-Lite library.
+- Include axis titles and tooltips when applicable.
 
-Task:
-Return 4–6 insight-and-code pairs.
-- insight_text: 1–3 factual sentences grounded in TRANSFORMED_DATA_SUMMARY.
-- vega_lite_patch: a small Vega-Lite v6 patch (layer/transform/encoding) consistent with the structure.
+------------------------------------------------------------
 
-Output STRICT JSON only with the following shape:
+A) FACTS (4–6 items)
+
+Each fact must include:
+- id: unique identifier (e.g., "F1")
+- title: short descriptive title
+- statement: 1–3 factual sentences
+- evidence:
+    - fields_used (e.g., ["avg_value", "properties.Region"])
+    - method (top-N, above-mean, quantile, IQR-outlier, rank, etc.)
+    - notes (brief justification)
+- confidence: high | medium | low
+
+------------------------------------------------------------
+
+B) HIGHLIGHT_PATCHES
+
+For each fact, provide at least one Vega-Lite patch that highlights it.
+
+Patch styles you may use:
+1) Threshold highlight (filter + outline)
+2) Top-N highlight (rank + outline)
+3) Conditional emphasis (opacity/strokeWidth rules)
+4) Interaction (hover/select parameter)
+
+Rules:
+- Patches must be mergeable into the existing Vega-Lite spec.
+- Prefer layer-based overlays (keep existing color encoding).
+- No new geometry or external datasets.
+- Vega-Lite v6 compatible JSON only.
+
+------------------------------------------------------------
+
+C) OPTIONAL_ADDITIONAL_CHARTS (only if useful)
+
+Only propose additional charts if they meaningfully support a fact.
+
+Examples:
+- Region comparison bar chart
+- Top/bottom dot plot
+- Distribution histogram
+
+Rules:
+- You MUST output exactly ONE COMPLETE Vega-Lite specification as a single JSON object.
+                        - The output MUST include the following top-level properties:
+                        1) "$schema"
+                        2) "data" (or "datasets" with a named data source)
+                        3) "mark" OR "layer" OR "hconcat" / "vconcat" / "facet"
+                        4) "encoding" (unless using layered specs where encoding is inside layers)
+                        - The "$schema" MUST be "https://vega.github.io/schema/vega-lite/v5.json".
+                        - Do NOT output partial specifications (e.g., mark-only or encoding-only).
+                        - Do NOT output explanations, markdown, code fences, or extra text.
+                        - Do NOT use Python, Plotly, Altair, R, or any non–Vega-Lite library.
+                        - Do NOT invent data fields.
+                        - Include axis titles and tooltips when applicable.
+                        - Output ONLY raw JSON. Do NOT wrap the JSON in markdown code fences.
+                        - If you cannot comply, output exactly: {{"error":"cannot_comply"}}
+------------------------------------------------------------
+
+Output format (STRICT JSON ONLY):
+
 {{
-  "pairs": [
+  "facts": [
     {{
-      "title": "short title",
-      "insight_text": "…",
-      "evidence": {{"fields_used": [], "method": "", "notes": ""}},
-      "vega_lite_patch": {{
-        "description": "",
-        "patch_type": "layer_addition|transform_addition|encoding_change|parameter_addition",
-        "patch": {{}}
+      "id": "F1",
+      "title": "short descriptive title",
+      "statement": "factual insight grounded in data",
+      "evidence": {{
+        "fields_used": ["field1", "field2"],
+        "method": "top-3 | above-mean | IQR-outlier | quantile | rank",
+        "notes": "brief justification"
+      }},
+      "confidence": "high | medium | low"
+    }}
+  ],
+
+  "highlight_patches": [
+    {{
+      "fact_id": "F1",
+      "description": "what this patch highlights on the map",
+      "patch_type": "layer_addition | transform_addition | encoding_change | parameter_addition",
+      "patch": {{
+        "layer": [
+          {{
+            "transform": [],
+            "mark": {{ "type": "geoshape", "fillOpacity": 0, "strokeWidth": 3 }},
+            "encoding": {{ "stroke": {{ "value": "black" }} }}
+          }}
+        ]
       }}
+    }}
+  ],
+
+  "optional_additional_charts": [
+    {{
+      "chart_id": "C1",
+      "purpose": "what this chart explains",
+      "vega_lite_spec": {{ }}
     }}
   ]
 }}
+
+------------------------------------------------------------
+
+INPUTS:
+
+VEGA_LITE_SPEC_STRUCTURE:
+{vega_lite_spec_structure}
+
+TRANSFORMED_DATA:
+{transformed_data}
+
+MAP_IMAGE:
+(image provided)
 """
-    
+    # print(SYSTEM_PROMPT)
+
     chat_completion = client.chat.completions.create(
         messages=[
              {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user_prompt}],
-        model="llama-3.3-70b-versatile",
+             {"role": "user", "content": 
+              [
+                {
+                    "type": "text",
+                    "text": user_prompt
+                },
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/png;base64,{img_base64}"
+                    }
+                }
+            ]
+              }],
+        # model="llama-3.3-70b-versatile",
+        model="meta-llama/llama-4-scout-17b-16e-instruct",
         temperature=0.1,     # 🔑 형식 안정성
     )
     
-    return chat_completion.choices[0].message.content.strip()
+    resp = extract_json(chat_completion.choices[0].message.content)
+    return resp
 
 def ai_explain_visChart(prompt):
     pass
+
+def extract_json(text):
+    text = text.strip()
+
+    # 코드블록 제거
+    if text.startswith("```"):
+        text = text.split("```")[1]
+
+    return text

@@ -1,5 +1,6 @@
 import { categorizeStringOrNumber } from "../utils.js";
 import { data } from "./infoManager.js";
+import { validateVegaLite } from "./helper.js";
 
 export async function makeAction4VisRequest(userInput) {
   console.log(userInput);
@@ -127,14 +128,6 @@ ${userRequest}
 `;
 }
 
-function validateVegaLite(spec) {
-  try {
-    vegaLite.compile(spec);
-    return { valid: true };
-  } catch (err) {
-    return { valid: false, error: err.message };
-  }
-}
 
 function checkFields(spec, allowedFields) {
   const usedFields =
