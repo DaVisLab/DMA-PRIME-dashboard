@@ -222,10 +222,12 @@ Important rules:
 
 ------------------------------------------------------------
 
-A) FACTS (4–6 items)
+A) FACTS (5–7 items)
 
 Each fact must include:
 - id: unique identifier (e.g., "F1")
+- fact type: Value | Categorization | Aggregation | Extreme | Rank | Proportion | Distribution | Difference | Outlier | Association | Trend
+- analysis type: Retrieve Value | Filter | Compute Derived Value | Find Extremes | Sort | Characterize Distribution | Compare | Find Anomalies | Correlate 
 - title: short descriptive title
 - statement: 1–3 factual sentences
 - evidence:
@@ -239,6 +241,9 @@ Each fact must include:
 B) HIGHLIGHT_PATCHES
 
 For each FACT in FACTS, output at least one Vega-Lite v6 *patch* that can be merged into the provided VEGA_LITE_SPEC_STRUCTURE to visually highlight the fact.
+
+You must always return the patch using a layer overlay format.
+Patches that only modify encoding, mark, or transform without a layer wrapper are not allowed.
 
 For example, allowed highlight strategies include:
 - Threshold highlight:
@@ -258,18 +263,13 @@ Rules:
    
 ------------------------------------------------------------
 
-C) OPTIONAL_ADDITIONAL_CHARTS (only if useful)
+C) OPTIONAL_ADDITIONAL_CHARTS 
 
-Only propose additional charts if they meaningfully support a fact.
-
-Examples:
-- Region comparison bar chart
-- Top/bottom dot plot
-- Distribution histogram
+Generate one additional chart for each FACT and its fact type to meaningfully support that FACT.
 
 Rules:
-- You MUST output exactly ONE COMPLETE Vega-Lite V6 specification as a single JSON object.
-- The output MUST include the following top-level properties:
+- You MUST output COMPLETE Vega-Lite V6 specifications, where each as a single JSON object.
+- Each output MUST include the following top-level properties:
 1) "$schema"
 2) "data" (or "datasets" with a named data source)
 3) "layer" format
@@ -283,7 +283,7 @@ Rules:
 - If you cannot comply, output exactly: {{"error":"cannot_comply"}}
 ------------------------------------------------------------
 
-Output format (STRICT JSON ONLY):
+Output format (STRICT JSON ONLY, HARD FORMAT):
 
 {{
   "facts": [
@@ -331,6 +331,7 @@ Output format (STRICT JSON ONLY):
       "purpose": "what this chart explains",
       "vega_lite_spec": {{<REQUIRED>}}
     }}
+    , [optional second chart and etc]
   ]
 }}
 

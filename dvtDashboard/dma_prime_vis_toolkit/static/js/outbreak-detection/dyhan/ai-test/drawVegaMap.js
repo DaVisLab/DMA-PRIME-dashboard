@@ -1,14 +1,15 @@
 import { data } from "./infoManager.js";
 import { summarizeVegaLiteSpecGeneral } from "./helper.js";
+
 export async function drawVegaMap(spatialData, containerID) {
   console.log("Drawing Vega Map...");
-  const mapContainer = document.getElementById("map-container");
-  var containerSizeInfo = mapContainer.getBoundingClientRect();
+  const visContainer = document.getElementById(containerID);
+  var containerSizeInfo = visContainer.getBoundingClientRect();
   var height = containerSizeInfo.height;
   var width = containerSizeInfo.width;
   //   mapContainer.innerHTML = ""; // Clear previous content
 
-  console.log(spatialData);
+  // console.log(spatialData);
   const vegaSpec = {
     $schema: "https://vega.github.io/schema/vega-lite/v6.json",
     width: width,
@@ -21,7 +22,7 @@ export async function drawVegaMap(spatialData, containerID) {
       type: "identity",
       reflectY: true,
     },
-
+    params: [{ name: "highlightRegion", value: null }],
     layer: [
       // 1) Base filled choropleth layer (your original)
       {
@@ -63,33 +64,67 @@ export async function drawVegaMap(spatialData, containerID) {
           ],
         },
       },
+      // highlight overlay
+      {
+        transform: [
+          { filter: "highlightRegion && datum.name === highlightRegion" },
+        ],
+        mark: {
+          type: "geoshape",
+          fillOpacity: 0,
+          stroke: "black",
+          strokeWidth: 3,
+        },
+      },
     ],
     config: {
       view: { stroke: null },
     },
   };
 
-  console.log(data);
+  // console.log(data);
+  const viewRes = await vegaEmbed("#" + containerID, vegaSpec, {
+    actions: false,
+  });
+  const vegaView = viewRes.view;
+  const transformedData = structuredClone(vegaView.data("data_0")); // Default name if not specified
 
-  vegaEmbed("#" + containerID, vegaSpec, { actions: true })
-    .then(async (result) => {
-      const vegaView = result.view;
+  const pngDataUrl = await vegaView.toImageURL("png", 2);
+  transformedData.forEach((data) => {
+    delete data.geometry;
+    delete data.properties;
+    delete data["weekly"];
+    data.__proto__ = null;
+  });
 
-      const transformedData = structuredClone(vegaView.data("data_0")); // Default name if not specified
-      const pngDataUrl = await vegaView.toImageURL("png", 2);
-      transformedData.forEach((data) => {
-        delete data.geometry;
-        delete data.properties;
-        delete data["weekly"];
-        data.__proto__ = null;
-      });
+  data.mapVegaSpecs = {
+    originalMapVegaSpec: vegaSpec,
+    mapViewPng: pngDataUrl,
+    mapSpecStructure: summarizeVegaLiteSpecGeneral(vegaSpec),
+    transformedData: transformedData,
+  };
+  
+  return vegaView;
 
-      data.mapVegaSpecs = {
-        originalMapVegaSpec: vegaSpec,
-        mapViewPng: pngDataUrl,
-        mapSpecStructure: summarizeVegaLiteSpecGeneral(vegaSpec),
-        transformedData: transformedData,
-      };
-    })
-    .catch(console.error);
+  // return await vegaEmbed("#" + containerID, vegaSpec, { actions: false })
+  //   .then(async (result) => {
+  //     const vegaView = result.view;
+
+  //     const transformedData = structuredClone(vegaView.data("data_0")); // Default name if not specified
+  //     const pngDataUrl = await vegaView.toImageURL("png", 2);
+  //     transformedData.forEach((data) => {
+  //       delete data.geometry;
+  //       delete data.properties;
+  //       delete data["weekly"];
+  //       data.__proto__ = null;
+  //     });
+
+  //     data.mapVegaSpecs = {
+  //       originalMapVegaSpec: vegaSpec,
+  //       mapViewPng: pngDataUrl,
+  //       mapSpecStructure: summarizeVegaLiteSpecGeneral(vegaSpec),
+  //       transformedData: transformedData,
+  //     };
+  //   })
+  //   .catch(console.error);
 }

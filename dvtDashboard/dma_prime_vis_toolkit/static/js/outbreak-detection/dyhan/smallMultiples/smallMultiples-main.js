@@ -146,7 +146,7 @@ function drawingSmallMultipleUnit(svg, data, dateInfo) {
 
     const yearDataValues = indices.map((idx) => dataValues[idx]);
 
-    console.log(yearDataValues);
+    // console.log(yearDataValues);
     const transformedDataInfo = indices.map((d) => {
       const [yy, mm, dd] = dateInfo[d].split("-").map(Number);
       return new Date(2020, mm - 1, dd);
@@ -268,8 +268,8 @@ export function drawingSmallMultiples(dataBySpace, dateInfo) {
         a.properties.final_historical_disease_risk_index.length - 1
       ]
   );
-  console.log(dataBySpace);
-  console.log(dateInfo);
+  // console.log(dataBySpace);
+  // console.log(dateInfo);
 
   for (const data of dataBySpace) {
     // check whether the item is already positioned in ROI component

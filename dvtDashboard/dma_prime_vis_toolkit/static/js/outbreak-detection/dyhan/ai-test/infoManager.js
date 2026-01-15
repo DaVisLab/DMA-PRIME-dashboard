@@ -3,18 +3,18 @@ import { drawTableView } from "../tableView.js";
 import { drawVegaMap } from "./drawVegaMap.js";
 import { tempAIResponse, validateVegaLite } from "./helper.js";
 import { presentAIResponse } from "./aiPromptManager.js";
-
+import { drawVegaSmallMultiples } from "./drawVegaSmallMultiples.js";
 export const data = {};
 
-async function getOutbreakData() {
-  data.regionData = await getOutbreakDataBySpatialResoultionIn("region");
-  console.log(data.regionData);
+export async function getOutbreakData(spatialResolution) {
+  let data = await getOutbreakDataBySpatialResoultionIn(spatialResolution);
+  console.log(data);
 
-  const tempData = data.regionData.features;
+  const tempData = data.features;
   const areaNames = tempData.map((d) => d.name);
   const diseaseNames = Object.keys(tempData[0].properties.data);
-  console.log(areaNames);
-  console.log(diseaseNames);
+  // console.log(areaNames);
+  // console.log(diseaseNames);
 
   const dataRestructured = [];
 
@@ -35,7 +35,7 @@ async function getOutbreakData() {
     }
   }
 
-  return [data.regionData, dataRestructured];
+  return [data, dataRestructured];
   // drawTableView(data.regionData.features, "table-view-container-aiPage");
 }
 
@@ -57,16 +57,48 @@ function drawDataTable(data) {
   });
 }
 
-let [spatialData, curData] = await getOutbreakData();
+// let [spatialData, curData] = await getOutbreakData("region");
 
-console.log(spatialData);
-console.log(curData);
+// console.log(spatialData);
+// console.log(curData);
 
-data.spatialData = spatialData;
-data.tableData = curData;
+export function callSpatialResolutionChange() {
+  visViewUpdate();
+}
 
-drawDataTable(curData);
-drawVegaMap(spatialData, "map-container");
+export async function visViewUpdate() {
+  const spatialResolutionSelector = document.getElementById(
+    "map-region-selector"
+  );
+  const spatialResolution = spatialResolutionSelector.value;
+  const [mapData, tableData] = await getOutbreakData(spatialResolution);
 
-console.log(tempAIResponse);
-presentAIResponse(tempAIResponse);
+  data.spatialData = mapData;
+  // data.tableData = curData;
+
+  // drawDataTable(curData);
+  const mapView = await drawVegaMap(mapData, "map-container");
+  const smView = await drawVegaSmallMultiples(
+    mapData,
+    "smallMultiples-container"
+  );
+
+
+  // When hoverRegion changes in the chart, update highlightRegion in the map
+  smView.addSignalListener("hoverRegion", async (_name, value) => {
+    // console.log(value);
+    // value is either null or an object with the selected fields
+    const region = value && value.name ? value.name : null;
+
+    if (region == null) {
+      mapView.signal("highlightRegion", "");
+      return;
+    }
+
+    mapView.signal("highlightRegion", region[0]);
+    await mapView.runAsync();
+  });
+
+  // console.log(tempAIResponse);
+  // presentAIResponse(tempAIResponse);
+}
