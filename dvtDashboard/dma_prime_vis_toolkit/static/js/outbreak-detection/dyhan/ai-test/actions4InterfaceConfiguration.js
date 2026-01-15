@@ -5,10 +5,8 @@ import { data } from "./infoManager.js";
 import { presentAIResponse } from "./aiPromptManager.js";
 
 // console.log(data)
-export async function makeAction4InsightRequestFromDataPrompt(userInput) {
-  //   const dataOfInterest = data.tableData;
-  //   const dataOfInterest = data.tableData;
-
+export async function makeAction4InterfaceConfiguration(userInput) {
+  
   console.log("makeAction4InsightRequestFromDataPrompt");
   console.log(data);
   const imageBlob = dataUrlToBlob(data.mapVegaSpecs.mapViewPng);
