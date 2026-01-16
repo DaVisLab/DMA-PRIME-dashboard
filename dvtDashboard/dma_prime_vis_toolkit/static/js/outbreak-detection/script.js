@@ -74,7 +74,8 @@ function createBarGraph(svg, data, metadata, options = {}) {
         )
     );
 
-    let dateStr = d3.timeFormat("%b %d, %Y")(date);
+    let dateStr = d3.timeFormat("%b %d")(date);
+    let endDateSte = d3.timeFormat("%b %d, %Y")(d3.timeDay.offset(date, 7));
 
     let value = d3.select(thisDataPointShape).datum();
     let valueStr, valueTypeStr;
@@ -100,7 +101,9 @@ function createBarGraph(svg, data, metadata, options = {}) {
 
     var dataPointTTPBackground = dataPointTTP.append("rect");
 
-    var dataPointTTPDate = dataPointTTP.append("text").text(`Date: ${dateStr}`);
+    var dataPointTTPDate = dataPointTTP
+      .append("text")
+      .text(`Date: ${dateStr} ~ ${endDateSte}`);
     //   .attr("x", boxWidth/2)
     //   .attr("transform", `translate(0, ${-0.25 * em})`);
 
@@ -187,10 +190,10 @@ function createBarGraph(svg, data, metadata, options = {}) {
   }
 
   var end_date = parseDate(metadata.end_date);
-  console.log(metadata);
-  console.log(end_date);
+  // console.log(metadata);
+  // console.log(end_date);
 
-  console.log(start_date);
+  // console.log(start_date);
   var start_date = d3.timeDay.offset(end_date, -(7 * (data.data.length - 1)));
   var xScale = d3
     .scaleTime()
@@ -200,7 +203,9 @@ function createBarGraph(svg, data, metadata, options = {}) {
 
   console.log(data.data);
 
-  const barUnitWidth = (width - (margins.left + margins.right)) / data.data.length 
+  const barUnitWidth =
+    (width - (margins.left + margins.right)) / data.data.length;
+
   graphSVG
     .append("g")
     .selectAll("rect")
@@ -209,7 +214,7 @@ function createBarGraph(svg, data, metadata, options = {}) {
     .append("rect")
     .attr("x", (d, i) => {
       console.log(d3.timeDay.offset(start_date, 7 * i));
-      return xScale(d3.timeDay.offset(start_date, 7 * i)) - barUnitWidth/2;
+      return xScale(d3.timeDay.offset(start_date, 7 * i)) - barUnitWidth / 2;
     })
     .attr("y", (d) => yScale(d))
     .attr("height", (d) => yScale(0) - yScale(d))
@@ -219,8 +224,13 @@ function createBarGraph(svg, data, metadata, options = {}) {
       if (!isNaN(d)) {
         createDataPointTooltip(event, start_date);
       }
+
+      d3.select(this).style("stroke", "red").style("stroke-width", "1px");
     })
     .on("mouseout", function () {
+      dataPointTTP.html("");
+
+      d3.select(this).style("stroke", "red").style("stroke-width", "0px");
       // dataPointTTP.html("")
     });
 
@@ -283,8 +293,8 @@ function createBarGraph(svg, data, metadata, options = {}) {
 
   // Always show all years, slant labels for both tooltips
   let ticks = d3.timeMonth.every(1);
-  console.log(xScale)
-  console.log(ticks)
+  // console.log(xScale)
+  // console.log(ticks)
   let ticksFormat = d3.timeFormat("%b %y");
   if (isLargeTooltip) {
     ticks = d3.timeYear.every(1);
@@ -299,102 +309,102 @@ function createBarGraph(svg, data, metadata, options = {}) {
     .attr("transform", "rotate(-40)")
     .style("text-anchor", "end");
 
-  // if (mapOutcomeVariableSelector.value == "positive_tests") {
-  //   var yScale2 = d3
-  //     .scaleLinear()
-  //     .domain([0, 1])
-  //     .nice()
-  //     .range([height - margins.bottom, margins.top]);
+  if (mapOutcomeVariableSelector.value == "positive_tests") {
+    var yScale2 = d3
+      .scaleLinear()
+      .domain([0, 1])
+      .nice()
+      .range([height - margins.bottom, margins.top]);
 
-  //   var yAxis2 = svg.append("g").attr("class", "y-axis");
+    var yAxis2 = svg.append("g").attr("class", "y-axis");
 
-  //   var percentageGroup = graphSVG.append("g");
+    var percentageGroup = graphSVG.append("g");
 
-  //   const line = d3
-  //     .line()
-  //     .x((_, i) => xScale(d3.timeDay.offset(start_date, 7 * i)))
-  //     .y((d) => yScale2(d));
+    const line = d3
+      .line()
+      .x((_, i) => xScale(d3.timeDay.offset(start_date, 7 * i)))
+      .y((d) => yScale2(d));
 
-  //   percentageGroup
-  //     .append("path")
-  //     .attr("d", line(percentages))
-  //     .attr("fill", "none")
-  //     .attr("stroke-width", 2.5)
-  //     .style("stroke", secondaryColor);
+    percentageGroup
+      .append("path")
+      .attr("d", line(percentages))
+      .attr("fill", "none")
+      .attr("stroke-width", 2.5)
+      .style("stroke", secondaryColor);
 
-  //   // Right y-axis label (percent positive): fixed  padding from axis
-  //   var rightLabelOffset;
-  //   if (isLargeTooltip) {
-  //     rightLabelOffset = 1.5 * em;
-  //   } else {
-  //     rightLabelOffset = 0.5 * em;
-  //   }
-  //   yAxis2
-  //     .append("text")
-  //     .attr(
-  //       "transform",
-  //       `translate(${width - rightLabelOffset},${
-  //         (yScale2.range()[0] + yScale2.range()[1]) / 2
-  //       })rotate(90)`
-  //     )
-  //     .attr("text-anchor", "middle")
-  //     .attr("fill", secondaryColor)
-  //     .text("Percent Positive Tests");
+    // Right y-axis label (percent positive): fixed  padding from axis
+    var rightLabelOffset;
+    if (isLargeTooltip) {
+      rightLabelOffset = 1.5 * em;
+    } else {
+      rightLabelOffset = 0.5 * em;
+    }
+    yAxis2
+      .append("text")
+      .attr(
+        "transform",
+        `translate(${width - rightLabelOffset},${
+          (yScale2.range()[0] + yScale2.range()[1]) / 2
+        })rotate(90)`
+      )
+      .attr("text-anchor", "middle")
+      .attr("fill", secondaryColor)
+      .text("Percent Positive Tests");
 
-  //   // Restore the right y-axis with red ticks and percent labels
-  //   var yAxis2Axis = yAxis2
-  //     .append("g")
-  //     .attr("transform", `translate(${xScale.range()[1]},0)`)
-  //     .call(d3.axisRight(yScale2).ticks(5, ".0%").tickSize(4));
-  //   yAxis2Axis
-  //     .selectAll("text")
-  //     .attr("class", "tooltip-label")
-  //     .attr("fill", secondaryColor);
-  //   yAxis2Axis.selectAll("line,path").style("stroke", secondaryColor);
-  // }
+    // Restore the right y-axis with red ticks and percent labels
+    var yAxis2Axis = yAxis2
+      .append("g")
+      .attr("transform", `translate(${xScale.range()[1]},0)`)
+      .call(d3.axisRight(yScale2).ticks(5, ".0%").tickSize(4));
+    yAxis2Axis
+      .selectAll("text")
+      .attr("class", "tooltip-label")
+      .attr("fill", secondaryColor);
+    yAxis2Axis.selectAll("line,path").style("stroke", secondaryColor);
+  }
 
-  // // Restore original legend position: top left, stacked vertically
-  // var legend = svg.append("g").attr("class", "legend");
-  // legend.attr("transform", `translate(${xScale.range()[0] + 0.5 * em}, 0)`);
-  // var posTest = legend.append("g");
-  // posTest
-  //   .append("rect")
-  //   .attr("height", 0.5 * em)
-  //   .attr("width", 0.5 * em)
-  //   .attr("x", 0)
-  //   .attr("y", (0.5 * em) / 4)
-  //   .attr("fill", "var(--sl-color-neutral-1000)");
-  // posTest
-  //   .append("text")
-  //   .attr("x", 0.5 * 1.5 * em)
-  //   .attr("y", em / 2)
-  //   .attr("dominant-baseline", "middle")
-  //   .attr("fill", "var(--sl-color-neutral-1000)")
-  //   .text(
-  //     d3.select(`sl-option[value=${mapOutcomeVariableSelector.value}]`).html()
-  //   );
+  // Restore original legend position: top left, stacked vertically
+  var legend = svg.append("g").attr("class", "legend");
+  legend.attr("transform", `translate(${xScale.range()[0] + 0.5 * em}, 0)`);
+  var posTest = legend.append("g");
+  posTest
+    .append("rect")
+    .attr("height", 0.5 * em)
+    .attr("width", 0.5 * em)
+    .attr("x", 0)
+    .attr("y", (0.5 * em) / 4)
+    .attr("fill", "var(--sl-color-neutral-1000)");
+  posTest
+    .append("text")
+    .attr("x", 0.5 * 1.5 * em)
+    .attr("y", em / 2)
+    .attr("dominant-baseline", "middle")
+    .attr("fill", "var(--sl-color-neutral-1000)")
+    .text(
+      d3.select(`sl-option[value=${mapOutcomeVariableSelector.value}]`).html()
+    );
 
-  // if (mapOutcomeVariableSelector.value == "positive_tests") {
-  //   var percentPosTest = legend.append("g");
-  //   percentPosTest.attr("transform", `translate(0, ${em})`);
-  //   percentPosTest
-  //     .append("line")
-  //     .attr("x1", 0)
-  //     .attr("x2", 0.5 * em)
-  //     .attr("y1", 0.5 * em)
-  //     .attr("y2", 0.5 * em)
-  //     .attr("stroke", secondaryColor);
-  //   percentPosTest
-  //     .append("text")
-  //     .attr("x", 0.5 * 1.5 * em)
-  //     .attr("y", em / 2)
-  //     .attr("dominant-baseline", "middle")
-  //     .attr("fill", secondaryColor)
-  //     .text("Percent Positive Tests");
-  // }
+  if (mapOutcomeVariableSelector.value == "positive_tests") {
+    var percentPosTest = legend.append("g");
+    percentPosTest.attr("transform", `translate(0, ${em})`);
+    percentPosTest
+      .append("line")
+      .attr("x1", 0)
+      .attr("x2", 0.5 * em)
+      .attr("y1", 0.5 * em)
+      .attr("y2", 0.5 * em)
+      .attr("stroke", secondaryColor);
+    percentPosTest
+      .append("text")
+      .attr("x", 0.5 * 1.5 * em)
+      .attr("y", em / 2)
+      .attr("dominant-baseline", "middle")
+      .attr("fill", secondaryColor)
+      .text("Percent Positive Tests");
+  }
 
-  // tempLeft.remove();
-  // tempRight.remove();
+  tempLeft.remove();
+  tempRight.remove();
 }
 
 function drawTooltip(dataObject) {
