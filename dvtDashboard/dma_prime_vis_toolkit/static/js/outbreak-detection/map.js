@@ -576,6 +576,7 @@ function drawTooltip(dataObject) {
     .html();
 
   encounterString += " from ";
+  console.log(regionData)
 
   const endDate = parseDate(regionData.metadata.end_date);
   const fmt = d3.timeFormat("%b %d, %Y");
