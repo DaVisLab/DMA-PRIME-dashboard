@@ -1,9 +1,9 @@
 import { makeAction4GeneralRequest } from "./actions4GeneralRequest.js";
 import { makeAction4VisRequest } from "./actions4VisRequest.js";
 import { makeAction4InsightRequestFromDataPrompt } from "./actions4InsightRequestPrompt.js";
-import { validateVegaLite } from "./helper.js";
+import { validateVegaLite,interfaceUpdate } from "./helper.js";
 import { data } from "./infoManager.js";
-
+import { selectorDOMElements } from "./DOMInit.js";
 document.getElementById("ai-send-btn").addEventListener("click", async () => {
   const userInput = document.getElementById("ai-prompt-input").value;
 
@@ -27,9 +27,13 @@ document.getElementById("ai-send-btn").addEventListener("click", async () => {
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify({ prompt: userInput }),
+      body: JSON.stringify({
+        prompt: userInput,
+        interfaceContext: selectorDOMElements,
+      }),
     });
 
+    
     let responseEl = document.getElementById("ai-response");
     if (!resp.ok) {
       const txt = await resp.text();
@@ -42,7 +46,20 @@ document.getElementById("ai-send-btn").addEventListener("click", async () => {
 
     console.log(data);
     // // Example response handling: show latest reply and append to conversation history
-    const aiReply = data.response || JSON.stringify(data);
+    const aiResp = JSON.parse(data.response);
+    
+    console.log(aiResp)
+    
+    if(aiResp.interface_update_needed){
+      const updateRequires = aiResp.updates;
+
+      for(const updateItem of updateRequires){
+        console.log(updateItem)
+        interfaceUpdate(updateItem)
+      }
+
+    }
+    return 
     const promptType = data.prompt_type;
 
     makeAction4InsightRequestFromDataPrompt(userInput);
@@ -72,13 +89,10 @@ document.getElementById("ai-send-btn").addEventListener("click", async () => {
     //     makeAction4GeneralRequest(aiReply);
     //     break;
     // }
-    
   } catch (err) {
     // responseEl.innerText = `Request failed: ${err.message}`;
   }
 });
-
-
 
 export async function presentAIResponse(response) {
   let responseEl = document.getElementById("ai-response");
@@ -108,8 +122,8 @@ export async function presentAIResponse(response) {
 
       // Modify the spec to highlight patches
       highlightedVegaSpec.layer = highlightedVegaSpec.layer || [];
-      console.log(d)
-      console.log(d.patch.layer)
+      console.log(d);
+      console.log(d.patch.layer);
       highlightedVegaSpec.layer.push(...d.patch.layer);
       await vegaEmbed("#map-container", highlightedVegaSpec, {
         actions: true,

@@ -1,7 +1,7 @@
 import { getOutbreakDataBySpatialResoultionIn } from "../utils.js";
 import { drawTableView } from "../tableView.js";
 import { drawVegaMap } from "./drawVegaMap.js";
-import { tempAIResponse, validateVegaLite } from "./helper.js";
+// import {  validateVegaLite } from "./helper.js";
 import { presentAIResponse } from "./aiPromptManager.js";
 import { drawVegaSmallMultiples } from "./drawVegaSmallMultiples.js";
 export const data = {};

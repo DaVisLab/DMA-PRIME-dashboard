@@ -23,35 +23,39 @@ def ai_prompt_input():
     params = request.get_json()
     # Flask passes route variables as keyword args; the parameter name must match
     prompt = params["prompt"]
+    interfaceContext = params["interfaceContext"]
 
+    returnResp=""
     try:
-        prompt_type = ai_input_categorization(prompt)
+        returnResp = ai_input_categorization(prompt, interfaceContext)
     except Exception as e:
         current_app.logger.exception("AI categorization failed")
         return {"error": "AI request failed", "details": str(e)}, 500
 
-    current_app.logger.info(f"AI prompt type: {prompt_type}")
-    returnPromptType = ""
-    returnValue = ""
+    print(returnResp)
+    returnResp = extract_json(returnResp)
+    # current_app.logger.info(f"AI prompt type: {prompt_type}")
+    # returnPromptType = ""
+    # returnValue = ""
     
-    if prompt_type.strip() == "1":
-        returnPromptType = "GeneralRequest"
-        returnValue = ai_answer_generalQuestion(prompt)
-    elif prompt_type.strip() == "2":
-        returnPromptType = "VisRequest"
-        returnValue = ""
-    elif prompt_type.strip() == "3":
-        returnPromptType = "InsightRequestFromVis"
-        returnValue = ""
-    elif prompt_type.strip() == "4":
-        returnPromptType = "InsightRequestFromData"
-        returnValue = ""
-    else:
-        returnValue = ai_answer_generalQuestion(prompt)
+    # if prompt_type.strip() == "1":
+    #     returnPromptType = "GeneralRequest"
+    #     returnValue = ai_answer_generalQuestion(prompt)
+    # elif prompt_type.strip() == "2":
+    #     returnPromptType = "VisRequest"
+    #     returnValue = ""
+    # elif prompt_type.strip() == "3":
+    #     returnPromptType = "InsightRequestFromVis"
+    #     returnValue = ""
+    # elif prompt_type.strip() == "4":
+    #     returnPromptType = "InsightRequestFromData"
+    #     returnValue = ""
+    # else:
+    #     returnValue = ai_answer_generalQuestion(prompt)
         
-    print(returnValue)
+    # print(returnValue)
     # print(chat_completion.choices[0].message.content)
-    return {"response": returnValue, "prompt_type": returnPromptType}
+    return {"response": returnResp}
 
 @bp.route('/request_chart', methods=['POST'])
 def ai_prompt_request_chart():
@@ -61,18 +65,71 @@ def ai_prompt_request_chart():
     returnValue = ai_return_visChart(prompt)
     return {"response": returnValue}
 
-
-    
-def ai_input_categorization(prompt):
+def ai_input_categorization(prompt, interfaceContext):
     # Build a clean, dedented prompt to send to the model
     
-    SYSTEM_PROMPT = '''Task: Classify the following prompt into exactly one of the three categories below and return only the corresponding number.
+    SYSTEM_PROMPT = f'''You are an interface intent classifier and UI-action planner for a disease risk dashboard.
 
-        Categories:
-        1 — General question or request
-        2 — Request to draw or generate a chart
-        3 — Request asking about a chart or explaining a chart and providing insights
-        4 — Request to generate insights from data'''
+You will be given:
+1) INTERFACE_CONTEXT: HTML snippets for available UI controls (selectors, radio buttons, checkboxes).
+2) USER_INPUT: a natural-language user message.
+
+Your job is to interpret USER_INPUT and return:
+1) whether the interface needs an update
+2) if yes, which selector(s) should be updated and how (MULTIPLE updates may be required)
+3) which request category USER_INPUT belongs to:
+   1 — General question or request
+   2 — Request to draw or generate a chart
+   3 — Request asking about a chart or explaining a chart and providing insights
+   4 — Request to generate insights from data
+
+Hard Rules:
+- Return ONLY a valid JSON object (no markdown, no code fences, no explanations).
+- Do NOT invent UI controls that do not exist in INTERFACE_CONTEXT.
+- If USER_INPUT does not clearly map to any available control, set interface_update_needed=false and explain why in "reason".
+- If USER_INPUT implies changing MORE THAN ONE control, you MUST include ALL necessary changes in the "updates" array.
+- "updates" MUST be an array and may contain 0, 1, or many items.
+- Prefer minimal changes: only update controls explicitly requested or unambiguously implied by USER_INPUT.
+- If USER_INPUT is ambiguous, do NOT guess; set interface_update_needed=false and state what is missing in "reason".
+- Treat synonyms carefully (e.g., "zip", "ZCTA", "zipcode" -> zcta; "weekly" vs "monthly"; "risk index" vs specific RI option labels).
+- For disease selection: only select/deselect diseases explicitly named by the user, unless the user says "all diseases" or "clear all".
+
+
+INTERFACE_CONTEXT:
+{interfaceContext}
+
+Return a JSON object with this exact schema:
+{{
+  "interface_update_needed": boolean,
+  "updates": [
+    {{
+      "selector_name": "geographicResolutionSelector | tempotalComparisonSelector | riskIndexSelector | diseaseSector",
+      "action": "set_value | toggle | select_only | select_all | clear_all",
+      "target": {{
+        "value": string,
+        "label": string
+      }},
+      "targets": [
+        {{ "value": string, "label": string }}
+      ]
+    }}
+  ],
+  "request_type": GeneralRequest | VisRequest | InsightRequestFromVis | InsightRequestFromData
+}}
+
+Selector value mapping:
+- geographicResolutionSelector values: "region" | "county" | "zcta"
+- tempotalComparisonSelector values: "weekly" | "monthly"
+- riskIndexSelector values: "encounters" | "diagnoses" | "positive_tests" | "emergency_department_visits" | "inpatient_hospitalizations"
+- diseaseSector targets use "value" as the disease attribute (e.g., "covid-19") and "label" as the displayed text (e.g., "COVID-19").
+
+Multi-update examples (model must output BOTH updates):
+- USER_INPUT: "Switch to county, use monthly comparison, and show Positive Tests for RSV only"
+  -> updates must include:
+     1) geographicResolutionSelector set_value county
+     2) tempotalComparisonSelector set_value monthly
+     3) riskIndexSelector set_value positive_tests
+     4) diseaseSector select_only targets=[{{value:"rsv", label:"RSV"}}]'''
     
     user_message = textwrap.dedent(f"""
         Prompt to classify:
@@ -103,7 +160,7 @@ def ai_answer_generalQuestion(prompt):
     return chat_completion.choices[0].message.content
 
 def ai_return_visChart(prompt):
-    print("ai_return_visChart received prompt:", prompt)  # Debug log to check the incoming prompt
+    print("ai_return_visChart received prompt")  # Debug log to check the incoming prompt
     
     SYSTEM_PROMPT = '''You are a strict Vega-Lite v6 JSON generator for rendering with vega-embed in JavaScript.
 
@@ -141,7 +198,7 @@ def ai_prompt_request_insights_from_data():
     # # Flask passes route variables as keyword args; the parameter name must match
     # prompt = params["prompt"]
      # ---- Text field ----
-    print(request.form)
+    # print(request.form)
     user_prompt = request.form.get("prompt")
 
     # ---- JSON fields (sent as strings) ----
@@ -379,10 +436,9 @@ def ai_explain_visChart(prompt):
     pass
 
 def extract_json(text):
-    text = text.strip()
+    text = re.sub(r"```json\s*", "", text, flags=re.IGNORECASE)
+    text = text.replace("```", "")
 
-    # 코드블록 제거
-    if text.startswith("```"):
-        text = text.split("```")[1]
+    text = text.strip()
 
     return text
