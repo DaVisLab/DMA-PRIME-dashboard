@@ -1,5 +1,8 @@
 import { callSpatialResolutionChange, visViewUpdate } from "./infoManager.js";
 
+import { tempAIResponse } from "./helper.js";
+import {presentAIResponse} from "./aiPromptManager.js"
+
 export const selectorDOMElements = {
   geographicResolutionSelector: document.getElementById("map-region-selector")
     .innerHTML.replaceAll('\n', '').replace(/\s+/g, ' ').trim(),
@@ -12,7 +15,7 @@ export const selectorDOMElements = {
     .innerHTML.replaceAll('\n', '').replace(/\s+/g, ' ').trim(),
 };
 
-console.log(selectorDOMElements)
+// console.log(selectorDOMElements)
 document
   .getElementById("map-region-selector")
   .addEventListener("sl-change", (e) => {
@@ -21,6 +24,9 @@ document
 
 function init() {
   visViewUpdate();
+
+  console.log(tempAIResponse)
+  presentAIResponse(tempAIResponse);
 }
 
 init();

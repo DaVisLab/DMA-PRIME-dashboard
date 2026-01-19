@@ -15,17 +15,6 @@ export async function makeAction4VisRequest(userInput) {
     .style("width", "600px")
     .style("height", "400px");
   const dataOfInterest = data.tableData;
-  //   const data = [
-  //     { user_id: "U01", condition: "SHORT", response_time: 3.2, accuracy: 0.85 },
-  //     { user_id: "U02", condition: "SHORT", response_time: 3.5, accuracy: 0.8 },
-  //     { user_id: "U03", condition: "SHORT", response_time: 3.1, accuracy: 0.88 },
-  //     { user_id: "U01", condition: "MEDIUM", response_time: 4.1, accuracy: 0.82 },
-  //     { user_id: "U02", condition: "MEDIUM", response_time: 4.3, accuracy: 0.79 },
-  //     { user_id: "U03", condition: "MEDIUM", response_time: 4.0, accuracy: 0.84 },
-  //     { user_id: "U01", condition: "LONG", response_time: 5.2, accuracy: 0.75 },
-  //     { user_id: "U02", condition: "LONG", response_time: 5.5, accuracy: 0.72 },
-  //     { user_id: "U03", condition: "LONG", response_time: 5.3, accuracy: 0.74 },
-  //   ];
 
   const fields = categorizeStringOrNumber(dataOfInterest);
 
@@ -127,7 +116,6 @@ USER REQUEST:
 ${userRequest}
 `;
 }
-
 
 function checkFields(spec, allowedFields) {
   const usedFields =

@@ -1,9 +1,9 @@
 import { getOutbreakDataBySpatialResoultionIn } from "../utils.js";
-import { drawTableView } from "../tableView.js";
 import { drawVegaMap } from "./drawVegaMap.js";
 // import {  validateVegaLite } from "./helper.js";
-import { presentAIResponse } from "./aiPromptManager.js";
 import { drawVegaSmallMultiples } from "./drawVegaSmallMultiples.js";
+import { selectorDOMElements } from "./DOMInit.js";
+
 export const data = {};
 
 export async function getOutbreakData(spatialResolution) {
@@ -64,6 +64,11 @@ function drawDataTable(data) {
 
 export function callSpatialResolutionChange() {
   visViewUpdate();
+  selectorDOMElements["geographicResolutionSelector"] = document
+    .getElementById("map-region-selector")
+    .innerHTML.replaceAll("\n", "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export async function visViewUpdate() {
@@ -82,7 +87,6 @@ export async function visViewUpdate() {
     mapData,
     "smallMultiples-container"
   );
-
 
   // When hoverRegion changes in the chart, update highlightRegion in the map
   smView.addSignalListener("hoverRegion", async (_name, value) => {

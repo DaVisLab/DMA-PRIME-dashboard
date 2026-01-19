@@ -8,9 +8,8 @@ import { presentAIResponse } from "./aiPromptManager.js";
 export async function makeAction4InsightRequestFromDataPrompt(userInput) {
   //   const dataOfInterest = data.tableData;
   //   const dataOfInterest = data.tableData;
-
   console.log("makeAction4InsightRequestFromDataPrompt");
-  console.log(data);
+  
   const imageBlob = dataUrlToBlob(data.mapVegaSpecs.mapViewPng);
   const vegaLiteSpecStructure = data.mapVegaSpecs.mapSpecStructure;
   const dataOfInterest = data.mapVegaSpecs.transformedData;
@@ -31,8 +30,8 @@ export async function makeAction4InsightRequestFromDataPrompt(userInput) {
   console.log("Insights from data response:", resp);
 
   // Continue your pipeline
-//   makeAction4GeneralRequest(resp);
-console.log(typeof(resp));
+  //   makeAction4GeneralRequest(resp);
+  console.log(typeof resp);
   presentAIResponse(JSON.parse(resp));
   //   console.log("Insights from data response:", resp);
 
@@ -72,10 +71,10 @@ async function generateInsightsFromData(payload, userRequest) {
     body = await output.text();
   }
 
-//   console.log("body:", body);
+  //   console.log("body:", body);
   body = body.response;
 
-//   console.log(body);
+  //   console.log(body);
   return body;
 }
 

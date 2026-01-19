@@ -86,10 +86,12 @@ export async function drawVegaMap(spatialData, containerID) {
   const viewRes = await vegaEmbed("#" + containerID, vegaSpec, {
     actions: false,
   });
+  
   const vegaView = viewRes.view;
   const transformedData = structuredClone(vegaView.data("data_0")); // Default name if not specified
 
   const pngDataUrl = await vegaView.toImageURL("png", 2);
+
   transformedData.forEach((data) => {
     delete data.geometry;
     delete data.properties;

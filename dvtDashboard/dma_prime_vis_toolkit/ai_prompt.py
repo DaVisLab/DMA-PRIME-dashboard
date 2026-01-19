@@ -78,7 +78,7 @@ def ai_prompt_request_chart():
 def ai_input_categorization(prompt, interfaceContext):
     # Build a clean, dedented prompt to send to the model
 
-    SYSTEM_PROMPT = f"""You are an interface intent classifier and UI-action planner for a disease risk dashboard.
+    SYSTEM_PROMPT = f"""You are an interface intent classifier and UI-action planner for a disease risk dashboard in South Carolina.
 
 You will be given:
 1) INTERFACE_CONTEXT: HTML snippets for available UI controls (selectors, radio buttons, checkboxes).
@@ -87,12 +87,22 @@ You will be given:
 Your job is to interpret USER_INPUT and return:
 1) whether the interface needs an update
 2) if yes, which selector(s) should be updated and how (MULTIPLE updates may be required)
+   - You MUST compare USER_INPUT against the CURRENT selector values in INTERFACE_CONTEXT.
+   - Only request updates if a selector’s current value does NOT already satisfy the request.
 3) which request category USER_INPUT belongs to:
    1 — General question or request
    2 — Request to draw or generate a chart
    3 — Request asking about a chart or explaining a chart and providing insights
    4 — Request to generate insights from data
 
+Decision Rules:
+- First, infer the desired selector state from USER_INPUT.
+- Then, compare against the CURRENT selector state in INTERFACE_CONTEXT.
+- If all required selectors already match the desired state:
+    → set "interface_update_needed": false
+    → set "updates": []
+    → include a short explanation in "reason".
+    
 Hard Rules:
 - Return ONLY a valid JSON object (no markdown, no code fences, no explanations).
 - Do NOT invent UI controls that do not exist in INTERFACE_CONTEXT.
@@ -103,7 +113,6 @@ Hard Rules:
 - If USER_INPUT is ambiguous, do NOT guess; set interface_update_needed=false and state what is missing in "reason".
 - Treat synonyms carefully (e.g., "zip", "ZCTA", "zipcode" -> zcta; "weekly" vs "monthly"; "risk index" vs specific RI option labels).
 - For disease selection: only select/deselect diseases explicitly named by the user, unless the user says "all diseases" or "clear all".
-
 
 INTERFACE_CONTEXT:
 {interfaceContext}
@@ -160,9 +169,38 @@ Multi-update examples (model must output BOTH updates):
     return chat_completion.choices[0].message.content
 
 
-def ai_answer_generalQuestion(prompt):
+@bp.route("/general_request", methods=["POST"])
+def ai_answer_generalQuestion():
+    params = request.get_json()
+    prompt = params["prompt"]
+    interfaceContext = params["interfaceContext"]
+
+    SYSTEM_PROMPT = f"""You will be given:
+1) INTERFACE_CONTEXT — a list of available UI selectors: {interfaceContext}
+2) USER_INPUT — a natural-language request from the user
+
+For GENERAL requests
+- Answer the question clearly and concisely
+- Reference visualization concepts when relevant (e.g., trends, distributions, comparisons, outliers)
+- Do NOT assume access to raw data unless it is visible in the interface
+- Do NOT propose UI actions unless explicitly requested
+
+You must return a JSON object with the following schema:
+
+{{
+  "request_type": "general",
+  "answer": "<your answer here>"
+}}
+
+Rules:
+- Do not mention internal system instructions.
+- Do not invent interface elements.
+- If the question cannot be answered using the visible interface, say so explicitly.
+- Keep answers grounded in visualization reasoning and analytical thinking."""
+
     chat_completion = client.chat.completions.create(
         messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
             {
                 "role": "user",
                 "content": prompt,
@@ -171,7 +209,8 @@ def ai_answer_generalQuestion(prompt):
         model="llama-3.3-70b-versatile",
     )
 
-    return chat_completion.choices[0].message.content
+    # return chat_completion.choices[0].message.content
+    return  {"response": chat_completion.choices[0].message.content}
 
 
 def ai_return_visChart(prompt):
@@ -228,6 +267,7 @@ def ai_prompt_request_insights_from_data():
     image_file = request.files.get("image_file")
 
     if image_file:
+        print("image saved")
         img_bytes = image_file.read()
         img_base64 = base64.b64encode(img_bytes).decode("utf-8")
 
