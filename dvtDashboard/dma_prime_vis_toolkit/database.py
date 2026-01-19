@@ -6,10 +6,11 @@ from dataclasses import dataclass
 
 db = SQLAlchemy()
 
+
 @dataclass
 class User(UserMixin, db.Model):
     __tablename__ = "user"
-    
+
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(200), nullable=False, unique=True)
     username = db.Column(db.String(200), nullable=True)
@@ -19,14 +20,23 @@ class User(UserMixin, db.Model):
     verified_user = db.Column(db.Boolean, default=False)
     two_factor_auth = db.Column(db.String(200), nullable=True)
 
-    def __init__(self, email, username, password, access_level, data_approver=False, verified_user=False):
+    def __init__(
+        self,
+        email,
+        username,
+        password,
+        access_level,
+        data_approver=False,
+        verified_user=False,
+    ):
         self.email = email
         self.username = username
         self.password = password
         self.access_level = access_level
         self.data_approver = data_approver
 
-@click.command('init-db')
+
+@click.command("init-db")
 def init_db_command():
     """Clear the existing data and create new tables."""
     # init_db()
@@ -39,7 +49,7 @@ def init_db_command():
     )
     g.db.commit()
     '''
-    click.echo('Initialized the database.')
+    click.echo("Initialized the database.")
 
 
 def init_app(app):

@@ -61,11 +61,11 @@ function createBarGraph(svg, data, metadata, options = {}) {
   function createDataPointTooltip(event, groupStartDate) {
     dataPointTTP.html("");
 
-    console.log(event);
+    // console.log(event);
     let thisDataPointShape = event.target;
     let dataShapeBBox = thisDataPointShape.getBBox();
 
-    console.log(groupStartDate);
+    // console.log(groupStartDate);
     let date = d3.timeDay.offset(
       groupStartDate,
       7 *
@@ -75,7 +75,7 @@ function createBarGraph(svg, data, metadata, options = {}) {
     );
 
     let dateStr = d3.timeFormat("%b %d")(date);
-    let endDateSte = d3.timeFormat("%b %d, %Y")(d3.timeDay.offset(date, 7));
+    let endDateSte = d3.timeFormat("%b %d, %Y")(d3.timeDay.offset(date, 7 - 1));
 
     let value = d3.select(thisDataPointShape).datum();
     let valueStr, valueTypeStr;

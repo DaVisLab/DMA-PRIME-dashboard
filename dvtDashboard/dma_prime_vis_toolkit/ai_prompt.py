@@ -2,9 +2,16 @@ import functools
 import base64, re
 from pydantic import BaseModel
 from typing import Any
-from .utility import * 
+from .utility import *
 from flask import (
-    Blueprint, flash, send_file, redirect, url_for, render_template, current_app, request
+    Blueprint,
+    flash,
+    send_file,
+    redirect,
+    url_for,
+    render_template,
+    current_app,
+    request,
 )
 import os
 import shutil
@@ -12,20 +19,21 @@ from groq import Groq
 import textwrap
 from pathlib import Path
 
-bp = Blueprint('ai', __name__, url_prefix='/ai')
+bp = Blueprint("ai", __name__, url_prefix="/ai")
 
 client = Groq(
     api_key="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",
 )
 
-@bp.route('/', methods=['POST'])
+
+@bp.route("/", methods=["POST"])
 def ai_prompt_input():
     params = request.get_json()
     # Flask passes route variables as keyword args; the parameter name must match
     prompt = params["prompt"]
     interfaceContext = params["interfaceContext"]
 
-    returnResp=""
+    returnResp = ""
     try:
         returnResp = ai_input_categorization(prompt, interfaceContext)
     except Exception as e:
@@ -37,7 +45,7 @@ def ai_prompt_input():
     # current_app.logger.info(f"AI prompt type: {prompt_type}")
     # returnPromptType = ""
     # returnValue = ""
-    
+
     # if prompt_type.strip() == "1":
     #     returnPromptType = "GeneralRequest"
     #     returnValue = ai_answer_generalQuestion(prompt)
@@ -52,12 +60,13 @@ def ai_prompt_input():
     #     returnValue = ""
     # else:
     #     returnValue = ai_answer_generalQuestion(prompt)
-        
+
     # print(returnValue)
     # print(chat_completion.choices[0].message.content)
     return {"response": returnResp}
 
-@bp.route('/request_chart', methods=['POST'])
+
+@bp.route("/request_chart", methods=["POST"])
 def ai_prompt_request_chart():
     params = request.get_json()
     # Flask passes route variables as keyword args; the parameter name must match
@@ -65,10 +74,11 @@ def ai_prompt_request_chart():
     returnValue = ai_return_visChart(prompt)
     return {"response": returnValue}
 
+
 def ai_input_categorization(prompt, interfaceContext):
     # Build a clean, dedented prompt to send to the model
-    
-    SYSTEM_PROMPT = f'''You are an interface intent classifier and UI-action planner for a disease risk dashboard.
+
+    SYSTEM_PROMPT = f"""You are an interface intent classifier and UI-action planner for a disease risk dashboard.
 
 You will be given:
 1) INTERFACE_CONTEXT: HTML snippets for available UI controls (selectors, radio buttons, checkboxes).
@@ -129,21 +139,25 @@ Multi-update examples (model must output BOTH updates):
      1) geographicResolutionSelector set_value county
      2) tempotalComparisonSelector set_value monthly
      3) riskIndexSelector set_value positive_tests
-     4) diseaseSector select_only targets=[{{value:"rsv", label:"RSV"}}]'''
-    
-    user_message = textwrap.dedent(f"""
+     4) diseaseSector select_only targets=[{{value:"rsv", label:"RSV"}}]"""
+
+    user_message = textwrap.dedent(
+        f"""
         Prompt to classify:
         {prompt}
-    """)
+    """
+    )
 
     chat_completion = client.chat.completions.create(
-        messages=[{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": user_message}],
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_message},
+        ],
         model="llama-3.3-70b-versatile",
     )
 
     # Return the raw content (caller can parse/clean as needed)
     return chat_completion.choices[0].message.content
-
 
 
 def ai_answer_generalQuestion(prompt):
@@ -156,13 +170,16 @@ def ai_answer_generalQuestion(prompt):
         ],
         model="llama-3.3-70b-versatile",
     )
-    
+
     return chat_completion.choices[0].message.content
 
+
 def ai_return_visChart(prompt):
-    print("ai_return_visChart received prompt")  # Debug log to check the incoming prompt
-    
-    SYSTEM_PROMPT = '''You are a strict Vega-Lite v6 JSON generator for rendering with vega-embed in JavaScript.
+    print(
+        "ai_return_visChart received prompt"
+    )  # Debug log to check the incoming prompt
+
+    SYSTEM_PROMPT = """You are a strict Vega-Lite v6 JSON generator for rendering with vega-embed in JavaScript.
 
                         HARD RULES (ABSOLUTE):
                         - You MUST output exactly ONE COMPLETE Vega-Lite specification as a single JSON object.
@@ -178,72 +195,76 @@ def ai_return_visChart(prompt):
                         - Do NOT invent data fields.
                         - Include axis titles and tooltips when applicable.
                         - Output ONLY raw JSON. Do NOT wrap the JSON in markdown code fences.
-                        - If you cannot comply, output exactly: {"error":"cannot_comply"}'''
-    
+                        - If you cannot comply, output exactly: {"error":"cannot_comply"}"""
+
     chat_completion = client.chat.completions.create(
         messages=[
-             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": prompt}],
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": prompt},
+        ],
         model="llama-3.3-70b-versatile",
-        temperature=0.1,     # 🔑 형식 안정성
+        temperature=0.1,  # 🔑 형식 안정성
     )
-    
+
     return chat_completion.choices[0].message.content.strip()
 
 
-
-@bp.route('/request_insights_from_data', methods=['POST'])
+@bp.route("/request_insights_from_data", methods=["POST"])
 def ai_prompt_request_insights_from_data():
     # params = request.get_json()
     # # Flask passes route variables as keyword args; the parameter name must match
     # prompt = params["prompt"]
-     # ---- Text field ----
+    # ---- Text field ----
     # print(request.form)
     user_prompt = request.form.get("prompt")
 
     # ---- JSON fields (sent as strings) ----
-    vega_lite_spec_structure = json.loads(request.form.get("vega_lite_spec_structure", "{}"))
+    vega_lite_spec_structure = json.loads(
+        request.form.get("vega_lite_spec_structure", "{}")
+    )
     transformed_data = json.loads(request.form.get("transformed_data", "[]"))
 
     # ---- File field ----
     image_file = request.files.get("image_file")
 
     if image_file:
-        img_bytes = image_file.read()    
+        img_bytes = image_file.read()
         img_base64 = base64.b64encode(img_bytes).decode("utf-8")
 
         upload_dir = Path("uploads")
         upload_dir.mkdir(exist_ok=True)
-        
-        img_path = upload_dir / image_file.filename 
+
+        img_path = upload_dir / image_file.filename
         img_path.write_bytes(img_bytes)
     else:
         img_bytes = None
         img_path = None
-        
+
     # print(user_prompt)
     # print(vega_lite_spec_structure)
     # print(transformed_data)
     # print(image_file)
-    
-    returnValue = ai_return_insights_from_data_attributes(user_prompt,
-                                                        vega_lite_spec_structure,
-                                                        transformed_data,
-                                                        img_base64)
-    
+
+    returnValue = ai_return_insights_from_data_attributes(
+        user_prompt, vega_lite_spec_structure, transformed_data, img_base64
+    )
+
     return {"response": returnValue}
+
 
 def png_bytes_to_data_url(img_bytes: bytes) -> str:
     b64 = base64.b64encode(img_bytes).decode("utf-8")
     return f"data:image/png;base64,{b64}"
 
-def ai_return_insights_from_data_attributes(user_prompt,
-                                            vega_lite_spec_structure,
-                                            transformed_data,
-                                            img_base64):
-    print("ai_return_insights_from_data_attributes received prompt:", user_prompt)  # Debug log to check the incoming prompt
 
-    SYSTEM_PROMPT =f"""
+def ai_return_insights_from_data_attributes(
+    user_prompt, vega_lite_spec_structure, transformed_data, img_base64
+):
+    print(
+        "ai_return_insights_from_data_attributes received prompt:", user_prompt
+    )  # Debug log to check the incoming prompt
+
+    SYSTEM_PROMPT = f"""
 You are an analytics assistant specialized in Vega-Lite v6 geoshape maps.
 
 You are given:
@@ -409,31 +430,30 @@ MAP_IMAGE:
 
     chat_completion = client.chat.completions.create(
         messages=[
-             {"role": "system", "content": SYSTEM_PROMPT},
-             {"role": "user", "content": 
-              [
-                {
-                    "type": "text",
-                    "text": user_prompt
-                },
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/png;base64,{img_base64}"
-                    }
-                }
-            ]
-              }],
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": user_prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:image/png;base64,{img_base64}"},
+                    },
+                ],
+            },
+        ],
         # model="llama-3.3-70b-versatile",
         model="meta-llama/llama-4-scout-17b-16e-instruct",
-        temperature=0.1,     # 🔑 형식 안정성
+        temperature=0.1,  # 🔑 형식 안정성
     )
-    
+
     resp = extract_json(chat_completion.choices[0].message.content)
     return resp
 
+
 def ai_explain_visChart(prompt):
     pass
+
 
 def extract_json(text):
     text = re.sub(r"```json\s*", "", text, flags=re.IGNORECASE)
