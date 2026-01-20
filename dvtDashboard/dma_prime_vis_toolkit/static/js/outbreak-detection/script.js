@@ -103,7 +103,7 @@ function createBarGraph(svg, data, metadata, options = {}) {
 
     var dataPointTTPDate = dataPointTTP
       .append("text")
-      .text(`Date: ${dateStr} ~ ${endDateSte}`);
+      .text(`Date: ${dateStr} - ${endDateSte}`);
     //   .attr("x", boxWidth/2)
     //   .attr("transform", `translate(0, ${-0.25 * em})`);
 
