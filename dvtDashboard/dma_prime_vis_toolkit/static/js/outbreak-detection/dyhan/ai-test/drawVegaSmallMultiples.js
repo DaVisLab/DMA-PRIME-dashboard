@@ -12,7 +12,7 @@ export async function drawVegaSmallMultiples(spatialData, containerID) {
   const unitHeight = 50;
 
   console.log(spatialData);
-  let data = [];
+  let smallMultipleData = [];
   spatialData.features.forEach((d) => {
     const name = d.name;
     const values = d.properties.data.adenovirus.weekly;
@@ -24,15 +24,15 @@ export async function drawVegaSmallMultiples(spatialData, containerID) {
         risk: d,
       };
     });
-    data.push(...transformedData);
+    smallMultipleData.push(...transformedData);
   });
-  console.log(data);
+  console.log(smallMultipleData);
   console.log(width);
 
   const vegaSpec = {
     $schema: "https://vega.github.io/schema/vega-lite/v6.json",
     data: {
-      values: data,
+      values: smallMultipleData,
     },
     // autosize: { type: "fit-x", contains: "padding" },
 
@@ -95,6 +95,9 @@ export async function drawVegaSmallMultiples(spatialData, containerID) {
   const vegaView = viewRes.view;
   const transformedData = structuredClone(vegaView.data("data_0")); // Default name if not specified
 
+  data.smallMultiplesBegaSpecs = {
+    viewSpecStructure: summarizeVegaLiteSpecGeneral(vegaSpec),
+  };
   //   ...
   return vegaView;
   //   return await vegaEmbed("#" + containerID, vegaSpec, { actions: false })

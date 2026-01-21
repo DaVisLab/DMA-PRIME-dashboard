@@ -75,6 +75,38 @@ def ai_prompt_request_chart():
     return {"response": returnValue}
 
 
+@bp.route("/generate_tutorial", methods=["POST"])
+def ai_prompt_generate_tutorial():
+    params = request.get_json()
+    # Flask passes route variables as keyword args; the parameter name must match
+    system_specification = params["system_specification"]
+
+    prompt= f"""
+Here are the specifications of a visual analytics system.
+{system_specification}
+
+The specification includes the system-level, view-level and selector information. 
+You need to introduce each view and feature with style (data meaning, visual mapping) and the relationship
+between views. Please give your answer in the following JSON format:
+ {{"viewName": "",
+ "content":
+    - <b>Style</b>: ""<br>
+    - <b>Coordination<b>: ""<br>
+    }}
+"""
+
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {"role": "user", "content": prompt},
+        ],
+        model="llama-3.3-70b-versatile",
+    )
+
+    returnValue = chat_completion.choices[0].message.content
+    
+    return {"response": returnValue}
+
+
 def ai_input_categorization(prompt, interfaceContext):
     # Build a clean, dedented prompt to send to the model
 

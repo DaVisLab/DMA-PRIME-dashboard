@@ -40,9 +40,9 @@ export async function getOutbreakData(spatialResolution) {
 }
 
 function drawDataTable(data) {
-  console.log(data);
-  console.log(data[0]);
-  console.log(Object.keys(data[0]));
+  // console.log(data);
+  // console.log(data[0]);
+  // console.log(Object.keys(data[0]));
   const columns = Object.keys(data[0]).map((k) => ({
     title: k,
     data: k,

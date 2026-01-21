@@ -1,18 +1,29 @@
 import { callSpatialResolutionChange, visViewUpdate } from "./infoManager.js";
 
 import { tempAIResponse } from "./helper.js";
-import {presentAIResponse} from "./aiPromptManager.js"
+import { presentAIResponse } from "./aiPromptManager.js";
 
 export const selectorDOMElements = {
-  geographicResolutionSelector: document.getElementById("map-region-selector")
-    .innerHTML.replaceAll('\n', '').replace(/\s+/g, ' ').trim(),
-  tempotalComparisonSelector: document.getElementById(
-    "surveillance-time-window-switch"
-  ).innerHTML.replaceAll('\n', '').replace(/\s+/g, ' ').trim(),
-  riskIndexSelector: document.getElementById("map-outcome-variable-selector")
-    .innerHTML.replaceAll('\n', '').replace(/\s+/g, ' ').trim(),
-  diseaseSector: document.getElementById("map-disease-selector-container")
-    .innerHTML.replaceAll('\n', '').replace(/\s+/g, ' ').trim(),
+  geographicResolutionSelector: document
+    .getElementById("map-region-selector")
+    .innerHTML.replaceAll("\n", "")
+    .replace(/\s+/g, " ")
+    .trim(),
+  tempotalComparisonSelector: document
+    .getElementById("surveillance-time-window-switch")
+    .innerHTML.replaceAll("\n", "")
+    .replace(/\s+/g, " ")
+    .trim(),
+  riskIndexSelector: document
+    .getElementById("map-outcome-variable-selector")
+    .innerHTML.replaceAll("\n", "")
+    .replace(/\s+/g, " ")
+    .trim(),
+  diseaseSector: document
+    .getElementById("map-disease-selector-container")
+    .innerHTML.replaceAll("\n", "")
+    .replace(/\s+/g, " ")
+    .trim(),
 };
 
 // console.log(selectorDOMElements)
@@ -25,7 +36,7 @@ document
 function init() {
   visViewUpdate();
 
-  console.log(tempAIResponse)
+  console.log(tempAIResponse);
   presentAIResponse(tempAIResponse);
 }
 

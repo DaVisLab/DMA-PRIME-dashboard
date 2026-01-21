@@ -1,4 +1,7 @@
-import { makeAction4GeneralRequest } from "./actions4GeneralRequest.js";
+import {
+  makeAction4GeneralRequest,
+  getAIGeneratedTutorial,
+} from "./actions4GeneralRequest.js";
 import { makeAction4VisRequest } from "./actions4VisRequest.js";
 import { makeAction4InsightRequestFromDataPrompt } from "./actions4InsightRequestPrompt.js";
 import { validateVegaLite, interfaceUpdate } from "./helper.js";
@@ -10,6 +13,9 @@ document.getElementById("ai-send-btn").addEventListener("click", async () => {
 
   const encoded = encodeURIComponent(userInput);
   // const url = `/ai?prompt=${encoded}`;
+
+  getAIGeneratedTutorial();
+  return;
 
   console.log("User Input:", userInput);
   console.log("interface context: ", selectorDOMElements);
