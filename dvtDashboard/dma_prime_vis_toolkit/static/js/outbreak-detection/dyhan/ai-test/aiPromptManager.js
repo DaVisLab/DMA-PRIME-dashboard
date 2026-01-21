@@ -6,7 +6,10 @@ import { makeAction4VisRequest } from "./actions4VisRequest.js";
 import { makeAction4InsightRequestFromDataPrompt } from "./actions4InsightRequestPrompt.js";
 import { validateVegaLite, interfaceUpdate } from "./helper.js";
 import { data } from "./infoManager.js";
-import { selectorDOMElements } from "./DOMInit.js";
+import {
+  selectorDOMElements,
+  returnSelectorDOMElementsWithCurVals,
+} from "./DOMInit.js";
 
 document.getElementById("ai-send-btn").addEventListener("click", async () => {
   const userInput = document.getElementById("ai-prompt-input").value;
@@ -14,13 +17,13 @@ document.getElementById("ai-send-btn").addEventListener("click", async () => {
   const encoded = encodeURIComponent(userInput);
   // const url = `/ai?prompt=${encoded}`;
 
-  getAIGeneratedTutorial();
-  return;
-
   console.log("User Input:", userInput);
-  console.log("interface context: ", selectorDOMElements);
+  console.log("interface context: ", returnSelectorDOMElementsWithCurVals());
+  const interfaceCurrentContext = returnSelectorDOMElementsWithCurVals();
+  // returnSelectorDOMElementsWithCurVals();
+  // return
   try {
-    const resp = await fetch("/ai", {
+    const resp = await fetch("/ai/classify_user_intent", {
       method: "POST",
       credentials: "same-origin",
       headers: {
@@ -29,7 +32,7 @@ document.getElementById("ai-send-btn").addEventListener("click", async () => {
       },
       body: JSON.stringify({
         prompt: encoded,
-        interfaceContext: selectorDOMElements,
+        interfaceContext: interfaceCurrentContext,
       }),
     });
 
@@ -49,46 +52,49 @@ document.getElementById("ai-send-btn").addEventListener("click", async () => {
 
     console.log(aiResp);
 
-    if (aiResp.interface_update_needed) {
-      const updateRequires = aiResp.updates;
+    // getAIGeneratedTutorial();
+    return;
 
-      for (const updateItem of updateRequires) {
-        console.log(updateItem);
-        await interfaceUpdate(updateItem);
-      }
-    }
+    //   if (aiResp.interface_update_needed) {
+    //     const updateRequires = aiResp.updates;
 
-    const promptType = aiResp.request_type;
+    //     for (const updateItem of updateRequires) {
+    //       console.log(updateItem);
+    //       await interfaceUpdate(updateItem);
+    //     }
+    //   }
 
-    console.log(promptType);
+    //   const promptType = aiResp.request_type;
 
-    switch (promptType) {
-      case "GeneralRequest":
-        console.log("?????");
-        makeAction4GeneralRequest(userInput, selectorDOMElements);
-        break;
-      case "VisRequest":
-        console.log(
-          "vis request: make action4VisRequest with data and userInput"
-        );
-        makeAction4VisRequest(userInput);
-        break;
-      case "InsightRequestFromVis":
-        console.log(
-          "insight request: make action4InsightRequestFromVisPrompt with userInput"
-        );
-        break;
-      case "InsightRequestFromData":
-        console.log(
-          "insight request: make action4InsightRequestFromDataPrompt with userInput"
-        );
-        makeAction4InsightRequestFromDataPrompt(userInput);
-        break;
+    //   console.log(promptType);
 
-      default:
-        makeAction4GeneralRequest(userInput);
-        break;
-    }
+    //   switch (promptType) {
+    //     case "GeneralRequest":
+    //       console.log("?????");
+    //       makeAction4GeneralRequest(userInput, selectorDOMElements);
+    //       break;
+    //     case "VisRequest":
+    //       console.log(
+    //         "vis request: make action4VisRequest with data and userInput"
+    //       );
+    //       makeAction4VisRequest(userInput);
+    //       break;
+    //     case "InsightRequestFromVis":
+    //       console.log(
+    //         "insight request: make action4InsightRequestFromVisPrompt with userInput"
+    //       );
+    //       break;
+    //     case "InsightRequestFromData":
+    //       console.log(
+    //         "insight request: make action4InsightRequestFromDataPrompt with userInput"
+    //       );
+    //       makeAction4InsightRequestFromDataPrompt(userInput);
+    //       break;
+
+    //     default:
+    //       makeAction4GeneralRequest(userInput);
+    //       break;
+    //   }
   } catch (err) {
     // responseEl.innerText = `Request failed: ${err.message}`;
   }

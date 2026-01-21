@@ -9,7 +9,7 @@ export const selectorDOMElements = {
     .innerHTML.replaceAll("\n", "")
     .replace(/\s+/g, " ")
     .trim(),
-  tempotalComparisonSelector: document
+  temporalComparisonSelector: document
     .getElementById("surveillance-time-window-switch")
     .innerHTML.replaceAll("\n", "")
     .replace(/\s+/g, " ")
@@ -26,6 +26,36 @@ export const selectorDOMElements = {
     .trim(),
 };
 
+export function returnSelectorDOMElementsWithCurVals() {
+  const returnSelectorContext = {};
+
+  returnSelectorContext["geoGraphicResolution"] = {};
+  returnSelectorContext["geoGraphicResolution"].selectors =
+    selectorDOMElements["geographicResolutionSelector"];
+  returnSelectorContext["geoGraphicResolution"].curValue =
+    document.getElementById("map-region-selector").value;
+
+  returnSelectorContext["temporalComparisonSelector"] = {};
+  returnSelectorContext["temporalComparisonSelector"].selectors =
+    selectorDOMElements["temporalComparisonSelector"];
+  returnSelectorContext["temporalComparisonSelector"].curValue =
+    document.getElementById("surveillance-time-window-switch").value;
+
+  returnSelectorContext["riskIndexSelector"] = {};
+  returnSelectorContext["riskIndexSelector"].selectors =
+    selectorDOMElements["riskIndexSelector"];
+  returnSelectorContext["riskIndexSelector"].curValue = document.getElementById(
+    "map-outcome-variable-selector"
+  ).value;
+
+  returnSelectorContext["diseaseSector"] = {};
+  returnSelectorContext["diseaseSector"].selectors =
+    selectorDOMElements["diseaseSector"];
+  returnSelectorContext["diseaseSector"].curValue = getSelectedDiseases();
+
+  return returnSelectorContext;
+}
+
 // console.log(selectorDOMElements)
 document
   .getElementById("map-region-selector")
@@ -41,3 +71,19 @@ function init() {
 }
 
 init();
+
+function getSelectedDiseases() {
+  const allChecked = document.getElementById(
+    "map-all-disease-selector"
+  ).checked;
+
+  if (allChecked) {
+    return [...document.querySelectorAll(".disease-checkbox")].map((cb) =>
+      cb.getAttribute("disease")
+    );
+  }
+
+  return [...document.querySelectorAll(".disease-checkbox")]
+    .filter((cb) => cb.checked)
+    .map((cb) => cb.getAttribute("disease"));
+}

@@ -1,6 +1,6 @@
 import { systemSpecification } from "./helper.js";
 import { data } from "./infoManager.js";
-import {selectorDOMElements} from "./DOMInit.js"
+import { selectorDOMElements } from "./DOMInit.js";
 
 export async function makeAction4GeneralRequest(
   userInput,
@@ -60,13 +60,36 @@ async function getAIGeneralResponse(userInput, selectorDOMElements) {
 export async function getAIGeneratedTutorial() {
   const responseEl = document.getElementById("ai-response");
 
-  console.log("fff")
+  console.log("fff");
 
   systemSpecification.viewInfo["smallMultiple-diseaseOutbreak-byArea"] =
     data.smallMultiplesBegaSpecs.viewSpecStructure;
   systemSpecification.viewInfo["map-diseaseOutbreak-distribution"] =
     data.mapVegaSpecs.mapSpecStructure;
   systemSpecification.selectorInfo = selectorDOMElements;
+
+  //   try {
+  //     const response = await fetch("http://localhost:11434/api/generate", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         model: "gemma3", // ensure you have this model pulled
+  //         prompt: "hello ollma",
+  //         stream: false, // Set to false to get the complete response at once
+  //       }),
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error(`HTTP error! status: ${response.status}`);
+  //     }
+
+  //     const data = await response.json();
+  //     console.log(data.response);
+  //   } catch (error) {
+  //     console.error("Error calling the Ollama API:", error);
+  //   }
 
   try {
     const resp = await fetch("/ai/generate_tutorial", {

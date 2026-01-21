@@ -15,8 +15,6 @@ from .admin import admin_required
 from .database import User
 from .data_handling import get_data_date, data_approver_required
 
-# from .ai_prompt import bp as ai_bp
-
 # ensure the authenticate module itself is available for blueprint registration
 from . import authenticate
 
@@ -366,16 +364,16 @@ def create_app(development=False, dataDir=None):
         panels = [
             {"name": "main", "displayName": "DMA-PRIME"},
             {
-                'name': 'outbreak-detection',
-                'displayName': 'Outbreak Detection',
+                "name": "outbreak-detection",
+                "displayName": "Outbreak Detection",
                 # 'active': True,
-                'html': 'outbreak-detection/outbreak-detection-panel_dy.html'
+                "html": "outbreak-detection/outbreak-detection-panel_dy.html",
             },
             {
-                'name': 'riskindex-assessment',
-                'displayName': 'Risk Index Assessment',
+                "name": "riskindex-assessment",
+                "displayName": "Risk Index Assessment",
                 # 'active': True,
-                'html': 'outbreak-detection/riskindex-analysis.html'
+                "html": "outbreak-detection/riskindex-analysis.html",
             },
             # {
             #     'name': 'outbreak-exploration',
@@ -384,11 +382,11 @@ def create_app(development=False, dataDir=None):
             #     'html': 'outbreak-detection/test-page.html'
             # },
             {
-                'name': 'outbreak-exploration2',
-                'displayName': 'Test Interface2',
-                'active': True,
-                'html': 'outbreak-detection/test-page2.html'
-            }
+                "name": "outbreak-exploration2",
+                "displayName": "Test Interface2",
+                "active": True,
+                "html": "outbreak-detection/test-page2.html",
+            },
             # ,
             # {
             #     "name": "map",

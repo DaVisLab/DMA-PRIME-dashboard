@@ -1,6 +1,7 @@
 import functools
 import base64, re
 from pydantic import BaseModel
+import requests
 from typing import Any
 from .utility import *
 from flask import (
@@ -25,45 +26,32 @@ client = Groq(
     api_key="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",
 )
 
+ollama_url = "http://localhost:11434/api/generate"
+ollama_chat_url = "http://localhost:11434/api/chat"
+# force ollama to use cpu only
+os.environ["OLLAMA_USE_GPU"] = "false"
 
-@bp.route("/", methods=["POST"])
+@bp.route("/classify_user_intent", methods=["POST"])
 def ai_prompt_input():
     params = request.get_json()
     # Flask passes route variables as keyword args; the parameter name must match
     prompt = params["prompt"]
-    interfaceContext = params["interfaceContext"]
+    interface_context = params["interfaceContext"]
 
-    returnResp = ""
+    return_resp = ""
     try:
-        returnResp = ai_input_categorization(prompt, interfaceContext)
+        user_intent = ai_input_categorization(prompt)
+        update_required = ai_decide_interface_update_required(prompt, interface_context)
+        
+        print(user_intent)
+        return_resp = {"user_intent": user_intent["response"], 
+                       "update_required": update_required["response"]}
+        
     except Exception as e:
         current_app.logger.exception("AI categorization failed")
         return {"error": "AI request failed", "details": str(e)}, 500
 
-    print(returnResp)
-    returnResp = extract_json(returnResp)
-    # current_app.logger.info(f"AI prompt type: {prompt_type}")
-    # returnPromptType = ""
-    # returnValue = ""
-
-    # if prompt_type.strip() == "1":
-    #     returnPromptType = "GeneralRequest"
-    #     returnValue = ai_answer_generalQuestion(prompt)
-    # elif prompt_type.strip() == "2":
-    #     returnPromptType = "VisRequest"
-    #     returnValue = ""
-    # elif prompt_type.strip() == "3":
-    #     returnPromptType = "InsightRequestFromVis"
-    #     returnValue = ""
-    # elif prompt_type.strip() == "4":
-    #     returnPromptType = "InsightRequestFromData"
-    #     returnValue = ""
-    # else:
-    #     returnValue = ai_answer_generalQuestion(prompt)
-
-    # print(returnValue)
-    # print(chat_completion.choices[0].message.content)
-    return {"response": returnResp}
+    return  return_resp
 
 
 @bp.route("/request_chart", methods=["POST"])
@@ -81,13 +69,13 @@ def ai_prompt_generate_tutorial():
     # Flask passes route variables as keyword args; the parameter name must match
     system_specification = params["system_specification"]
 
-    prompt= f"""
+    prompt = f"""
 Here are the specifications of a visual analytics system.
 {system_specification}
 
 The specification includes the system-level, view-level and selector information. 
 You need to introduce each view and feature with style (data meaning, visual mapping) and the relationship
-between views. Please give your answer in the following JSON format:
+between views. Do only make explanation using the given information. Give your answer in the following JSON format:
  {{"viewName": "",
  "content":
     - <b>Style</b>: ""<br>
@@ -95,61 +83,62 @@ between views. Please give your answer in the following JSON format:
     }}
 """
 
-    chat_completion = client.chat.completions.create(
-        messages=[
-            {"role": "user", "content": prompt},
-        ],
-        model="llama-3.3-70b-versatile",
-    )
-
-    returnValue = chat_completion.choices[0].message.content
-    
-    return {"response": returnValue}
+    return get_ai_genearated_response(prompt)
 
 
-def ai_input_categorization(prompt, interfaceContext):
+def ai_input_categorization(prompt):
     # Build a clean, dedented prompt to send to the model
 
-    SYSTEM_PROMPT = f"""You are an interface intent classifier and UI-action planner for a disease risk dashboard in South Carolina.
+    request_prompt = f"""You are user intent classifier for users who is using a disease risk dashboard in South Carolina.
+Your job is to interpret USER_INPUT and return:
+1) which request category USER_INPUT belongs to:
+   GeneralRequest — General question or request
+   VisRequest — Request to draw or generate a chart
+   InsightRequestFromVis — Request asking about a chart or explaining a chart and providing insights
+   InsightRequestFromData — Request to generate insights from data
 
 You will be given:
-1) INTERFACE_CONTEXT: HTML snippets for available UI controls (selectors, radio buttons, checkboxes).
-2) USER_INPUT: a natural-language user message.
-
-Your job is to interpret USER_INPUT and return:
-1) whether the interface needs an update
-2) if yes, which selector(s) should be updated and how (MULTIPLE updates may be required)
-   - You MUST compare USER_INPUT against the CURRENT selector values in INTERFACE_CONTEXT.
-   - Only request updates if a selector’s current value does NOT already satisfy the request.
-3) which request category USER_INPUT belongs to:
-   1 — General question or request
-   2 — Request to draw or generate a chart
-   3 — Request asking about a chart or explaining a chart and providing insights
-   4 — Request to generate insights from data
-
-Decision Rules:
-- First, infer the desired selector state from USER_INPUT.
-- Then, compare against the CURRENT selector state in INTERFACE_CONTEXT.
-- If all required selectors already match the desired state:
-    → set "interface_update_needed": false
-    → set "updates": []
-    → include a short explanation in "reason".
+1) USER_INPUT
+- a natural-language user message.
+- {prompt}
     
 Hard Rules:
 - Return ONLY a valid JSON object (no markdown, no code fences, no explanations).
-- Do NOT invent UI controls that do not exist in INTERFACE_CONTEXT.
-- If USER_INPUT does not clearly map to any available control, set interface_update_needed=false and explain why in "reason".
+- Return a JSON object with this exact schema:
+{{
+  "request_type": GeneralRequest | VisRequest | InsightRequestFromVis | InsightRequestFromData
+}}
+"""
+
+    return get_ai_genearated_response(request_prompt)
+
+def ai_decide_interface_update_required(prompt, interfaceContext):
+    request_prompt = f"""You are an interface UI-action planner for a disease risk dashboard in South Carolina. 
+    Your job is to interpret USER_INPUT and return:
+1) Whether the interface needs an update compared to the currently selected options
+   - Identify which UI control(s) the user is referring to. If none can be confidently mapped to a control in INTERFACE_CONTEXT, set interface_update_needed = false.
+   - Extract the user’s intended target state (single value or multi-select set) for each mapped control.
+   - Compare the intended target state against the CURRENT state in INTERFACE_CONTEXT.
+   - Request updates ONLY for controls where the CURRENT state does not already satisfy the user’s intent:
+2) if yes, which selector(s) should be updated and how (MULTIPLE updates may be required)
+
+You will be given:
+1) INTERFACE_CONTEXT:
+  HTML snippets for available UI controls (selectors, radio buttons, checkboxes)
+  {interfaceContext}
+  
+2) USER_INPUT: 
+  a natural-language user message.
+  {prompt}
+  
+Hard Rules:
+- You may ONLY output target values that EXACTLY match an option present in INTERFACE_CONTEXT for that specific control.
 - If USER_INPUT implies changing MORE THAN ONE control, you MUST include ALL necessary changes in the "updates" array.
-- "updates" MUST be an array and may contain 0, 1, or many items.
 - Prefer minimal changes: only update controls explicitly requested or unambiguously implied by USER_INPUT.
 - If USER_INPUT is ambiguous, do NOT guess; set interface_update_needed=false and state what is missing in "reason".
 - Treat synonyms carefully (e.g., "zip", "ZCTA", "zipcode" -> zcta; "weekly" vs "monthly"; "risk index" vs specific RI option labels).
 - For disease selection: only select/deselect diseases explicitly named by the user, unless the user says "all diseases" or "clear all".
-
-INTERFACE_CONTEXT:
-{interfaceContext}
-
-Return a JSON object with this exact schema:
+- Return a JSON object with this exact schema:
 {{
   "interface_update_needed": boolean,
   "updates": [
@@ -165,41 +154,10 @@ Return a JSON object with this exact schema:
       ]
     }}
   ],
-  "request_type": GeneralRequest | VisRequest | InsightRequestFromVis | InsightRequestFromData
 }}
-
-Selector value mapping:
-- geographicResolutionSelector values: "region" | "county" | "zcta"
-- tempotalComparisonSelector values: "weekly" | "monthly"
-- riskIndexSelector values: "encounters" | "diagnoses" | "positive_tests" | "emergency_department_visits" | "inpatient_hospitalizations"
-- diseaseSector targets use "value" as the disease attribute (e.g., "covid-19") and "label" as the displayed text (e.g., "COVID-19").
-
-Multi-update examples (model must output BOTH updates):
-- USER_INPUT: "Switch to county, use monthly comparison, and show Positive Tests for RSV only"
-  -> updates must include:
-     1) geographicResolutionSelector set_value county
-     2) tempotalComparisonSelector set_value monthly
-     3) riskIndexSelector set_value positive_tests
-     4) diseaseSector select_only targets=[{{value:"rsv", label:"RSV"}}]"""
-
-    user_message = textwrap.dedent(
-        f"""
-        Prompt to classify:
-        {prompt}
-    """
-    )
-
-    chat_completion = client.chat.completions.create(
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user_message},
-        ],
-        model="llama-3.3-70b-versatile",
-    )
-
-    # Return the raw content (caller can parse/clean as needed)
-    return chat_completion.choices[0].message.content
-
+"""
+  
+    return get_ai_genearated_response(request_prompt)
 
 @bp.route("/general_request", methods=["POST"])
 def ai_answer_generalQuestion():
@@ -207,9 +165,9 @@ def ai_answer_generalQuestion():
     prompt = params["prompt"]
     interfaceContext = params["interfaceContext"]
 
-    SYSTEM_PROMPT = f"""You will be given:
+    request_prompt = f"""You will be given:
 1) INTERFACE_CONTEXT — a list of available UI selectors: {interfaceContext}
-2) USER_INPUT — a natural-language request from the user
+2) USER_INPUT — a natural-language request from the user: {prompt}
 
 For GENERAL requests
 - Answer the question clearly and concisely
@@ -230,27 +188,17 @@ Rules:
 - If the question cannot be answered using the visible interface, say so explicitly.
 - Keep answers grounded in visualization reasoning and analytical thinking."""
 
-    chat_completion = client.chat.completions.create(
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ],
-        model="llama-3.3-70b-versatile",
-    )
-
-    # return chat_completion.choices[0].message.content
-    return  {"response": chat_completion.choices[0].message.content}
-
-
+    return get_ai_genearated_response(request_prompt)
+ 
+ 
 def ai_return_visChart(prompt):
     print(
         "ai_return_visChart received prompt"
     )  # Debug log to check the incoming prompt
 
-    SYSTEM_PROMPT = """You are a strict Vega-Lite v6 JSON generator for rendering with vega-embed in JavaScript.
+    request_prompt = f"""You are a strict Vega-Lite v6 JSON generator for rendering with vega-embed in JavaScript.  
+    
+                      user_input: {prompt}
 
                         HARD RULES (ABSOLUTE):
                         - You MUST output exactly ONE COMPLETE Vega-Lite specification as a single JSON object.
@@ -268,16 +216,17 @@ def ai_return_visChart(prompt):
                         - Output ONLY raw JSON. Do NOT wrap the JSON in markdown code fences.
                         - If you cannot comply, output exactly: {"error":"cannot_comply"}"""
 
-    chat_completion = client.chat.completions.create(
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": prompt},
-        ],
-        model="llama-3.3-70b-versatile",
-        temperature=0.1,  # 🔑 형식 안정성
-    )
+    return get_ai_genearated_response(request_prompt)
+    # chat_completion = client.chat.completions.create(
+    #     messages=[
+    #         {"role": "system", "content": SYSTEM_PROMPT},
+    #         {"role": "user", "content": prompt},
+    #     ],
+    #     model="llama-3.3-70b-versatile",
+    #     temperature=0.1,  # 🔑 형식 안정성
+    # )
 
-    return chat_completion.choices[0].message.content.strip()
+    # return chat_completion.choices[0].message.content.strip()
 
 
 @bp.route("/request_insights_from_data", methods=["POST"])
@@ -336,7 +285,7 @@ def ai_return_insights_from_data_attributes(
         "ai_return_insights_from_data_attributes received prompt:", user_prompt
     )  # Debug log to check the incoming prompt
 
-    SYSTEM_PROMPT = f"""
+    request_prompt = f"""
 You are an analytics assistant specialized in Vega-Lite v6 geoshape maps.
 
 You are given:
@@ -495,33 +444,60 @@ VEGA_LITE_SPEC_STRUCTURE:
 TRANSFORMED_DATA:
 {transformed_data}
 
+USER_INPUT:
+{user_prompt}
+
 MAP_IMAGE:
 (image provided)
 """
-    # print(SYSTEM_PROMPT)
 
-    chat_completion = client.chat.completions.create(
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": user_prompt},
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:image/png;base64,{img_base64}"},
-                    },
-                ],
-            },
-        ],
-        # model="llama-3.3-70b-versatile",
-        model="meta-llama/llama-4-scout-17b-16e-instruct",
-        temperature=0.1,  # 🔑 형식 안정성
-    )
+    return get_ai_genearated_response(request_prompt, [img_base64])
+    # chat_completion = client.chat.completions.create(
+    #     messages=[
+    #         {"role": "system", "content": SYSTEM_PROMPT},
+    #         {
+    #             "role": "user",
+    #             "content": [
+    #                 {"type": "text", "text": user_prompt},
+    #                 {
+    #                     "type": "image_url",
+    #                     "image_url": {"url": f"data:image/png;base64,{img_base64}"},
+    #                 },
+    #             ],
+    #         },
+    #     ],
+    #     # model="llama-3.3-70b-versatile",
+    #     model="meta-llama/llama-4-scout-17b-16e-instruct",
+    #     temperature=0.1, 
+    # )
 
-    resp = extract_json(chat_completion.choices[0].message.content)
-    return resp
+    # resp = extract_json(chat_completion.choices[0].message.content)
+    # return resp
 
+
+def get_ai_genearated_chat(prompt):
+  pass
+
+def get_ai_genearated_response(prompt, images=[]):
+  
+  if len(images) == 0:
+    payload = {"model": "gemma3", "prompt": prompt, "stream": False}
+  else:
+    payload = {"model": "gemma3", "prompt": prompt, "stream": False, "images": images}
+  
+  try:
+      response = requests.post(ollama_url, json=payload)
+      response.raise_for_status()
+      response = response.json()
+      print(response.get("response", "No response found"))
+
+      returnValue = extract_json(response["response"])
+
+  except requests.exceptions.RequestException as e:
+      returnValue = "No response found"
+      print(f"An error occurred: {e}")
+
+  return {"response": returnValue}
 
 def ai_explain_visChart(prompt):
     pass
