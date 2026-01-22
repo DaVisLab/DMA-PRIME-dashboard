@@ -1,6 +1,9 @@
 import { systemSpecification } from "./helper.js";
 import { data } from "./infoManager.js";
-import { selectorDOMElements } from "./DOMInit.js";
+import {
+  selectorDOMElements,
+  returnSelectorDOMElementsWithCurVals,
+} from "./DOMInit.js";
 
 export async function makeAction4GeneralRequest(
   userInput,
@@ -61,13 +64,26 @@ export async function getAIGeneratedTutorial() {
   const responseEl = document.getElementById("ai-response");
 
   console.log("fff");
+  systemSpecification.viewInfo = [];
+  systemSpecification.selectorInfo = [];
+  
+  systemSpecification.viewInfo.push({
+    id: "smallMultiples-container",
+    viewDescription: "temporal analysis view",
+    chartType: "small multiple - line chart",
+    specification: data.smallMultiplesBegaSpecs.viewSpecStructure,
+  });
 
-  systemSpecification.viewInfo["smallMultiple-diseaseOutbreak-byArea"] =
-    data.smallMultiplesBegaSpecs.viewSpecStructure;
-  systemSpecification.viewInfo["map-diseaseOutbreak-distribution"] =
-    data.mapVegaSpecs.mapSpecStructure;
-  systemSpecification.selectorInfo = selectorDOMElements;
+  systemSpecification.viewInfo.push({
+    id: "map-container",
+    viewDescription: "spatial analysis view",
+    chartType: "geographic map view",
+    specification: data.mapVegaSpecs.mapSpecStructure,
+  });
 
+  systemSpecification.selectorInfo = returnSelectorDOMElementsWithCurVals();
+
+  console.log(systemSpecification);
   //   try {
   //     const response = await fetch("http://localhost:11434/api/generate", {
   //       method: "POST",

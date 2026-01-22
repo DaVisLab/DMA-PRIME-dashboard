@@ -69,23 +69,95 @@ def ai_prompt_generate_tutorial():
     # Flask passes route variables as keyword args; the parameter name must match
     system_specification = params["system_specification"]
 
-    prompt = f"""
-Here are the specifications of a visual analytics system.
-{system_specification}
+    print(system_specification)
+    # print(type(system_specification))
 
-The specification includes the system-level, view-level and selector information. 
-You need to introduce each view and feature with style (data meaning, visual mapping) and the relationship
-between views. Do only make explanation using the given information. Give your answer in the following JSON format:
- {{"viewName": "",
- "content":
-    - <b>Style</b>: ""<br>
-    - <b>Coordination<b>: ""<br>
-    }}
-"""
+    interface_context = system_specification["systemInfo"]
+    view_specifications = system_specification["viewInfo"]
+    selector_specifications = system_specification["selectorInfo"]
+    
+    returnVals = []
+    for view_spec in view_specifications + selector_specifications:
+      prompt= f"""You are the lead developer and designer of a visual analytics system.
+      Your task is Writing a first-time user tutorial that explains how to use the interface effectively and how to interpret insights from it.
+      Write exactly ONE tutorial item for the following item.
+        
+        spec: {view_spec}   
+        
+      Return in this exact schema:
 
-    return get_ai_genearated_response(prompt)
+      {{
+      "id": "",
+      "type": "view" | "selector"
+      "description": "",
+      }}
+      
+      Hard RULES
+  - id MUST be exactly the same value to the given spec.
+  - description: based only on Vega Lite specification fields for view or selectable options and current value, describe what this view is about and how it can be used. In case of selector, if options are too long, you don't need to use all but summary of them.
+  - Do NOT invent encodings or coordination. If missing, write exactly:
+    "Not specified in the provided spec."
+      """
+      returnVal = get_ai_genearated_response(prompt)
+      returnVals.append(json.loads(returnVal["response"]))
+  
+    prompt= f"""You are the lead developer and designer of a visual analytics system.
+      Your task is Writing a first-time user tutorial that explains how the views are interconnected each other and how to interpret insights from it.
+      Write tutorial items from the following item.
+        
+        spec: {view_specifications}   
+        
+      Return in this exact schema:
+
+      {{
+      "interaction_id_from": "",
+      "interaction_id_to": "",
+      "coordination": "",
+      }}
+      
+      Hard RULES
+  - interaction_id_from: view id where user interaction happens. MUST be exactly the same value to the given spec.
+  - interaction_id_to: view id where view is affected by user interaction on another view. MUST be exactly the same value to the given spec.
+  - coordination: based only on Vega Lite specification fields for views, describe how the views are intercoonected and which user interaction on a view can cause changes in another view
+  - Do NOT invent coordination. If missing, write exactly:
+    "Not specified in the provided spec."
+      """
+
+    returnVal = get_ai_genearated_response(prompt)
+    returnVal = json.loads(returnVal["response"])
+
+    return {"response": returnVals, "coordination": returnVal}
 
 
+
+# Your task:
+# Write a first-time user tutorial that explains how to use the interface effectively and how to interpret insights from it.
+
+# interface context:
+# {interface_context}
+# """
+#     returnVals = []
+#     for view_spec in view_specifications:
+#       user_prompt = f"""Write exactly ONE tutorial item for the following VIEW.
+      
+#       view spec: {view_spec}   
+#       RULES
+# - Output MUST be a single JSON object (NOT an array).
+# - Output MUST have EXACTLY these keys: "ID", "type", "Style", "Coordination".
+# - type MUST be "view".
+# - ID MUST be exactly: expected_id (copy character-for-character).
+# - Do NOT invent encodings or coordination. If missing, write exactly:
+#   "Not specified in the provided spec."
+
+# Return ONLY the JSON object.
+       
+#       """
+#       returnVal = get_ai_genearated_chat(SYSTEM_PROMPT, user_prompt)
+#       print(returnVal)
+#       returnVals.append(returnVal)
+      
+#     return {"response": returnVals}
+  
 def ai_input_categorization(prompt):
     # Build a clean, dedented prompt to send to the model
 
@@ -475,15 +547,50 @@ MAP_IMAGE:
     # return resp
 
 
-def get_ai_genearated_chat(prompt):
-  pass
-
-def get_ai_genearated_response(prompt, images=[]):
+def get_ai_genearated_chat(system_prompt, user_prompt, images=[]):  
+  payload = {"model": "gemma3", 
+               "messages": [
+                {
+                  "role": "system",
+                  "content": system_prompt
+                },
+                {
+                  "role": "user",
+                  "content": user_prompt
+                }
+              ],
+               "stream": False}
   
   if len(images) == 0:
-    payload = {"model": "gemma3", "prompt": prompt, "stream": False}
+    pass  
   else:
-    payload = {"model": "gemma3", "prompt": prompt, "stream": False, "images": images}
+    payload["images"] = images
+  
+  try:
+      response = requests.post(ollama_chat_url, json=payload)
+      response.raise_for_status()
+      response = response.json()
+      # print(response.get("response", "No response found"))
+
+      content = response.get("message", {}).get("content", "")
+      
+      print(response)
+      
+      returnValue = extract_json(content)
+
+  except requests.exceptions.RequestException as e:
+      returnValue = "No response found"
+      print(f"An error occurred: {e}")
+
+  return {"response": returnValue}
+
+def get_ai_genearated_response(prompt, images=[]):
+  payload = {"model": "gemma3", "prompt": prompt, "stream": False}
+  
+  if len(images) == 0:
+    pass  
+  else:
+    payload["images"] = images
   
   try:
       response = requests.post(ollama_url, json=payload)
@@ -504,9 +611,10 @@ def ai_explain_visChart(prompt):
 
 
 def extract_json(text):
+    text = re.sub(r'[^\x00-\x7F]', '', text)
     text = re.sub(r"```json\s*", "", text, flags=re.IGNORECASE)
     text = text.replace("```", "")
 
     text = text.strip()
-
+    
     return text

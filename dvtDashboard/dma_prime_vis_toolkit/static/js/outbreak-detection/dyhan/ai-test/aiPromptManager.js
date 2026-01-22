@@ -17,11 +17,15 @@ document.getElementById("ai-send-btn").addEventListener("click", async () => {
   const encoded = encodeURIComponent(userInput);
   // const url = `/ai?prompt=${encoded}`;
 
+  getAIGeneratedTutorial();
+
+  return
   console.log("User Input:", userInput);
   console.log("interface context: ", returnSelectorDOMElementsWithCurVals());
   const interfaceCurrentContext = returnSelectorDOMElementsWithCurVals();
   // returnSelectorDOMElementsWithCurVals();
   // return
+
   try {
     const resp = await fetch("/ai/classify_user_intent", {
       method: "POST",

@@ -99,10 +99,16 @@ export async function drawVegaMap(spatialData, containerID) {
     data.__proto__ = null;
   });
 
+  console.log(vegaSpec)
+  console.log(summarizeVegaLiteSpecGeneral(vegaSpec))
+  const viewSepcExcludingData = structuredClone(vegaSpec);
+  viewSepcExcludingData.data = "removed for data privacy";
+
   data.mapVegaSpecs = {
     originalMapVegaSpec: vegaSpec,
     mapViewPng: pngDataUrl,
-    mapSpecStructure: summarizeVegaLiteSpecGeneral(vegaSpec),
+    mapSpecStructure: viewSepcExcludingData,
+    // summarizeVegaLiteSpecGeneral(vegaSpec),
     transformedData: transformedData,
   };
   

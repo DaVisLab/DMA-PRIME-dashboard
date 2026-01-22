@@ -95,8 +95,12 @@ export async function drawVegaSmallMultiples(spatialData, containerID) {
   const vegaView = viewRes.view;
   const transformedData = structuredClone(vegaView.data("data_0")); // Default name if not specified
 
+  const viewSepcExcludingData = structuredClone(vegaSpec);
+  viewSepcExcludingData.data = "removed for data privacy";
+
+  console.log(viewSepcExcludingData);
   data.smallMultiplesBegaSpecs = {
-    viewSpecStructure: summarizeVegaLiteSpecGeneral(vegaSpec),
+    viewSpecStructure: viewSepcExcludingData,
   };
   //   ...
   return vegaView;
