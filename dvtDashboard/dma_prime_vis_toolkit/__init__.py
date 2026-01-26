@@ -359,7 +359,7 @@ def create_app(development=False, dataDir=None):
         metadata = {"diseases": list(decrypt(file, decrypt_key))}
         metadata["data_version"] = data_version
 
-        print(metadata)
+        # print(metadata)
 
         panels = [
             {"name": "main", "displayName": "DMA-PRIME"},
@@ -423,6 +423,7 @@ def create_app(development=False, dataDir=None):
 
         metadata = dict(decrypt(file, decrypt_key))
         metadata["data_version"] = data_version
+        print(metadata)
 
         panels = [
             {"name": "main", "displayName": "DMA-PRIME"},

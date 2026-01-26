@@ -22,14 +22,23 @@ from flask_login import login_required
 @bp.route("/map/<geographic_unit>", methods=["GET"])
 @login_required
 def map_data(geographic_unit):
+  
     if geographic_unit == "state":
         return send_file(
-            f"{main_dir}/static/assets/GeoJSON/sc_state_population_simplified.json"
+            f"{current_app.root_path}/static/assets/GeoJSON/sc_state_population_simplified.json"
         )
     else:
         return send_file(
-            f"{main_dir}/static/assets/GeoJSON/tl_2024_sc_{geographic_unit}_simplified.json"
+            f"{current_app.root_path}/static/assets/GeoJSON/tl_2024_sc_{geographic_unit}_simplified.json"
         )
+    # if geographic_unit == "state":
+    #     return send_file(
+    #         f"{main_dir}/static/assets/GeoJSON/sc_state_population_simplified.json"
+    #     )
+    # else:
+    #     return send_file(
+    #         f"{main_dir}/static/assets/GeoJSON/tl_2024_sc_{geographic_unit}_simplified.json"
+    #     )
 
 
 @bp.route("/health-care-facility", methods=["GET"])
