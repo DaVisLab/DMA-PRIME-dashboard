@@ -25,7 +25,7 @@ function drawCharts() {
   Object.keys(metadata["site_info"]).forEach((site, i) => {
     data = d3.select(`#${site}-div`).datum();
 
-    console.log(site);
+    // console.log(site);
     // console.log(metadata["site_info"][site])
 
     domSvg = document.getElementById(`${site}-svg`);
