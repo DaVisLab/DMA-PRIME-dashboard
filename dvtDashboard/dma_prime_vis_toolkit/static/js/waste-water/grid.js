@@ -1,6 +1,4 @@
 function drawCharts() {
-  // console.log(metadata)
-
   let [dateMin, dateMax] = [undefined, undefined];
   const diseaseOfInterest = gridDiseaseSelector.value;
 
@@ -24,9 +22,6 @@ function drawCharts() {
 
   Object.keys(metadata["site_info"]).forEach((site, i) => {
     data = d3.select(`#${site}-div`).datum();
-
-    // console.log(site);
-    // console.log(metadata["site_info"][site])
 
     domSvg = document.getElementById(`${site}-svg`);
     domSvg.innerHTML = "";
@@ -254,7 +249,7 @@ function drawMap(height = 0, width = 0) {
         mapdata
       );
 
-      //   console.log(mapdata);
+      console.log(mapdata);
       pathGenerator = d3.geoPath(mapProjection);
 
       d3.select(gridMapSvg)
@@ -273,16 +268,33 @@ function drawMap(height = 0, width = 0) {
         .attr("d", (d) => pathGenerator(d));
     })
     .then(() => {
-      //   console.log(metadata);
       Object.entries(metadata.site_info).forEach(([site, info]) => {
         // console.log(site);
         // console.log(collectionColorScheme[site]);
         // console.log(info.zctas);
-        zctaSelector = info.zctas.map((z) => `#grid-map-${z}`).join(",");
 
-        if (zctaSelector.length)
+        // console.log(site);
+        // console.log(info);
+        // console.log(gridDiseaseSelector.value);
+        const data = d3.select(`#${site}-div`).datum();
+        console.log(Object.keys(data[gridDiseaseSelector.value]).length);
+        zctaSelector = info.zctas.map((z) => `#grid-map-${z}`).join(",");
+        console.log(zctaSelector);
+
+        if (zctaSelector.length == 0) return;
+
+        if (Object.keys(data[gridDiseaseSelector.value]).length == 0) {
           d3.selectAll(zctaSelector)
-            .style("fill", collectionColorScheme[site])
+            .style("fill", (d) => {
+              return "white";
+            })
+            .on("mouseover", (d) => {})
+            .on("mouseout", (d) => {});
+        } else {
+          d3.selectAll(zctaSelector)
+            .style("fill", (d) => {
+              return collectionColorScheme[site];
+            })
             .on("mouseover", (d) => {
               // `#${site}-div`
               const zctaSelector = info.zctas
@@ -306,6 +318,10 @@ function drawMap(height = 0, width = 0) {
 
               selection.select(".site-title").style("color", "black");
             });
+        }
+
+        // console.log(data[gridDiseaseSelector.value]);
+        console.log(data);
       });
     });
 }
