@@ -117,6 +117,7 @@ def login():
             (User.email == email_username) | (User.username == email_username)
         ).first()
 
+        print(curr_user.access_level)
         if curr_user is None:
             current_app.logger.info(f"Login attempt with user {email_username}")
             flash("Incorrect username or email")
@@ -126,6 +127,7 @@ def login():
                     f"Correct username and password of user {email_username}"
                 )
                 session["email"] = curr_user.email
+                
                 if current_app.config["DEVELOPMENT"]:
                     login_user(curr_user)
                     current_app.logger.info(
@@ -134,6 +136,15 @@ def login():
                     next = request.args.get("next")
                     return redirect(next or url_for("index"))
                 else:
+                    # allow waste water only access
+                    if curr_user.access_level == -1:
+                        login_user(curr_user)
+                        current_app.logger.info(
+                            f"Successful login of user {curr_user.email}"
+                        )
+                        next = request.args.get("next")
+                        return redirect(next or url_for("index"))
+                    
                     if curr_user.two_factor_auth is None:
                         next = request.args.get("next") or url_for("index")
                         return redirect(url_for("auth.two_factor_setup", next=next))
@@ -220,11 +231,13 @@ def get_email():
         )
         reset_password_url = url_for("auth.reset_password", token=token, _external=True)
 
+
         if not current_app.config["DEVELOPMENT"]:
             reset_password_url = (
                 "https://dmaprime.clemson.edu/auth"
                 + reset_password_url.split("/auth")[-1]
             )
+            
         return redirect(reset_password_url)
     else:
         flash("Email not found")

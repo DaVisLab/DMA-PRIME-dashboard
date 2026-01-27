@@ -146,6 +146,7 @@
       <form onsubmit="return confirm('Do you really want to add this user? Verify access level before submitting.');" method="post" id="user-add-form">
         <sl-input label="Email" id="email" name="email" required></sl-input>
         <sl-select label="Access Level" id="access_level_id" name="access_level" required>
+          <sl-option value="-1">-1 - Limited Access</sl-option>
           <sl-option value="0">0 - Regular</sl-option>
           <sl-option value="1" selected>1 - Admin</sl-option>
         </sl-select>

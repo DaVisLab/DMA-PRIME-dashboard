@@ -89,6 +89,14 @@ def create_app(development=False, dataDir=None):
                 verified_user=True,
             )
             db.session.add(test_user)
+            test_user = User(
+                "user2",
+                "user2",
+                Bcrypt().generate_password_hash("password"),
+                access_level=-1,
+                verified_user=True,
+            )
+            db.session.add(test_user)
             db.session.commit()
 
     login_manager.init_app(app)

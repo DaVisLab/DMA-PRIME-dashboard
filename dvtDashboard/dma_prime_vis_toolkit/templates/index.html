@@ -134,25 +134,32 @@
 
   <div id="subpage-container">
 
+    {% if current_user["access_level"] >= 0 %}
     <div class="subpage">
       <a href="{{ url_for('respiratory') }}">
         <sl-icon name="lungs"></sl-icon>
         <p>Respiratory Virus Forecasting: Covid-19, Influenza, RSV</p>
       </a>
     </div>
+    {% endif %}
+
     <div class="subpage">
       <a href="{{ url_for('waste_water') }}">
         <sl-icon name="droplet-half"></sl-icon>
         <p>Wastewater Monitoring</p>
       </a>
     </div>
+
+    {% if current_user["access_level"] >= 0 %}
     <div class="subpage">
       <a href="{{ url_for('outbreak_detection') }}">
         <sl-icon name="virus2"></sl-icon>
         <p>Outbreak Detection: All Infectious Diseases</p>
       </a>
-      
     </div>
+    {% endif %}
+
+    {% if current_user["access_level"] >= 0 %}
     <div class="subpage">
       <a href="{{ url_for('opioid_hcv_hiv') }}">
         <img src="{{ url_for('static', filename='assets/Icons/syringe-1309-svgrepo-com.svg') }}"></img>
@@ -162,12 +169,16 @@
         </p>
       </a>
     </div>
+    {% endif %}
+
+    {% if current_user["access_level"] >= 0 %}
     <div class="subpage">
       <a href="{{ url_for('mobile_health_clinics') }}">
         <img src="{{ url_for('static', filename='assets/Icons/mobile_health_clinic.svg') }}"></img>
         <p>Mobile Health Clinic Tracking</p>    
       </a>
     </div>
+    {% endif %}
 
     {# Data-approval icon for liorr@clemson.edu or admin in development #}
     {% if current_user.data_approver or (current_user.access_level == 1 and DEVELOPMENT) %}
