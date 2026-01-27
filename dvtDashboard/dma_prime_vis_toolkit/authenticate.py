@@ -117,7 +117,8 @@ def login():
             (User.email == email_username) | (User.username == email_username)
         ).first()
 
-        print(curr_user.access_level)
+        # flash(type(curr_user.access_level))
+        # print(curr_user.access_level)
         if curr_user is None:
             current_app.logger.info(f"Login attempt with user {email_username}")
             flash("Incorrect username or email")
@@ -137,7 +138,8 @@ def login():
                     return redirect(next or url_for("index"))
                 else:
                     # allow waste water only access
-                    if curr_user.access_level == -1:
+            
+                    if curr_user.access_level == "-1" or curr_user.access_level == -1 :
                         login_user(curr_user)
                         current_app.logger.info(
                             f"Successful login of user {curr_user.email}"
