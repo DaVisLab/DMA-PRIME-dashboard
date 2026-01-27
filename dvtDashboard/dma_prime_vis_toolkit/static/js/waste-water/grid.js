@@ -102,15 +102,15 @@ function drawCharts() {
 
     //   console.log(dat.date)
     // draw threshold line
-    svg
-      .append("line")
-      .attr("x1", xScale(metadata["min_date"]) - margins.right)
-      .attr("y1", yScale(thresholdVal))
-      .attr("x2", xScale(metadata["max_date"]) + margins.right)
-      .attr("y2", yScale(thresholdVal))
-      .attr("stroke", "red")
-      .attr("stroke-width", 1)
-      .style("stroke-dasharray", "5, 5");
+    // svg
+    //   .append("line")
+    //   .attr("x1", xScale(metadata["min_date"]) - margins.right)
+    //   .attr("y1", yScale(thresholdVal))
+    //   .attr("x2", xScale(metadata["max_date"]) + margins.right)
+    //   .attr("y2", yScale(thresholdVal))
+    //   .attr("stroke", "red")
+    //   .attr("stroke-width", 1)
+    //   .style("stroke-dasharray", "5, 5");
 
     // draw path
     svg
@@ -129,7 +129,7 @@ function drawCharts() {
       .append("circle")
       .attr("cx", (d) => xScale(d.date))
       .attr("cy", (d) => yScale(d.val))
-      .attr("r", 3)
+      .attr("r", 5)
       .attr("fill", collectionColorScheme[site])
       .on("mouseover", function (event, d) {
         d3.select(`#${site}-svg`)
