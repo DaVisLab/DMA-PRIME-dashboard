@@ -8,7 +8,7 @@ function drawCharts() {
     d3.select(`#${site}-div`).style("display", "block");
 
     const curDates = Object.keys(data[diseaseOfInterest]).map(
-      (d) => new Date(d)
+      (d) => new Date(d),
     );
     const curDateMin = d3.min(curDates);
     const curDateMax = d3.max(curDates);
@@ -62,7 +62,7 @@ function drawCharts() {
           .map((z) => `#grid-map-${z}`)
           .join(",");
         if (zctaSelector.length)
-          d3.selectAll(zctaSelector).style("stroke", "black");
+          d3.selectAll(zctaSelector).style("stroke", "gray");
       });
 
     temp = svg
@@ -144,7 +144,7 @@ function drawCharts() {
       .append("text")
       .attr(
         "transform",
-        `translate(${1 * em},${yScale(d3.mean(yScale.domain()))})rotate(-90)`
+        `translate(${1 * em},${yScale(d3.mean(yScale.domain()))})rotate(-90)`,
       )
       .attr("text-anchor", "middle")
       .attr("fill", "var(--sl-color-neutral-1000)")
@@ -161,7 +161,7 @@ function drawCharts() {
 
     var extraTicks = data.map((d) => d.date);
     extraTicks = extraTicks.filter((d) =>
-      dayjs(d).isAfter(d3.timeMonth.offset(xScale.domain()[1], -1))
+      dayjs(d).isAfter(d3.timeMonth.offset(xScale.domain()[1], -1)),
     );
 
     const tickValues = data.map((d) => d.date);
@@ -246,82 +246,120 @@ function drawMap(height = 0, width = 0) {
           [mapMargins.left, mapMargins.top],
           [mapWidth - mapMargins.right, mapHeight - mapMargins.bottom],
         ],
-        mapdata
+        mapdata,
       );
 
-      console.log(mapdata);
       pathGenerator = d3.geoPath(mapProjection);
 
       d3.select(gridMapSvg)
-        .selectAll("path")
-        .data(mapdata.features)
+        .selectAll(".grid-map-zcta")
+        .data(mapdata.features, (d) => d.properties.ZCTA)
         .join(
           (enter) =>
             enter
               .append("path")
               .attr("id", (d) => `grid-map-${d.properties.ZCTA}`)
               .attr("class", "grid-map-zcta")
-              .style("fill", "white"),
+              .style("fill", "white")
+              .style("stroke", "gray")
+              .style("stroke-width", "1"),
           (update) => update,
-          (exit) => exit.remove()
+          (exit) => exit.remove(),
         )
         .attr("d", (d) => pathGenerator(d));
     })
     .then(() => {
+      d3.selectAll(".grid-map-zcta")
+        .style("fill", "white")
+        .on("mouseover", (d) => {})
+        .on("mouseout", (d) => {});
       Object.entries(metadata.site_info).forEach(([site, info]) => {
-        // console.log(site);
-        // console.log(collectionColorScheme[site]);
-        // console.log(info.zctas);
-
-        // console.log(site);
-        // console.log(info);
-        // console.log(gridDiseaseSelector.value);
         const data = d3.select(`#${site}-div`).datum();
-        console.log(Object.keys(data[gridDiseaseSelector.value]).length);
         zctaSelector = info.zctas.map((z) => `#grid-map-${z}`).join(",");
-        console.log(zctaSelector);
+        // console.log(zctaSelector);
 
         if (zctaSelector.length == 0) return;
 
         if (Object.keys(data[gridDiseaseSelector.value]).length == 0) {
-          d3.selectAll(zctaSelector)
-            .style("fill", (d) => {
-              return "white";
-            })
-            .on("mouseover", (d) => {})
-            .on("mouseout", (d) => {});
+          // do nothing
         } else {
           d3.selectAll(zctaSelector)
             .style("fill", (d) => {
-              return collectionColorScheme[site];
+              const isWhiteFill =
+                d3.select(`#grid-map-${d.properties.ZCTA}`).style("fill") ==
+                "white";
+
+              return isWhiteFill
+                ? collectionColorScheme[site]
+                : d3.select(`#grid-map-${d.properties.ZCTA}`).style("fill");
             })
             .on("mouseover", (d) => {
-              // `#${site}-div`
               const zctaSelector = info.zctas
                 .map((z) => `#grid-map-${z}`)
                 .join(",");
 
+              d3.selectAll(".grid-map-zcta").sort(function (a, b) {
+                // select the parent and sort the path's
+                const isA = zctaSelector.includes(a.properties.ZCTA);
+                const isB = zctaSelector.includes(b.properties.ZCTA);
+
+                return isA === isB ? 0 : isA ? 1 : -1;
+              });
+
               d3.selectAll(zctaSelector).style("stroke", "red");
+
               let selection = d3.select(`#${site}-div`);
 
               selection.select(".site-title").style("color", "red");
               selection
                 .node()
-                .scrollIntoView({ behavior: "instant", block: "start" });
+                .scrollIntoView({ behavior: "smooth", block: "center" });
             })
             .on("mouseout", (d) => {
               const zctaSelector = info.zctas
                 .map((z) => `#grid-map-${z}`)
                 .join(",");
-              d3.selectAll(zctaSelector).style("stroke", "black");
+              d3.selectAll(zctaSelector).style("stroke", "gray");
+
               let selection = d3.select(`#${site}-div`);
 
               selection.select(".site-title").style("color", "black");
             });
         }
-
-        // console.log(data[gridDiseaseSelector.value]);
-        console.log(data);
       });
+
+      // d3.json("/data/map/county").then(function (mapdata) {
+      //   mapProjection = d3.geoAlbers().fitExtent(
+      //     [
+      //       [mapMargins.left, mapMargins.top],
+      //       [mapWidth - mapMargins.right, mapHeight - mapMargins.bottom],
+      //     ],
+      //     mapdata,
+      //   );
+
+      //   console.log(mapdata);
+      //   console.log(stringToHtmlId);
+      //   // pathGenerator = d3.geoPath(mapProjection);
+
+      //   d3.select(gridMapSvg)
+      //     .selectAll(".county-path")
+      //     .data(mapdata.features)
+      //     .join(
+      //       (enter) =>
+      //         enter
+      //           .append("path")
+      //           .attr("class", "county-path")
+      //           .attr(
+      //             "id",
+      //             (d) => `grid-map-${stringToHtmlId(d.properties.NAME)}`,
+      //           )
+      //           .attr("class", "grid-map-zcta")
+      //           .style("fill", "transparent")
+      //           .style("stroke", "red"),
+      //       (update) => update,
+      //       (exit) => exit.remove(),
+      //     )
+      //     .attr("d", (d) => pathGenerator(d));
+      // });
     });
 }

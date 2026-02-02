@@ -1,11 +1,8 @@
 {% extends "subtemplates/panel.html" %} {% block options %}
 <div id="grid-options" class="sidebar-container">
   <!-- disease selector -->
-  <sl-select
-    value="{{ metadata['diseases'].keys() | first }}"
-    id="grid-disease-selector"
-    class="fill-width"
-  >
+  <!-- value="{{ metadata['diseases'].keys() | first }}" -->
+  <sl-select value="Measles" id="grid-disease-selector" class="fill-width">
     <p slot="label">Select a disease</p>
     {% for disease in metadata['diseases'].items() %}
     <sl-option value="{{ disease[0] }}">{{ disease[1] }}</sl-option>
@@ -83,26 +80,26 @@
 </div>
 {% endblock %} {% block scripts %}
 <script>
-  var collectionColorScheme = {}
-  var colorScheme = d3.schemeTableau10
+    var collectionColorScheme = {}
+    var colorScheme = d3.schemeTableau10
 
-  Object.keys(metadata['site_info']).forEach((site, i) => {
-      collectionColorScheme[site] = colorScheme[i%10]
-  });
+    Object.keys(metadata['site_info']).forEach((site, i) => {
+        collectionColorScheme[site] = colorScheme[i%10]
+    });
 
-//   console.log(collectionColorScheme)
-  // containing elements
-  var gridContainer = document.getElementById("grid-container")
-  var gridContainerResizer = document.getElementById("grid-container-resizer")
-  var gridMapResizer = document.getElementById("grid-map-resizer")
-  var gridMapSvg = document.getElementById("grid-map-svg")
+  //   console.log(collectionColorScheme)
+    // containing elements
+    var gridContainer = document.getElementById("grid-container")
+    var gridContainerResizer = document.getElementById("grid-container-resizer")
+    var gridMapResizer = document.getElementById("grid-map-resizer")
+    var gridMapSvg = document.getElementById("grid-map-svg")
 
-  // interactive elements
-  var gridDiseaseSelector = document.getElementById("grid-disease-selector")
+    // interactive elements
+    var gridDiseaseSelector = document.getElementById("grid-disease-selector")
 
-  var totalMaxVal = 1
+    var totalMaxVal = 1
 
-  set{{ panel.name }}Panel()
+    set{{ panel.name }}Panel()
 </script>
 
 <script type="module">
@@ -114,23 +111,29 @@
   ]);
 
   console.log(metadata);
-  var arr = Object.keys(metadata['site_info']).map(site =>
-      d3.json(`/data/waste-water/${site}?data_version=${metadata.data_version}&${parseInt(Math.random()*9999999999)}`).then(d => {
+  var arr = Object.keys(metadata["site_info"]).map((site) =>
+    d3
+      .json(
+        `/data/waste-water/${site}?data_version=${metadata.data_version}&${parseInt(Math.random() * 9999999999)}`,
+      )
+      .then((d) => {
+        d3.select(`#${site}-div`).datum(d);
+        return d;
+      })
+      .then((d) => {
+        Object.keys(metadata["diseases"]).forEach((disease) => {
+          if (d[disease]) {
+            totalMaxVal = Math.max(
+              d3.max(Object.values(d[disease])),
+              totalMaxVal,
+            );
+          }
+        });
+      }),
+  );
 
-          // console.log("ffff")
-          // console.log(d)
-          d3.select(`#${site}-div`).datum(d)
-          return d
-      }).then(d => {
-          Object.keys(metadata["diseases"]).forEach(disease => {
-              if (d[disease]) {
-                  totalMaxVal = Math.max(d3.max(Object.values(d[disease])), totalMaxVal)
-              }
-          })
-      }))
-
-  await Promise.all(arr)
-  drawCharts()
+  await Promise.all(arr);
+  drawCharts();
   drawMap();
 </script>
 
