@@ -60,7 +60,7 @@ function drawingSmallMultipleUnit(svg, data, dateInfo) {
       dehighlightLine(
         targets.targetMap,
         targets.targetLayer.lineLayerID,
-        maps.regionOfInterest
+        maps.regionOfInterest,
       );
     });
 
@@ -105,7 +105,7 @@ function drawingSmallMultipleUnit(svg, data, dateInfo) {
       } else {
         resetSmallMultipleUnitPosition(data.id);
         maps.regionOfInterest = maps.regionOfInterest.filter(
-          (d) => d !== data.id
+          (d) => d !== data.id,
         );
       }
     });
@@ -249,10 +249,13 @@ function drawingSmallMultipleUnit(svg, data, dateInfo) {
   return svg;
 }
 
-export function drawingSmallMultiples(dataBySpace, dateInfo) {
-  const svgContainer = document.getElementById(
-    "respiratory-smallMultiples-container"
-  );
+export function drawingSmallMultiples(
+  dataBySpace,
+  dateInfo,
+  containerID = "respiratory-smallMultiples-container",
+  variableOfInterest = "final_historical_disease_risk_index"
+) {
+  const svgContainer = document.getElementById(containerID);
 
   svgContainer.innerHTML = "";
 
@@ -261,12 +264,12 @@ export function drawingSmallMultiples(dataBySpace, dateInfo) {
 
   dataBySpace = dataBySpace.sort(
     (a, b) =>
-      b.properties.final_historical_disease_risk_index[
-        b.properties.final_historical_disease_risk_index.length - 1
+      b.properties[variableOfInterest][
+        b.properties[variableOfInterest].length - 1
       ] -
-      a.properties.final_historical_disease_risk_index[
-        a.properties.final_historical_disease_risk_index.length - 1
-      ]
+      a.properties[variableOfInterest][
+        a.properties[variableOfInterest].length - 1
+      ],
   );
   // console.log(dataBySpace);
   // console.log(dateInfo);

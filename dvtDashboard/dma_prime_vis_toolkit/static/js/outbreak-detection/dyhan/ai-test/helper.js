@@ -299,3 +299,67 @@ export const systemSpecification = {
   selectorInfo: [],
   // viewCoordinationInfo: [],
 };
+
+
+export function computeStatistics(values) {
+  if (!Array.isArray(values) || values.length === 0) {
+    throw new Error("Input must be a non-empty array of numbers");
+  }
+
+  const clean = values
+    .map(Number)
+    .filter(v => !Number.isNaN(v) && Number.isFinite(v));
+
+  const n = clean.length;
+  if (n === 0) {
+    throw new Error("No valid numeric values");
+  }
+
+  // Sort once (ascending)
+  const sorted = [...clean].sort((a, b) => a - b);
+
+  const sum = sorted.reduce((a, b) => a + b, 0);
+  const mean = sum / n;
+
+  const min = sorted[0];
+  const max = sorted[n - 1];
+  const range = max - min;
+
+  const median = (n % 2 === 0)
+    ? (sorted[n / 2 - 1] + sorted[n / 2]) / 2
+    : sorted[Math.floor(n / 2)];
+
+  // Variance & standard deviation (sample)
+  const variance = sorted.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / (n - 1);
+  const stdDev = Math.sqrt(variance);
+
+  // Quartiles (Tukey method)
+  const q1 = percentile(sorted, 25);
+  const q3 = percentile(sorted, 75);
+  const iqr = q3 - q1;
+
+  return {
+    count: n,
+    min,
+    max,
+    range,
+    mean,
+    median,
+    variance,
+    stdDev,
+    q1,
+    q3,
+    iqr
+  };
+}
+
+
+function percentile(sorted, p) {
+  const idx = (p / 100) * (sorted.length - 1);
+  const lower = Math.floor(idx);
+  const upper = Math.ceil(idx);
+
+  if (lower === upper) return sorted[lower];
+
+  return sorted[lower] + (sorted[upper] - sorted[lower]) * (idx - lower);
+}

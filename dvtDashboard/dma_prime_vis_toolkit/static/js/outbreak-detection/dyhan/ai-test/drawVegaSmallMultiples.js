@@ -48,7 +48,6 @@ export async function drawVegaSmallMultiples(spatialData, containerID) {
       width: width,
       height: unitHeight,
       layer: [
-        // ✅ Hit target: full panel rect
         {
           params: [
             {

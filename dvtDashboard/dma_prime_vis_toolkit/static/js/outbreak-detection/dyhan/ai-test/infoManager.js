@@ -3,10 +3,14 @@ import { drawVegaMap } from "./drawVegaMap.js";
 // import {  validateVegaLite } from "./helper.js";
 import { drawVegaSmallMultiples } from "./drawVegaSmallMultiples.js";
 import { selectorDOMElements } from "./DOMInit.js";
+import { drawD3SmallMultiples } from "./drawD3SmallMultiples.js";
+import { drawD3Map } from "./drawD3Map.js";
+import { inferAllDates } from "../utils.js";
+import {computeStatistics} from "./helper.js"
 
 export const data = {};
 
-export async function getOutbreakData(spatialResolution) {
+export async function getOutbreakData(spatialResolution, temporalResolution) {
   let data = await getOutbreakDataBySpatialResoultionIn(spatialResolution);
   console.log(data);
 
@@ -17,12 +21,22 @@ export async function getOutbreakData(spatialResolution) {
   // console.log(diseaseNames);
 
   const dataRestructured = [];
+  const timeMeta = data.metadata;
+
+  const inferredDates = inferAllDates({
+    t2: timeMeta.end_date,
+    yearlyValues: data.features[0].properties.data.adenovirus.yearly,
+    monthlyValues: data.features[0].properties.data.adenovirus.monthly,
+    weeklyValues: data.features[0].properties.data.adenovirus.weekly,
+  });
 
   for (const area of areaNames) {
     const areaData = tempData.find((d) => d.name === area).properties.data;
 
     for (const disease of diseaseNames) {
-      const diseaseData = areaData[disease]["weekly"];
+      const diseaseData = areaData[disease][temporalResolution];
+
+      // console.log(diseaseData)
 
       for (let i = 0; i < diseaseData.length; i++) {
         dataRestructured.push({
@@ -34,6 +48,8 @@ export async function getOutbreakData(spatialResolution) {
       }
     }
   }
+
+  data.metadata.inferred_dates = inferredDates;
 
   return [data, dataRestructured];
   // drawTableView(data.regionData.features, "table-view-container-aiPage");
@@ -73,35 +89,84 @@ export function callSpatialResolutionChange() {
 
 export async function visViewUpdate() {
   const spatialResolutionSelector = document.getElementById(
-    "map-region-selector"
+    "map-region-selector",
   );
+
+  const temporalResolutionSelector = document.getElementById(
+    "surveillance-time-window-switch",
+  );
+  const deseaseSelector = "adenovirus";
+  // document.getElementById(
+  //   "map-region-selector",
+  // );
+
   const spatialResolution = spatialResolutionSelector.value;
-  const [mapData, tableData] = await getOutbreakData(spatialResolution);
+  const temporalResolution = temporalResolutionSelector.value;
+  const diseaseOfInterest = "adenovirus";
+
+  const [mapData, tableData] = await getOutbreakData(
+    spatialResolution,
+    temporalResolution,
+  );
 
   data.spatialData = mapData;
+  console.log(mapData);
+
   // data.tableData = curData;
 
   // drawDataTable(curData);
-  const mapView = await drawVegaMap(mapData, "map-container");
-  const smView = await drawVegaSmallMultiples(
-    mapData,
-    "smallMultiples-container"
+  // const mapView = await drawVegaMap(mapData, "map-container");
+
+  for (const data of mapData.features) {
+    data.properties.valueOfInterest =
+      data["properties"]["data"][diseaseOfInterest][temporalResolution];
+  }
+
+  const tmp = structuredClone(mapData.features);
+  tmp.forEach((item) => {
+    console.log(item);
+    delete item.geometry;
+    delete item.id;
+    delete item.feature;
+    item.valueOfInterest_latest = item.properties.valueOfInterest[item.properties.valueOfInterest.length-1];
+    item.dataStatistics = computeStatistics(item.properties.valueOfInterest)
+    item.last7values =  item.properties.valueOfInterest.slice(-7)
+    item.diseaseOfInterest = diseaseOfInterest;
+    item.regionResolution = spatialResolution
+    item.temporalResolution = temporalResolution
+    delete item.properties;
+  });
+
+  console.log(tmp)
+  drawD3Map(mapData, "map-container");
+
+  drawD3SmallMultiples(
+    mapData.features,
+    mapData.metadata.inferred_dates,
+    "smallMultiples-container",
+    diseaseOfInterest,
+    temporalResolution,
   );
 
-  // When hoverRegion changes in the chart, update highlightRegion in the map
-  smView.addSignalListener("hoverRegion", async (_name, value) => {
-    // console.log(value);
-    // value is either null or an object with the selected fields
-    const region = value && value.name ? value.name : null;
+  // const smView = await drawVegaSmallMultiples(
+  //   mapData,
+  //   "smallMultiples-container",
+  // );
 
-    if (region == null) {
-      mapView.signal("highlightRegion", "");
-      return;
-    }
+  // // When hoverRegion changes in the chart, update highlightRegion in the map
+  // smView.addSignalListener("hoverRegion", async (_name, value) => {
+  //   // console.log(value);
+  //   // value is either null or an object with the selected fields
+  //   const region = value && value.name ? value.name : null;
 
-    mapView.signal("highlightRegion", region[0]);
-    await mapView.runAsync();
-  });
+  //   if (region == null) {
+  //     mapView.signal("highlightRegion", "");
+  //     return;
+  //   }
+
+  //   mapView.signal("highlightRegion", region[0]);
+  //   await mapView.runAsync();
+  // });
 
   // console.log(tempAIResponse);
   // presentAIResponse(tempAIResponse);
