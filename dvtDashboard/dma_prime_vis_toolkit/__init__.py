@@ -395,7 +395,6 @@ def create_app(development=False, dataDir=None):
             #     "active": True,
             #     "html": "outbreak-detection/test-page2.html",
             # },
-            
             {
                 "name": "map",
                 "displayName": "Map View",

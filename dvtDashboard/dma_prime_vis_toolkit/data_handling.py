@@ -22,7 +22,7 @@ from flask_login import login_required
 @bp.route("/map/<geographic_unit>", methods=["GET"])
 @login_required
 def map_data(geographic_unit):
-  
+
     if geographic_unit == "state":
         return send_file(
             f"{current_app.root_path}/static/assets/GeoJSON/sc_state_population_simplified.json"

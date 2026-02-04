@@ -34,6 +34,7 @@ os.environ["OLLAMA_USE_GPU"] = "false"
 project_dir = Path(__file__).resolve().parent
 frontend_dir = os.path.join(project_dir, "static")
 
+
 @bp.route("/classify_user_intent", methods=["POST"])
 def ai_prompt_input():
     params = request.get_json()
@@ -45,16 +46,18 @@ def ai_prompt_input():
     try:
         user_intent = ai_input_categorization(prompt)
         update_required = ai_decide_interface_update_required(prompt, interface_context)
-        
+
         print(user_intent)
-        return_resp = {"user_intent": user_intent["response"], 
-                       "update_required": update_required["response"]}
-        
+        return_resp = {
+            "user_intent": user_intent["response"],
+            "update_required": update_required["response"],
+        }
+
     except Exception as e:
         current_app.logger.exception("AI categorization failed")
         return {"error": "AI request failed", "details": str(e)}, 500
 
-    return  return_resp
+    return return_resp
 
 
 @bp.route("/request_chart", methods=["POST"])
@@ -73,18 +76,18 @@ def ai_prompt_generate_tutorial():
     system_specification = params["system_specification"]
 
     # print(system_specification)
-    
+
     # print(type(system_specification))
 
     interface_context = system_specification["systemInfo"]
     view_specifications = system_specification["viewInfo"]
     selector_specifications = system_specification["selectorInfo"]
     data_context = system_specification["dataContext"]
-        
+
     description_for_selector = []
     description_for_view = []
     for view_spec in selector_specifications:
-      prompt= f"""You are the lead developer and designer of a visual analytics system.
+        prompt = f"""You are the lead developer and designer of a visual analytics system.
       Your task is Writing a first-time user tutorial that explains how to use the interface effectively and how to interpret insights from it.
       Write exactly ONE tutorial item for the following item.
         
@@ -104,16 +107,16 @@ def ai_prompt_generate_tutorial():
   - Do NOT invent encodings or coordination. If missing, write exactly:
     "Not specified in the provided spec."
       """
-      returnVal = get_ai_genearated_response(prompt)
-      description_for_selector.append(json.loads(returnVal["response"]))
-      
+        returnVal = get_ai_genearated_response(prompt)
+        description_for_selector.append(json.loads(returnVal["response"]))
+
     for view_spec in view_specifications:
-      
-      spec_path = os.path.join(frontend_dir, Path(view_spec["specification"]))
-        
-      with open(spec_path, 'r') as file:
-          content = file.read()
-          prompt = f"""You are an expert in data visualization and visual analytics. Analyze the following D3.js visualization code to understand what the user sees and can do in the visualization interface.Your goal is to explain the chart from a user’s perspective, focusing on what information it presents, what role it plays in analysis, and how users can interact with it to gain insights.
+
+        spec_path = os.path.join(frontend_dir, Path(view_spec["specification"]))
+
+        with open(spec_path, "r") as file:
+            content = file.read()
+            prompt = f"""You are an expert in data visualization and visual analytics. Analyze the following D3.js visualization code to understand what the user sees and can do in the visualization interface.Your goal is to explain the chart from a user’s perspective, focusing on what information it presents, what role it plays in analysis, and how users can interact with it to gain insights.
 
                     Explanation Scope (Important)
                     Base your explanation on what can be observed or experienced by a user when interacting with the chart.
@@ -184,13 +187,15 @@ def ai_prompt_generate_tutorial():
                       - Data context: {data_context}
                       - D3js code: {content}
                   """
-          returnVal = get_ai_genearated_response(prompt)
-          description_for_view.append(json.loads(returnVal["response"]))
-  
-    return {"response": {"description_for_view": description_for_view, 
-                         "description_for_selector":description_for_selector
-                         }}
+            returnVal = get_ai_genearated_response(prompt)
+            description_for_view.append(json.loads(returnVal["response"]))
 
+    return {
+        "response": {
+            "description_for_view": description_for_view,
+            "description_for_selector": description_for_selector,
+        }
+    }
 
 
 # Your task:
@@ -202,8 +207,8 @@ def ai_prompt_generate_tutorial():
 #     returnVals = []
 #     for view_spec in view_specifications:
 #       user_prompt = f"""Write exactly ONE tutorial item for the following VIEW.
-      
-#       view spec: {view_spec}   
+
+#       view spec: {view_spec}
 #       RULES
 # - Output MUST be a single JSON object (NOT an array).
 # - Output MUST have EXACTLY these keys: "ID", "type", "Style", "Coordination".
@@ -213,14 +218,15 @@ def ai_prompt_generate_tutorial():
 #   "Not specified in the provided spec."
 
 # Return ONLY the JSON object.
-       
+
 #       """
 #       returnVal = get_ai_genearated_chat(SYSTEM_PROMPT, user_prompt)
 #       print(returnVal)
 #       returnVals.append(returnVal)
-      
+
 #     return {"response": returnVals}
-  
+
+
 def ai_input_categorization(prompt):
     # Build a clean, dedented prompt to send to the model
 
@@ -246,6 +252,7 @@ Hard Rules:
 """
 
     return get_ai_genearated_response(request_prompt)
+
 
 def ai_decide_interface_update_required(prompt, interfaceContext):
     request_prompt = f"""You are an interface UI-action planner for a disease risk dashboard in South Carolina. 
@@ -291,8 +298,9 @@ Hard Rules:
   ],
 }}
 """
-  
+
     return get_ai_genearated_response(request_prompt)
+
 
 @bp.route("/general_request", methods=["POST"])
 def ai_answer_generalQuestion():
@@ -324,8 +332,8 @@ Rules:
 - Keep answers grounded in visualization reasoning and analytical thinking."""
 
     return get_ai_genearated_response(request_prompt)
- 
- 
+
+
 def ai_return_visChart(prompt):
     print(
         "ai_return_visChart received prompt"
@@ -603,81 +611,79 @@ MAP_IMAGE:
     #     ],
     #     # model="llama-3.3-70b-versatile",
     #     model="meta-llama/llama-4-scout-17b-16e-instruct",
-    #     temperature=0.1, 
+    #     temperature=0.1,
     # )
 
     # resp = extract_json(chat_completion.choices[0].message.content)
     # return resp
 
 
-def get_ai_genearated_chat(system_prompt, user_prompt, images=[]):  
-  payload = {"model": "gemma3", 
-               "messages": [
-                {
-                  "role": "system",
-                  "content": system_prompt
-                },
-                {
-                  "role": "user",
-                  "content": user_prompt
-                }
-              ],
-               "stream": False}
-  
-  if len(images) == 0:
-    pass  
-  else:
-    payload["images"] = images
-  
-  try:
-      response = requests.post(ollama_chat_url, json=payload)
-      response.raise_for_status()
-      response = response.json()
-      # print(response.get("response", "No response found"))
+def get_ai_genearated_chat(system_prompt, user_prompt, images=[]):
+    payload = {
+        "model": "gemma3",
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        "stream": False,
+    }
 
-      content = response.get("message", {}).get("content", "")
-      
-      print(response)
-      
-      returnValue = extract_json(content)
+    if len(images) == 0:
+        pass
+    else:
+        payload["images"] = images
 
-  except requests.exceptions.RequestException as e:
-      returnValue = "No response found"
-      print(f"An error occurred: {e}")
+    try:
+        response = requests.post(ollama_chat_url, json=payload)
+        response.raise_for_status()
+        response = response.json()
+        # print(response.get("response", "No response found"))
 
-  return {"response": returnValue}
+        content = response.get("message", {}).get("content", "")
+
+        print(response)
+
+        returnValue = extract_json(content)
+
+    except requests.exceptions.RequestException as e:
+        returnValue = "No response found"
+        print(f"An error occurred: {e}")
+
+    return {"response": returnValue}
+
 
 def get_ai_genearated_response(prompt, images=[]):
-  payload = {"model": "gemma3", "prompt": prompt, "stream": False}
-  
-  if len(images) == 0:
-    pass  
-  else:
-    payload["images"] = images
-  
-  try:
-      response = requests.post(ollama_url, json=payload)
-      response.raise_for_status()
-      response = response.json()
-      print(response.get("response", "No response found"))
+    payload = {"model": "gemma3", "prompt": prompt, "stream": False}
 
-      returnValue = extract_json(response["response"])
+    if len(images) == 0:
+        pass
+    else:
+        payload["images"] = images
 
-  except requests.exceptions.RequestException as e:
-      returnValue = "No response found"
-      print(f"An error occurred: {e}")
+    try:
+        response = requests.post(ollama_url, json=payload)
+        response.raise_for_status()
+        response = response.json()
+        print(response.get("response", "No response found"))
 
-  return {"response": returnValue}
+        returnValue = extract_json(response["response"])
+
+    except requests.exceptions.RequestException as e:
+        returnValue = "No response found"
+        print(f"An error occurred: {e}")
+
+    return {"response": returnValue}
+
 
 def ai_explain_visChart(prompt):
     pass
 
 
 def extract_json(text):
-    text = re.sub(r'[^\x00-\x7F]', '', text)
+    text = re.sub(r"[^\x00-\x7F]", "", text)
     text = re.sub(r"```json\s*", "", text, flags=re.IGNORECASE)
     text = text.replace("```", "")
 
     text = text.strip()
-    
+
     return text
