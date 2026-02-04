@@ -6,7 +6,7 @@ import { selectorDOMElements } from "./DOMInit.js";
 import { drawD3SmallMultiples } from "./drawD3SmallMultiples.js";
 import { drawD3Map } from "./drawD3Map.js";
 import { inferAllDates } from "../utils.js";
-import {computeStatistics} from "./helper.js"
+import { computeStatistics, systemSpecification } from "./helper.js";
 
 export const data = {};
 
@@ -122,22 +122,27 @@ export async function visViewUpdate() {
       data["properties"]["data"][diseaseOfInterest][temporalResolution];
   }
 
-  const tmp = structuredClone(mapData.features);
-  tmp.forEach((item) => {
-    console.log(item);
+  const dataContext = structuredClone(mapData.features);
+  dataContext.forEach((item) => {
+    // console.log(item);
     delete item.geometry;
     delete item.id;
     delete item.feature;
-    item.valueOfInterest_latest = item.properties.valueOfInterest[item.properties.valueOfInterest.length-1];
-    item.dataStatistics = computeStatistics(item.properties.valueOfInterest)
-    item.last7values =  item.properties.valueOfInterest.slice(-7)
+    item.valueOfInterest_latest =
+      item.properties.valueOfInterest[
+        item.properties.valueOfInterest.length - 1
+      ];
+    item.dataStatistics = computeStatistics(item.properties.valueOfInterest);
+    item.last7values = item.properties.valueOfInterest.slice(-7);
     item.diseaseOfInterest = diseaseOfInterest;
-    item.regionResolution = spatialResolution
-    item.temporalResolution = temporalResolution
+    item.regionResolution = spatialResolution;
+    item.temporalResolution = temporalResolution;
     delete item.properties;
   });
 
-  console.log(tmp)
+  systemSpecification.dataContext = dataContext;
+
+  // console.log(dataContext)
   drawD3Map(mapData, "map-container");
 
   drawD3SmallMultiples(

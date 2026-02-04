@@ -31,6 +31,9 @@ ollama_chat_url = "http://localhost:11434/api/chat"
 # force ollama to use cpu only
 os.environ["OLLAMA_USE_GPU"] = "false"
 
+project_dir = Path(__file__).resolve().parent
+frontend_dir = os.path.join(project_dir, "static")
+
 @bp.route("/classify_user_intent", methods=["POST"])
 def ai_prompt_input():
     params = request.get_json()
@@ -69,15 +72,18 @@ def ai_prompt_generate_tutorial():
     # Flask passes route variables as keyword args; the parameter name must match
     system_specification = params["system_specification"]
 
-    print(system_specification)
+    # print(system_specification)
+    
     # print(type(system_specification))
 
     interface_context = system_specification["systemInfo"]
     view_specifications = system_specification["viewInfo"]
     selector_specifications = system_specification["selectorInfo"]
-    
-    returnVals = []
-    for view_spec in view_specifications + selector_specifications:
+    data_context = system_specification["dataContext"]
+        
+    description_for_selector = []
+    description_for_view = []
+    for view_spec in selector_specifications:
       prompt= f"""You are the lead developer and designer of a visual analytics system.
       Your task is Writing a first-time user tutorial that explains how to use the interface effectively and how to interpret insights from it.
       Write exactly ONE tutorial item for the following item.
@@ -88,7 +94,7 @@ def ai_prompt_generate_tutorial():
 
       {{
       "id": "",
-      "type": "view" | "selector"
+      "type": "selector"
       "description": "",
       }}
       
@@ -99,34 +105,91 @@ def ai_prompt_generate_tutorial():
     "Not specified in the provided spec."
       """
       returnVal = get_ai_genearated_response(prompt)
-      returnVals.append(json.loads(returnVal["response"]))
-  
-    prompt= f"""You are the lead developer and designer of a visual analytics system.
-      Your task is Writing a first-time user tutorial that explains how the views are interconnected each other and how to interpret insights from it.
-      Write tutorial items from the following item.
-        
-        spec: {view_specifications}   
-        
-      Return in this exact schema:
-
-      {{
-      "interaction_id_from": "",
-      "interaction_id_to": "",
-      "coordination": "",
-      }}
+      description_for_selector.append(json.loads(returnVal["response"]))
       
-      Hard RULES
-  - interaction_id_from: view id where user interaction happens. MUST be exactly the same value to the given spec.
-  - interaction_id_to: view id where view is affected by user interaction on another view. MUST be exactly the same value to the given spec.
-  - coordination: based only on Vega Lite specification fields for views, describe how the views are intercoonected and which user interaction on a view can cause changes in another view
-  - Do NOT invent coordination. If missing, write exactly:
-    "Not specified in the provided spec."
-      """
+    for view_spec in view_specifications:
+      
+      spec_path = os.path.join(frontend_dir, Path(view_spec["specification"]))
+        
+      with open(spec_path, 'r') as file:
+          content = file.read()
+          prompt = f"""You are an expert in data visualization and visual analytics. Analyze the following D3.js visualization code to understand what the user sees and can do in the visualization interface.Your goal is to explain the chart from a user’s perspective, focusing on what information it presents, what role it plays in analysis, and how users can interact with it to gain insights.
 
-    returnVal = get_ai_genearated_response(prompt)
-    returnVal = json.loads(returnVal["response"])
+                    Explanation Scope (Important)
+                    Base your explanation on what can be observed or experienced by a user when interacting with the chart.
+                    Use the code only as evidence for what the interface enables.
+                    Do NOT:
+                    - Explain programming or D3 implementation details
+                    - Mention event handlers, function names, or internal variables
+                    - Describe how the chart is drawn or implemented
+                    - Assume domain meaning beyond what the visual encodings suggest
+                    - If something is unclear from the chart behavior, explicitly state the uncertainty.
 
-    return {"response": returnVals, "coordination": returnVal}
+                    What to Explain
+                    1. Chart Type (User-Perceived)
+                    Identify the chart type in user terms (e.g., “a line chart showing change over time”, “a map showing geographic differences”).
+
+                    2. Role of the Chart
+                    Explain why this chart exists in the interface.
+                    Describe what kinds of questions a user can answer by looking at or using this chart.
+                    Indicate which analytical purposes it primarily supports:
+                    - understanding trends
+                    - comparing values
+                    - seeing distributions
+                    - understanding spatial patterns
+                    - exploring relationships
+                    - monitoring changes or anomalies
+
+                    3. Visual Encodings (What Users Read)
+                    Describe what each visible visual element represents (e.g., horizontal position, vertical position, color).
+                    Explain what these elements correspond to in real-world or data terms as perceived by users.
+                    Only include encodings that are clearly visible in the chart.
+
+                    4. Interactions (What Users Can Do)
+                    Describe what actions users can take with the chart (e.g., hovering, clicking, dragging, zooming), as experienced in the interface.
+                    Explain what happens visually or informationally when users perform these actions.
+                    If interactions affect other parts of the interface (e.g., another chart updates or highlights), explain this from the user’s point of view, without technical explanation.
+                    If such effects are unclear or only partially supported, state that uncertainty.
+
+                    Output Format (Strict)
+                    Return ONLY a valid JSON object in the following structure.
+                    Do not include technical language or implementation details.
+                    {{
+                      "View Componenet ID": ""
+                      "Chart Type": "",
+                      "Role of the Chart": {{
+                        "purpose": "",
+                        "questions_users_can_answer": [],
+                        "primary_analysis_goals": []
+                      }},
+                      "Visual Encodings": {{
+                        "encoding": {{
+                          "what_users_see": "",
+                          "what_it_represents": ""
+                        }}
+                      }},
+                      "Interactions": {{
+                        "interaction": {{
+                          "user_action": "",
+                          "what_happens": "",
+                          "effect_on_other_views": "",
+                          "uncertainty": ""
+                        }}
+                      }}
+                    }}
+                    Only include encodings and interactions that a user can actually perceive.
+                    If no interaction or cross-view effect is apparent to users, state that explicitly.
+                   
+                    Inputs: 
+                      - Data context: {data_context}
+                      - D3js code: {content}
+                  """
+          returnVal = get_ai_genearated_response(prompt)
+          description_for_view.append(json.loads(returnVal["response"]))
+  
+    return {"response": {"description_for_view": description_for_view, 
+                         "description_for_selector":description_for_selector
+                         }}
 
 
 

@@ -71,14 +71,16 @@ export async function getAIGeneratedTutorial() {
     id: "smallMultiples-container",
     viewDescription: "temporal analysis view",
     chartType: "small multiple - line chart",
-    specification: data.smallMultiplesBegaSpecs.viewSpecStructure,
+    specification: "js/outbreak-detection/dyhan/ai-test/drawD3SmallMultiples.js"
+    // specification: data.smallMultiplesBegaSpecs.viewSpecStructure,
   });
 
   systemSpecification.viewInfo.push({
     id: "map-container",
     viewDescription: "spatial analysis view",
     chartType: "geographic map view",
-    specification: data.mapVegaSpecs.mapSpecStructure,
+    specification: "js/outbreak-detection/dyhan/ai-test/drawD3Map.js"
+    // specification: data.mapVegaSpecs.mapSpecStructure,
   });
 
   systemSpecification.selectorInfo = returnSelectorDOMElementsWithCurVals();
