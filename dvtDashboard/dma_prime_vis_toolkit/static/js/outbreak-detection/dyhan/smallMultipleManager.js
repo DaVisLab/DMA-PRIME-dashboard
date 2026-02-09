@@ -4,7 +4,7 @@ export const smallMultipleManager = {
   data: null,
   initSmallMultipleView: async function (data) {
     const mapResolutionSelector = document.getElementById(
-      "map-resolution-selector"
+      "map-resolution-selector",
     );
 
     await customElements.whenDefined("sl-select");
@@ -14,7 +14,10 @@ export const smallMultipleManager = {
 
     // console.log(mapResolutionSelected);
     // console.log(data);
-    drawingSmallMultiples(data[mapResolutionSelected].features, data[mapResolutionSelected].metadata.inferred_dates);
+    drawingSmallMultiples(
+      data[mapResolutionSelected].features,
+      data[mapResolutionSelected].metadata.inferred_dates,
+    );
   },
   callInitSmallMultipleView: function (data) {
     this.initSmallMultipleView(data);
@@ -22,7 +25,12 @@ export const smallMultipleManager = {
     document
       .getElementById("map-resolution-selector")
       .addEventListener("sl-change", (event) => {
-        this.callInitSmallMultipleView(data);
+        this.initSmallMultipleView(data);
       });
+
+    document.getElementById("monthRange").addEventListener("change", () => {
+      // console.log("month range input event detected in smallMultipleManager");
+      this.initSmallMultipleView(data);
+    });
   },
 };

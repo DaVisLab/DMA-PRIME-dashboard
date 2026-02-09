@@ -168,6 +168,97 @@ options %}
     </div>
   </div>
 
+  <div
+    id="popupWindow"
+    style="
+      position: absolute;
+      display: none;
+      width: 80%;
+      height: 80%;
+      background: white;
+      border: 1px solid #ccc;
+      padding: 8px 10px;
+      border-radius: 8px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+      z-index: 9999;
+      left: 10%;
+      top: 10%;
+    "
+  >
+    <div
+      id="popupHeader"
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        width: 100%;
+        height: 10%;
+      "
+    >
+      <span id="popupTitle" style="font-weight: bold; font-size: 1.2rem"
+        >Popup Title</span
+      >
+      <button
+        id="popupClose"
+        style="
+          background: transparent;
+          border: 1px solid black;
+          border-radius: 25%;
+          font-size: 1.4rem;
+          cursor: pointer;
+          line-height: 1;
+          color: black;
+        "
+      >
+        &times;
+      </button>
+    </div>
+    <div id="popupContent" style="width: 100%; height: 90%; display: flex">
+      <!-- Popup content goes here -->
+      <div id="chartDivComponent" style="width: 80%; height: 100%">
+        <svg id="popupChartSVG" style="width: 100%; height: 100%"></svg>
+      </div>
+      <div id="yearDivComponent" style="width: 20%; height: 100%">
+        <div id="popupStartingMonth" style="width: 100%; height: 10%; margin-bottom: 1rem;">
+          <label for="popupMonthRange" class="form-label">
+            Starting Month:
+            <span id="popupMonthValue" class="month-value">Jan</span>
+          </label>
+
+          <input
+            type="range"
+            class="form-range month-slider custom-slider"
+            min="0"
+            max="11"
+            step="1"
+            value="0"
+            id="popupMonthRange"
+            list="monthTicks"
+          />
+          <datalist id="monthTicks">
+            <option value="0" label="Jan"></option>
+            <option value="1" label="Feb"></option>
+            <option value="2" label="Mar"></option>
+            <option value="3" label="Apr"></option>
+            <option value="4" label="May"></option>
+            <option value="5" label="Jun"></option>
+            <option value="6" label="Jul"></option>
+            <option value="7" label="Aug"></option>
+            <option value="8" label="Sep"></option>
+            <option value="9" label="Oct"></option>
+            <option value="10" label="Nov"></option>
+            <option value="11" label="Dec"></option>
+          </datalist>
+        </div>
+        <div id="yearComponent" style="width: 100%; height: 90%">2026...</div>
+      </div>
+    </div>
+
+    <!-- <div id="overviewDivComponent" style="width: 100%; height: 30%">
+      <svg id="overviewChartSVG"></svg>
+    </div> -->
+  </div>
   <div class="col-md-3" style="border-left: 1px solid lightgray; height: 100%">
     <div
       style="
@@ -277,6 +368,35 @@ options %}
         /* justify-content: space-between; */
       "
     >
+      <label for="monthRange" class="form-label">
+        Starting Month:
+        <span id="monthValue" class="month-value">Jan</span>
+      </label>
+
+      <input
+        type="range"
+        class="form-range month-slider custom-slider"
+        min="0"
+        max="11"
+        step="1"
+        value="0"
+        id="monthRange"
+        list="monthTicks"
+      />
+      <datalist id="monthTicks">
+        <option value="0" label="Jan"></option>
+        <option value="1" label="Feb"></option>
+        <option value="2" label="Mar"></option>
+        <option value="3" label="Apr"></option>
+        <option value="4" label="May"></option>
+        <option value="5" label="Jun"></option>
+        <option value="6" label="Jul"></option>
+        <option value="7" label="Aug"></option>
+        <option value="8" label="Sep"></option>
+        <option value="9" label="Oct"></option>
+        <option value="10" label="Nov"></option>
+        <option value="11" label="Dec"></option>
+      </datalist>
       <div
         id="respiratory-smallMultiples-region-of-interest"
         style="
@@ -620,6 +740,17 @@ options %}
   src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
   integrity=""
   crossorigin="anonymous"
+></script>
+
+<link
+  href="{{ url_for('static', filename='css/outbreak-detection/controls.css') }}"
+  rel="stylesheet"
+  type="text/css"
+/>
+
+<script
+  src="{{ url_for('static', filename='js/outbreak-detection/dyhan/controls.js') }}"
+  type="module"
 ></script>
 
 <script

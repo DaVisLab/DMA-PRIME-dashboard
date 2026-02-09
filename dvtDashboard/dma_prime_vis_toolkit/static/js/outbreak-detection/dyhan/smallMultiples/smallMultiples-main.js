@@ -11,10 +11,14 @@ import {
 import {
   unitHeight,
   pin_icon_path,
+  expansion_icon_path,
   getCombinedBBox,
   moveSmallMultipleUnitToROI,
   resetSmallMultipleUnitPosition,
 } from "./smallMultiple-utils.js";
+
+import { drawLineChartByYearSplited } from "../drawLineChartByYearSplited.js";
+import { showPopupLineChart } from "../popupChart.js";
 
 import {
   targetMapsAndLayersByCurrentSpatialResolution,
@@ -24,24 +28,16 @@ import {
 
 import { maps } from "../mapManager.js";
 
-function trendStrict(arr) {
-  if (arr.length < 2) return "not enough data";
-
-  let increasing = true;
-  let decreasing = true;
-
-  for (let i = 1; i < arr.length; i++) {
-    if (arr[i] > arr[i - 1]) decreasing = false;
-    if (arr[i] < arr[i - 1]) increasing = false;
-  }
-
-  if (increasing) return 1;
-  if (decreasing) return -1;
-  return 0;
-}
-
 function drawingSmallMultipleUnit(svg, data, dateInfo) {
-  console.log(data);
+  // console.log(data);
+  const margin = { top: 10, right: 60, bottom: 0, left: 0 };
+  const width = svg.node().clientWidth;
+  const height = svg.node().clientHeight;
+
+  const startMonth = +document.getElementById("monthRange").value;
+
+  svg.innerHTML = ""; // Clear previous content
+
   svg
     .attr("id", `small-multiple-${data.nameID}`)
     .attr("class", `small-multiple-unit small-multiple-item-${data.nameID}`)
@@ -53,6 +49,9 @@ function drawingSmallMultipleUnit(svg, data, dateInfo) {
         data.nameID,
         ...maps.regionOfInterest,
       ]);
+
+      d3.select(this).select(`.pin-wrap`).style("visibility", "visible");
+      d3.select(this).select(`.expansion-wrap`).style("visibility", "visible");
     })
     .on("mouseout", function () {
       let targets = targetMapsAndLayersByCurrentSpatialResolution();
@@ -60,172 +59,160 @@ function drawingSmallMultipleUnit(svg, data, dateInfo) {
       dehighlightLine(
         targets.targetMap,
         targets.targetLayer.lineLayerID,
-        maps.regionOfInterest
+        maps.regionOfInterest,
       );
+
+      d3.select(this).select(`.pin-wrap`).style("visibility", "hidden");
+      d3.select(this).select(`.expansion-wrap`).style("visibility", "hidden");
     });
 
-  let pinIcon = svg
+  // 1) Create groups (so transforms are clean)
+  const gPin = svg
+    .append("g")
+    .attr("class", "pin-wrap")
+    .attr("id", `pin-wrap-${data.nameID}`)
+    .style("visibility", "hidden")
+    .style("pointer-events", "bounding-box")
+    .style("cursor", "pointer")
+    .on("click", (d) => {
+      console.log("pin icon mouseover");
+    });
+
+  const gExp = svg
+    .append("g")
+    .attr("class", "expansion-wrap")
+    .attr("id", `expansion-wrap-${data.nameID}`)
+    .style("visibility", "hidden")
+    .style("pointer-events", "bounding-box")
+    .style("cursor", "pointer")
+    .on("click", (event) => {
+      event.stopPropagation(); // prevent "click outside" handler from immediately closing
+      showPopupLineChart(data, dateInfo);
+
+      document
+        .getElementById("popupMonthRange")
+        .addEventListener("change", () => {
+          showPopupLineChart(data, dateInfo);
+
+          // const newStartMonth =
+          //   +document.getElementById("popupMonthRange").value;
+          // const popupSvg = d3.select("#popupChartSVG");
+          // drawLineChartByYearSplited(
+          //   popupSvg,
+          //   data,
+          //   dateInfo,
+          //   newStartMonth,
+          //   margin,
+          //   true,
+          // );
+        });
+
+      // console.log("expansion icon mouseover");
+    });
+
+  // 2) Append paths inside groups
+  const pinPath = gPin
     .append("path")
     .attr("class", "pin-feature")
     .attr("d", pin_icon_path)
+    .attr("fill", "gray")
     .attr("stroke", "gray")
-    .style("stroke-width", 0.8)
-    .style("transform", "scale(0.8)")
-    .attr("x", 1)
-    .attr("y", 3);
+    .attr("stroke-width", 0.8);
+
+  const expPath = gExp
+    .append("path")
+    .attr("class", "expansion-feature")
+    .attr("d", expansion_icon_path)
+    .attr("fill", "gray")
+    .attr("stroke", "gray")
+    .attr("stroke-width", 0.8);
+
+  // 3) Scale factors
+  const s = 0.8;
+
+  // 4) Measure LOCAL bboxes (before transforms)
+  const pb = pinPath.node().getBBox();
+  const eb = expPath.node().getBBox();
+
+  // Choose an anchor position for the pin group in the parent SVG
+  const pinX = 0;
+  const pinY = 0;
+
+  // 5) Place pin: translate so its bbox top-left becomes (pinX, pinY), then scale
+  gPin.attr(
+    "transform",
+    `translate(${pinX - pb.x}, ${pinY - pb.y}) scale(${s})`,
+  );
+
+  // 6) Compute pin right edge and pin centerY in parent coords (after scaling)
+  const pinRightX = pinX + pb.width * s;
+  const pinCenterY = pinY + (pb.height * s) / 2;
+
+  // 7) Place expansion icon to the right, and align centers
+  const gap = 5;
+  const expX = pinRightX + gap;
+  const expY = pinCenterY - (eb.height * s) / 2;
+
+  // Translate expansion so its bbox top-left becomes (expX, expY), then scale
+  gExp.attr(
+    "transform",
+    `translate(${expX - eb.x * s}, ${expY - eb.y * s}) scale(${s})`,
+  );
 
   let textPlace = svg
     .append("text")
     .text(data.name)
-    .attr("x", +pinIcon.attr("x") + pinIcon.node().getBBox().width + 5)
-    .attr("y", +pinIcon.attr("y") + pinIcon.node().getBBox().height / 2)
+    .attr("x", -30)
+    .attr("y", pinCenterY + pb.y)
     .attr("font-size", 10)
     .attr("fill", "black")
     .attr("font-weight", "bold")
     .style("font-style", "italic");
 
-  const box = getCombinedBBox(textPlace, pinIcon);
+  textPlace.attr(
+    "x",
+    width - margin.right - textPlace.node().getBBox().width - 5,
+  ); // Update x after text is rendered to get accurate width
 
-  svg
-    .append("rect")
-    .attr("class", "pin-button")
-    .attr("x", box.minX)
-    .attr("y", box.minY)
-    .attr("width", box.width)
-    .attr("height", box.height)
-    .attr("fill", "white")
-    .attr("opacity", 0)
-    .style("cursor", "pointer")
-    .on("click", function () {
-      let selectionROI = d3.select(`#small-multiple-${data.id}`);
+  // const box = getCombinedBBox(textPlace, pinIcon);
 
-      if (!maps.regionOfInterest.includes(data.id)) {
-        moveSmallMultipleUnitToROI(selectionROI, data.id);
-        maps.regionOfInterest.push(data.id);
-      } else {
-        resetSmallMultipleUnitPosition(data.id);
-        maps.regionOfInterest = maps.regionOfInterest.filter(
-          (d) => d !== data.id
-        );
-      }
-    });
+  // svg
+  //   .append("rect")
+  //   .attr("class", "pin-button")
+  //   .attr("x", box.minX)
+  //   .attr("y", box.minY)
+  //   .attr("width", box.width)
+  //   .attr("height", box.height)
+  //   .attr("fill", "white")
+  //   .attr("opacity", 0)
+  //   .style("cursor", "pointer")
+  //   .on("click", function () {
+  //     let selectionROI = d3.select(`#small-multiple-${data.id}`);
+
+  //     if (!maps.regionOfInterest.includes(data.id)) {
+  //       moveSmallMultipleUnitToROI(selectionROI, data.id);
+  //       maps.regionOfInterest.push(data.id);
+  //     } else {
+  //       resetSmallMultipleUnitPosition(data.id);
+  //       maps.regionOfInterest = maps.regionOfInterest.filter(
+  //         (d) => d !== data.id,
+  //       );
+  //     }
+  //   });
   // console.log(data);
 
-  const dataValues = data.properties.final_historical_disease_risk_index;
-
-  if (dataValues.length == 0) {
-    svg.style("background-color", "gray");
-    return;
-  }
-
-  const yearlySplittedDateInfo = {};
-  // let values = data.data.values;
-  // const processed = dataValues.map((d, i) => ({ x: i, y: d }));
-
-  dateInfo.forEach((d, i) => {
-    const [yy, mm, dd] = d.split("-").map(Number);
-    yearlySplittedDateInfo[yy] = yearlySplittedDateInfo[yy] || [];
-    yearlySplittedDateInfo[yy].push(i);
-  });
-
-  const yearKeys = Object.keys(yearlySplittedDateInfo);
-  const maxYear = Math.max(...yearKeys);
-
-  const margin = { top: 10, right: 60, bottom: 0, left: 0 };
-  const width = svg.node().clientWidth;
-  const height = svg.node().clientHeight;
-
-  const innerWidth = width - margin.left - margin.right;
-  const innerHeight = height - margin.top - margin.bottom;
-  let processed;
-  let line;
-  let x, y;
-
-  for (const year of yearKeys) {
-    const indices = yearlySplittedDateInfo[year];
-
-    const yearDataValues = indices.map((idx) => dataValues[idx]);
-
-    // console.log(yearDataValues);
-    const transformedDataInfo = indices.map((d) => {
-      const [yy, mm, dd] = dateInfo[d].split("-").map(Number);
-      return new Date(2020, mm - 1, dd);
-    });
-
-    processed = yearDataValues.map((d, i) => ({
-      x: transformedDataInfo[i],
-      y: d,
-    }));
-
-    x = d3
-      .scaleTime()
-      // .domain(d3.extent(processed, (d) => d.x))
-      .domain([new Date(2020, 0, 1), new Date(2020, 11, 31)])
-      .range([0, innerWidth]);
-
-    y = d3
-      .scaleLinear()
-      .domain([
-        d3.min([0, d3.min(processed, (d) => d.y)]),
-        d3.max(processed, (d) => d.y),
-      ])
-      .nice()
-      .range([margin.top + innerHeight, margin.top]);
-
-    line = d3
-      .line()
-      .defined((d) => d.y !== null && !isNaN(d.y))
-      .x((d) => x(d.x))
-      .y((d) => y(d.y));
-
-    svg
-      .append("path")
-      .datum(processed)
-      .attr("fill", "none")
-      .attr("stroke", () => {
-        if (year == maxYear) {
-          return "#1f77b4";
-        } else {
-          return "gray";
-        }
-      })
-      .attr("stroke-width", () => {
-        if (year == maxYear) {
-          return "2";
-        } else {
-          return "0.5";
-        }
-      })
-      .attr("stroke-opacity", () => {
-        if (year == maxYear) {
-          return "1";
-        } else {
-          return "0.5";
-        }
-      })
-      .attr("d", line);
-  }
-
-  const last2 = processed.slice(-2).filter((d) => d.y !== null);
-  const trend = trendStrict(last2.map((d) => d.y));
-
-  svg
-    .append("path")
-    .datum(last2)
-    .attr("fill", "none")
-    .attr("stroke", trend === 1 ? "red" : trend === -1 ? "green" : "gray")
-    .attr("stroke-width", 3)
-    .attr("d", line);
-
-  let lastPosCircle = svg
-    .append("circle")
-    .attr("cx", x(processed.length - 1))
-    .attr("cy", y(dataValues.slice(-1)[0]))
-    .attr("r", 3)
-    .attr("stroke", "black")
-    .attr("fill", trend === 1 ? "red" : trend === -1 ? "green" : "gray");
+  const { _, trend } = drawLineChartByYearSplited(
+    svg,
+    data,
+    dateInfo,
+    startMonth,
+    margin,
+  );
 
   const riskIndexGroup = svg.append("g").attr("class", "risk-index-group");
+  const lastPosCircle = svg.select("circle");
+  const dataValues = data.properties.final_historical_disease_risk_index;
+  const innerWidth = width - margin.left - margin.right;
 
   const riskIndexText = riskIndexGroup
     .append("text")
@@ -233,7 +220,6 @@ function drawingSmallMultipleUnit(svg, data, dateInfo) {
     .attr("y", +lastPosCircle.attr("cy"))
     .attr("font-size", 12)
     .attr("font-weight", "bold")
-    // .attr("fill", trend === 1 ? "red" : trend === -1 ? "green" : "gray")
     .attr("fill", "black")
     .text(dataValues.slice(-1)[0].toFixed(2));
 
@@ -251,7 +237,7 @@ function drawingSmallMultipleUnit(svg, data, dateInfo) {
 
 export function drawingSmallMultiples(dataBySpace, dateInfo) {
   const svgContainer = document.getElementById(
-    "respiratory-smallMultiples-container"
+    "respiratory-smallMultiples-container",
   );
 
   svgContainer.innerHTML = "";
@@ -266,7 +252,7 @@ export function drawingSmallMultiples(dataBySpace, dateInfo) {
       ] -
       a.properties.final_historical_disease_risk_index[
         a.properties.final_historical_disease_risk_index.length - 1
-      ]
+      ],
   );
   // console.log(dataBySpace);
   // console.log(dateInfo);
