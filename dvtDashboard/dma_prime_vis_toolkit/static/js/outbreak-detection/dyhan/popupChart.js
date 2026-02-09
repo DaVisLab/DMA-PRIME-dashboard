@@ -49,32 +49,53 @@ export function showPopupLineChart(data, dateInfo) {
       svg
         .select(`.line-year-${year}`)
         .attr("stroke-width", year == maxYear ? 4 : 2);
+
+      yearDiv.style.fontWeight = "bold";
     });
+
+    svg
+      .select(`.line-year-${year}`)
+      .on("mouseover", () => {
+        yearDiv.style.fontWeight = "bold";
+        d3.select(`.line-year-${year}`).attr(
+          "stroke-width",
+          year == maxYear ? 4 : 2,
+        );
+      })
+      .on("mouseout", () => {
+        yearDiv.style.fontWeight = "normal";
+        svg
+          .select(`.line-year-${year}`)
+          .attr("stroke-width", year == maxYear ? 2 : 0.5);
+      });
 
     yearDiv.addEventListener("mouseout", () => {
       svg
         .select(`.line-year-${year}`)
         .attr("stroke-width", year == maxYear ? 2 : 0.5);
+
+      yearDiv.style.fontWeight = "normal";
     });
 
-    // colored circle
-    const dot = document.createElement("span");
-    dot.style.width = "10px";
-    dot.style.height = "10px";
-    dot.style.borderRadius = "50%";
-    dot.style.backgroundColor = yearColor(+year);
-    dot.style.display = "inline-block";
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = true; // or false
+    checkbox.disabled = false;
 
-    svg
-      .select(`.line-year-${year}`)
-      .attr("stroke", yearColor(+year))
-      .attr("stroke-opacity", 1);
+    // optional styling
+    checkbox.style.marginRight = ".5rem";
+    checkbox.style.pointerEvents = "none"; // if it's just an indicator
+
+    // svg
+    //   .select(`.line-year-${year}`)
+    //   .attr("stroke", yearColor(+year))
+    //   .attr("stroke-opacity", 1);
 
     // year label
     const label = document.createElement("span");
     label.textContent = year;
 
-    yearDiv.appendChild(dot);
+    yearDiv.appendChild(checkbox);
     yearDiv.appendChild(label);
 
     yearComponentDiv.appendChild(yearDiv);
@@ -86,12 +107,14 @@ export function showPopupLineChart(data, dateInfo) {
       if (isShown) {
         svg.select(`.line-year-${year}`).attr("stroke-opacity", 0);
         label.style.opacity = 0.5;
-        dot.style.opacity = 0.5;
+        checkbox.checked = false; // or false
+        // dot.style.opacity = 0.5;
         yearDiv.setAttribute("show", "false");
       } else {
         svg.select(`.line-year-${year}`).attr("stroke-opacity", 1);
         label.style.opacity = 1;
-        dot.style.opacity = 1;
+        checkbox.checked = true; // or false
+        // dot.style.opacity = 1;
         yearDiv.setAttribute("show", "true");
       }
       // Optional: Add any click interaction you want here
