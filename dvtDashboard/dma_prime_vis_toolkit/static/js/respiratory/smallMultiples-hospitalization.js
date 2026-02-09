@@ -11,6 +11,7 @@ import {
 import { showMapTooltip } from "./map-interactions.js";
 
 import { selectedItems, redraw } from "./map.js";
+import { controlDependencyTest } from "./controls.js";
 // import { maps } from "../mapManager.js";
 
 async function getSpatialData() {
@@ -341,7 +342,6 @@ async function initSmallMultipleView() {
 
 function callInitSmallMultipleView() {
   initSmallMultipleView();
-
   [
     mapTypeSwitch,
     mapDiseaseSelector,
@@ -352,6 +352,7 @@ function callInitSmallMultipleView() {
   ].forEach((el) => {
     el.addEventListener("sl-change", (event) => {
       initSmallMultipleView();
+      controlDependencyTest();
     });
   });
 

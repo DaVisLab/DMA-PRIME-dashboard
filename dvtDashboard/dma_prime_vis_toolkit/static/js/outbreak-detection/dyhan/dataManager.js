@@ -125,14 +125,13 @@ async function getOutbreakDataAll() {
   outbreak_data.county = await getRiskIndexBySpatialResoultionIn("county");
   outbreak_data.zcta = await getRiskIndexBySpatialResoultionIn("zcta");
 
-  console.log(outbreak_data)
   // console.log(Object.keys(outbreak_data.region.features[0].properties));
   // console.log(Object.keys(outbreak_data.region.features[0].properties.data));
   // generateCheckboxListForRiskIndexPanel(outbreak_data.region.features[0].properties.final_historical_disease_risk_index);
   setRiskIndexByDiseaseInPanel(outbreak_data.region);
 
   smallMultipleManager.data = outbreak_data;
-  smallMultipleManager.initSmallMultipleView(outbreak_data);
+  smallMultipleManager.callInitSmallMultipleView(outbreak_data);
 
   mapManager.data = outbreak_data;
   mapManager.callInitMapViews(outbreak_data);

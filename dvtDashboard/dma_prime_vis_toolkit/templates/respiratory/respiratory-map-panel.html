@@ -51,7 +51,7 @@ options %}
 
   <!-- region selector -->
   <sl-select
-    value="county"
+    value="region"
     id="map-geographic-unit-selector"
     class="fill-width map-option"
     size="small"
@@ -68,7 +68,7 @@ options %}
 
   <!-- population -->
   <sl-select
-    value="{{ metadata['available_models']['respiratory_diseases']['county'] | list | first }}"
+    value="{{ metadata['available_models']['respiratory_diseases']['region'] | list | first }}"
     id="map-population-selector"
     class="fill-width map-option"
     size="small"
@@ -311,7 +311,7 @@ options %}
         width="250"
         height="48"
         viewBox="0 0 250 48"
-        display="initial" 
+        display="initial"
         transform="translate(0 20)"
       >
         <g transform="translate(4 0) scale(0.06)">
@@ -422,49 +422,50 @@ options %}
   mapTypeSwitch = document.getElementById("map-type-switch");
   mapDiseaseSelector = document.getElementById("map-disease-selector");
   mapGeographicUnitSelector = document.getElementById(
-    "map-geographic-unit-selector"
+    "map-geographic-unit-selector",
   );
   mapPopulationSelector = document.getElementById("map-population-selector");
+
   mapOutcomeVariableSelector = document.getElementById(
-    "map-outcome-variable-selector"
+    "map-outcome-variable-selector",
   );
   mapIncludeImputations = document.getElementById("map-include-imputations");
 
   // Optional toggles
   mapOptionsGeographicLabelsToggle = document.getElementById(
-    "map-options-geographic-labels-toggle"
+    "map-options-geographic-labels-toggle",
   );
   hospitalIconsToggle = document.getElementById(
-    "map-options-hospital-icons-toggle"
+    "map-options-hospital-icons-toggle",
   );
   mobileClinicIconsToggle = document.getElementById(
-    "map-options-mobile-clinic-icons-toggle"
+    "map-options-mobile-clinic-icons-toggle",
   );
   communityPartnerIconsToggle = document.getElementById(
-    "map-options-community-partner-icons-toggle"
+    "map-options-community-partner-icons-toggle",
   );
 
   // State–level chart elements
   mapStateHospitalizationsSubtitle = document.getElementById(
-    "map-state-hospitalizations-subtitle"
+    "map-state-hospitalizations-subtitle",
   );
   mapStateHospitalizationsResizer = document.getElementById(
-    "map-state-hospitalizations-resizer"
+    "map-state-hospitalizations-resizer",
   );
   mapStateHospitalizationsSvg = document.getElementById(
-    "map-state-hospitalizations-svg"
+    "map-state-hospitalizations-svg",
   );
   mapStateHospitalizationsLarge = document.getElementById(
-    "map-state-hospitalizations-large"
+    "map-state-hospitalizations-large",
   );
   mapStateHospitalizationsLargeSubtitle = document.getElementById(
-    "map-state-hospitalizations-large-subtitle"
+    "map-state-hospitalizations-large-subtitle",
   );
   mapStateHospitalizationsLargeResizer = document.getElementById(
-    "map-state-hospitalizations-large-resizer"
+    "map-state-hospitalizations-large-resizer",
   );
   mapStateHospitalizationsLargeSvg = document.getElementById(
-    "map-state-hospitalizations-large-svg"
+    "map-state-hospitalizations-large-svg",
   );
 
   // Main map, legend, title & tooltip
@@ -475,10 +476,10 @@ options %}
   mapDisclaimer = document.getElementById("map-disclaimer");
   mapNoForecastAlert = document.getElementById("map-no-forecast-alert");
   mapNoForecastThisWeekAlert = document.getElementById(
-    "map-no-forecast-this-week-alert"
+    "map-no-forecast-this-week-alert",
   );
   mapMixedForecastThisWeekAlert = document.getElementById(
-    "map-mixed-forecast-this-week-alert"
+    "map-mixed-forecast-this-week-alert",
   );
 
   // Options selected
@@ -490,6 +491,8 @@ options %}
 <script>
   // init the filter placeholder based on geographic unit selection
   (function waitForSelectorAndSetPlaceholder() {
+
+    console.log("fffffff")
     const setPlaceholder = () => {
       const selector = document.getElementById("map-geographic-unit-selector");
       const input = document.getElementById("filterInput");
@@ -524,6 +527,7 @@ options %}
 </script>
 
 <!-- 5) Your module code—now deck, loaders & maplibregl are ready -->
+
 <script
   src="{{ url_for('static', filename='js/respiratory/map.js') }}"
   type="module"
@@ -532,8 +536,13 @@ options %}
   src="{{ url_for('static', filename='js/respiratory/map-interactions.js') }}"
   type="module"
 ></script>
+
 <script
   src="{{ url_for('static', filename='js/respiratory/smallMultiples-hospitalization.js') }}"
+  type="module"
+></script> 
+<script
+  src="{{ url_for('static', filename='js/respiratory/controls.js') }}"
   type="module"
 ></script>
 {% endblock %}
