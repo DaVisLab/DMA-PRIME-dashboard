@@ -92,8 +92,8 @@ var regionData = await d3.json(
   `/data/respiratory/${mapGeographicUnitSelector.value}/${
     mapDiseaseSelector.value
   }?data_version=${metadata.data_version}&${parseInt(
-    Math.random() * 9999999999
-  )}`
+    Math.random() * 9999999999,
+  )}`,
 );
 
 redraw(true, true);
@@ -101,13 +101,13 @@ drawStateHospitalizations(
   mapDiseaseSelector.value,
   mapTypeSwitch.value,
   mapStateHospitalizationsSvg,
-  mapStateHospitalizationsSubtitle
+  mapStateHospitalizationsSubtitle,
 );
 
 async function redraw(
   resetWarnings = false,
   fetchData = false,
-  center = false
+  center = false,
 ) {
   updateMapTitle();
   if (fetchData == true) {
@@ -117,8 +117,8 @@ async function redraw(
       `/data/respiratory/${mapGeographicUnitSelector.value}/${
         mapDiseaseSelector.value
       }?data_version=${metadata.data_version}&${parseInt(
-        Math.random() * 9999999999
-      )}`
+        Math.random() * 9999999999,
+      )}`,
     );
   }
   if (resetWarnings) {
@@ -130,7 +130,7 @@ async function redraw(
     mapTypeSwitch.value,
     mapPopulationSelector.value,
     mapOutcomeVariableSelector.value,
-    mapIncludeImputations.checked
+    mapIncludeImputations.checked,
   );
   drawLegend();
 
@@ -158,10 +158,9 @@ async function redraw(
             dataVersion,
           ],
         },
-      })
+      }),
     );
   } else {
-  
     layers.push(
       new GeoJsonLayer({
         id: "county_outline",
@@ -288,7 +287,7 @@ async function redraw(
           data: [dataVersion],
           getSize: [dataVersion],
         },
-      })
+      }),
     );
   }
   if (selectedItems.icons.length) {
@@ -316,7 +315,7 @@ async function redraw(
             communityPartnerIconsToggle.checked,
           ],
         },
-      })
+      }),
     );
   }
   if (mapOptionsGeographicLabelsToggle.checked) {
@@ -345,7 +344,7 @@ async function redraw(
           updateTriggers: {
             getSize: [map.getZoom()],
           },
-        })
+        }),
       );
     } else if (mapGeographicUnitSelector.value != "state") {
       layers.push(
@@ -374,7 +373,7 @@ async function redraw(
           updateTriggers: {
             getSize: [map.getZoom()],
           },
-        })
+        }),
       );
     }
   }
@@ -422,7 +421,7 @@ function getColor(feature) {
       population,
       outcomeVariable,
       mapTypeSwitch.value,
-      imputations
+      imputations,
     );
     if (mapTypeSwitch.value == "percentDifference") {
       if (isNaN(value[1]) || value[0]) {
@@ -447,7 +446,7 @@ function createChoropleth(
   mapType,
   population,
   outcomeVariable,
-  imputations = true
+  imputations = true,
 ) {
   if (mapType == "percentDifference") {
     choroplethColorMap = d3
@@ -464,7 +463,7 @@ function createChoropleth(
         ];
       if (mapType == "rate") {
         arr = thisData.map(
-          (d) => (d / data.features[0].properties.population) * 1000
+          (d) => (d / data.features[0].properties.population) * 1000,
         );
       }
     } else {
@@ -473,15 +472,18 @@ function createChoropleth(
         population,
         outcomeVariable,
         mapType,
-        imputations
+        imputations,
       );
     }
+
     if (outcomeVariable == "rate_of_transmission") {
       choroplethDiscreteEdges = null;
+
+      const mix = d3.interpolateRgb(populationColorMap[population]["historical"], "red");
       choroplethColorMap = d3
         .scaleLinear()
-        .domain([0, 0.9, Math.max(d3.max(arr), 1)])
-        .range(["white", populationColorMap[population]["historical"], "red"])
+         .domain([0, .5, 1, Math.max(d3.max(arr), 2)])
+        .range(["white", "#648FFF", mix(0.5), "red"])
         .unknown(unknownColor)
         .nice();
     } else {
@@ -492,10 +494,10 @@ function createChoropleth(
           d3.quantize(
             d3.interpolateRgb(
               "white",
-              populationColorMap[population]["historical"]
+              populationColorMap[population]["historical"],
             ),
-            5
-          )
+            5,
+          ),
         )
         .unknown(unknownColor)
         .nice();
@@ -516,7 +518,7 @@ function drawLegend() {
 
   d3.select(mapShapeLegend).attr(
     "display",
-    mapGeographicUnitSelector.value == "facility" ? "initial" : "none"
+    mapGeographicUnitSelector.value == "facility" ? "initial" : "none",
   );
 
   if (mapTypeSwitch.value == "percentDifference") {
@@ -538,7 +540,7 @@ function drawLegend() {
       .text(
         `Percent Change of ${d3
           .select(`sl-option[value=${mapDiseaseSelector.value}]`)
-          .html()} from Last Week`
+          .html()} from Last Week`,
       );
 
     legend
@@ -611,6 +613,7 @@ function drawLegend() {
       .attr("width", legendWidth + legendMargins.left + legendMargins.right)
       .attr("height", 3 * em + legendMargins.top + legendMargins.bottom);
 
+    
     // Discrete 5-bin legend for hospitalizations/inpatient/ed and positive-tests
     if (mapOutcomeVariableSelector.value != "rate_of_transmission") {
       var edges =
@@ -626,10 +629,12 @@ function drawLegend() {
               var s = t.length >= 2 ? t[1] - t[0] : 1;
               return Array.from({ length: 6 }, (_, i) => i * s);
             })();
+
       var bins = choroplethColorMap
         .range()
         .map((color, i) => ({ color, x0: edges[i], x1: edges[i + 1] }));
 
+      console.log("Legend bins:", bins);
       var xDomain = [edges[0], edges[edges.length - 1]];
       var xScale = d3.scaleLinear().domain(xDomain).range([0, legendWidth]);
 
@@ -658,20 +663,20 @@ function drawLegend() {
         .attr("id", "map-color-legend-axis")
         .attr(
           "transform",
-          `translate(${legendMargins.left} ${em + legendMargins.top})`
+          `translate(${legendMargins.left} ${em + legendMargins.top})`,
         )
         .call(
           d3
             .axisBottom(xScale)
             .tickValues(tickValues)
-            .tickFormat(numberFormatter)
+            .tickFormat(numberFormatter),
         );
 
       // Avoid label overflow: anchor first and last labels inside bounds
       axisG
         .selectAll("text")
         .attr("text-anchor", (d, i) =>
-          i === 0 ? "start" : i === tickValues.length - 1 ? "end" : "middle"
+          i === 0 ? "start" : i === tickValues.length - 1 ? "end" : "middle",
         );
 
       content
@@ -683,10 +688,11 @@ function drawLegend() {
         .text(
           `Current Week's ${
             metadata.outcome_variables[mapOutcomeVariableSelector.value]
-          } by ${metadata.region_sizes[mapGeographicUnitSelector.value]}`
+          } by ${metadata.region_sizes[mapGeographicUnitSelector.value]}`,
         );
     } else {
       // Continuous gradient legend (default)
+
       var colorLegendDefs = colorLegend.append("defs");
       var linearGrdient = colorLegendDefs.append("linearGradient");
       linearGrdient
@@ -695,21 +701,24 @@ function drawLegend() {
         .attr("y1", "0%")
         .attr("x2", "100%")
         .attr("y2", "0%");
+
       linearGrdient
         .append("stop")
         .attr("id", "linear-gradient-stop-0")
         .attr("offset", "0%")
         .attr("stop-color", "white");
+
       if (mapOutcomeVariableSelector.value == "rate_of_transmission") {
         linearGrdient
           .append("stop")
           .attr("id", "linear-gradient-stop-1")
           .attr(
             "offset",
-            `${(0.9 / choroplethColorMap.domain().at(-1)) * 100}%`
+            `${(0.9 / choroplethColorMap.domain().at(-1)) * 100}%`,
           )
           .attr("stop-color", choroplethColorMap.range().at(1));
       }
+
       linearGrdient
         .append("stop")
         .attr("id", "linear-gradient-stop-1")
@@ -741,7 +750,7 @@ function drawLegend() {
         .attr("id", "map-color-legend-axis")
         .attr(
           "transform",
-          `translate(${legendMargins.left} ${em + legendMargins.top})`
+          `translate(${legendMargins.left} ${em + legendMargins.top})`,
         )
         .call(
           d3
@@ -751,9 +760,9 @@ function drawLegend() {
                   0,
                   legendWidth,
                 ])
-                .nice()
+                .nice(),
             )
-            .ticks(6)
+            .ticks(6),
         );
 
       colorLegendContent
@@ -765,7 +774,7 @@ function drawLegend() {
         .text(
           `Current Week's ${
             metadata.outcome_variables[mapOutcomeVariableSelector.value]
-          } by ${metadata.region_sizes[mapGeographicUnitSelector.value]}`
+          } by ${metadata.region_sizes[mapGeographicUnitSelector.value]}`,
         );
     }
   }
@@ -833,7 +842,7 @@ function updateMapTooltip(featureProperties) {
     mapOutcomeVariableSelector.value,
     mapTypeSwitch.value,
     false,
-    false
+    false,
   );
 }
 
@@ -893,7 +902,7 @@ function updateMapWarnings() {
 async function updateMapGeographicUnitOptions() {
   d3.selectAll(".map-geographic-unit-option").remove();
   var availableGeographicUnits = Object.keys(
-    metadata.available_models[mapDiseaseSelector.value]
+    metadata.available_models[mapDiseaseSelector.value],
   );
   d3.select(mapGeographicUnitSelector)
     .selectAll(".map-geographic-unit-option")
@@ -925,11 +934,11 @@ async function updateMapPopulationOptions() {
     availablePopulations = Object.keys(
       metadata.available_models[mapDiseaseSelector.value][
         mapGeographicUnitSelector.value
-      ]
+      ],
     );
   } else {
     availablePopulations = Object.keys(
-      Object.entries(metadata.available_models[mapDiseaseSelector.value])[0]
+      Object.entries(metadata.available_models[mapDiseaseSelector.value])[0],
     );
   }
   d3.select(mapPopulationSelector)

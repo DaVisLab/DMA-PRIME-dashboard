@@ -269,28 +269,28 @@ function drawTooltip(
   var data = featureData.data[population][outcomeVariable];
 
   // if length of data item and historicalDatesArray don't match, need to add null values front
-  if (data.historical.values.length < historicalDatesArray.length) {
-    var numToAdd = historicalDatesArray.length - data.historical.values.length;
-    data.historical.values = Array(numToAdd)
-      .fill(null)
-      .concat(data.historical.values);
+
+  // console.log(data);
+
+  data.historical.values = validateFeatureDataLength(
+    data.historical.values,
+    historicalDatesArray.length,
+  );
+
+  if (data.extra.health_system != undefined) {
+    data.extra.health_system = validateFeatureDataLength(
+      data.extra.health_system,
+      historicalDatesArray.length,
+    );
+  }
+  if (data.extra.RFA != undefined) {
+    data.extra.RFA = validateFeatureDataLength(
+      data.extra.RFA,
+      historicalDatesArray.length,
+    );
   }
 
-  if (data.extra.RFA.length < historicalDatesArray.length) {
-    var numToAdd = historicalDatesArray.length - data.extra.RFA.length;
-    console.log("???")
-    data.extra.RFA = Array(numToAdd).fill(null).concat(data.extra.RFA);
-  }
-
-  if (data.extra.health_system.length < historicalDatesArray.length) {
-    var numToAdd = historicalDatesArray.length - data.extra.health_system.length;
-
-    data.extra.health_system = Array(numToAdd)
-      .fill(null)
-      .concat(data.extra.health_system);
-  }
-
-  console.log(data);
+  // console.log(data);
 
   data.projected.start_date = parseDate(data.projected.start_date);
 
@@ -309,6 +309,7 @@ function drawTooltip(
 
   var regionInfo = header.select(".tooltip-region-info");
   regionInfo.node().innerHTML = "";
+
   if (geographicUnit != "state") {
     regionInfo
       .append("p")
@@ -448,6 +449,7 @@ function drawTooltip(
     ttpLegendGroupItem = ttpLegendGroup
       .append("div")
       .attr("class", `tooltip-legend-group-item percent-change`);
+
     ttpLegendGroupItem
       .append("sl-icon")
       .attr("name", "dash-lg")
@@ -506,8 +508,6 @@ function drawTooltip(
           facility_type: data.facility_type,
           system: data.system,
         };
-
-        console.log(ttpData);
 
         drawTooltip(
           ttpData,
@@ -752,6 +752,7 @@ function drawTooltip(
         ttpMargins.left + ttpGraphWidth * ttpHistoryWidthPercentage,
       ]);
   }
+
   var xScaleForwardProjection = d3
     .scaleTime()
     .domain([d3.timeDay.offset(currentDate, -6), lastDate])
@@ -777,7 +778,6 @@ function drawTooltip(
     let thisDataPointShape = event.target;
     let dataShapeBBox = thisDataPointShape.getBBox();
 
-    console.log(groupStartDate);
     let date = d3.timeDay.offset(
       groupStartDate,
       7 *
@@ -920,6 +920,7 @@ function drawTooltip(
     (d) => !isNaN(parseFloat(d)),
   );
   let projectedValues = data.projected.values;
+
   if (projectedValues.length) {
     if (
       dayjs(historicalDatesArray.at(lastHistoricalValueIndex)).isSame(
@@ -938,30 +939,29 @@ function drawTooltip(
 
     predictiveGroup
       .selectAll("path")
-      .data(projectedValues.slice(1))
+      .data(projectedValues.slice(1)) // one segment per consecutive pair
       .enter()
       .append("path")
       .attr("class", "ttp-data-point")
       .attr("clip-path", `url(#${clipPathId})`)
       .attr("d", (_, i1) =>
         d3
-          .area()
+          .line()
           .x((_, i2) =>
             xScale(
               d3.timeDay.offset(data.projected.start_date, 7 * (i1 + i2 - 1)),
             ),
           )
-          .y0(panelType == "percentDifference" ? yScale2(0) : yScale(0))
-          .y1((d) =>
-            panelType == "percentDifference" ? yScale2(d) : yScale(d),
-          )
-          .defined((d) => d || d == 0)(
+          .y((d) => (panelType == "percentDifference" ? yScale2(d) : yScale(d)))
+          .defined((d) => d || d === 0)(
           panelType == "percentDifference"
             ? percentDifferenceProjectedValues.slice(i1, i1 + 2)
             : projectedValues.slice(i1, i1 + 2),
         ),
       )
-      .attr("fill", populationColorMap[population]["projected"])
+      .attr("fill", "none")
+      .attr("stroke", populationColorMap[population]["projected"])
+      .attr("stroke-width", 2)
       .on("mouseover", function (event, d) {
         if (!isNaN(d)) {
           createDataPointTooltip(event, data.projected.start_date);
@@ -970,6 +970,117 @@ function drawTooltip(
       .on("mouseout", function () {
         dataPointTTP.html("");
       });
+
+
+    if (
+      data.projected.uncertainty_range.percentile25 != undefined &&
+      data.projected.uncertainty_range.percentile25.length > 0
+    ) {
+      const firstProjectedValue = data.projected.values[0];
+
+      // console.log(data.projected.uncertainty_range.percentile25);
+      const uncertainty25 = data.projected.uncertainty_range.percentile25;
+      const uncertainty75 = data.projected.uncertainty_range.percentile75;
+      const uncertainty2_5 = data.projected.uncertainty_range.percentile2_5;
+      const uncertainty97_5 = data.projected.uncertainty_range.percentile97_5;
+
+      uncertainty25.unshift(firstProjectedValue);
+      uncertainty75.unshift(firstProjectedValue);
+      uncertainty2_5.unshift(firstProjectedValue);
+      uncertainty97_5.unshift(firstProjectedValue);
+
+      const n = uncertainty2_5.length; // time length
+
+      const band95 = d3
+        .area()
+        .x((_, i) =>
+          xScale(d3.timeDay.offset(data.projected.start_date, 7 * (i-1))),
+        )
+        .y0((_, i) =>
+          panelType === "percentDifference"
+            ? yScale2(uncertainty2_5[i])
+            : yScale(uncertainty2_5[i]),
+        )
+        .y1((_, i) =>
+          panelType === "percentDifference"
+            ? yScale2(uncertainty97_5[i])
+            : yScale(uncertainty97_5[i]),
+        )
+        .defined(
+          (_, i) => uncertainty2_5[i] != null && uncertainty97_5[i] != null,
+        );
+
+      const band50 = d3
+        .area()
+        .x((_, i) =>
+          xScale(d3.timeDay.offset(data.projected.start_date, 7 * (i-1))),
+        )
+        .y0((_, i) =>
+          panelType === "percentDifference"
+            ? yScale2(uncertainty25[i])
+            : yScale(uncertainty25[i]),
+        )
+        .y1((_, i) =>
+          panelType === "percentDifference"
+            ? yScale2(uncertainty75[i])
+            : yScale(uncertainty75[i]),
+        )
+        .defined(
+          (_, i) => uncertainty25[i] != null && uncertainty75[i] != null,
+        );
+
+      predictiveGroup
+        .append("path")
+        .datum(d3.range(n))
+        .attr("class", "path-uncertainty-50")
+        .attr("clip-path", `url(#${clipPathId})`)
+        .attr("d", band50)
+        .attr("fill", populationColorMap[population]["projected"])
+        .attr("opacity", 0.5);
+
+      predictiveGroup
+        .append("path")
+        .datum(d3.range(n)) // ✅ 길이만 맞는 배열이면 됨
+        .attr("class", "path-uncertainty-95")
+        .attr("clip-path", `url(#${clipPathId})`)
+        .attr("d", band95) // ✅ generator를 “실행”시키는 형태
+        .attr("fill", populationColorMap[population]["projected"])
+        .attr("opacity", 0.2);
+    }
+    // predictiveGroup
+    //   .selectAll("path")
+    //   .data(projectedValues.slice(1))
+    //   .enter()
+    //   .append("path")
+    //   .attr("class", "ttp-data-point")
+    //   .attr("clip-path", `url(#${clipPathId})`)
+    //   .attr("d", (_, i1) =>
+    //     d3
+    //       .area()
+    //       .x((_, i2) =>
+    //         xScale(
+    //           d3.timeDay.offset(data.projected.start_date, 7 * (i1 + i2 - 1)),
+    //         ),
+    //       )
+    //       .y0(panelType == "percentDifference" ? yScale2(0) : yScale(0))
+    //       .y1((d) =>
+    //         panelType == "percentDifference" ? yScale2(d) : yScale(d),
+    //       )
+    //       .defined((d) => d || d == 0)(
+    //       panelType == "percentDifference"
+    //         ? percentDifferenceProjectedValues.slice(i1, i1 + 2)
+    //         : projectedValues.slice(i1, i1 + 2),
+    //     ),
+    //   )
+    //   .attr("fill", populationColorMap[population]["projected"])
+    //   .on("mouseover", function (event, d) {
+    //     if (!isNaN(d)) {
+    //       createDataPointTooltip(event, data.projected.start_date);
+    //     }
+    //   })
+    //   .on("mouseout", function () {
+    //     dataPointTTP.html("");
+    //   });
 
     // // marker for each datapoint on prediction line
     predictiveGroup
@@ -1554,4 +1665,13 @@ async function drawStateBarChart(
   );
 
   temp.remove();
+}
+
+function validateFeatureDataLength(featureData, targetLength) {
+  if (featureData.length < targetLength) {
+    var numToAdd = targetLength - featureData.length;
+    featureData = Array(numToAdd).fill(null).concat(featureData);
+  }
+
+  return featureData;
 }

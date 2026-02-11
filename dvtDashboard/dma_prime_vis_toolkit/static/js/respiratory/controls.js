@@ -1,7 +1,7 @@
 controlDependencyTest();
 
 export function controlDependencyTest() {
-  const disabledRegions = ["county", "zcta"];
+  const disabledRegions = ["county", "zcta", "facility"];
 
   let selectedPopulation = document.getElementById(
     "map-population-selector",
