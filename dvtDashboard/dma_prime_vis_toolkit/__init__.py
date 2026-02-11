@@ -375,7 +375,7 @@ def create_app(development=False, dataDir=None):
             {
                 "name": "outbreak-detection",
                 "displayName": "Outbreak Detection",
-                'active': True,
+                # 'active': True,
                 "html": "outbreak-detection/outbreak-detection-panel_dy.html",
             },
             {
@@ -393,7 +393,7 @@ def create_app(development=False, dataDir=None):
             {
                 "name": "outbreak-exploration2",
                 "displayName": "Test Interface2",
-                # "active": True,
+                "active": True,
                 "html": "outbreak-detection/test-page2.html",
             },
             # {

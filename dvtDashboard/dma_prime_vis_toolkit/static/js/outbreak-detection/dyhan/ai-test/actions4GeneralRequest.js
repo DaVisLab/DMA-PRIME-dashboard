@@ -131,9 +131,12 @@ export async function getAIGeneratedTutorial() {
 
     const data = await resp.json();
     console.log(data);
+    responseEl.innerHTML = data;
 
     // data.response might already be an object; handle both safely
     const aiResp = JSON.parse(data.response);
+
+    // let responseEl = document.getElementById("ai-response");
 
     console.log(aiResp);
 
