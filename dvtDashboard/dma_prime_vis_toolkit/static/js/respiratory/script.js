@@ -17,7 +17,7 @@ export {
 const zctaData = await d3.json(
   `/data/respiratory/zcta/covid_19?data_version=${
     metadata.data_version
-  }&${parseInt(Math.random() * 9999999999)}`
+  }&${parseInt(Math.random() * 9999999999)}`,
 );
 await Promise.allSettled([
   // wait for following to be defined/load in
@@ -56,7 +56,7 @@ d3.selectAll("sl-tooltip")
         `hsla(${getComputedStyle(document.head)
           .getPropertyValue("--sl-color-neutral-1000")
           .replace("hsl(", "")
-          .replace(")", "")}, 0.925)`
+          .replace(")", "")}, 0.925)`,
       );
   });
 
@@ -76,7 +76,7 @@ window.addEventListener("keydown", (event) => {
                           .replace("hsl(", "")
                           .replace(")", "")}, 0.925);
                     }`,
-          0
+          0,
         );
         changed = false;
       }
@@ -92,7 +92,7 @@ function getFeatureValue(
   population,
   outcomeVariable,
   panelType,
-  imputations
+  imputations,
 ) {
   let thisData =
     feature.properties.data[population][outcomeVariable]["projected"];
@@ -117,7 +117,7 @@ function getFeatureValue(
       lastWeekDatum = parseFloat(
         feature.properties.data[population][outcomeVariable][
           "historical"
-        ].values.at(expectedShortHistoryDataPoints - 1)
+        ].values.at(expectedShortHistoryDataPoints - 1),
       );
     } else {
       lastWeekDatum = parseFloat(thisData.values.at(dateIndex - 1));
@@ -138,7 +138,7 @@ function getAllValuesFromFeature(
   population,
   outcomeVariable,
   panelType,
-  timeFrame
+  timeFrame,
 ) {
   let thisData = featureProperties.data[population][outcomeVariable][timeFrame];
   let newData = [];
@@ -188,7 +188,7 @@ function getAllFeaturesValue(
   population,
   outcomeVariable,
   panelType,
-  imputations
+  imputations,
 ) {
   var arr = features.map((feature) => {
     return getFeatureValue(
@@ -196,7 +196,7 @@ function getAllFeaturesValue(
       population,
       outcomeVariable,
       panelType,
-      imputations
+      imputations,
     );
   });
 
@@ -250,10 +250,11 @@ function drawTooltip(
   panelType,
   grid = false,
   allDates = false,
-  extraSources = []
+  extraSources = [],
 ) {
   // The beginning bits
   var geographicUnit;
+
   if (grid) {
     geographicUnit = gridGeographicUnitSelector.value;
   } else {
@@ -261,10 +262,36 @@ function drawTooltip(
   }
 
   var historicalDatesArray = allDates ? allHistoricalDates : shortHistoryDates;
+  // console.log(historicalDatesArray);
   var featureData = JSON.parse(JSON.stringify(d));
 
   var identifier = featureData.id;
   var data = featureData.data[population][outcomeVariable];
+
+  // if length of data item and historicalDatesArray don't match, need to add null values front
+  if (data.historical.values.length < historicalDatesArray.length) {
+    var numToAdd = historicalDatesArray.length - data.historical.values.length;
+    data.historical.values = Array(numToAdd)
+      .fill(null)
+      .concat(data.historical.values);
+  }
+
+  if (data.extra.RFA.length < historicalDatesArray.length) {
+    var numToAdd = historicalDatesArray.length - data.extra.RFA.length;
+    console.log("???")
+    data.extra.RFA = Array(numToAdd).fill(null).concat(data.extra.RFA);
+  }
+
+  if (data.extra.health_system.length < historicalDatesArray.length) {
+    var numToAdd = historicalDatesArray.length - data.extra.health_system.length;
+
+    data.extra.health_system = Array(numToAdd)
+      .fill(null)
+      .concat(data.extra.health_system);
+  }
+
+  console.log(data);
+
   data.projected.start_date = parseDate(data.projected.start_date);
 
   // get dimensions
@@ -300,14 +327,14 @@ function drawTooltip(
       .html(
         `County: ${
           featureData.county[0].toUpperCase() + featureData.county.substring(1)
-        }`
+        }`,
       );
   }
   if (geographicUnit == "facility") {
     regionInfo
       .select(".ttp-location-name")
       .html(
-        `${metadata.region_sizes[geographicUnit]}: ${featureData.display_name} (${featureData.facility_type})`
+        `${metadata.region_sizes[geographicUnit]}: ${featureData.display_name} (${featureData.facility_type})`,
       );
     regionInfo.append("p").html(`Health System: ${featureData.system}`);
   }
@@ -319,7 +346,7 @@ function drawTooltip(
     dataInfo
       .append("p")
       .html(
-        `Rate of ${outcomeVariableString} (per 1000 people) - ${diseaseVariableString}`
+        `Rate of ${outcomeVariableString} (per 1000 people) - ${diseaseVariableString}`,
       );
   } else {
     dataInfo
@@ -331,17 +358,17 @@ function drawTooltip(
     var tooltipString = `${
       data["historical"].reported ? "Reported" : ""
     } ${outcomeVariableString} from ${formatDate(
-      historicalDatesArray[0]
+      historicalDatesArray[0],
     )} to ${formatDate(historicalDatesArray.at(-1))}`;
     dataInfo.append("p").html(tooltipString);
   }
   if (data.projected.values.length) {
     let thisProjectedEndDate = d3.timeDay.offset(
       data.projected.start_date,
-      7 * (data.projected.values.length - 1)
+      7 * (data.projected.values.length - 1),
     );
     var tooltipString = `Projected ${outcomeVariableString} from ${formatDate(
-      d3.timeDay.offset(data.projected.start_date, -6)
+      d3.timeDay.offset(data.projected.start_date, -6),
     )} to ${formatDate(thisProjectedEndDate)}`;
     dataInfo.append("p").html(tooltipString);
   }
@@ -459,16 +486,16 @@ function drawTooltip(
             `/data/respiratory/${gridGeographicUnitSelector.value}/${
               gridDiseaseSelector.value
             }/extended?data_version=${metadata.data_version}&${parseInt(
-              Math.random() * 9999999999
-            )}`
+              Math.random() * 9999999999,
+            )}`,
           );
         } else {
           allExtendedData = await d3.json(
             `/data/respiratory/${mapGeographicUnitSelector.value}/${
               mapDiseaseSelector.value
             }/extended?data_version=${metadata.data_version}&${parseInt(
-              Math.random() * 9999999999
-            )}`
+              Math.random() * 9999999999,
+            )}`,
           );
         }
         var ttpData = {
@@ -492,7 +519,7 @@ function drawTooltip(
           panelType,
           grid,
           true,
-          []
+          [],
         );
       });
     });
@@ -522,7 +549,7 @@ function drawTooltip(
         panelType,
         grid,
         allDates,
-        extraSources
+        extraSources,
       );
     }
 
@@ -610,7 +637,7 @@ function drawTooltip(
   Array("historical", "projected").forEach((e_p) => {
     if (panelType == "rate") {
       data[e_p]["values"] = data[e_p]["values"].map((d) =>
-        isNaN(d) ? NaN : (d / featureData.population) * 1000
+        isNaN(d) ? NaN : (d / featureData.population) * 1000,
       );
     }
     countMax = d3.max([...data[e_p]["values"], countMax]);
@@ -619,7 +646,7 @@ function drawTooltip(
   extraSources.forEach((ds) => {
     if (panelType == "rate") {
       data["extra"][ds] = data["extra"][ds].map((d) =>
-        isNaN(d) ? NaN : (d / featureData.population) * 1000
+        isNaN(d) ? NaN : (d / featureData.population) * 1000,
       );
     }
     countMax = d3.max([...data["extra"][ds], countMax]);
@@ -667,14 +694,14 @@ function drawTooltip(
       population,
       outcomeVariable,
       panelType,
-      "historical"
+      "historical",
     );
     var percentDifferenceProjectedValues = getAllValuesFromFeature(
       featureData,
       population,
       outcomeVariable,
       panelType,
-      "projected"
+      "projected",
     );
     let pdMax = d3.max([
       ...percentDifferenceHistoricalValues,
@@ -750,6 +777,7 @@ function drawTooltip(
     let thisDataPointShape = event.target;
     let dataShapeBBox = thisDataPointShape.getBBox();
 
+    console.log(groupStartDate);
     let date = d3.timeDay.offset(
       groupStartDate,
       7 *
@@ -757,10 +785,11 @@ function drawTooltip(
           .select(thisDataPointShape.parentNode)
           .selectAll(".ttp-data-point")
           .nodes()
-          .indexOf(thisDataPointShape)
+          .indexOf(thisDataPointShape),
     );
+
     let dateStr = `${tooltipDateFormat(
-      d3.timeDay.offset(date, -6)
+      d3.timeDay.offset(date, -6),
     )} - ${tooltipDateFormat(date)}`;
 
     let value = d3.select(thisDataPointShape).datum();
@@ -818,18 +847,18 @@ function drawTooltip(
           .x((_, i) => xScale(historicalDatesArray[i]))
           .y0(panelType == "percentDifference" ? yScale2(0) : yScale(0))
           .y1((d) =>
-            panelType == "percentDifference" ? yScale2(d) : yScale(d)
+            panelType == "percentDifference" ? yScale2(d) : yScale(d),
           )
           .defined((d) => d || d == 0)(
           panelType == "percentDifference"
             ? percentDifferenceHistoricalValues
-            : data.historical.values
-        )
+            : data.historical.values,
+        ),
       )
       .attr("fill", populationColorMap[population]["historical"]);
   } else {
     var historicalBarWidth = Math.ceil(
-      (ttpGraphWidth * ttpHistoryWidthPercentage) / historicalDatesArray.length
+      (ttpGraphWidth * ttpHistoryWidthPercentage) / historicalDatesArray.length,
     );
 
     historicalGroup
@@ -838,7 +867,7 @@ function drawTooltip(
       .data(
         panelType == "percentDifference"
           ? percentDifferenceHistoricalValues
-          : data.historical.values
+          : data.historical.values,
       )
       .enter()
       .append("rect")
@@ -851,12 +880,12 @@ function drawTooltip(
           ? d > 0
             ? Math.max(yScale2(d), yScale2(500))
             : yScale2(0)
-          : yScale(d)
+          : yScale(d),
       )
       .attr("height", (d) =>
         panelType == "percentDifference"
           ? Math.abs(yScale2(0) - Math.max(yScale2(d), yScale2(500)))
-          : yScale(0) - yScale(d)
+          : yScale(0) - yScale(d),
       )
       .attr("width", historicalBarWidth)
       .attr("fill", populationColorMap[population]["historical"])
@@ -879,7 +908,7 @@ function drawTooltip(
     .attr("y", ttpMargins.top)
     .attr(
       "width",
-      xScaleForwardProjection.range()[1] - xScaleForwardProjection.range()[0]
+      xScaleForwardProjection.range()[1] - xScaleForwardProjection.range()[0],
     )
     .attr("height", ttpHeight - ttpMargins.bottom - ttpMargins.top);
 
@@ -888,20 +917,20 @@ function drawTooltip(
   var predictiveGroup = graphSVG.append("g").attr("class", "predictive-group");
 
   let lastHistoricalValueIndex = data.historical.values.findLastIndex(
-    (d) => !isNaN(parseFloat(d))
+    (d) => !isNaN(parseFloat(d)),
   );
   let projectedValues = data.projected.values;
   if (projectedValues.length) {
     if (
       dayjs(historicalDatesArray.at(lastHistoricalValueIndex)).isSame(
-        d3.timeDay.offset(data.projected.start_date, -7)
+        d3.timeDay.offset(data.projected.start_date, -7),
       )
     ) {
       // last historical date is week before projected start date
       projectedValues.splice(
         0,
         0,
-        data.historical.values[lastHistoricalValueIndex]
+        data.historical.values[lastHistoricalValueIndex],
       );
     } else {
       projectedValues.splice(0, 0, projectedValues[0]);
@@ -919,18 +948,18 @@ function drawTooltip(
           .area()
           .x((_, i2) =>
             xScale(
-              d3.timeDay.offset(data.projected.start_date, 7 * (i1 + i2 - 1))
-            )
+              d3.timeDay.offset(data.projected.start_date, 7 * (i1 + i2 - 1)),
+            ),
           )
           .y0(panelType == "percentDifference" ? yScale2(0) : yScale(0))
           .y1((d) =>
-            panelType == "percentDifference" ? yScale2(d) : yScale(d)
+            panelType == "percentDifference" ? yScale2(d) : yScale(d),
           )
           .defined((d) => d || d == 0)(
           panelType == "percentDifference"
             ? percentDifferenceProjectedValues.slice(i1, i1 + 2)
-            : projectedValues.slice(i1, i1 + 2)
-        )
+            : projectedValues.slice(i1, i1 + 2),
+        ),
       )
       .attr("fill", populationColorMap[population]["projected"])
       .on("mouseover", function (event, d) {
@@ -949,7 +978,7 @@ function drawTooltip(
       .data(
         panelType == "percentDifference"
           ? percentDifferenceProjectedValues
-          : data.projected.values
+          : data.projected.values,
       )
       .enter()
       .append("circle")
@@ -957,10 +986,10 @@ function drawTooltip(
       .attr("clip-path", `url(#${clipPathId})`)
       .attr("r", 3)
       .attr("cx", (_, i) =>
-        xScale(d3.timeDay.offset(data.projected.start_date, 7 * (i - 1)))
+        xScale(d3.timeDay.offset(data.projected.start_date, 7 * (i - 1))),
       )
       .attr("cy", (d) =>
-        panelType == "percentDifference" ? yScale2(d) : yScale(d)
+        panelType == "percentDifference" ? yScale2(d) : yScale(d),
       )
       .style("opacity", (d) => (isNaN(d) ? 0 : 1))
       .attr("stroke", populationColorMap[population]["projected"])
@@ -968,7 +997,7 @@ function drawTooltip(
         if (!isNaN(d)) {
           createDataPointTooltip(
             event,
-            d3.timeDay.offset(data.projected.start_date, -7)
+            d3.timeDay.offset(data.projected.start_date, -7),
           );
         }
       })
@@ -987,7 +1016,7 @@ function drawTooltip(
           .defined((d) => d || d == 0)
           .x((_, i) => xScale(historicalDatesArray[i]))
           .y((d, i) => yScale(d))
-          .curve(d3.curveMonotoneX)(data.historical.values)
+          .curve(d3.curveMonotoneX)(data.historical.values),
       )
       .attr("class", "historical-path-percent-diff-type")
       .attr("stroke", "#cccccc")
@@ -1003,7 +1032,7 @@ function drawTooltip(
           .defined((d) => d || d == 0)
           .x((_, i) => xScale(d3.timeDay.offset(predictionDates[i], -7)))
           .y((d, i) => yScale(d))
-          .curve(d3.curveMonotoneX)(data.projected.values)
+          .curve(d3.curveMonotoneX)(data.projected.values),
       )
       .attr("class", "projected-path-percent-diff-type")
       .attr("stroke", "#666666")
@@ -1023,7 +1052,7 @@ function drawTooltip(
           .x((_, i) => xScale(historicalDatesArray[i]))
           .y((d, i) => yScale(d))
           .defined((d) => d || d == 0)
-          .curve(d3.curveMonotoneX)(data.extra[ds])
+          .curve(d3.curveMonotoneX)(data.extra[ds]),
       )
       .attr("stroke", dataSourceColorMap[ds])
       .attr("fill", "none")
@@ -1040,8 +1069,8 @@ function drawTooltip(
         .tickFormat((d, i) =>
           xScaleHistorical.range()[1] - xScaleHistorical(d) > 2 * em
             ? d3.timeFormat("%b %Y")(d)
-            : ""
-        )
+            : "",
+        ),
     )
     .selectAll("text")
     .attr("class", "tooltip-label")
@@ -1056,7 +1085,7 @@ function drawTooltip(
         .axisBottom(xScaleForwardProjection)
         .tickValues([xScaleForwardProjection.domain()[0], ...predictionDates])
         .tickSize(4)
-        .tickFormat(d3.timeFormat("%d %b"))
+        .tickFormat(d3.timeFormat("%d %b")),
     )
     .selectAll("text")
     .attr("class", "tooltip-label")
@@ -1072,7 +1101,7 @@ function drawTooltip(
     .append("text")
     .attr(
       "transform",
-      `translate(${0.6 * em}, ${yScale(d3.mean(yScale.domain()))})rotate(-90)`
+      `translate(${0.6 * em}, ${yScale(d3.mean(yScale.domain()))})rotate(-90)`,
     )
     .attr("text-anchor", "middle")
     .attr("fill", "var(--sl-color-neutral-1000)")
@@ -1110,7 +1139,7 @@ function drawTooltip(
       .append("text")
       .attr(
         "transform",
-        `translate(${1.25 * em},${yScale(d3.mean(yScale.domain()))})rotate(-90)`
+        `translate(${1.25 * em},${yScale(d3.mean(yScale.domain()))})rotate(-90)`,
       )
       .attr("text-anchor", "middle")
       .style("fill", populationColorMap[population]["historical"])
@@ -1134,8 +1163,8 @@ function drawTooltip(
       .attr(
         "transform",
         `translate(${ttpWidth - 1 * em}, ${yScale(
-          d3.mean(yScale.domain())
-        )})rotate(-90)`
+          d3.mean(yScale.domain()),
+        )})rotate(-90)`,
       )
       .attr("text-anchor", "middle")
       .attr("fill", "var(--sl-color-neutral-1000)")
@@ -1173,7 +1202,7 @@ function drawStateHospitalizations(
   disease,
   panelType,
   stateSvg,
-  stateSubtitle
+  stateSubtitle,
 ) {
   var stateMargins = {
     top: 1 * em,
@@ -1189,7 +1218,7 @@ function drawStateHospitalizations(
     stateWidth,
     stateHeight,
     stateMargins,
-    diseaseDisplayNames
+    diseaseDisplayNames,
   ) {
     svg
       .select(".y-axis")
@@ -1197,7 +1226,7 @@ function drawStateHospitalizations(
       .attr("class", "state-hospitalizations-yaxis-title")
       .attr(
         "transform",
-        `translate(${1 * em},${d3.mean(stateYScale.range())})rotate(-90)`
+        `translate(${1 * em},${d3.mean(stateYScale.range())})rotate(-90)`,
       )
       .text(diseaseDisplayNames[disease]);
 
@@ -1206,7 +1235,7 @@ function drawStateHospitalizations(
       .append("g")
       .attr(
         "transform",
-        `translate(${stateMargins.left - stateMargins["axis-thickness"]},0)`
+        `translate(${stateMargins.left - stateMargins["axis-thickness"]},0)`,
       )
       .call(d3.axisLeft(stateYScale).ticks(5).tickSize(4))
       .selectAll("text")
@@ -1219,14 +1248,14 @@ function drawStateHospitalizations(
     stateWidth,
     stateHeight,
     stateMargins,
-    diseaseDisplayNames
+    diseaseDisplayNames,
   ) {
     svg
       .select(".x-axis")
       .call(
         d3
           .axisBottom(stateXScale)
-          .tickArguments([d3.timeMonth.every(1), d3.timeFormat("%b %Y")])
+          .tickArguments([d3.timeMonth.every(1), d3.timeFormat("%b %Y")]),
       )
       .attr("transform", `translate(0, ${stateHeight - stateMargins.bottom})`)
       .selectAll("text")
@@ -1240,7 +1269,7 @@ function drawStateHospitalizations(
     stateSubtitle,
     stateMargins,
     yAxisDisplayFunc,
-    xAxisDisplayFunc
+    xAxisDisplayFunc,
   );
 }
 
@@ -1248,7 +1277,7 @@ function drawLargeStateHospitalizations(
   disease,
   panelType,
   stateSvg,
-  stateSubtitle
+  stateSubtitle,
 ) {
   var stateMargins = {
     top: 0.5 * em,
@@ -1264,7 +1293,7 @@ function drawLargeStateHospitalizations(
     stateWidth,
     stateHeight,
     stateMargins,
-    diseaseDisplayNames
+    diseaseDisplayNames,
   ) {
     svg
       .select(".y-axis")
@@ -1272,7 +1301,7 @@ function drawLargeStateHospitalizations(
       .attr("id", "map-state-hospitalizations-large-yaxis-title")
       .attr(
         "transform",
-        `translate(${1 * em},${d3.mean(stateYScale.range())})rotate(-90)`
+        `translate(${1 * em},${d3.mean(stateYScale.range())})rotate(-90)`,
       )
       .attr("text-anchor", "middle")
       .text(diseaseDisplayNames[disease]);
@@ -1282,7 +1311,7 @@ function drawLargeStateHospitalizations(
       .append("g")
       .attr(
         "transform",
-        `translate(${stateMargins.left - stateMargins["axis-thickness"]},0)`
+        `translate(${stateMargins.left - stateMargins["axis-thickness"]},0)`,
       )
       .call(d3.axisLeft(stateYScale).ticks(5).tickSize(4));
 
@@ -1300,10 +1329,10 @@ function drawLargeStateHospitalizations(
     stateWidth,
     stateHeight,
     stateMargins,
-    diseaseDisplayNames
+    diseaseDisplayNames,
   ) {
     var allWeeks = [d3.timeDay.offset(startShortHistory, -7)].concat(
-      shortHistoryDates
+      shortHistoryDates,
     );
     var xAxis = svg.select(".x-axis");
     var svgMajorXAxis = xAxis
@@ -1313,7 +1342,7 @@ function drawLargeStateHospitalizations(
         d3
           .axisBottom(stateXScale)
           .tickValues(allWeeks.filter((d) => d.getDate() <= 7))
-          .tickFormat(d3.timeFormat(""))
+          .tickFormat(d3.timeFormat("")),
       )
       .attr("transform", `translate(0, ${stateHeight - stateMargins.bottom})`);
 
@@ -1331,7 +1360,7 @@ function drawLargeStateHospitalizations(
           "x",
           i < a.length - 1
             ? (stateXScale(a[i + 1].__data__) - stateXScale(d)) / 2
-            : (stateXScale.range()[1] - stateXScale(d)) / 2
+            : (stateXScale.range()[1] - stateXScale(d)) / 2,
         )
         .html(d3.timeFormat("%b")(d));
 
@@ -1343,7 +1372,7 @@ function drawLargeStateHospitalizations(
           "x",
           i < a.length - 1
             ? (stateXScale(a[i + 1].__data__) - stateXScale(d)) / 2
-            : (stateXScale.range()[1] - stateXScale(d)) / 2
+            : (stateXScale.range()[1] - stateXScale(d)) / 2,
         )
         .html(d3.timeFormat("%Y")(d));
     });
@@ -1354,7 +1383,7 @@ function drawLargeStateHospitalizations(
       .call(
         d3
           .axisBottom(stateXScale)
-          .tickArguments([d3.timeDay.every(7), d3.timeFormat("")])
+          .tickArguments([d3.timeDay.every(7), d3.timeFormat("")]),
       )
       .attr("transform", `translate(0, ${stateHeight - stateMargins.bottom})`);
   }
@@ -1365,7 +1394,7 @@ function drawLargeStateHospitalizations(
     stateSubtitle,
     stateMargins,
     yAxisDisplayFunc,
-    xAxisDisplayFunc
+    xAxisDisplayFunc,
   );
 }
 
@@ -1376,7 +1405,7 @@ async function drawStateBarChart(
   subtitleDOM,
   stateMargins,
   yAxisDisplayFunc,
-  xAxisDisplayFunc
+  xAxisDisplayFunc,
 ) {
   var diseaseDisplayNames = {
     covid_19: "COVID-19",
@@ -1398,7 +1427,7 @@ async function drawStateBarChart(
     stateData = await d3.json(
       `/data/respiratory/state/state-cdc?data_version=${
         metadata.data_version
-      }&${parseInt(Math.random() * 9999999999)}`
+      }&${parseInt(Math.random() * 9999999999)}`,
     );
     stateData = Object.entries(stateData[disease]).map((d) => {
       temp = { Date: parseDate(d[0]), count: d[1] };
@@ -1409,7 +1438,7 @@ async function drawStateBarChart(
     });
     let stateDates = stateData.map((d) => d.Date);
     subtitleDOM.innerHTML = `Data from ${d3.timeFormat("%b %d, %Y")(
-      d3.min(stateDates)
+      d3.min(stateDates),
     )} to ${d3.timeFormat("%b %d, %Y")(d3.max(stateDates))}`;
   } catch (error) {
     stateData = [{ Date: parseDate("2020-01-01"), count: 1 }];
@@ -1463,7 +1492,7 @@ async function drawStateBarChart(
       let tooltipDateFormat = d3.timeFormat("%b %d");
       let date = d["Date"];
       let dateStr = `${tooltipDateFormat(
-        d3.timeDay.offset(date, -6)
+        d3.timeDay.offset(date, -6),
       )} - ${tooltipDateFormat(date)}`;
       var countStr =
         panelType == "rate"
@@ -1513,7 +1542,7 @@ async function drawStateBarChart(
     stateWidth,
     stateHeight,
     stateMargins,
-    diseaseDisplayNames
+    diseaseDisplayNames,
   );
   xAxisDisplayFunc(
     svg,
@@ -1521,7 +1550,7 @@ async function drawStateBarChart(
     stateWidth,
     stateHeight,
     stateMargins,
-    diseaseDisplayNames
+    diseaseDisplayNames,
   );
 
   temp.remove();

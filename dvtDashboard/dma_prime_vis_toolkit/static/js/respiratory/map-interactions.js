@@ -34,6 +34,8 @@ export function showMapTooltip(dataObject) {
   var mapTooltipWidth = Math.max(500, width * 0.3);
   var mapTooltipHeight = mapTooltipWidth * 0.65;
 
+  console.log(dataObject)
+
   if (dataObject == null) {
     selectedItems.feature = undefined;
     popup.remove();
@@ -72,6 +74,7 @@ export function showMapTooltip(dataObject) {
   if (!(coordinates[0] && coordinates[1])) {
     coordinates = bounds.getCenter();
   }
+
   popup.setLngLat(coordinates)
     .setHTML(`<div id='map-tooltip-div' class='tooltip-div'>
             <div class="tooltip-header">
@@ -88,6 +91,7 @@ export function showMapTooltip(dataObject) {
   if (!popup.isOpen()) {
     popup.addTo(map);
   }
+
   popup.setMaxWidth(`${mapDiv.clientWidth}px`);
 
   var ttpDiv = d3
@@ -110,7 +114,7 @@ export function showMapTooltip(dataObject) {
     mapTypeSwitch.value,
     false,
     false,
-    []
+    [],
   );
 
   // Add expand icon button to map tooltip
@@ -128,17 +132,19 @@ export function showMapTooltip(dataObject) {
       .on("click", () => {
         d3.select(modelExplorationButtonTooltipLarge).on("click", () => {
           window.open(
-            `/respiratory-model-exploration?disease=${mapDiseaseSelector.value}&geographic-unit=${mapGeographicUnitSelector.value}&population=${mapPopulationSelector.value}&outcome-variable=${mapOutcomeVariableSelector.value}&location=${dataObject.properties.id}`
+            `/respiratory-model-exploration?disease=${mapDiseaseSelector.value}&geographic-unit=${mapGeographicUnitSelector.value}&population=${mapPopulationSelector.value}&outcome-variable=${mapOutcomeVariableSelector.value}&location=${dataObject.properties.id}`,
           );
         });
+
         var largeTtp = d3.select(tooltipLarge);
+
         tooltipLarge.show().then(async () => {
           var allExtendedData = await d3.json(
             `/data/respiratory/${mapGeographicUnitSelector.value}/${
               mapDiseaseSelector.value
             }/extended?data_version=${metadata.data_version}&${parseInt(
-              Math.random() * 9999999999
-            )}`
+              Math.random() * 9999999999,
+            )}`,
           );
           var ttpData = {
             id: dataObject.properties.id,
@@ -148,6 +154,8 @@ export function showMapTooltip(dataObject) {
             facility_type: dataObject.properties.facility_type,
             system: dataObject.properties.system,
           };
+
+          console.log(ttpData);
           drawTooltip(
             ttpData,
             largeTtp.select(".tooltip-outer-svg"),
@@ -158,7 +166,7 @@ export function showMapTooltip(dataObject) {
             mapTypeSwitch.value,
             false,
             true,
-            []
+            [],
           );
         });
       });
@@ -175,7 +183,7 @@ export function showMapTooltip(dataObject) {
       .style("cursor", "pointer")
       .on("click", () => {
         window.open(
-          `/respiratory-model-exploration?disease=${mapDiseaseSelector.value}&geographic-unit=${mapGeographicUnitSelector.value}&population=${mapPopulationSelector.value}&outcome-variable=${mapOutcomeVariableSelector.value}&location=${dataObject.properties.id}`
+          `/respiratory-model-exploration?disease=${mapDiseaseSelector.value}&geographic-unit=${mapGeographicUnitSelector.value}&population=${mapPopulationSelector.value}&outcome-variable=${mapOutcomeVariableSelector.value}&location=${dataObject.properties.id}`,
         );
       });
   }
@@ -215,13 +223,13 @@ mapTypeSwitch.addEventListener("sl-change", (event) => {
     d3.select("#map-legend-title").text(
       `Current Week's ${dataVarString} Rates by ${
         metadata.region_sizes[mapGeographicUnitSelector.value]
-      }`
+      }`,
     );
   } else {
     d3.select("#map-legend-title").text(
       `Current Week's ${dataVarString} by ${
         metadata.region_sizes[mapGeographicUnitSelector.value]
-      }`
+      }`,
     );
   }
 
@@ -229,7 +237,7 @@ mapTypeSwitch.addEventListener("sl-change", (event) => {
     mapDiseaseSelector.value,
     mapTypeSwitch.value,
     mapStateHospitalizationsSvg,
-    mapStateHospitalizationsSubtitle
+    mapStateHospitalizationsSubtitle,
   );
 
   // update tooltip
@@ -246,7 +254,7 @@ mapDiseaseSelector.addEventListener("sl-change", async (event) => {
     mapDiseaseSelector.value,
     mapTypeSwitch.value,
     mapStateHospitalizationsSvg,
-    mapStateHospitalizationsSubtitle
+    mapStateHospitalizationsSubtitle,
   );
   selectedItems.feature = undefined;
 
@@ -272,14 +280,14 @@ mapGeographicUnitSelector.addEventListener("sl-change", async (event) => {
     document.getElementById("filterInput").placeholder =
       mapGeographicUnit.charAt(0).toUpperCase() + mapGeographicUnit.slice(1);
 
-      console.log(document.getElementById("filterInput").placeholder)
+    console.log(document.getElementById("filterInput").placeholder);
   }
 
   if (mapGeographicUnitSelector.value == "facility") {
     // mapOptionsGeographicLabelsToggle.checked = true;
     hospitalIconsToggle.checked = false;
     selectedItems.icons = selectedItems.icons.filter(
-      (check) => check !== "hospital"
+      (check) => check !== "hospital",
     );
     d3.select(hospitalIconsToggle).attr("disabled", "");
   } else {
@@ -312,13 +320,13 @@ mapOutcomeVariableSelector.addEventListener("sl-change", (event) => {
     d3.select("#map-legend-title").text(
       `Current Week's ${dataVarString} Rates by ${
         metadata.region_sizes[mapGeographicUnitSelector.value]
-      }`
+      }`,
     );
   } else {
     d3.select("#map-legend-title").text(
       `Current Week's ${dataVarString} by ${
         metadata.region_sizes[mapGeographicUnitSelector.value]
-      }`
+      }`,
     );
   }
 
@@ -346,7 +354,7 @@ mapOptionsGeographicLabelsToggle.addEventListener("sl-change", () => {
 hospitalIconsToggle.addEventListener("sl-change", () => {
   // toggle hospital icons
   selectedItems.icons = selectedItems.icons.filter(
-    (check) => check !== "hospital"
+    (check) => check !== "hospital",
   );
   if (hospitalIconsToggle.checked) {
     selectedItems.icons.push("hospital");
@@ -357,7 +365,7 @@ hospitalIconsToggle.addEventListener("sl-change", () => {
 mobileClinicIconsToggle.addEventListener("sl-change", () => {
   // toggle mhc icons
   selectedItems.icons = selectedItems.icons.filter(
-    (check) => check !== "mobile_health_clinic"
+    (check) => check !== "mobile_health_clinic",
   );
   if (mobileClinicIconsToggle.checked) {
     selectedItems.icons.push("mobile_health_clinic");
@@ -368,7 +376,7 @@ mobileClinicIconsToggle.addEventListener("sl-change", () => {
 communityPartnerIconsToggle.addEventListener("sl-change", () => {
   // toggle community partner icons
   selectedItems.icons = selectedItems.icons.filter(
-    (check) => check !== "community_partner"
+    (check) => check !== "community_partner",
   );
   if (communityPartnerIconsToggle.checked) {
     selectedItems.icons.push("community_partner");
@@ -382,7 +390,7 @@ mapStateHospitalizationsResizer.addEventListener("sl-resize", () => {
     mapDiseaseSelector.value,
     mapTypeSwitch.value,
     mapStateHospitalizationsSvg,
-    mapStateHospitalizationsSubtitle
+    mapStateHospitalizationsSubtitle,
   );
 });
 
@@ -395,6 +403,6 @@ mapStateHospitalizationsLargeResizer.addEventListener("sl-resize", () => {
     mapDiseaseSelector.value,
     mapTypeSwitch.value,
     mapStateHospitalizationsLargeSvg,
-    mapStateHospitalizationsLargeSubtitle
+    mapStateHospitalizationsLargeSubtitle,
   );
 });
