@@ -1,6 +1,7 @@
 controlDependencyTest();
 
 export function controlDependencyTest() {
+  // console.log("ddd");
   const disabledRegions = ["county", "zcta", "facility"];
 
   let selectedPopulation = document.getElementById(
@@ -8,13 +9,20 @@ export function controlDependencyTest() {
   ).value;
 
   const selectEl = document.getElementById("map-geographic-unit-selector");
+  const outcomeSelectEl = document.getElementById(
+    "map-outcome-variable-selector",
+  );
+  const diseaseSelectEl = document.getElementById("map-disease-selector");
 
+  // test population dependency
   if (selectedPopulation === "general_population") {
+    // 1. test population - region dependency
     selectEl.querySelectorAll("sl-option").forEach((option) => {
-      if (disabledRegions.includes(option.value)) {
-        // option.disabled = true;
-        // option.attributes["visibility"] = "hidden";
-        option.style.display = "none"; 
+      if (
+        disabledRegions.includes(option.value) &&
+        option.style.display != "none"
+      ) {
+        option.style.display = "none";
 
         if (selectEl.value === option.value) {
           selectEl.value = "region";
@@ -24,13 +32,46 @@ export function controlDependencyTest() {
         }
       }
     });
+
+    // 2. test population - outcome dependency
+    outcomeSelectEl.querySelectorAll("sl-option").forEach((option) => {
+      if (
+        option.value == "all_hospitalizations" &&
+        option.style.display != "none"
+      ) {
+        option.style.display = "none";
+        outcomeSelectEl.value = "inpatient_hospitalizations";
+        outcomeSelectEl.dispatchEvent(
+          new CustomEvent("sl-change", { bubbles: true }),
+        );
+      }
+    });
+
+    // 3. test population - disease dependency
+    diseaseSelectEl.querySelectorAll("sl-option").forEach((option) => {
+      console.log(option.value);
+      if (
+        "respiratory_diseases" == option.value &&
+        option.style.display != "none"
+      ) {
+        option.style.display = "none";
+        diseaseSelectEl.value = "influenza";
+        diseaseSelectEl.dispatchEvent(
+          new CustomEvent("sl-change", { bubbles: true }),
+        );
+      }
+    });
   } else {
     selectEl.querySelectorAll("sl-option").forEach((option) => {
-      if (disabledRegions.includes(option.value)) {
-        // option.disabled = false;
-        // option.attributes["visibility"] = "visible";
-        option.style.display = ""; 
-      }
+      option.style.display = "";
+    });
+
+    outcomeSelectEl.querySelectorAll("sl-option").forEach((option) => {
+      option.style.display = "";
+    });
+
+    diseaseSelectEl.querySelectorAll("sl-option").forEach((option) => {
+      option.style.display = "";
     });
   }
 }
