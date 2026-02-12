@@ -950,10 +950,47 @@ function drawTooltip(
       projectedValues.splice(0, 0, projectedValues[0]);
     }
 
+    let areaPathForPrediction =predictiveGroup
+      .selectAll("path")
+      .data(projectedValues.slice(1))
+      .enter()
+      .append("path")
+      .attr("class", "ttp-data-point")
+      .attr("clip-path", `url(#${clipPathId})`)
+      .attr("d", (_, i1) =>
+        d3
+          .area()
+          .x((_, i2) =>
+            xScale(
+              d3.timeDay.offset(data.projected.start_date, 7 * (i1 + i2 - 1)),
+            ),
+          )
+          .y0(panelType == "percentDifference" ? yScale2(0) : yScale(0))
+          .y1((d) =>
+            panelType == "percentDifference" ? yScale2(d) : yScale(d),
+          )
+          .defined((d) => d || d == 0)(
+          panelType == "percentDifference"
+            ? percentDifferenceProjectedValues.slice(i1, i1 + 2)
+            : projectedValues.slice(i1, i1 + 2),
+        ),
+      )
+      .attr("fill", populationColorMap[population]["projected"])
+      .on("mouseover", function (event, d) {
+        if (!isNaN(d)) {
+          createDataPointTooltip(event, data.projected.start_date);
+        }
+      })
+      .on("mouseout", function () {
+        dataPointTTP.html("");
+      });
+
     if (
+      data.projected.uncertainty_range &&
       data.projected.uncertainty_range.percentile25 != undefined &&
       data.projected.uncertainty_range.percentile25.length > 0
     ) {
+      areaPathForPrediction.remove()
       predictiveGroup
         .selectAll("path")
         .data(projectedValues.slice(1)) // one segment per consecutive pair
@@ -1060,41 +1097,6 @@ function drawTooltip(
         .attr("d", band95) // ✅ generator를 “실행”시키는 형태
         .attr("fill", populationColorMap[population]["projected"])
         .attr("opacity", 0.2);
-    } else {
-      predictiveGroup
-        .selectAll("path")
-        .data(projectedValues.slice(1))
-        .enter()
-        .append("path")
-        .attr("class", "ttp-data-point")
-        .attr("clip-path", `url(#${clipPathId})`)
-        .attr("d", (_, i1) =>
-          d3
-            .area()
-            .x((_, i2) =>
-              xScale(
-                d3.timeDay.offset(data.projected.start_date, 7 * (i1 + i2 - 1)),
-              ),
-            )
-            .y0(panelType == "percentDifference" ? yScale2(0) : yScale(0))
-            .y1((d) =>
-              panelType == "percentDifference" ? yScale2(d) : yScale(d),
-            )
-            .defined((d) => d || d == 0)(
-            panelType == "percentDifference"
-              ? percentDifferenceProjectedValues.slice(i1, i1 + 2)
-              : projectedValues.slice(i1, i1 + 2),
-          ),
-        )
-        .attr("fill", populationColorMap[population]["projected"])
-        .on("mouseover", function (event, d) {
-          if (!isNaN(d)) {
-            createDataPointTooltip(event, data.projected.start_date);
-          }
-        })
-        .on("mouseout", function () {
-          dataPointTTP.html("");
-        });
     }
 
     // // marker for each datapoint on prediction line
