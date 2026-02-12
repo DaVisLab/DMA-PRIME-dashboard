@@ -34,7 +34,10 @@ export function showMapTooltip(dataObject) {
   var mapTooltipWidth = Math.max(500, width * 0.3);
   var mapTooltipHeight = mapTooltipWidth * 0.65;
 
-  console.log(dataObject)
+  // console.log(dataObject)
+
+  console.log(width);
+  console.log(mapTooltipWidth);
 
   if (dataObject == null) {
     selectedItems.feature = undefined;
@@ -84,7 +87,10 @@ export function showMapTooltip(dataObject) {
             <svg id="map-tooltip-svg" class="tooltip-outer-svg"></svg>
             <div class="tooltip-footer">
                 <div class="tooltip-legend"></div>
-                <div class="tooltip-options"></div>
+                <div class="tooltip-options">
+                  // <div class="tooltip-expand" style="width:fit-content"></div>
+                  // <div class="tooltip-add-extra" style="width:fit-content; display: flex; flex-direction: column"></div>
+                </div>
             </div>
             </div>`);
 
@@ -116,6 +122,17 @@ export function showMapTooltip(dataObject) {
     false,
     [],
   );
+
+  requestAnimationFrame(() => {
+    ttpSVG.style(
+      "transform",
+      `translate(${
+        (d3.select(".tooltip-options").node().clientWidth -
+          ttpSVG.node().getBoundingClientRect().width) /
+        2
+      }px, 0px)`,
+    );
+  });
 
   // Add expand icon button to map tooltip
   var popupContent = d3.select("div.maplibregl-popup-content");
@@ -187,6 +204,7 @@ export function showMapTooltip(dataObject) {
         );
       });
   }
+
   dataVersion++;
   redraw();
 }

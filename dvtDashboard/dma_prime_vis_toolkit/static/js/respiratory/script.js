@@ -261,6 +261,8 @@ function drawTooltip(
     geographicUnit = mapGeographicUnitSelector.value;
   }
 
+  // console.log(shortHistoryDates);
+
   var historicalDatesArray = allDates ? allHistoricalDates : shortHistoryDates;
   // console.log(historicalDatesArray);
   var featureData = JSON.parse(JSON.stringify(d));
@@ -270,25 +272,36 @@ function drawTooltip(
 
   // if length of data item and historicalDatesArray don't match, need to add null values front
 
-  // console.log(data);
+  // if (data.historical.values.length < historicalDatesArray.length) {
+  //   historicalDatesArray = historicalDatesArray.slice(
+  //     historicalDatesArray.length - data.historical.values.length,
+  //   );
+  // }
+
+  // console.log(historicalDatesArray);
+
+  data.historical.start_date = d3.timeDay.offset(
+    parseDate(data.projected.start_date),
+    -7 * data.historical.values.length,
+  );
 
   data.historical.values = validateFeatureDataLength(
     data.historical.values,
     historicalDatesArray.length,
   );
 
-  if (data.extra.health_system != undefined) {
-    data.extra.health_system = validateFeatureDataLength(
-      data.extra.health_system,
-      historicalDatesArray.length,
-    );
-  }
-  if (data.extra.RFA != undefined) {
-    data.extra.RFA = validateFeatureDataLength(
-      data.extra.RFA,
-      historicalDatesArray.length,
-    );
-  }
+  // if (data.extra.health_system != undefined) {
+  //   data.extra.health_system = validateFeatureDataLength(
+  //     data.extra.health_system,
+  //     historicalDatesArray.length,
+  //   );
+  // }
+  // if (data.extra.RFA != undefined) {
+  //   data.extra.RFA = validateFeatureDataLength(
+  //     data.extra.RFA,
+  //     historicalDatesArray.length,
+  //   );
+  // }
 
   // console.log(data);
 
@@ -377,6 +390,9 @@ function drawTooltip(
   // add buttons and legends
   var ttpLegend = footer.select(".tooltip-legend").html("");
   var ttpOptions = footer.select(".tooltip-options").html("");
+  // footer.select(".tooltip-options").select(".tooltip-expand").html("");
+  // footer.select(".tooltip-options").select(".tooltip-add-extra").html("");
+  // var ttpOptions = footer.select(".tooltip-options")
 
   var ttpLegendGroup = ttpLegend
     .append("div")
@@ -412,11 +428,13 @@ function drawTooltip(
           if (panelType == "percentDifference") {
             text = `Percent Change of ${text}`;
           } else {
-            console.log(outcomeVariable);
-            console.log(diseaseVariableString);
+            // console.log(outcomeVariable);
+            // console.log(diseaseVariableString);
             if (outcomeVariable == "inpatient_hospitalizations") {
               if (
                 diseaseVariableString == "COVID-19" ||
+                diseaseVariableString == "Respiratory Syncytial Virus (RSV)" ||
+                diseaseVariableString == "Influenza (Flu)" ||
                 diseaseVariableString ==
                   "Respiratory Diseases (COVID-19, Flu, RSV)"
               ) {
@@ -486,6 +504,7 @@ function drawTooltip(
   if (!allDates) {
     // add button to expand to large ttp
     var expandPopupButton = ttpOptions
+      // .select(".tooltip-expand")
       .append("sl-button")
       .attr("size", "small")
       .attr("variant", "default")
@@ -493,6 +512,7 @@ function drawTooltip(
 
     expandPopupButton.on("click", () => {
       var largeTtp = d3.select(tooltipLarge);
+
       tooltipLarge.show().then(async () => {
         var allExtendedData;
         if (grid) {
@@ -601,6 +621,7 @@ function drawTooltip(
         }
 
         var button = ttpOptions
+        // .select(".tooltip-add-extra")
           .append("sl-button")
           .html(buttonText)
           .attr("size", "small");
@@ -629,7 +650,10 @@ function drawTooltip(
           icon.style("color", "var(--sl-color-gray-500)");
         }
       });
+
   }
+
+  console.log(d3.select(".tooltip-options").node().clientWidth)
 
   // Reset svg and get it ready for new viz
   ttpSVG.node().innerHTML = "";
@@ -746,10 +770,12 @@ function drawTooltip(
   }
 
   var xScaleHistorical = d3.scaleTime();
+
   if (allDates) {
     xScaleHistorical
       .domain([
-        d3.timeDay.offset(firstDate, -7),
+        // d3.timeDay.offset(firstDate, -7),
+        d3.timeDay.offset(historicalDatesArray[0], -7),
         allHistoricalDates[expectedAllHistoricalDataPoints - 1],
       ])
       .range([
@@ -759,7 +785,8 @@ function drawTooltip(
   } else {
     xScaleHistorical
       .domain([
-        d3.timeDay.offset(startShortHistory, -7),
+        // d3.timeDay.offset(startShortHistory, -7),
+        d3.timeDay.offset(historicalDatesArray[0], -7),
         shortHistoryDates[expectedShortHistoryDataPoints - 1],
       ])
       .range([
@@ -834,11 +861,13 @@ function drawTooltip(
     var dy = 1 * em;
 
     dataPointTTP.append("text").text(dateStr).attr("x", dx).attr("y", dy);
+
     dataPointTTP
       .append("text")
       .text(`${valueTypeStr}: ${valueStr}`)
       .attr("x", dx)
       .attr("y", dy + 0.75 * em);
+
     dataPointTTP
       .append("line")
       .attr("stroke", "black")
@@ -950,7 +979,7 @@ function drawTooltip(
       projectedValues.splice(0, 0, projectedValues[0]);
     }
 
-    let areaPathForPrediction =predictiveGroup
+    let areaPathForPrediction = predictiveGroup
       .selectAll("path")
       .data(projectedValues.slice(1))
       .enter()
@@ -990,7 +1019,7 @@ function drawTooltip(
       data.projected.uncertainty_range.percentile25 != undefined &&
       data.projected.uncertainty_range.percentile25.length > 0
     ) {
-      areaPathForPrediction.remove()
+      areaPathForPrediction.remove();
       predictiveGroup
         .selectAll("path")
         .data(projectedValues.slice(1)) // one segment per consecutive pair
@@ -1194,11 +1223,20 @@ function drawTooltip(
       d3
         .axisBottom(xScaleHistorical)
         .tickSize(4)
-        .tickFormat((d, i) =>
-          xScaleHistorical.range()[1] - xScaleHistorical(d) > 2 * em
+        .tickFormat((d, i) => {
+          // if (i > 0) {
+          //   if (
+          //     historicalDatesArray[i].getMonth() ==
+          //     historicalDatesArray[i - 1].getMonth()
+          //   ) {
+          //     return "";
+          //   }
+          // }
+
+          return xScaleHistorical.range()[1] - xScaleHistorical(d) > 2 * em
             ? d3.timeFormat("%b %Y")(d)
-            : "",
-        ),
+            : "";
+        }),
     )
     .selectAll("text")
     .attr("class", "tooltip-label")
@@ -1225,6 +1263,7 @@ function drawTooltip(
     .selectAll("path, line")
     .attr("stroke", "var(--sl-color-neutral-1000)");
   // display y-axis on the left
+
   const yAxisTitle = yAxis
     .append("text")
     .attr(
@@ -1580,6 +1619,7 @@ async function drawStateBarChart(
     .text(d3.format(".2r")(maxVal))
     .attr("x", 0)
     .attr("y", 0);
+
   stateMargins.left +=
     Math.max(20, temp.node().getBBox().width) + stateMargins["axis-thickness"];
 

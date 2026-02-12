@@ -1,5 +1,6 @@
 
 import { populationColorMap, unknownColor, getFeatureValue, getAllValuesFromFeature, getAllFeaturesValue, drawTooltip, drawStateHospitalizations } from "/static/js/respiratory/script.js";
+import { controlDependencyTestOnGridView } from "./controls.js";
 export { updateGrid, sortGridItems, filterGridItems, setupGridTooltip,
     updateGridOutcomeVariableOptions, updateGridPopulationOptions, updateGridGeographicUnitOptions
  }
@@ -183,6 +184,7 @@ async function updateData() {
 }
 
 async function updateGrid(fetchData = true) {
+    controlDependencyTestOnGridView();
     // idk
     if (fetchData == true) {
         await updateData()

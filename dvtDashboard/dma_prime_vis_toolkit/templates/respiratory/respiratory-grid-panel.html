@@ -1,198 +1,296 @@
-{% set min_width = "350px" %}
-{% extends "subtemplates/panel.html" %}
-
-{% block options %}
+{% set min_width = "350px" %} {% extends "subtemplates/panel.html" %} {% block
+options %}
 <div id="grid-options" class="sidebar-container">
+  <sl-button pill id="grid-close-ttps-button" class="center-self" size="small"
+    >Close All</sl-button
+  >
+  <sl-divider class="options-divider"></sl-divider>
+  <!-- count vs rate switch -->
+  <sl-radio-group
+    value="count"
+    id="grid-type-switch"
+    class="center-self"
+    size="small"
+  >
+    <sl-tooltip content="Count of hospitalizations">
+      <sl-radio-button pill value="count">Count</sl-radio-button>
+    </sl-tooltip>
+    <sl-tooltip content="Hospitalizations per 1000 people">
+      <sl-radio-button pill value="rate">Rate</sl-radio-button>
+    </sl-tooltip>
+    <sl-tooltip content="Percent change from last week">
+      <sl-radio-button pill value="percentDifference"
+        >Percent Change</sl-radio-button
+      >
+    </sl-tooltip>
+  </sl-radio-group>
 
-    <sl-button pill id="grid-close-ttps-button" class="center-self" size="small">Close All</sl-button>
-    <sl-divider class="options-divider"></sl-divider>
-    <!-- count vs rate switch -->
-    <sl-radio-group value="count" id="grid-type-switch" class="center-self" size="small">
-        <sl-tooltip content="Count of hospitalizations">
-            <sl-radio-button pill value="count">Count</sl-radio-button>
-        </sl-tooltip>
-        <sl-tooltip content="Hospitalizations per 1000 people">
-            <sl-radio-button pill value="rate">Rate</sl-radio-button>
-        </sl-tooltip>
-        <sl-tooltip content="Percent change from last week">
-            <sl-radio-button pill value="percentDifference">Percent Change</sl-radio-button>
-        </sl-tooltip>
-    </sl-radio-group>
+  <!-- disease selector -->
+  <sl-select
+    value="influenza"
+    id="grid-disease-selector"
+    class="fill-width grid-option"
+    size="small"
+  >
+    <p slot="label">Select a disease or group of diseases</p>
+    {% for disease, name in metadata['diseases'].items() %}
+    <sl-option value="{{ disease }}" class="grid-disease-option"
+      >{{ name }}</sl-option
+    >
+    {% endfor %}
+  </sl-select>
 
-    <!-- disease selector -->
-    <sl-select value="respiratory_diseases" id="grid-disease-selector" class="fill-width grid-option" size="small" >
-        <p slot="label">Select a disease or group of diseases</p>
-        {% for disease, name in metadata['diseases'].items() %}
-        <sl-option value="{{ disease }}" class="grid-disease-option">{{ name }}</sl-option>
-        {% endfor %}
-    </sl-select>
+  <!-- region selector -->
+  <sl-select
+    value="state"
+    id="grid-geographic-unit-selector"
+    class="fill-width grid-option"
+    size="small"
+  >
+    <p slot="label">Geographic unit</p>
+    {% for region in metadata['available_models']['respiratory_diseases'].keys()
+    %}
+    <sl-option class="grid-geographic-unit-option" value="{{ region }}"
+      >{{ metadata['region_sizes'][region] }}</sl-option
+    >
+    {% endfor %}
+  </sl-select>
 
-    <!-- region selector -->
-    <sl-select value="county" id="grid-geographic-unit-selector" class="fill-width grid-option" size="small" >
-        <p slot="label">Geographic unit</p>
-        {% for region in metadata['available_models']['respiratory_diseases'].keys() %}
-        <sl-option class="grid-geographic-unit-option" value="{{ region }}">{{ metadata['region_sizes'][region]
-            }}</sl-option>
-        {% endfor %}
-    </sl-select>
+  <!-- population -->
+  <sl-select
+    value="{{ metadata['available_models']['respiratory_diseases']['county'] | list | first }}"
+    id="grid-population-selector"
+    class="fill-width grid-option"
+    size="small"
+  >
+    <p slot="label">Select population</p>
+    {% for population in
+    metadata['available_models']['respiratory_diseases']['county'].keys() %}
+    <sl-tooltip
+      class="grid-population-tooltip"
+      content="{{ metadata['populations_tooltips'][population] }}"
+      trigger="hover"
+      hoist
+    >
+      <sl-option class="grid-population-option" value="{{ population }}"
+        >{{ metadata['populations'][population] }}</sl-option
+      >
+    </sl-tooltip>
+    {% endfor %}
+  </sl-select>
 
-    <!-- population -->
-    <sl-select value="{{ metadata['available_models']['respiratory_diseases']['county'] | list | first }}" id="grid-population-selector" class="fill-width grid-option" size="small" >
-        <p slot="label">Select population</p>
-        {% for population in metadata['available_models']['respiratory_diseases']['county'].keys() %}
-        <sl-tooltip class="grid-population-tooltip" content="{{ metadata['populations_tooltips'][population] }}"
-            trigger="hover" hoist>
-            <sl-option class="grid-population-option" value="{{ population }}">{{ metadata['populations'][population]
-                }}</sl-option>
-        </sl-tooltip>
-        {% endfor %}
-    </sl-select>
+  <!-- outcome variable -->
+  <!-- <sl-select value="{{ metadata['available_models']['respiratory_diseases']['county'].values() | first | first }}" id="grid-outcome-variable-selector" class="fill-width grid-option" size="small" > -->
+  <sl-select
+    value="inpatient_hospitalizations"
+    id="grid-outcome-variable-selector"
+    class="fill-width grid-option"
+    size="small"
+  >
+    <p slot="label">Select outcome variable</p>
+    {% for outcome in
+    metadata['available_models']['respiratory_diseases']['county'].values() |
+    first %}
+    <sl-tooltip
+      class="grid-outcome-tooltip"
+      content="{{ metadata['outcome_variables_tooltips'][outcome] }}"
+      trigger="hover"
+      hoist
+    >
+      <sl-option class="grid-outcome-option" value="{{ outcome }}"
+        >{{ metadata['outcome_variables'][outcome] }}</sl-option
+      >
+    </sl-tooltip>
+    {% endfor %}
+  </sl-select>
 
-    <!-- outcome variable -->
-    <sl-select value="{{ metadata['available_models']['respiratory_diseases']['county'].values() | first | first }}" id="grid-outcome-variable-selector" class="fill-width grid-option" size="small" >
-        <p slot="label">Select outcome variable</p>
-        {% for outcome in metadata['available_models']['respiratory_diseases']['county'].values() | first %}
-        <sl-tooltip class="grid-outcome-tooltip" content="{{ metadata['outcome_variables_tooltips'][outcome] }}"
-            trigger="hover" hoist>
-            <sl-option class="grid-outcome-option" value="{{ outcome }}">{{ metadata['outcome_variables'][outcome]
-                }}</sl-option>
-        </sl-tooltip>
-        {% endfor %}
-    </sl-select>
+  <!-- grid item sort selection -->
+  <sl-select
+    value="alphabetical-low"
+    id="grid-sort"
+    class="fill-width"
+    size="small"
+  >
+    <p slot="label">Sort Locations</p>
+    <sl-option value="value-high">Value (count or rate) High-Low</sl-option>
+    <sl-option value="value-low">Value (count or rate) Low-High</sl-option>
+    <sl-option value="alphabetical-low">Alphanumerical A-Z-0-9</sl-option>
+    <sl-option value="alphabetical-high">Alphanumerical 9-0-Z-A </sl-option>
+  </sl-select>
 
-    <!-- grid item sort selection -->
-    <sl-select value="alphabetical-low" id="grid-sort" class="fill-width" size="small">
-        <p slot="label">Sort Locations</p>
-        <sl-option value="value-high">Value (count or rate) High-Low</sl-option>
-        <sl-option value="value-low">Value (count or rate) Low-High</sl-option>
-        <sl-option value="alphabetical-low">Alphanumerical A-Z-0-9</sl-option>
-        <sl-option value="alphabetical-high">Alphanumerical 9-0-Z-A </sl-option>
-    </sl-select> 
+  <!-- grid item filtration (text) -->
+  <sl-input id="grid-text-filter" clearable size="small">
+    <p slot="label">Filter by ZCTA or County</p>
+  </sl-input>
 
-    <!-- grid item filtration (text) -->
-    <sl-input id="grid-text-filter" clearable size="small">
-        <p slot="label">Filter by ZCTA or County</p>
-    </sl-input>
+  <!-- imputation inclusion checkbox -->
+  <sl-checkbox id="grid-include-imputations" checked
+    >Include imputated data</sl-checkbox
+  >
 
-    <!-- imputation inclusion checkbox -->
-    <sl-checkbox id="grid-include-imputations" checked>Include imputated data</sl-checkbox>
-
-    <div id="grid-info">
-        <p id="grid-summary" class="panel-summary center-self"></p>
-        <div id="grid-legend">
-            <svg id="grid-main-legend">
-                <line x1=".5em" x2="3.5em" y1="1em" y2="1em"></line>
-                <text x="4em" y="1.5em">Count</text>
-            </svg>
-            <svg id="grid-secondary-legend" style="display:none">
-                <line x1=".5em" x2="3.5em" y1="1em" y2="1em"></line>
-                <text x="4em" y="1.5em">Count</text>
-            </svg>
-        </div>
+  <div id="grid-info">
+    <p id="grid-summary" class="panel-summary center-self"></p>
+    <div id="grid-legend">
+      <svg id="grid-main-legend">
+        <line x1=".5em" x2="3.5em" y1="1em" y2="1em"></line>
+        <text x="4em" y="1.5em">Count</text>
+      </svg>
+      <svg id="grid-secondary-legend" style="display: none">
+        <line x1=".5em" x2="3.5em" y1="1em" y2="1em"></line>
+        <text x="4em" y="1.5em">Count</text>
+      </svg>
     </div>
+  </div>
 </div>
 
 <div id="grid-state-hospitalizations" class="state-hospitalizations">
-    <p id="grid-state-hospitalizations-title" class="state-hospitalizations-title">CDC-Reported State
-        Hospitalizations</p>
-    <p id="grid-state-hospitalizations-subtitle" class="state-hospitalizations-subtitle">N/A</p>
-    <sl-resize-observer id="grid-state-hospitalizations-resizer">
-        <svg id="grid-state-hospitalizations-svg" class="state-hospitalizations-svg"></svg>
-    </sl-resize-observer>
+  <p
+    id="grid-state-hospitalizations-title"
+    class="state-hospitalizations-title"
+  >
+    CDC-Reported State Hospitalizations
+  </p>
+  <p
+    id="grid-state-hospitalizations-subtitle"
+    class="state-hospitalizations-subtitle"
+  >
+    N/A
+  </p>
+  <sl-resize-observer id="grid-state-hospitalizations-resizer">
+    <svg
+      id="grid-state-hospitalizations-svg"
+      class="state-hospitalizations-svg"
+    ></svg>
+  </sl-resize-observer>
 </div>
-<sl-dialog id="grid-state-hospitalizations-large" class="dialog-width state-hospitalizations">
-    <div slot="label">
-        <p id="grid-state-hospitalizations-large-title">CDC-Reported State Hospitalizations</p>
-        <p id="grid-state-hospitalizations-large-subtitle">N/A</p>
-    </div>
-    <sl-resize-observer id="grid-state-hospitalizations-large-resizer">
-        <svg id="grid-state-hospitalizations-large-svg" class="state-hospitalizations-large-svg"></svg>
-    </sl-resize-observer>
+<sl-dialog
+  id="grid-state-hospitalizations-large"
+  class="dialog-width state-hospitalizations"
+>
+  <div slot="label">
+    <p id="grid-state-hospitalizations-large-title">
+      CDC-Reported State Hospitalizations
+    </p>
+    <p id="grid-state-hospitalizations-large-subtitle">N/A</p>
+  </div>
+  <sl-resize-observer id="grid-state-hospitalizations-large-resizer">
+    <svg
+      id="grid-state-hospitalizations-large-svg"
+      class="state-hospitalizations-large-svg"
+    ></svg>
+  </sl-resize-observer>
 </sl-dialog>
 
-{% endblock %}
-
-{% block contents %}
+{% endblock %} {% block contents %}
 <sl-resize-observer id="grid-container-resizer">
-    <div id="grid-container"></div>
+  <div id="grid-container"></div>
 </sl-resize-observer>
 
-
 <div id="grid-alert-container">
-    <sl-alert id="grid-mixed-forecast-this-week-alert" variant="warning" class="grid-alert" closable>
-        <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
-        <strong>Partial forecast submissions available for this week</strong><br />
-        Only locations with this week's forecasts are colored.
-    </sl-alert>
+  <sl-alert
+    id="grid-mixed-forecast-this-week-alert"
+    variant="warning"
+    class="grid-alert"
+    closable
+  >
+    <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+    <strong>Partial forecast submissions available for this week</strong><br />
+    Only locations with this week's forecasts are colored.
+  </sl-alert>
 
-    <sl-alert id="grid-no-forecast-this-week-alert" variant="warning" class="grid-alert" closable>
-        <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
-        <strong>No forecasts submitted for this week</strong><br />
-    </sl-alert>
+  <sl-alert
+    id="grid-no-forecast-this-week-alert"
+    variant="warning"
+    class="grid-alert"
+    closable
+  >
+    <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+    <strong>No forecasts submitted for this week</strong><br />
+  </sl-alert>
 
-    <sl-alert id="grid-no-forecast-alert" variant="warning" class="grid-alert">
-        <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
-        <strong>No forecast submissions available</strong><br />
-    </sl-alert>
+  <sl-alert id="grid-no-forecast-alert" variant="warning" class="grid-alert">
+    <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+    <strong>No forecast submissions available</strong><br />
+  </sl-alert>
 </div>
 
-{% endblock %}
-
-{% block scripts %}
+{% endblock %} {% block scripts %}
 
 <!-- 3) Your initialization + controls (unchanged) -->
 <script>
+  // grid controls
+  gridCloseTtpsButton = document.getElementById("grid-close-ttps-button");
+  gridTypeSwitch = document.getElementById("grid-type-switch");
+  gridDiseaseSelector = document.getElementById("grid-disease-selector");
+  gridGeographicUnitSelector = document.getElementById(
+    "grid-geographic-unit-selector",
+  );
+  gridPopulationSelector = document.getElementById("grid-population-selector");
+  gridOutcomeVariableSelector = document.getElementById(
+    "grid-outcome-variable-selector",
+  );
+  gridIncludeImputations = document.getElementById("grid-include-imputations");
 
-    // grid controls
-    gridCloseTtpsButton = document.getElementById("grid-close-ttps-button")
-    gridTypeSwitch = document.getElementById("grid-type-switch");
-    gridDiseaseSelector = document.getElementById("grid-disease-selector");
-    gridGeographicUnitSelector = document.getElementById("grid-geographic-unit-selector");
-    gridPopulationSelector = document.getElementById("grid-population-selector")
-    gridOutcomeVariableSelector = document.getElementById("grid-outcome-variable-selector")
-    gridIncludeImputations = document.getElementById("grid-include-imputations");
+  var gridSort = document.getElementById("grid-sort");
+  var gridTextFilter = document.getElementById("grid-text-filter");
 
-    var gridSort = document.getElementById("grid-sort")
-    var gridTextFilter = document.getElementById("grid-text-filter")
+  // summary elements
+  var gridSummary = document.getElementById("grid-summary");
+  var gridMainLegend = document.getElementById("grid-main-legend");
+  var gridSecondaryLegend = document.getElementById("grid-secondary-legend");
 
-    // summary elements
-    var gridSummary = document.getElementById("grid-summary")
-    var gridMainLegend = document.getElementById("grid-main-legend")
-    var gridSecondaryLegend = document.getElementById("grid-secondary-legend")
+  // containing elements
+  gridContent = document.getElementById("grid-content");
+  gridContainer = document.getElementById("grid-container");
+  gridContainerResizer = document.getElementById("grid-container-resizer");
 
-    // containing elements
-    gridContent = document.getElementById("grid-content")
-    gridContainer = document.getElementById("grid-container")
-    gridContainerResizer = document.getElementById("grid-container-resizer")
+  // State–level chart elements
+  gridStateHospitalizationsSubtitle = document.getElementById(
+    "grid-state-hospitalizations-subtitle",
+  );
+  gridStateHospitalizationsResizer = document.getElementById(
+    "grid-state-hospitalizations-resizer",
+  );
+  gridStateHospitalizationsSvg = document.getElementById(
+    "grid-state-hospitalizations-svg",
+  );
+  gridStateHospitalizationsLarge = document.getElementById(
+    "grid-state-hospitalizations-large",
+  );
+  gridStateHospitalizationsLargeSubtitle = document.getElementById(
+    "grid-state-hospitalizations-large-subtitle",
+  );
+  gridStateHospitalizationsLargeResizer = document.getElementById(
+    "grid-state-hospitalizations-large-resizer",
+  );
+  gridStateHospitalizationsLargeSvg = document.getElementById(
+    "grid-state-hospitalizations-large-svg",
+  );
 
-    // State–level chart elements
-    gridStateHospitalizationsSubtitle = document.getElementById("grid-state-hospitalizations-subtitle");
-    gridStateHospitalizationsResizer = document.getElementById("grid-state-hospitalizations-resizer");
-    gridStateHospitalizationsSvg = document.getElementById("grid-state-hospitalizations-svg");
-    gridStateHospitalizationsLarge = document.getElementById("grid-state-hospitalizations-large");
-    gridStateHospitalizationsLargeSubtitle = document.getElementById("grid-state-hospitalizations-large-subtitle");
-    gridStateHospitalizationsLargeResizer = document.getElementById("grid-state-hospitalizations-large-resizer");
-    gridStateHospitalizationsLargeSvg = document.getElementById("grid-state-hospitalizations-large-svg");
+  // Options selected
+  gridGeographicUnit = undefined;
+  gridPopulation = undefined;
+  gridOutcomeVariable = undefined;
 
-    // Options selected
-    gridGeographicUnit = undefined
-    gridPopulation = undefined
-    gridOutcomeVariable = undefined
+  // Get scrollbar width - source: https://stackoverflow.com/questions/28360978/how-can-i-get-browser-scrollbar-width
+  var scrollDiv = document.createElement("div");
+  scrollDiv.className = "scrollbar-measure";
+  document.body.appendChild(scrollDiv);
 
-    // Get scrollbar width - source: https://stackoverflow.com/questions/28360978/how-can-i-get-browser-scrollbar-width
-    var scrollDiv = document.createElement("div");
-    scrollDiv.className = "scrollbar-measure";
-    document.body.appendChild(scrollDiv);
+  // Get the scrollbar width
+  var scrollbarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth;
 
-    // Get the scrollbar width
-    var scrollbarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth;
-
-    // Delete the div
-    document.body.removeChild(scrollDiv);
-
+  // Delete the div
+  document.body.removeChild(scrollDiv);
 </script>
 
 <!-- 5) Your module code -->
-<script src="{{ url_for('static', filename='js/respiratory/grid.js') }}" type="module"></script>
-<script src="{{ url_for('static', filename='js/respiratory/grid-interactions.js') }}" type="module"></script>
+<script
+  src="{{ url_for('static', filename='js/respiratory/grid.js') }}"
+  type="module"
+></script>
+<script
+  src="{{ url_for('static', filename='js/respiratory/grid-interactions.js') }}"
+  type="module"
+></script>
 {% endblock %}
