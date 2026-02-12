@@ -621,7 +621,7 @@ function drawTooltip(
         }
 
         var button = ttpOptions
-        // .select(".tooltip-add-extra")
+          // .select(".tooltip-add-extra")
           .append("sl-button")
           .html(buttonText)
           .attr("size", "small");
@@ -650,10 +650,9 @@ function drawTooltip(
           icon.style("color", "var(--sl-color-gray-500)");
         }
       });
-
   }
 
-  console.log(d3.select(".tooltip-options").node().clientWidth)
+  console.log(d3.select(".tooltip-options").node().clientWidth);
 
   // Reset svg and get it ready for new viz
   ttpSVG.node().innerHTML = "";
@@ -735,6 +734,7 @@ function drawTooltip(
       panelType,
       "historical",
     );
+    
     var percentDifferenceProjectedValues = getAllValuesFromFeature(
       featureData,
       population,
@@ -742,6 +742,7 @@ function drawTooltip(
       panelType,
       "projected",
     );
+
     let pdMax = d3.max([
       ...percentDifferenceHistoricalValues,
       ...percentDifferenceProjectedValues,
@@ -905,6 +906,9 @@ function drawTooltip(
       (ttpGraphWidth * ttpHistoryWidthPercentage) / historicalDatesArray.length,
     );
 
+    d3.select("path.path-uncertainty-50").remove();
+    d3.select("path.path-uncertainty-95").remove();
+
     historicalGroup
       .append("g")
       .selectAll("rect")
@@ -1020,6 +1024,7 @@ function drawTooltip(
       data.projected.uncertainty_range.percentile25.length > 0
     ) {
       areaPathForPrediction.remove();
+
       predictiveGroup
         .selectAll("path")
         .data(projectedValues.slice(1)) // one segment per consecutive pair
@@ -1035,9 +1040,10 @@ function drawTooltip(
                 d3.timeDay.offset(data.projected.start_date, 7 * (i1 + i2 - 1)),
               ),
             )
-            .y((d) =>
-              panelType == "percentDifference" ? yScale2(d) : yScale(d),
-            )
+            .y((d) => {
+              console.log(panelType);
+              return panelType == "percentDifference" ? yScale2(d) : yScale(d);
+            })
             .defined((d) => d || d === 0)(
             panelType == "percentDifference"
               ? percentDifferenceProjectedValues.slice(i1, i1 + 2)
@@ -1110,6 +1116,9 @@ function drawTooltip(
         );
 
       predictiveGroup
+        .selectAll(".path-uncertainty-50")
+        .data([0])
+        .enter()
         .append("path")
         .datum(d3.range(n))
         .attr("class", "path-uncertainty-50")
@@ -1119,11 +1128,13 @@ function drawTooltip(
         .attr("opacity", 0.5);
 
       predictiveGroup
+        .selectAll(".path-uncertainty-50")
+        .data([0])
         .append("path")
-        .datum(d3.range(n)) // ✅ 길이만 맞는 배열이면 됨
+        .datum(d3.range(n))
         .attr("class", "path-uncertainty-95")
         .attr("clip-path", `url(#${clipPathId})`)
-        .attr("d", band95) // ✅ generator를 “실행”시키는 형태
+        .attr("d", band95)
         .attr("fill", populationColorMap[population]["projected"])
         .attr("opacity", 0.2);
     }
