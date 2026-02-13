@@ -1,115 +1,253 @@
-{% set min_width = "350px" %}
-{% extends "subtemplates/panel.html" %}
-
-{% block options %}
+{% set min_width = "350px" %} {% extends "subtemplates/panel.html" %} {% block
+options %}
 <div id="exploration-options" class="sidebar-container">
-
   <!-- disease selector -->
-  <sl-select value="{{ disease }}" id="exploration-disease-selector" class="fill-width"
-    size="small">
+  <sl-select
+    value="{{ disease }}"
+    id="exploration-disease-selector"
+    class="fill-width"
+    size="small"
+  >
     <p slot="label">Select a disease or group of diseases</p>
     {% for this_disease, name in metadata['diseases'].items() %}
-    <sl-option value="{{ this_disease }}" class="exploration-disease-option">{{ name }}</sl-option>
+    <sl-option value="{{ this_disease }}" class="exploration-disease-option"
+      >{{ name }}</sl-option
+    >
     {% endfor %}
   </sl-select>
 
   <!-- region selector -->
-  <sl-select value="{{ geographic_unit }}" id="exploration-geographic-unit-selector" class="fill-width" size="small">
+  <sl-select
+    value="{{ geographic_unit }}"
+    id="exploration-geographic-unit-selector"
+    class="fill-width"
+    size="small"
+  >
     <p slot="label">Geographic unit</p>
     {% for region in metadata['available_models'][disease].keys() %}
-    <sl-option class="exploration-geographic-unit-option" value="{{ region }}">{{ metadata['region_sizes'][region] }}</sl-option>
+    <sl-option class="exploration-geographic-unit-option" value="{{ region }}"
+      >{{ metadata['region_sizes'][region] }}</sl-option
+    >
     {% endfor %}
   </sl-select>
 
   <!-- population -->
-  <sl-select value="{{ population }}" id="exploration-population-selector" class="fill-width" size="small">
+  <sl-select
+    value="{{ population }}"
+    id="exploration-population-selector"
+    class="fill-width"
+    size="small"
+  >
     <p slot="label">Select population</p>
-    {% for this_population in metadata['available_models'][disease][geographic_unit].keys() %}
-    <sl-tooltip class="exploration-population-tooltip" content="{{ metadata['populations_tooltips'][this_population] }}" trigger="hover" hoist>
-      <sl-option class="exploration-population-option" value="{{ this_population }}">{{ metadata['populations'][this_population] }}</sl-option>
+    {% for this_population in
+    metadata['available_models'][disease][geographic_unit].keys() %}
+    <sl-tooltip
+      class="exploration-population-tooltip"
+      content="{{ metadata['populations_tooltips'][this_population] }}"
+      trigger="hover"
+      hoist
+    >
+      <sl-option
+        class="exploration-population-option"
+        value="{{ this_population }}"
+        >{{ metadata['populations'][this_population] }}</sl-option
+      >
     </sl-tooltip>
     {% endfor %}
   </sl-select>
 
   <!-- outcome variable -->
-  <sl-select value="{{ outcome_variable }}" id="exploration-outcome-variable-selector" class="fill-width" size="small">
+  <sl-select
+    value="{{ outcome_variable }}"
+    id="exploration-outcome-variable-selector"
+    class="fill-width"
+    size="small"
+  >
     <p slot="label">Select outcome variable</p>
-    {% for outcome in metadata['available_models'][disease][geographic_unit][population] %}
-    <sl-tooltip class="exploration-outcome-tooltip" content="{{ metadata['outcome_variables_tooltips'][outcome] }}" trigger="hover" hoist>
-      <sl-option class="exploration-outcome-option" value="{{ outcome }}">{{ metadata['outcome_variables'][outcome] }}</sl-option>
+    {% for outcome in
+    metadata['available_models'][disease][geographic_unit][population] %}
+    <sl-tooltip
+      class="exploration-outcome-tooltip"
+      content="{{ metadata['outcome_variables_tooltips'][outcome] }}"
+      trigger="hover"
+      hoist
+    >
+      <sl-option class="exploration-outcome-option" value="{{ outcome }}"
+        >{{ metadata['outcome_variables'][outcome] }}</sl-option
+      >
     </sl-tooltip>
     {% endfor %}
   </sl-select>
 
   <!-- grid item filtration (text) -->
   <sl-dropdown sync="width">
-
-    <sl-input slot="trigger" id="location-id-search" clearable type="text" spellcheck="false" size="small" value="{{ location }}">
+    <sl-input
+      slot="trigger"
+      id="location-id-search"
+      clearable
+      type="text"
+      spellcheck="false"
+      size="small"
+      value="{{ location }}"
+    >
       <p slot="label">Location</p>
-      <sl-icon name="chevron-down" slot="suffix" id="location-id-search-suffix" class="select__combobox"></sl-icon>
+      <sl-icon
+        name="chevron-down"
+        slot="suffix"
+        id="location-id-search-suffix"
+        class="select__combobox"
+      ></sl-icon>
     </sl-input>
 
     <sl-menu id="location-menu">
-      {% for region in metadata['region_sizes'].keys() %}
-      {% for location in metadata[region]|sort() %}
-      <sl-menu-item value="{{ location }}" class="{{ region }}-id location-id">{{ location }}</sl-menu-item>
-      {% endfor %}
-      {% endfor %}
+      {% for region in metadata['region_sizes'].keys() %} {% for location in
+      metadata[region]|sort() %}
+      <sl-menu-item value="{{ location }}" class="{{ region }}-id location-id"
+        >{{ location }}</sl-menu-item
+      >
+      {% endfor %} {% endfor %}
     </sl-menu>
   </sl-dropdown>
-
-
 </div>
 
-{% endblock %}
+{% endblock %} {% block contents %}
+<iframe
+  id="model-exploration"
+  title="Selected Model Information"
+  {%
+  if
+  src
+  is
+  defined
+  %}src="{{ src }}"
+  {%
+  endif
+  %}
+></iframe>
 
-{% block contents %}
-<iframe id="model-exploration" title="Selected Model Information" {% if src is defined %}src="{{ src }}"{% endif %}></iframe>
-
-{% endblock %}
-
-{% block scripts %}
+{% endblock %} {% block scripts %}
 
 <script>
-  var modelLocation = null
+  var modelLocation = null;
 
   // Controls
-  explorationDiseaseSelector = document.getElementById("exploration-disease-selector")
-  explorationGeographicUnitSelector = document.getElementById("exploration-geographic-unit-selector")
-  explorationPopulationSelector = document.getElementById("exploration-population-selector")
-  explorationOutcomeVariableSelector = document.getElementById("exploration-outcome-variable-selector")
+  explorationDiseaseSelector = document.getElementById(
+    "exploration-disease-selector",
+  );
+  explorationGeographicUnitSelector = document.getElementById(
+    "exploration-geographic-unit-selector",
+  );
+  explorationPopulationSelector = document.getElementById(
+    "exploration-population-selector",
+  );
+  explorationOutcomeVariableSelector = document.getElementById(
+    "exploration-outcome-variable-selector",
+  );
 
   // Location selector
-  locationIdSearch = document.getElementById("location-id-search")
-  locationMenu = document.getElementById("location-menu")
+  locationIdSearch = document.getElementById("location-id-search");
+  locationMenu = document.getElementById("location-menu");
 
-  // 
-  modelExploration = document.getElementById("model-exploration")
+  //
+  modelExploration = document.getElementById("model-exploration");
 
   // Options selected
-    explorationGeographicUnit = "{{ geographic_unit }}"
-    explorationPopulation = "{{ population }}"
-    explorationOutcomeVariable = "{{ outcome_variable }}"
+  explorationGeographicUnit = "{{ geographic_unit }}";
+  explorationPopulation = "{{ population }}";
+  explorationOutcomeVariable = "{{ outcome_variable }}";
 
   window.removeEventListener("keydown", swapTheme);
 </script>
 
 <script type="module">
-  await Promise.allSettled([ // wait for following to be defined/load in
-    customElements.whenDefined('sl-select'),
-    customElements.whenDefined('sl-option'),
-    customElements.whenDefined('sl-tooltip'),
-    customElements.whenDefined('sl-menu'),
-    customElements.whenDefined('sl-menu-item'),
-  ])
+  await Promise.allSettled([
+    // wait for following to be defined/load in
+    customElements.whenDefined("sl-select"),
+    customElements.whenDefined("sl-option"),
+    customElements.whenDefined("sl-tooltip"),
+    customElements.whenDefined("sl-menu"),
+    customElements.whenDefined("sl-menu-item"),
+  ]);
+
   d3.selectAll("sl-menu-item.location-id").each(function (a, b, c, d) {
-    let menuItem = d3.select(this)
-    menuItem.classed("hide", !menuItem.classed(`${explorationGeographicUnitSelector.value}-id`))
-  })
+    let menuItem = d3.select(this);
+    menuItem.classed(
+      "hide",
+      !menuItem.classed(`${explorationGeographicUnitSelector.value}-id`),
+    );
+  });
+
+  // document.addEventListener("DOMContentLoaded", async () => {
+  await customElements.whenDefined("sl-icon-button");
+
+  const btn = document.getElementById("hide-exploration-sidebar-button");
+
+  if (btn) {
+    await btn.updateComplete; // wait for render
+    btn.click(); // trigger click
+    btn.style.display = "none";
+  }
+  // });
 </script>
 
-<script src="{{ url_for('static', filename='js/respiratory/model-exploration-interactions.js') }}"
-  type="module"></script>
+<script
+  src="{{ url_for('static', filename='js/respiratory/model-exploration-interactions.js') }}"
+  type="module"
+></script>
+<!-- 
+<script type="module">
+  controlDependencyTest();
 
+  async function controlDependencyTest() {
+    await Promise.allSettled([
+      customElements.whenDefined("sl-select"),
+      customElements.whenDefined("sl-option"),
+    ]);
+
+    const popEl = document.getElementById("exploration-population-selector");
+    const geoEl = document.getElementById(
+      "exploration-geographic-unit-selector",
+    );
+    const outEl = document.getElementById(
+      "exploration-outcome-variable-selector",
+    );
+    const disEl = document.getElementById("exploration-disease-selector");
+    // geoEl.style.dis
+    const selectedPopulation = popEl.value;
+
+    // 1) population: general_population만 남기기
+    popEl.querySelectorAll("sl-option").forEach((opt) => {
+      const keep = opt.value === "general_population";
+      opt.hidden = !keep; // <- display none 대신
+      opt.disabled = !keep;
+    });
+    if (popEl.value !== "general_population") {
+      popEl.value = "general_population";
+      popEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+    }
+
+    // // 2) geographic unit: state만 남기기 (원하는 정책대로!)
+    // geoEl.querySelectorAll("sl-option").forEach((opt) => {
+    //   const keep = opt.value === "state";
+    //   opt.hidden = !keep;
+    //   opt.disabled = !keep;
+    // });
+    // if (geoEl.value !== "state") {
+    //   geoEl.value = "state"; // <- region으로 보내지 말 것 (존재/노출 보장)
+    //   geoEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+    // }
+
+    // 3) outcome/disease도 동일하게 “허용 목록”만 남기기 (예시)
+    outEl.querySelectorAll("sl-option").forEach((opt) => {
+      opt.hidden = false;
+      opt.disabled = false;
+    });
+
+    disEl.querySelectorAll("sl-option").forEach((opt) => {
+      opt.hidden = false;
+      opt.disabled = false;
+    });
+  }
+</script> -->
 
 {% endblock %}

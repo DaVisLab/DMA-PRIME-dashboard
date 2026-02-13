@@ -1,6 +1,18 @@
 controlDependencyTest();
 controlDependencyTestOnGridView();
 
+document.addEventListener("DOMContentLoaded", async () => {
+  // Wait until the Shoelace component is defined
+  await customElements.whenDefined("sl-select");
+
+  const select = document.querySelector("sl-select");
+
+  if (select) {
+    controlDependencyTest();
+    controlDependencyTestOnGridView();
+  }
+});
+
 export function controlDependencyTest() {
   const disabledRegions = ["county", "zcta", "facility"];
 
@@ -96,8 +108,6 @@ export function controlDependencyTest() {
     });
   }
 }
-
-
 
 export function controlDependencyTestOnGridView() {
   const disabledRegions = ["county", "zcta", "facility"];
