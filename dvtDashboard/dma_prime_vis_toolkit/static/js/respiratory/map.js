@@ -124,7 +124,6 @@ async function redraw(
       )}`,
     );
   }
-  console.log(regionData)
   if (resetWarnings) {
     updateMapWarnings();
   }
@@ -462,19 +461,17 @@ function createChoropleth(
     var arr = [];
 
     if (mapGeographicUnitSelector.value == "state") {
-console.log(data)
       var thisData =
         data.features[0].properties.data[population][outcomeVariable][
           "historical"
         ];
-        console.log(thisData)
 
       if (mapType == "rate") {
         arr = thisData.values.map(
           (d) => (d / data.features[0].properties.population) * 1000,
         );
-      }else{
-        arr = thisData.values
+      } else {
+        arr = thisData.values;
       }
     } else {
       arr = getAllFeaturesValue(
@@ -486,19 +483,20 @@ console.log(data)
       );
     }
 
-    console.log(arr)
     if (outcomeVariable == "rate_of_transmission") {
       choroplethDiscreteEdges = null;
 
-      const mix = d3.interpolateRgb(populationColorMap[population]["historical"], "red");
+      const mix = d3.interpolateRgb(
+        populationColorMap[population]["historical"],
+        "red",
+      );
       choroplethColorMap = d3
         .scaleLinear()
-         .domain([0, .5, 1, Math.max(d3.max(arr), 2)])
+        .domain([0, 0.5, 1, Math.max(d3.max(arr), 2)])
         .range(["white", "#648FFF", mix(0.5), "red"])
         .unknown(unknownColor)
         .nice();
     } else {
-      console.log(d3.max(arr))
       choroplethColorMap = d3
         .scaleQuantize()
         .domain([0, d3.max(arr) || 1])
@@ -625,23 +623,17 @@ function drawLegend() {
       .attr("width", legendWidth + legendMargins.left + legendMargins.right)
       .attr("height", 3 * em + legendMargins.top + legendMargins.bottom);
 
-    
     // Discrete 5-bin legend for hospitalizations/inpatient/ed and positive-tests
     if (mapOutcomeVariableSelector.value != "rate_of_transmission") {
-
-      console.log(choroplethDiscreteEdges)
-      console.log(choroplethColorMap.domain)
-      console.log(choroplethColorMap.domain())
+     
       var edges =
         choroplethDiscreteEdges && choroplethDiscreteEdges.length === 6
           ? choroplethDiscreteEdges
           : (function () {
-            console.log("fff")
               var dom = choroplethColorMap.domain
                 ? choroplethColorMap.domain()
                 : [0];
 
-                console.log(dom)
               var maxValTmp =
                 Array.isArray(dom) && dom.length ? Math.max(0, d3.max(dom)) : 0;
               var t = d3.ticks(0, Math.max(maxValTmp, 1), 5);
@@ -653,10 +645,8 @@ function drawLegend() {
         .range()
         .map((color, i) => ({ color, x0: edges[i], x1: edges[i + 1] }));
 
-      console.log("Legend bins:", bins);
       var xDomain = [edges[0], edges[edges.length - 1]];
-      console.log(edges)
-      console.log(xDomain)
+  
       var xScale = d3.scaleLinear().domain(xDomain).range([0, legendWidth]);
 
       var content = colorLegend

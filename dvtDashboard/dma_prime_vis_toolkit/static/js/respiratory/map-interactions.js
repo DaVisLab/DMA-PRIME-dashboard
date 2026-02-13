@@ -34,10 +34,6 @@ export function showMapTooltip(dataObject) {
   var mapTooltipWidth = Math.max(500, width * 0.3);
   var mapTooltipHeight = mapTooltipWidth * 0.65;
 
-  // console.log(dataObject)
-
-  console.log(width);
-  console.log(mapTooltipWidth);
 
   if (dataObject == null) {
     selectedItems.feature = undefined;
@@ -172,7 +168,6 @@ export function showMapTooltip(dataObject) {
             system: dataObject.properties.system,
           };
 
-          console.log(ttpData);
           drawTooltip(
             ttpData,
             largeTtp.select(".tooltip-outer-svg"),
