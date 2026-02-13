@@ -133,12 +133,14 @@ def get_respiratory_model(
         current_app.config["DATADIR"],
         "processed",
         data_version,
-        "respiratory",
-        "metrics",
-        geographic_unit,
-        "-".join(disease.upper().split("_")),
+        "model_reports",
+        # "metrics",
+        # geographic_unit,
+        # "-".join(disease.upper().split("_")),
         f"{geographic_unit}-{disease}-{outcome_variable_crosswalk[outcome_variable]}-{population}_{location}.html",
     )
+
+    print(file)
 
     decrypt_key = os.path.join(
         current_app.config["DATADIR"],
@@ -147,6 +149,9 @@ def get_respiratory_model(
         "respiratory",
         "encrypt_key.bin",
     )
+
+    return send_file(file)
+
     try:
         file = decrypt(file, decrypt_key)
         return file
@@ -172,6 +177,7 @@ def get_opioid_hcv_hiv(disease="opioid"):
         "opioid_hcv_hiv",
         "encrypt_key.bin",
     )
+
     return decrypt(file, decrypt_key)
 
 

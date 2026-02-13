@@ -164,6 +164,7 @@ function getAllValuesFromFeature(
     }
     newData.push(value);
   }
+
   if (
     timeFrame == "projected" &&
     panelType == "percentDifference" &&
@@ -180,6 +181,62 @@ function getAllValuesFromFeature(
         ((thisWeekDatum - lastWeekDatum) / Math.abs(lastWeekDatum)) * 100;
     }
   }
+
+  return newData;
+}
+
+function getUncertaintyValues_percentDiff_ForPanelType(
+  featureProperties,
+  population,
+  outcomeVariable,
+  uncertaintyType,
+  panelType = "percentDifference",
+) {
+  let thisData =
+    featureProperties.data[population][outcomeVariable]["projected"][
+      "uncertainty_range"
+    ][uncertaintyType];
+
+  //   console.log(featureProperties.data[population][outcomeVariable]["projected"].values[0])
+  // console.log(thisData);
+  const projectionValue =
+    featureProperties.data[population][outcomeVariable]["projected"].values;
+
+  thisData.unshift(projectionValue[0]);
+
+  let newData = [];
+
+  if (thisData && thisData.length > 0) {
+    //  first projected
+    for (let i = 0; i < thisData.length; i++) {
+      if (i == 0) {
+        newData.push(0);
+        continue;
+      }
+
+      let value = NaN;
+      if (panelType == "percentDifference") {
+        var thisWeekDatum = parseFloat(thisData[i]);
+        var lastWeekDatum = parseFloat(projectionValue[i - 1]);
+        if (isNaN(thisWeekDatum) || lastWeekDatum) {
+          value =
+            ((thisWeekDatum - lastWeekDatum) / Math.abs(lastWeekDatum)) * 100;
+        }
+      } else {
+        if (panelType == "rate") {
+          value = (thisData[i] / feature.properties.population) * 1000;
+        } else {
+          value = thisData[i];
+        }
+      }
+
+      newData.push(value);
+    }
+  }
+  // console.log(thisData);
+  // console.log(projectionValue);
+  console.log(newData);
+
   return newData;
 }
 
@@ -255,6 +312,7 @@ function drawTooltip(
   // The beginning bits
   var geographicUnit;
 
+  console.log(extraSources)
   if (grid) {
     geographicUnit = gridGeographicUnitSelector.value;
   } else {
@@ -290,6 +348,7 @@ function drawTooltip(
     historicalDatesArray.length,
   );
 
+  // return
   // if (data.extra.health_system != undefined) {
   //   data.extra.health_system = validateFeatureDataLength(
   //     data.extra.health_system,
@@ -621,7 +680,7 @@ function drawTooltip(
         }
 
         var button = ttpOptions
-        // .select(".tooltip-add-extra")
+          // .select(".tooltip-add-extra")
           .append("sl-button")
           .html(buttonText)
           .attr("size", "small");
@@ -650,10 +709,7 @@ function drawTooltip(
           icon.style("color", "var(--sl-color-gray-500)");
         }
       });
-
   }
-
-  console.log(d3.select(".tooltip-options").node().clientWidth)
 
   // Reset svg and get it ready for new viz
   ttpSVG.node().innerHTML = "";
@@ -735,6 +791,7 @@ function drawTooltip(
       panelType,
       "historical",
     );
+
     var percentDifferenceProjectedValues = getAllValuesFromFeature(
       featureData,
       population,
@@ -742,6 +799,43 @@ function drawTooltip(
       panelType,
       "projected",
     );
+
+    var percentile25_percentDiff =
+      getUncertaintyValues_percentDiff_ForPanelType(
+        featureData,
+        population,
+        outcomeVariable,
+        "percentile25",
+        "percentDifference",
+      );
+
+    var percentile75_percentDiff =
+      getUncertaintyValues_percentDiff_ForPanelType(
+        featureData,
+        population,
+        outcomeVariable,
+        "percentile75",
+        "percentDifference",
+      );
+
+    var percentile2_5_percentDiff =
+      getUncertaintyValues_percentDiff_ForPanelType(
+        featureData,
+        population,
+        outcomeVariable,
+        "percentile2_5",
+        "percentDifference",
+      );
+
+    var percentile97_5_percentDiff =
+      getUncertaintyValues_percentDiff_ForPanelType(
+        featureData,
+        population,
+        outcomeVariable,
+        "percentile97_5",
+        "percentDifference",
+      );
+
     let pdMax = d3.max([
       ...percentDifferenceHistoricalValues,
       ...percentDifferenceProjectedValues,
@@ -1019,7 +1113,10 @@ function drawTooltip(
       data.projected.uncertainty_range.percentile25 != undefined &&
       data.projected.uncertainty_range.percentile25.length > 0
     ) {
+      console.log(percentDifferenceProjectedValues);
+      console.log(percentile25_percentDiff);
       areaPathForPrediction.remove();
+
       predictiveGroup
         .selectAll("path")
         .data(projectedValues.slice(1)) // one segment per consecutive pair
@@ -1076,16 +1173,16 @@ function drawTooltip(
         .x((_, i) =>
           xScale(d3.timeDay.offset(data.projected.start_date, 7 * (i - 1))),
         )
-        .y0((_, i) =>
-          panelType === "percentDifference"
-            ? yScale2(uncertainty2_5[i])
-            : yScale(uncertainty2_5[i]),
-        )
-        .y1((_, i) =>
-          panelType === "percentDifference"
-            ? yScale2(uncertainty97_5[i])
-            : yScale(uncertainty97_5[i]),
-        )
+        .y0((_, i) => {
+          return panelType === "percentDifference"
+            ? yScale2(0)
+            : yScale(uncertainty2_5[i]);
+        })
+        .y1((_, i) => {
+          return panelType === "percentDifference"
+            ? yScale2(0)
+            : yScale(uncertainty97_5[i]);
+        })
         .defined(
           (_, i) => uncertainty2_5[i] != null && uncertainty97_5[i] != null,
         );
@@ -1095,16 +1192,16 @@ function drawTooltip(
         .x((_, i) =>
           xScale(d3.timeDay.offset(data.projected.start_date, 7 * (i - 1))),
         )
-        .y0((_, i) =>
-          panelType === "percentDifference"
-            ? yScale2(uncertainty25[i])
-            : yScale(uncertainty25[i]),
-        )
-        .y1((_, i) =>
-          panelType === "percentDifference"
-            ? yScale2(uncertainty75[i])
-            : yScale(uncertainty75[i]),
-        )
+        .y0((_, i) => {
+          return panelType === "percentDifference"
+            ? yScale2(0)
+            : yScale(uncertainty25[i]);
+        })
+        .y1((_, i) => {
+          return panelType === "percentDifference"
+            ? yScale2(0)
+            : yScale(uncertainty75[i]);
+        })
         .defined(
           (_, i) => uncertainty25[i] != null && uncertainty75[i] != null,
         );
