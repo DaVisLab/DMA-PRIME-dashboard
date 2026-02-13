@@ -140,7 +140,7 @@ mapSecondarySidebarClose.addEventListener("sl-focus", function(event) {
     redraw()
 })
 
-window.removeEventListener("keydown", swapTheme)
+// window.removeEventListener("keydown", swapTheme)
 window.addEventListener("keydown", (event) => {
     if (event.key == "m" && document.activeElement.id !== "map-zcta-county-search") {
         if (Array.from(document.documentElement.classList).includes('sl-theme-light')) {

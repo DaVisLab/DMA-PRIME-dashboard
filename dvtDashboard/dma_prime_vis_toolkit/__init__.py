@@ -158,7 +158,6 @@ def create_app(development=False, dataDir=None):
     @app.route("/respiratory", methods=["GET"])
     @login_required
     def respiratory():
-
         data_version = get_data_version_from_request(request, current_user)
 
         file = os.path.join(
@@ -196,8 +195,16 @@ def create_app(development=False, dataDir=None):
                 "displayName": "Grid View",
                 # "active": True,
                 "html": "respiratory/respiratory-grid-panel.html",
+            },  
+            {
+                "name": "exploration",
+                "displayName": "Model Exploration",
+                # "active": True,
+                "html": "respiratory/respiratory-model-exploration-panel-container.html",
             },
         ]
+        print(panels)
+        
         return render_template(
             "respiratory/respiratory-base.html", panels=panels, metadata=metadata
         )

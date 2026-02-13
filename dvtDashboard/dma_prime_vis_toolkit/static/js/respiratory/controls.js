@@ -1,3 +1,8 @@
+await Promise.allSettled([
+  customElements.whenDefined("sl-select"),
+  customElements.whenDefined("sl-option"),
+]);
+
 controlDependencyTest();
 controlDependencyTestOnGridView();
 

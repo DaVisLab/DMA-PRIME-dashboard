@@ -1,109 +1,132 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="sl-theme-dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
+    <title>{% block title %}DMA-PRIME{% endblock %}</title>
 
-  <title>{% block title %}DMA-PRIME{% endblock %}</title>
-
-  <!-- Shoelace -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/light.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/dark.css" />
-  <script type="module"
-    src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/shoelace-autoloader.js">
-  </script>
-  <script>
-    document.documentElement.classList.remove('sl-theme-light')
-    document.documentElement.classList.remove('sl-theme-dark')
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      document.documentElement.classList.add('sl-theme-dark')
-    } else {
-      document.documentElement.classList.add('sl-theme-light')
-    }
-  </script>
-
-  <!-- D3 -->
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-geo@3"></script>
-
-  <!-- Style that should load before the rest of the page -->
-  {% block style %}
-  {% endblock %}
-
-  <!-- code that should run before the rest of the page -->
-  {% block headScripts %}
-  {% endblock %}
-
-</head>
-
-<body>
-  <!-- Top nav bar -->
-  <script>
-    var em = parseFloat(getComputedStyle(document.head).fontSize)
-    var changed = false
-    function swapTheme(event) {
-      if (event.key == "m") {
-        if (Array.from(document.documentElement.classList).includes('sl-theme-light')) {
-          document.documentElement.classList.remove('sl-theme-light')
-          document.documentElement.classList.add('sl-theme-dark')
-        } else {
-          document.documentElement.classList.remove('sl-theme-dark')
-          document.documentElement.classList.add('sl-theme-light')
-        }
-        changed = true
+    <!-- Shoelace -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/light.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/dark.css"
+    />
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/shoelace-autoloader.js"
+    ></script>
+    <script>
+      document.documentElement.classList.remove("sl-theme-light");
+      document.documentElement.classList.remove("sl-theme-dark");
+      if (
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches
+      ) {
+        document.documentElement.classList.add("sl-theme-dark");
+      } else {
+        document.documentElement.classList.add("sl-theme-light");
       }
-    }
-    window.addEventListener("keydown", swapTheme);
+    </script>
+
+    <!-- D3 -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-geo@3"></script>
+
+    <!-- Style that should load before the rest of the page -->
+    {% block style %} {% endblock %}
+
+    <!-- code that should run before the rest of the page -->
+    {% block headScripts %} {% endblock %}
+  </head>
+
+  <body>
+    <!-- Top nav bar -->
+    <script>
+      var em = parseFloat(getComputedStyle(document.head).fontSize);
+      document.documentElement.classList.remove("sl-theme-dark");
+      document.documentElement.classList.add("sl-theme-light");
+
+      // var changed = false
+      // function swapTheme(event) {
+      //   // if (event.key == "m") {
+      //   //   if (Array.from(document.documentElement.classList).includes('sl-theme-light')) {
+      //   //     document.documentElement.classList.remove('sl-theme-light')
+      //   //     document.documentElement.classList.add('sl-theme-dark')
+      //   //   } else {
+      //   //     document.documentElement.classList.remove('sl-theme-dark')
+      //   //     document.documentElement.classList.add('sl-theme-light')
+      //   //   }
+      //   //   changed = true
+      //   // }
+      // }
+      // window.addEventListener("keydown", swapTheme);
+    </script>
+    <script>
+      let sessionTimer;
+      let activityTimer;
+
+      function setupTimers() {
+        resetSessionTimer();
+        resetActivityTimer();
+      }
+
+      function resetSessionTimer() {
+        fetch("auth/refresh");
+        clearTimeout(sessionTimer);
+        sessionTimer = setTimeout(
+          () => {
+            resetSessionTimer();
+          },
+          15 * 60 * 1000,
+        ); // 15 minutes
+      }
+
+      function resetActivityTimer() {
+        clearTimeout(activityTimer);
+        activityTimer = setTimeout(
+          () => {
+            window.location.href = "/auth/logout";
+          },
+          (15 * 60 - 5) * 1000,
+        ); // 14 minutes, 55 seconds
+      }
+
+      window.onload = setupTimers;
+      document.onmousemove = resetActivityTimer;
+      document.onkeypress = resetActivityTimer;
+    </script>
+    <sl-tab-group id="nav-bar">
+      <sl-tab id="main-tab" slot="nav" panel="main" disabled>
+        <!-- <a href="{{ url_for('index') }}" id="main-tab-link"> -->
+        DMA-PRIME
+        <!-- </a> -->
+      </sl-tab>
+
+      <!-- Adding all the nav bar tabs and corresponding panels for this page -->
+      {% for panel in panels %} {% include panel.html if panel.html else ""
+      ignore missing %} {% endfor %}
+
+      <!-- Navbar righthand linkout to wherever -->
+      <div id="linkout-container" slot="nav">
+        {% block linkout %}{% endblock %}
+      </div>
+    </sl-tab-group>
+
+    {% block extraBody %} {% endblock %} {% block bodyScripts %} {% endblock %}
+  </body>
+  <script type="module">
+    document.getElementById("main-tab").addEventListener("click", (event) => {
+      event.preventDefault();
+      const currentUrl = window.location.href;
+      if (currentUrl.includes("/respiratory-model-exploration")) {
+        window.location.href = "{{ url_for('respiratory') }}";
+      } else {
+        window.location.href = "{{ url_for('index') }}";
+      }
+    });
   </script>
-  <script>
-    let sessionTimer;
-    let activityTimer;
-
-    function setupTimers() {
-      resetSessionTimer()
-      resetActivityTimer()
-    }
-
-    function resetSessionTimer() {
-      fetch('auth/refresh')
-      clearTimeout(sessionTimer);
-      sessionTimer = setTimeout(() => {
-        resetSessionTimer()
-      }, (15 * 60) * 1000);  // 15 minutes
-    }
-
-    function resetActivityTimer() {
-      clearTimeout(activityTimer);
-      activityTimer = setTimeout(() => {
-        window.location.href = "/auth/logout";
-      }, (15 * 60 - 5) * 1000);  // 14 minutes, 55 seconds
-    }
-  
-    window.onload = setupTimers;
-    document.onmousemove = resetActivityTimer;
-    document.onkeypress = resetActivityTimer;
-  </script>
-  <sl-tab-group id="nav-bar">
-    <sl-tab id="main-tab" slot="nav" panel="main" disabled><a href="{{ url_for('index') }}" id="main-tab-link">DMA-PRIME</a></sl-tab>
-
-    <!-- Adding all the nav bar tabs and corresponding panels for this page -->
-    {% for panel in panels %}
-    {% include panel.html if panel.html else "" ignore missing %}
-    {% endfor %}
-
-    <!-- Navbar righthand linkout to wherever -->
-    <div id="linkout-container" slot="nav">
-    {% block linkout %}{% endblock %}
-    </div>
-  </sl-tab-group>
-
-  {% block extraBody %}
-  {% endblock %}
-
-  {% block bodyScripts %}
-  {% endblock %}
-
-</body>
-
 </html>

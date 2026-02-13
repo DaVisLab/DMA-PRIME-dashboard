@@ -159,6 +159,7 @@ export function showMapTooltip(dataObject) {
               Math.random() * 9999999999,
             )}`,
           );
+          
           var ttpData = {
             id: dataObject.properties.id,
             display_name: dataObject.properties.display_name,

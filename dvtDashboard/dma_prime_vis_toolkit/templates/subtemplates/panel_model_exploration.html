@@ -1,0 +1,97 @@
+<!-- base template for page panels -->
+
+<!-- Adding navigation tab -->
+<sl-tab
+  id="{{panel.name}}-tab"
+  slot="nav"
+  panel="{{panel.name}}"
+  {%
+  if
+  panel.active
+  %}active{%
+  endif
+  %}
+>
+  {{panel.displayName}}
+</sl-tab>
+
+<!-- Adding panel corresponding to tab -->
+<sl-tab-panel name="{{panel.name}}" id="{{panel.name}}-panel">
+  <!-- Splitting panel into a sidebar and content with button to open/close sidebar  -->
+  <sl-split-panel
+    position="20"
+    disabled
+    id="{{panel.name}}-main-content"
+    class="fill-height main-content-split-panel"
+  >
+    <!-- Line w/ button to resize the options panel and open/close it -->
+    <sl-icon-button
+      slot="divider"
+      name="chevron-compact-left"
+      id="hide-{{panel.name}}-sidebar-button"
+      class="hide-sidebar-button"
+    ></sl-icon-button>
+
+    <!-- Sidebar -->
+    <div slot="start" id="{{panel.name}}-sidebar" class="fill-height sidebar">
+      {% block options %} {% set min_width = "250px" %} {% endblock %}
+    </div>
+
+    <!-- Content -->
+    <div
+      slot="end"
+      id="{{panel.name}}-content"
+      class="fill-height fill-width hide-overflow"
+    >
+      {% block contents %} {% endblock %}
+    </div>
+  </sl-split-panel>
+</sl-tab-panel>
+
+<script>
+
+            // getting dom elements
+    {{panel.name}}SidebarHider = document.getElementById("hide-{{panel.name}}-sidebar-button")
+    {{panel.name}}Panel = document.getElementById("{{panel.name}}-panel")
+    {{panel.name}}MainContent = document.getElementById("{{panel.name}}-main-content")
+
+    {{panel.name}}SidebarOpen = true
+
+    {{panel.name}}MainContent.style.setProperty("--min", "{{ min_width | safe }}")
+
+    set{{panel.name}}Panel = function() {
+        // Making sure sidebar is a reasonable size
+        if ({{panel.name}}SidebarOpen) {
+            {{panel.name}}MainContent.setAttribute("position", 20)
+        } else {
+            {{panel.name}}MainContent.setAttribute("position", 0)
+        }
+    }
+
+    addEventListener("resize", set{{panel.name}}Panel)
+
+    // Makes button to open/close sidebar funcitonal
+    {{panel.name}}SidebarHider.addEventListener("click", () => {
+        {{panel.name}}SidebarOpen = !{{panel.name}}SidebarOpen;
+        if ({{panel.name}}SidebarOpen) {
+            {{panel.name}}SidebarHider.name = "chevron-compact-left"
+            {{panel.name}}MainContent.style.setProperty("--min", "{{ min_width | safe }}")
+            d3.select("#{{panel.name}}-sidebar").classed("hidden-children", false)
+        } else {
+            {{panel.name}}SidebarHider.name = "chevron-compact-right"
+            {{panel.name}}MainContent.style.setProperty("--min", "0px")
+            d3.select("#{{panel.name}}-sidebar").classed("hidden-children", true)
+        }
+        set{{panel.name}}Panel()
+    });
+
+    customElements.whenDefined("sl-tab").then(() => {
+        console.log(document.querySelector('sl-tab'))
+        console.log(document.querySelector('sl-tab[panel={{panel.name}}]'))
+        document.querySelector('sl-tab').style.setProperty("display", "none");
+        document.querySelector('sl-tab[panel={{panel.name}}]').style.setProperty("display", "none");
+    });
+
+</script>
+
+{% block scripts %} {% endblock %}

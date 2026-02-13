@@ -1,18 +1,16 @@
-{% set min_width = "350px" %}
-
- {% extends "subtemplates/panel_model_exploration.html" %}
- {% block options %}
+{% set min_width = "350px" %} {% extends "subtemplates/panel.html" %} {% block
+options %}
 <div id="exploration-options" class="sidebar-container">
   <!-- disease selector -->
   <sl-select
-    value="{{ disease }}"
+    value="influenza"
     id="exploration-disease-selector"
     class="fill-width"
     size="small"
   >
     <p slot="label">Select a disease or group of diseases</p>
-    {% for this_disease, name in metadata['diseases'].items() %}
-    <sl-option value="{{ this_disease }}" class="exploration-disease-option"
+    {% for disease, name in metadata['diseases'].items() %}
+    <sl-option value="{{ disease }}" class="map-disease-option"
       >{{ name }}</sl-option
     >
     {% endfor %}
@@ -20,14 +18,15 @@
 
   <!-- region selector -->
   <sl-select
-    value="{{ geographic_unit }}"
+    value="state"
     id="exploration-geographic-unit-selector"
     class="fill-width"
     size="small"
   >
     <p slot="label">Geographic unit</p>
-    {% for region in metadata['available_models'][disease].keys() %}
-    <sl-option class="exploration-geographic-unit-option" value="{{ region }}"
+    {% for region in metadata['available_models']['respiratory_diseases'].keys()
+    %}
+    <sl-option class="map-geographic-unit-option" value="{{ region }}"
       >{{ metadata['region_sizes'][region] }}</sl-option
     >
     {% endfor %}
@@ -35,24 +34,22 @@
 
   <!-- population -->
   <sl-select
-    value="{{ population }}"
+    value="{{ metadata['available_models']['respiratory_diseases']['county'] | list | first }}"
     id="exploration-population-selector"
     class="fill-width"
     size="small"
   >
     <p slot="label">Select population</p>
-    {% for this_population in
-    metadata['available_models'][disease][geographic_unit].keys() %}
+    {% for population in
+    metadata['available_models']['respiratory_diseases']['county'].keys() %}
     <sl-tooltip
-      class="exploration-population-tooltip"
-      content="{{ metadata['populations_tooltips'][this_population] }}"
+      class="map-population-tooltip"
+      content="{{ metadata['populations_tooltips'][population] }}"
       trigger="hover"
       hoist
     >
-      <sl-option
-        class="exploration-population-option"
-        value="{{ this_population }}"
-        >{{ metadata['populations'][this_population] }}</sl-option
+      <sl-option class="map-population-option" value="{{ population }}"
+        >{{ metadata['populations'][population] }}</sl-option
       >
     </sl-tooltip>
     {% endfor %}
@@ -60,21 +57,22 @@
 
   <!-- outcome variable -->
   <sl-select
-    value="{{ outcome_variable }}"
+    value="inpatient_hospitalizations"
     id="exploration-outcome-variable-selector"
     class="fill-width"
     size="small"
   >
     <p slot="label">Select outcome variable</p>
     {% for outcome in
-    metadata['available_models'][disease][geographic_unit][population] %}
+    metadata['available_models']['respiratory_diseases']['county'].values() |
+    first %}
     <sl-tooltip
-      class="exploration-outcome-tooltip"
+      class="map-outcome-tooltip"
       content="{{ metadata['outcome_variables_tooltips'][outcome] }}"
       trigger="hover"
       hoist
     >
-      <sl-option class="exploration-outcome-option" value="{{ outcome }}"
+      <sl-option class="map-outcome-option" value="{{ outcome }}"
         >{{ metadata['outcome_variables'][outcome] }}</sl-option
       >
     </sl-tooltip>
@@ -90,7 +88,7 @@
       type="text"
       spellcheck="false"
       size="small"
-      value="{{ location }}"
+      value="SC"
       disabled
     >
       <p slot="label">Location</p>
@@ -113,28 +111,20 @@
   </sl-dropdown>
 </div>
 
-{% endblock %} 
-{% block contents %}
+{% endblock %} {% block contents %}
 <iframe
   id="model-exploration"
   title="Selected Model Information"
-  {%
-  if
-  src
-  is
-  defined
-  %}src="{{ src }}"
-  {%
-  endif
-  %}
+  src=""
+  style="border: none; width: 100%; height: 100%"
 ></iframe>
 
 {% endblock %} {% block scripts %}
 
 <script>
-  var modelLocation = null;
+//   var modelLocation = null;
 
-  // Controls
+//   // Controls
   explorationDiseaseSelector = document.getElementById(
     "exploration-disease-selector",
   );
@@ -157,89 +147,56 @@
   //
   modelExploration = document.getElementById("model-exploration");
 
-  // Options selected
-  explorationGeographicUnit = "{{ geographic_unit }}";
-  explorationPopulation = "{{ population }}";
-  explorationOutcomeVariable = "{{ outcome_variable }}";
+  // // Options selected
+  explorationGeographicUnit = explorationGeographicUnitSelector.value;
+  explorationPopulation = explorationPopulationSelector.value;
+  explorationOutcomeVariable = explorationOutcomeVariableSelector.value;
 
-  // window.removeEventListener("keydown", swapTheme);
-</script>
+//   window.removeEventListener("keydown", swapTheme);
+// </script>
 
-<script
+<!-- <script
   src="{{ url_for('static', filename='js/respiratory/model-exploration-interactions.js') }}"
   type="module"
-></script>
-<script type="module">
-  await Promise.allSettled([
-    // wait for following to be defined/load in
-    customElements.whenDefined("sl-select"),
-    customElements.whenDefined("sl-option"),
-    customElements.whenDefined("sl-tooltip"),
-    customElements.whenDefined("sl-menu"),
-    customElements.whenDefined("sl-menu-item"),
-  ]);
+></script> -->
 
-  d3.selectAll("sl-menu-item.location-id").each(function (a, b, c, d) {
-    let menuItem = d3.select(this);
-    menuItem.classed(
-      "hide",
-      !menuItem.classed(`${explorationGeographicUnitSelector.value}-id`),
-    );
+<script type="module">
+  const iframeContent = document.querySelector("iframe");
+  iframeContent.src = `/respiratory-model-exploration?disease=${explorationDiseaseSelector.value}&geographic-unit=${explorationGeographicUnitSelector.value}&population=${explorationPopulationSelector.value}&outcome-variable=${explorationOutcomeVariableSelector.value}&location=SC`;
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    controlDependencyTest();
   });
 
-  // document.addEventListener("DOMContentLoaded", async () => {
-  await customElements.whenDefined("sl-icon-button");
+  const popEl = document.getElementById("exploration-population-selector");
+  const geoEl = document.getElementById("exploration-geographic-unit-selector");
+  const outEl = document.getElementById(
+    "exploration-outcome-variable-selector",
+  );
+  const disEl = document.getElementById("exploration-disease-selector");
+  // geoEl.style.dis
 
-  const btn = document.getElementById("hide-exploration-sidebar-button");
-
-  if (btn) {
-    await btn.updateComplete; // wait for render
-    btn.click(); // trigger click
-    btn.style.display = "none";
-  }
-  // });
-</script>
-
-<!-- <script type="module">
-  controlDependencyTest();
+  [popEl, geoEl, outEl, disEl].forEach((el) => {
+    el.addEventListener("sl-change", (event) => {
+      iframeContent.src = `/respiratory-model-exploration?disease=${explorationDiseaseSelector.value}&geographic-unit=${explorationGeographicUnitSelector.value}&population=${explorationPopulationSelector.value}&outcome-variable=${explorationOutcomeVariableSelector.value}&location=SC`;
+    });
+  });
 
   async function controlDependencyTest() {
     await Promise.allSettled([
       // wait for following to be defined/load in
       customElements.whenDefined("sl-select"),
-      customElements.whenDefined("sl-option"),
-      customElements.whenDefined("sl-tooltip"),
-      customElements.whenDefined("sl-menu"),
-      customElements.whenDefined("sl-menu-item"),
     ]);
 
-    const popEl = document.getElementById("exploration-population-selector");
-    const geoEl = document.getElementById(
-      "exploration-geographic-unit-selector",
-    );
-    const outEl = document.getElementById(
-      "exploration-outcome-variable-selector",
-    );
-    const disEl = document.getElementById("exploration-disease-selector");
-    // geoEl.style.dis
-    const selectedPopulation = popEl.value;
+    console.log("fff");
 
-    // 1) population: general_population만 남기기
+    // 1) population:
     popEl.querySelectorAll("sl-option").forEach((opt) => {
       if (opt.value === "general_population") {
-        opt.display = "";
+        opt.style.display = "";
       } else {
         opt.style.display = "none";
       }
-    });
-
-    [popEl, geoEl, outEl, disEl].forEach((el) => {
-      el.addEventListener("sl-change", (event) => {
-       
-        window.open(
-          `/respiratory-model-exploration?disease=${disEl.value}&geographic-unit=${geoEl.value}&population=${popEl.value}&outcome-variable=${outEl.value}&location=SC`, '_self'
-        );
-      });
     });
 
     // if (popEl.value !== "general_population") {
@@ -251,29 +208,30 @@
     geoEl.querySelectorAll("sl-option").forEach((opt) => {
       console.log(opt.value);
       if (opt.value === "state") {
-        opt.display = "";
+        opt.style.display = "";
       } else {
         opt.style.display = "none";
       }
     });
-    // if (geoEl.value !== "state") {
-    //   geoEl.value = "state"; // <- region으로 보내지 말 것 (존재/노출 보장)
-    //   geoEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
-    // }
 
-    // 3) outcome/disease도 동일하게 “허용 목록”만 남기기 (예시)
+    if (geoEl.value !== "state") {
+      geoEl.value = "state";
+      geoEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+    }
+
     outEl.querySelectorAll("sl-option").forEach((opt) => {
       if (opt.value === "inpatient_hospitalizations") {
-        opt.display = "";
+        opt.style.display = "";
       } else {
         opt.style.display = "none";
       }
     });
 
     const selectableDiseases = ["covid_19", "influenza", "RSV"];
+
     disEl.querySelectorAll("sl-option").forEach((opt) => {
       if (selectableDiseases.includes(opt.value)) {
-        opt.display = "";
+        opt.style.display = "";
       } else {
         opt.style.display = "none";
       }
@@ -284,6 +242,6 @@
     //   opt.disabled = false;
     // });
   }
-</script> -->
+</script>
 
 {% endblock %}

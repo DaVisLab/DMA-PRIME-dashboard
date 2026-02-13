@@ -773,6 +773,7 @@ function drawTooltip(
   const clipPathId = `ttp-clip-path-def-${
     allDates ? "all-dates" : "short-history"
   }`;
+  
   let clipPath = defs
     .append("clipPath")
     .attr("id", clipPathId)

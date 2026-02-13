@@ -1,15 +1,27 @@
-{% extends "subtemplates/base.html" %}
-{% block title %}DMA-PRIME{% endblock %}
+{% extends "subtemplates/base.html" %} {% block title %}DMA-PRIME{% endblock %}
 {% block style %}
 <!-- Linking stylesheets -->
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}" />
-<link rel="stylesheet" type="text/css"
-  href="{{ url_for('static', filename='css/respiratory/respiratory-style.css') }}" />
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/respiratory/map-style.css') }}" />
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/respiratory/grid-style.css') }}" />
-{% endblock %}
-
-{% block headScripts %}
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="{{ url_for('static', filename='css/style.css') }}"
+/>
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="{{ url_for('static', filename='css/respiratory/respiratory-style.css') }}"
+/>
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="{{ url_for('static', filename='css/respiratory/map-style.css') }}"
+/>
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="{{ url_for('static', filename='css/respiratory/grid-style.css') }}"
+/>
+{% endblock %} {% block headScripts %}
 <!-- Adding datetime package timejs (allows timezone date instantiation) -->
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
@@ -19,16 +31,15 @@
 
 <script>
   // Ensuring the timejs additional plugins are linked
-  dayjs.extend(window.dayjs_plugin_utc)
-  dayjs.extend(window.dayjs_plugin_customParseFormat)
-  dayjs.extend(window.dayjs_plugin_isSameOrAfter)
-  dayjs.extend(window.dayjs_plugin_isSameOrBefore)
+  dayjs.extend(window.dayjs_plugin_utc);
+  dayjs.extend(window.dayjs_plugin_customParseFormat);
+  dayjs.extend(window.dayjs_plugin_isSameOrAfter);
+  dayjs.extend(window.dayjs_plugin_isSameOrBefore);
 
   // A value... I forget where I got it from - I think the US census
   // TODO: Find a better place to put this value? maybe script.js?
   // TODO: Find source for value
-  scPopulation = 5118425
-
+  scPopulation = 5118425;
 </script>
 <!-- Contains helper functions/data/constants -->
 <script>
@@ -50,19 +61,27 @@
   var lastDate = parseDate(metadata.last_date)
   var predictionDates = metadata.prediction_dates.map(d => parseDate(d))
 </script>
-<script src="{{ url_for('static', filename='js/respiratory/script.js') }}" type="module"></script>
+<script
+  src="{{ url_for('static', filename='js/respiratory/script.js') }}"
+  type="module"
+></script>
 
-
-{% endblock %}
-
-{% block linkout %}
-<sl-button slot="nav" id="model-exploration-button-link" href="{{ url_for('respiratory_model_exploration') }}"
-  target="_blank" variant="text">Model Exploration <sl-icon name="box-arrow-up-right"></sl-icon></sl-button>
-{% endblock %}
-
-{% block extraBody %}
+{% endblock %} {% block linkout %}
+<!-- <sl-button slot="nav" id="model-exploration-button-link" href="{{ url_for('respiratory_model_exploration') }}" -->
+<!-- <sl-button
+  slot="nav"
+  id="model-exploration-button-link"
+  target="_blank"
+  variant="text"
+  >Model Exploration <sl-icon name="box-arrow-up-right"></sl-icon
+></sl-button> -->
+{% endblock %} {% block extraBody %}
 <sl-dialog id="tooltip-large" class="dialog-width">
-  <sl-icon-button name="info-circle" slot="header-actions" id="model-exploration-button-tooltip-large"></sl-icon-button>
+  <sl-icon-button
+    name="info-circle"
+    slot="header-actions"
+    id="model-exploration-button-tooltip-large"
+  ></sl-icon-button>
   <div>
     <div class="tooltip-header">
       <div class="tooltip-region-info"></div>
@@ -77,44 +96,65 @@
     </div>
   </div>
 </sl-dialog>
-{% endblock %}
-
-{% block bodyScripts %}
+{% endblock %} {% block bodyScripts %}
 <script>
   tooltipLarge = document.getElementById("tooltip-large");
-  tooltipLarge.addEventListener("close", () => tooltipLarge.innerHTML = "")
+  tooltipLarge.addEventListener("close", () => (tooltipLarge.innerHTML = ""));
 
-  modelExplorationButtonTooltipLarge = document.getElementById("model-exploration-button-tooltip-large")
+  modelExplorationButtonTooltipLarge = document.getElementById(
+    "model-exploration-button-tooltip-large",
+  );
 
-  document.getElementById("nav-bar").addEventListener("sl-tab-show", (event) => {
-    if (event.detail.name == "map") {
-      d3.select(modelExplorationButtonTooltipLarge).on("click", () => {
-        window.open(`/respiratory-model-exploration?disease=${mapDiseaseSelector.value}&geographic-unit=${mapGeographicUnitSelector.value}&population=${mapPopulationSelector.value}&outcome-variable=${mapOutcomeVariableSelector.value}&location=${dataObject.properties.id}`)
-      })
-    } else if (event.detail.name == "grid") {
-      d3.select(modelExplorationButtonTooltipLarge).on("click", () => {
-        window.open(`/respiratory-model-exploration?disease=${gridDiseaseSelector.value}&geographic-unit=${gridGeographicUnitSelector.value}&population=${gridPopulationSelector.value}&outcome-variable=${gridOutcomeVariableSelector.value}&location=${dataObject.properties.id}`)
-      })
-    }
-  })
+  // model-exploration-button-link
+
+  // document
+  //   .getElementById("nav-bar")
+  //   .addEventListener("sl-tab-show", (event) => {
+  //     if (event.detail.name == "map") {
+  //       d3.select(modelExplorationButtonTooltipLarge).on("click", () => {
+  //         console.log(
+  //           mapDiseaseSelector.value,
+  //           mapGeographicUnitSelector.value,
+  //           mapPopulationSelector.value,
+  //           mapOutcomeVariableSelector.value,
+  //         );
+  //         // window.open(
+  //         //   `/respiratory-model-exploration?disease=${mapDiseaseSelector.value}&geographic-unit=${mapGeographicUnitSelector.value}&population=${mapPopulationSelector.value}&outcome-variable=${mapOutcomeVariableSelector.value}&location=${dataObject.properties.id}`,
+  //         // );
+  //       });
+  //     } else if (event.detail.name == "grid") {
+  //       // d3.select(modelExplorationButtonTooltipLarge).on("click", () => {
+  //       //   window.open(
+  //       //     `/respiratory-model-exploration?disease=${gridDiseaseSelector.value}&geographic-unit=${gridGeographicUnitSelector.value}&population=${gridPopulationSelector.value}&outcome-variable=${gridOutcomeVariableSelector.value}&location=${dataObject.properties.id}`,
+  //       //   );
+  //       // });
+  //     }
+  //   });
+
+  // d3.select("#model-exploration-button-link").on("click", () => {
+  //   window.open(
+  //     `/respiratory-model-exploration?disease=${mapDiseaseSelector.value}&geographic-unit=${mapGeographicUnitSelector.value}&population=${mapPopulationSelector.value}&outcome-variable=${mapOutcomeVariableSelector.value}&location=SC`,
+  //   );
+  // });
 
   d3.select(modelExplorationButtonTooltipLarge).on("click", () => {
-    window.open(`/respiratory-model-exploration?disease=${mapDiseaseSelector.value}&geographic-unit=${mapGeographicUnitSelector.value}&population=${mapPopulationSelector.value}&outcome-variable=${mapOutcomeVariableSelector.value}&location=${dataObject.properties.id}`)
-  })
-
+    window.open(
+      `/respiratory-model-exploration?disease=${mapDiseaseSelector.value}&geographic-unit=${mapGeographicUnitSelector.value}&population=${mapPopulationSelector.value}&outcome-variable=${mapOutcomeVariableSelector.value}&location=${dataObject.properties.id}`,
+    );
+  });
 </script>
 
 <script type="module">
   // toggle tooltip labels
   document.addEventListener("keyup", function (e) {
     if (e.key == "l") {
-      d3.selectAll(".tooltip-label-group")
-        .each(function (d) {
-          display = d3.select(this).attr("display") == "none" ? "initial" : "none"
-          d3.select(this).attr("display", display)
-        })
+      d3.selectAll(".tooltip-label-group").each(function (d) {
+        display =
+          d3.select(this).attr("display") == "none" ? "initial" : "none";
+        d3.select(this).attr("display", display);
+      });
     }
-  })
+  });
 </script>
 
 {% endblock %}
