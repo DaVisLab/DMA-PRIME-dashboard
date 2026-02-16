@@ -213,7 +213,7 @@ function createBarGraph(svg, data, metadata, options = {}) {
     .enter()
     .append("rect")
     .attr("x", (d, i) => {
-      console.log(d3.timeDay.offset(start_date, 7 * i));
+      // console.log(d3.timeDay.offset(start_date, 7 * i));
       return xScale(d3.timeDay.offset(start_date, 7 * i)) - barUnitWidth / 2;
     })
     .attr("y", (d) => yScale(d))

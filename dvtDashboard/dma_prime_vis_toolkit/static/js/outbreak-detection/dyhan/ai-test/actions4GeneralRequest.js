@@ -63,7 +63,6 @@ async function getAIGeneralResponse(userInput, selectorDOMElements) {
 export async function getAIGeneratedTutorial() {
   const responseEl = document.getElementById("ai-response");
 
-  console.log("fff");
   systemSpecification.viewInfo = [];
   systemSpecification.selectorInfo = [];
   

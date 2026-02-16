@@ -15,6 +15,13 @@ export {
 };
 
 var regionData, stateFeature;
+const countyLevelDataPromise = (async () => {
+  return await d3.json(
+    `/data/outbreak-detection/county/encounters?data_version=${metadata.data_version}&_=${Math.random()}`,
+  );
+})();
+
+const countyLevelData = await countyLevelDataPromise;
 
 var icons = {
   data: await d3.csv("/data/health-care-facility"),
@@ -141,13 +148,14 @@ styleSheet.insertRule(
           .replace("hsl(", "")
           .replace(")", "")}, 0.925);
     }`,
-  0
+  0,
 );
 
 document.adoptedStyleSheets = [styleSheet];
 changeDataColumn();
 
 function redraw() {
+  console.log(regionData);
   // 1) Recompute the Count/Rate color scale from the actual data:
   createCountRateChoropleth(regionData);
 
@@ -200,6 +208,34 @@ function redraw() {
     }),
   ];
 
+  console.log(mapRegionSelector.value);
+  if (mapRegionSelector.value == "zcta")
+    layers.push(
+      new GeoJsonLayer({
+        id: "disease_choropleth",
+        depthTest: false,
+        pickable: false,
+        data: countyLevelData,
+        stroked: true,
+        filled: false,
+        pointType: "circle+text",
+        pickable: false,
+        // getFillColor: (d) => getColor(d),
+        lineWidthMinPixels: 2,
+        getLineWidth: 40,
+        getLineColor: [120, 120, 120],
+        // updateTriggers: {
+        //   getFillColor: [
+        //     mapRateSwitch.value,
+        //     mapOutcomeVariableSelector.value,
+        //     mapTimeSwitch.value,
+        //     selectedItems.diseases,
+        //     selectedItems.dataVersion,
+        //   ],
+        // },
+      }),
+    );
+
   if (selectedItems.icons.length) {
     layers.push(
       new IconLayer({
@@ -225,7 +261,7 @@ function redraw() {
             communityPartnerIconsToggle.checked,
           ],
         },
-      })
+      }),
     );
   }
 
@@ -263,7 +299,7 @@ function redraw() {
         updateTriggers: {
           getSize: [map.getZoom()],
         },
-      })
+      }),
     );
   }
   deckOverlay.setProps({
@@ -443,7 +479,7 @@ function drawLegend() {
       .text(
         `${
           mapRateSwitch.value === "rate" ? "Rate (per 1000)" : "Count"
-        } of ${columnLabel}`
+        } of ${columnLabel}`,
       );
 
     // 3) Draw the gradient rectangle
@@ -576,7 +612,7 @@ function drawTooltip(dataObject) {
     .html();
 
   encounterString += " from ";
-  console.log(regionData)
+  console.log(regionData);
 
   const endDate = parseDate(regionData.metadata.end_date);
   const fmt = d3.timeFormat("%b %d, %Y");
@@ -584,25 +620,25 @@ function drawTooltip(dataObject) {
   if (mapTimeSwitch.value === "weekly") {
     // If the user has "Week" selected, show exactly that 7‐day window
     encounterString += `${fmt(endDate)} to ${fmt(
-      d3.timeDay.offset(endDate, 6)
+      d3.timeDay.offset(endDate, 6),
     )}`;
   } else if (mapTimeSwitch.value === "monthly") {
     // If the user has "Month" selected, still show the last four weeks (28 days)
     const startDate = d3.timeDay.offset(endDate, -4 * 7);
     encounterString += `${fmt(startDate)} to ${fmt(
-      d3.timeDay.offset(endDate, 6)
+      d3.timeDay.offset(endDate, 6),
     )}`;
   } else {
     // If the user has "Year" selected, still show the last 52 weeks
     const startDate = d3.timeDay.offset(endDate, -52 * 7);
     encounterString += `${fmt(startDate)} to ${fmt(
-      d3.timeDay.offset(endDate, 6)
+      d3.timeDay.offset(endDate, 6),
     )}`;
   }
   encounterString += ": ";
 
   var lastVal = parseFloat(
-    getData(dataObject, mapTimeSwitch.value).data.at(-1)
+    getData(dataObject, mapTimeSwitch.value).data.at(-1),
   );
   if (mapRateSwitch.value === "rate") {
     encounterString += `${Math.round(lastVal * 1000) / 1000} (per 1000 people)`;
@@ -637,7 +673,7 @@ function drawTooltip(dataObject) {
     .html(
       `${d3.select(`sl-option[value=${mapRegionSelector.value}]`).html()}: ${
         dataObject.properties.identifier
-      }`
+      }`,
     );
 
   //
@@ -652,7 +688,7 @@ function drawTooltip(dataObject) {
         `County: ${
           dataObject.properties.county[0].toUpperCase() +
           dataObject.properties.county.slice(1)
-        }`
+        }`,
       );
   }
 
@@ -714,7 +750,7 @@ function drawTooltip(dataObject) {
       () => {
         drawLargeTooltip(dataObject);
       },
-      { once: true }
+      { once: true },
     );
   });
 
@@ -732,7 +768,7 @@ function drawTooltip(dataObject) {
     .attr("font-size", "var(--sl-font-size-small)")
     .attr("color", "var(--sl-color-neutral-1000)")
     .text(
-      d3.select(`sl-option[value=${mapOutcomeVariableSelector.value}]`).html()
+      d3.select(`sl-option[value=${mapOutcomeVariableSelector.value}]`).html(),
     );
 
   if (mapOutcomeVariableSelector.value == "positive_tests") {
@@ -773,21 +809,21 @@ function drawAggregation() {
       case "weekly":
         var formatDate = d3.timeFormat("%b %d, %Y");
         encounterString += `${formatDate(thisWeek)} to<br/>${formatDate(
-          d3.timeDay.offset(thisWeek, 6)
+          d3.timeDay.offset(thisWeek, 6),
         )}`;
         break;
       case "monthly":
         var startWeek = d3.timeDay.offset(thisWeek, -4 * 7);
         var formatDate = d3.timeFormat("%b %d, %y");
         encounterString += `${formatDate(startWeek)} to<br/>${formatDate(
-          d3.timeDay.offset(thisWeek, 6)
+          d3.timeDay.offset(thisWeek, 6),
         )}`;
         break;
       case "yearly":
         var startWeek = d3.timeDay.offset(thisWeek, -52 * 7);
         var formatDate = d3.timeFormat("%b %d, %y");
         encounterString += `${formatDate(startWeek)} to<br/>${formatDate(
-          d3.timeDay.offset(thisWeek, 6)
+          d3.timeDay.offset(thisWeek, 6),
         )}`;
         break;
     }
@@ -856,14 +892,14 @@ function updateDiseaseCountDisplay() {
 
       // show "(value, +pct%)" in every mode
       d3.select(`#map-${disease}-count`).html(
-        `(<tspan class="disease-last-week-value">${dispPrevVal}</tspan>, <tspan class="disease-current-week-value">${dispVal}</tspan>, <tspan class="disease-current-week-value">${sign}${pct}%</tspan>)`
+        `(<tspan class="disease-last-week-value">${dispPrevVal}</tspan>, <tspan class="disease-current-week-value">${dispVal}</tspan>, <tspan class="disease-current-week-value">${sign}${pct}%</tspan>)`,
       );
     } else {
       d3.select(`#map-${disease}-count`).html(
         `(<tspan class="disease-last-week-value">${dispPrevVal}</tspan>, <tspan class="disease-current-week-value">${dispVal}</tspan>, <tspan class="disease-current-week-value">New ${d3
           .select(mapOutcomeVariableSelector)
           .select(`*[value=${mapOutcomeVariableSelector.value}]`)
-          .html()}</tspan>)`
+          .html()}</tspan>)`,
       );
     }
   });
@@ -877,7 +913,7 @@ function updateDiseaseCountDisplay() {
   const dispAll = Math.round(allCount * 1000) / 1000;
 
   d3.select("#map-all-count").html(
-    `(<tspan class="disease-last-week-value">${dispPrevAll}</tspan>, <tspan class="disease-current-week-value">${dispAll}</tspan>, <tspan class="disease-current-week-value">${signAll}${pctAll}%</tspan>)`
+    `(<tspan class="disease-last-week-value">${dispPrevAll}</tspan>, <tspan class="disease-current-week-value">${dispAll}</tspan>, <tspan class="disease-current-week-value">${signAll}${pctAll}%</tspan>)`,
   );
 }
 
@@ -894,14 +930,14 @@ function getLatestDatum(feature, timeFrame = "weekly") {
     var dataDicts = Object.entries(feature.properties.data)
       .filter(
         ([disease, obj]) =>
-          diseases.includes(disease) && obj[timeFrame].length > 0
+          diseases.includes(disease) && obj[timeFrame].length > 0,
       )
       .map(([_, obj]) => obj);
 
     var otherDicts = Object.entries(feature.properties.other)
       .filter(
         ([disease, obj]) =>
-          diseases.includes(disease) && obj[timeFrame].length > 0
+          diseases.includes(disease) && obj[timeFrame].length > 0,
       )
       .map(([_, obj]) => obj);
 
@@ -943,14 +979,14 @@ function getLastWeekDatum(feature, timeFrame = "weekly") {
     var dataDicts = Object.entries(feature.properties.data)
       .filter(
         ([disease, obj]) =>
-          diseases.includes(disease) && obj[timeFrame].length > 0
+          diseases.includes(disease) && obj[timeFrame].length > 0,
       )
       .map(([_, obj]) => obj);
 
     var otherDicts = Object.entries(feature.properties.other)
       .filter(
         ([disease, obj]) =>
-          diseases.includes(disease) && obj[timeFrame].length > 0
+          diseases.includes(disease) && obj[timeFrame].length > 0,
       )
       .map(([_, obj]) => obj);
 
@@ -991,11 +1027,11 @@ function getData(feature, timeFrame = "weekly") {
   if (diseases.length > 0) {
     // one/many diseases
     var dataDicts = Object.entries(feature.properties.data).filter(
-      (d) => diseases.includes(d[0]) && d[1][timeFrame].length > 0
+      (d) => diseases.includes(d[0]) && d[1][timeFrame].length > 0,
     );
     dataDicts = dataDicts.map((d) => d[1]);
     var otherDicts = Object.entries(feature.properties.other).filter(
-      (d) => diseases.includes(d[0]) && d[1][timeFrame].length > 0
+      (d) => diseases.includes(d[0]) && d[1][timeFrame].length > 0,
     );
     otherDicts = otherDicts.map((d) => d[1]);
 
@@ -1018,10 +1054,10 @@ function getData(feature, timeFrame = "weekly") {
   // rate applied at end
   if (mapRateSwitch.value == "rate") {
     thisData.data = thisData.data.map(
-      (val) => (parseFloat(val) / thisData.population) * 1000.0
+      (val) => (parseFloat(val) / thisData.population) * 1000.0,
     );
     thisData.other = thisData.other.map(
-      (val) => (parseFloat(val) / thisData.population) * 1000.0
+      (val) => (parseFloat(val) / thisData.population) * 1000.0,
     );
   }
 
@@ -1070,25 +1106,25 @@ function drawLargeTooltip(dataObject) {
   if (mapTimeSwitch.value === "weekly") {
     // If the user has "Week" selected, show exactly that 7‐day window
     encounterString += `${fmt(endDate)} to ${fmt(
-      d3.timeDay.offset(endDate, 6)
+      d3.timeDay.offset(endDate, 6),
     )}`;
   } else if (mapTimeSwitch.value === "monthly") {
     // If the user has "Month" selected, still show the last four weeks (28 days)
     const startDate = d3.timeDay.offset(endDate, -4 * 7);
     encounterString += `${fmt(startDate)} to ${fmt(
-      d3.timeDay.offset(endDate, 6)
+      d3.timeDay.offset(endDate, 6),
     )}`;
   } else {
     // If the user has "Year" selected, still show the last 52 weeks
     const startDate = d3.timeDay.offset(endDate, -52 * 7);
     encounterString += `${fmt(startDate)} to ${fmt(
-      d3.timeDay.offset(endDate, 6)
+      d3.timeDay.offset(endDate, 6),
     )}`;
   }
   encounterString += ": ";
 
   var lastVal = parseFloat(
-    getData(dataObject, mapTimeSwitch.value).data.at(-1)
+    getData(dataObject, mapTimeSwitch.value).data.at(-1),
   );
   if (mapRateSwitch.value === "rate") {
     encounterString += `${Math.round(lastVal * 1000) / 1000} (per 1000 people)`;
@@ -1123,7 +1159,7 @@ function drawLargeTooltip(dataObject) {
     .html(
       `${d3.select(`sl-option[value=${mapRegionSelector.value}]`).html()}: ${
         dataObject.properties.identifier
-      }`
+      }`,
     );
   if (mapRegionSelector.value == "zcta") {
     ttpDiv
@@ -1133,7 +1169,7 @@ function drawLargeTooltip(dataObject) {
         `County: ${
           dataObject.properties.county[0].toUpperCase() +
           dataObject.properties.county.slice(1)
-        }`
+        }`,
       );
   }
   if (getData(dataObject, mapTimeSwitch.value).data.length < 1) {
@@ -1171,7 +1207,7 @@ function drawLargeTooltip(dataObject) {
     .attr("font-size", "var(--sl-font-size-large)")
     .attr("color", "var(--sl-color-neutral-1000)")
     .text(
-      d3.select(`sl-option[value=${mapOutcomeVariableSelector.value}]`).html()
+      d3.select(`sl-option[value=${mapOutcomeVariableSelector.value}]`).html(),
     );
 
   if (mapOutcomeVariableSelector.value == "positive_tests") {
@@ -1208,21 +1244,21 @@ function drawLargeAggregation() {
     case "weekly":
       var formatDate = d3.timeFormat("%b %d, %Y");
       encounterString += `${formatDate(thisWeek)} to ${formatDate(
-        d3.timeDay.offset(thisWeek, 6)
+        d3.timeDay.offset(thisWeek, 6),
       )}`;
       break;
     case "monthly":
       var startWeek = d3.timeDay.offset(thisWeek, -4 * 7);
       var formatDate = d3.timeFormat("%b %d, %y");
       encounterString += `${formatDate(startWeek)} to ${formatDate(
-        d3.timeDay.offset(thisWeek, 6)
+        d3.timeDay.offset(thisWeek, 6),
       )}`;
       break;
     case "yearly":
       var startWeek = d3.timeDay.offset(thisWeek, -52 * 7);
       var formatDate = d3.timeFormat("%b %d, %y");
       encounterString += `${formatDate(startWeek)} to ${formatDate(
-        d3.timeDay.offset(thisWeek, 6)
+        d3.timeDay.offset(thisWeek, 6),
       )}`;
       break;
   }
@@ -1249,21 +1285,23 @@ function drawLargeAggregation() {
 async function changeDataColumn() {
   d3.select("#map-loading-div").style("visibility", "visible");
   d3.selectAll("#map-loading-div circle").classed("animate", true);
+
   regionData = await d3.json(
     `/data/outbreak-detection/${mapRegionSelector.value}/${
       mapOutcomeVariableSelector.value
     }?data_version=${metadata.data_version}&${parseInt(
-      Math.random() * 9999999999
-    )}`
+      Math.random() * 9999999999,
+    )}`,
   );
+
   stateFeature = regionData.features.find(
-    (d) => d.properties.identifier == "state"
+    (d) => d.properties.identifier == "state",
   );
 
   if (selectedItems.region) {
     selectedItems.region = regionData.features.find(
       (d) =>
-        d.properties.identifier == selectedItems.region.properties.identifier
+        d.properties.identifier == selectedItems.region.properties.identifier,
     );
   }
 

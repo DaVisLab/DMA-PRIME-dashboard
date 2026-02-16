@@ -34,12 +34,12 @@ export function showMapTooltip(dataObject) {
   var mapTooltipWidth = Math.max(500, width * 0.3);
   var mapTooltipHeight = mapTooltipWidth * 0.65;
 
-
   if (dataObject == null) {
     selectedItems.feature = undefined;
     popup.remove();
     return;
   }
+  
   if (
     selectedItems.feature &&
     selectedItems.feature.properties.id == dataObject.properties.id
@@ -132,12 +132,14 @@ export function showMapTooltip(dataObject) {
 
   // Add expand icon button to map tooltip
   var popupContent = d3.select("div.maplibregl-popup-content");
+
   if (popupContent.select(".expand-icon-button").empty()) {
     popupContent
       .append("sl-icon-button")
       .attr("class", "expand-icon-button")
       .attr("name", "zoom-in")
       .style("position", "absolute")
+      .style("font-size", "1rem")
       .style("right", "18px")
       .style("top", "0px")
       .style("color", "black")
@@ -159,7 +161,7 @@ export function showMapTooltip(dataObject) {
               Math.random() * 9999999999,
             )}`,
           );
-          
+
           var ttpData = {
             id: dataObject.properties.id,
             display_name: dataObject.properties.display_name,
@@ -190,6 +192,7 @@ export function showMapTooltip(dataObject) {
       .attr("class", "model-exploration-icon-button")
       .attr("name", "info-circle")
       .style("position", "absolute")
+      .style("font-size", "1rem")
       .style("right", "40px")
       .style("top", "0px")
       .style("color", "black")

@@ -122,9 +122,9 @@ options %}
 {% endblock %} {% block scripts %}
 
 <script>
-//   var modelLocation = null;
+  //   var modelLocation = null;
 
-//   // Controls
+  //   // Controls
   explorationDiseaseSelector = document.getElementById(
     "exploration-disease-selector",
   );
@@ -152,8 +152,8 @@ options %}
   explorationPopulation = explorationPopulationSelector.value;
   explorationOutcomeVariable = explorationOutcomeVariableSelector.value;
 
-//   window.removeEventListener("keydown", swapTheme);
-// </script>
+  //   window.removeEventListener("keydown", swapTheme);
+</script>
 
 <!-- <script
   src="{{ url_for('static', filename='js/respiratory/model-exploration-interactions.js') }}"
@@ -162,12 +162,14 @@ options %}
 
 <script type="module">
   const iframeContent = document.querySelector("iframe");
-  iframeContent.src = `/respiratory-model-exploration?disease=${explorationDiseaseSelector.value}&geographic-unit=${explorationGeographicUnitSelector.value}&population=${explorationPopulationSelector.value}&outcome-variable=${explorationOutcomeVariableSelector.value}&location=SC`;
 
   document.addEventListener("DOMContentLoaded", async () => {
     controlDependencyTest();
+
+    iframeContent.src = `/respiratory-model-exploration?disease=${explorationDiseaseSelector.value}&geographic-unit=${explorationGeographicUnitSelector.value}&population=${explorationPopulationSelector.value}&outcome-variable=${explorationOutcomeVariableSelector.value}&location=SC`;
   });
 
+  // console.log(metadata);
   const popEl = document.getElementById("exploration-population-selector");
   const geoEl = document.getElementById("exploration-geographic-unit-selector");
   const outEl = document.getElementById(
@@ -186,9 +188,8 @@ options %}
     await Promise.allSettled([
       // wait for following to be defined/load in
       customElements.whenDefined("sl-select"),
+      customElements.whenDefined("sl-option"),
     ]);
-
-    console.log("fff");
 
     // 1) population:
     popEl.querySelectorAll("sl-option").forEach((opt) => {
