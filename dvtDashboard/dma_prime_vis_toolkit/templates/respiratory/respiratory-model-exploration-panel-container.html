@@ -161,6 +161,12 @@ options %}
 ></script> -->
 
 <script type="module">
+  await Promise.allSettled([
+    // wait for following to be defined/load in
+    customElements.whenDefined("sl-select"),
+    customElements.whenDefined("sl-option"),
+  ]);
+
   const iframeContent = document.querySelector("iframe");
 
   document.addEventListener("DOMContentLoaded", async () => {

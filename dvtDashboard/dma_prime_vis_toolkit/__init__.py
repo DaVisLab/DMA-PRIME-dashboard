@@ -179,6 +179,7 @@ def create_app(development=False, dataDir=None):
         metadata["data_version"] = data_version
 
         print(metadata["available_models"])
+        print(metadata)
         panels = [
             {
                 "name": "main",

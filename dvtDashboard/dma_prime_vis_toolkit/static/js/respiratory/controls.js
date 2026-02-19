@@ -3,20 +3,20 @@ await Promise.allSettled([
   customElements.whenDefined("sl-option"),
 ]);
 
-controlDependencyTest();
-controlDependencyTestOnGridView();
+// controlDependencyTest();
+// controlDependencyTestOnGridView();
 
-document.addEventListener("DOMContentLoaded", async () => {
-  // Wait until the Shoelace component is defined
-  await customElements.whenDefined("sl-select");
+// document.addEventListener("DOMContentLoaded", async () => {
+//   // Wait until the Shoelace component is defined
+//   await customElements.whenDefined("sl-select");
 
-  const select = document.querySelector("sl-select");
+//   const select = document.querySelector("sl-select");
 
-  if (select) {
-    controlDependencyTest();
-    controlDependencyTestOnGridView();
-  }
-});
+//   if (select) {
+//     controlDependencyTest();
+//     controlDependencyTestOnGridView();
+//   }
+// });
 
 export function controlDependencyTest() {
   const disabledRegions = ["county", "zcta", "facility"];

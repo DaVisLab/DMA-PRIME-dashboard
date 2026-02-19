@@ -162,6 +162,8 @@ function redraw() {
   // 2) Now redraw the legend (which will use that updated color scale)
   drawLegend();
 
+  const strokeColor =
+    mapRegionSelector.value == "zcta" ? [184, 184, 184] : [64, 64, 64];
   // 3) Then set the layers
   var layers = [
     new GeoJsonLayer({
@@ -176,7 +178,7 @@ function redraw() {
       getFillColor: (d) => getColor(d),
       lineWidthMinPixels: 0.75,
       getLineWidth: 20,
-      getLineColor: [64, 64, 64],
+      getLineColor: strokeColor,
       updateTriggers: {
         getFillColor: [
           mapRateSwitch.value,
@@ -206,35 +208,58 @@ function redraw() {
           : selectedItems.region,
       },
     }),
+    new GeoJsonLayer({
+      id: "disease_choropleth",
+      depthTest: false,
+      pickable: false,
+      data: countyLevelData,
+      stroked: mapRegionSelector.value == "zcta",
+      filled: false,
+      pointType: "circle+text",
+      pickable: false,
+      // getFillColor: (d) => getColor(d),
+      lineWidthMinPixels: 1,
+      getLineWidth: 20,
+      getLineColor: [64, 64, 64],
+      // updateTriggers: {
+      //   getFillColor: [
+      //     mapRateSwitch.value,
+      //     mapOutcomeVariableSelector.value,
+      //     mapTimeSwitch.value,
+      //     selectedItems.diseases,
+      //     selectedItems.dataVersion,
+      //   ],
+      // },
+    }),
   ];
 
-  console.log(mapRegionSelector.value);
-  if (mapRegionSelector.value == "zcta")
-    layers.push(
-      new GeoJsonLayer({
-        id: "disease_choropleth",
-        depthTest: false,
-        pickable: false,
-        data: countyLevelData,
-        stroked: true,
-        filled: false,
-        pointType: "circle+text",
-        pickable: false,
-        // getFillColor: (d) => getColor(d),
-        lineWidthMinPixels: 2,
-        getLineWidth: 40,
-        getLineColor: [120, 120, 120],
-        // updateTriggers: {
-        //   getFillColor: [
-        //     mapRateSwitch.value,
-        //     mapOutcomeVariableSelector.value,
-        //     mapTimeSwitch.value,
-        //     selectedItems.diseases,
-        //     selectedItems.dataVersion,
-        //   ],
-        // },
-      }),
-    );
+  // console.log(mapRegionSelector.value);
+  // if (mapRegionSelector.value == "zcta")
+  //   layers.push(
+  //     new GeoJsonLayer({
+  //       id: "disease_choropleth",
+  //       depthTest: false,
+  //       pickable: false,
+  //       data: countyLevelData,
+  //       stroked: true,
+  //       filled: false,
+  //       pointType: "circle+text",
+  //       pickable: false,
+  //       // getFillColor: (d) => getColor(d),
+  //       lineWidthMinPixels: 2,
+  //       getLineWidth: 40,
+  //       getLineColor: [120, 120, 120],
+  //       // updateTriggers: {
+  //       //   getFillColor: [
+  //       //     mapRateSwitch.value,
+  //       //     mapOutcomeVariableSelector.value,
+  //       //     mapTimeSwitch.value,
+  //       //     selectedItems.diseases,
+  //       //     selectedItems.dataVersion,
+  //       //   ],
+  //       // },
+  //     }),
+  //   );
 
   if (selectedItems.icons.length) {
     layers.push(

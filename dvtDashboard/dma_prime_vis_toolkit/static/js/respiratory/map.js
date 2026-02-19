@@ -123,6 +123,55 @@ async function redraw(
         Math.random() * 9999999999,
       )}`,
     );
+
+    // regionData.features.forEach((item) => {
+    //   console.log(item);
+    //   item.properties.data = {
+    //     general_population: {
+    //       inpatient_hospitalizations: {
+    //         extra: {
+    //           RFA: [
+    //             1.3333333333333333, 1.5, 1.6666666666666667, 1.5, 2, 3, 2, 1.75,
+    //             2.5, 3.5, 4.666666666666667, 4.5, 4.5, 3, 4.333333333333333,
+    //             5.25, 11, 24.333333333333332, 37.5, 67.5, 99.33333333333333,
+    //             96.25, 138.25, 199, 277.25, 261.25, 129.25,
+    //           ],
+    //           health_system: [
+    //             5, 2, 2, 5, 4, 3, 2, 4, 5, 2, 3, 3, 5, 5, 6, 9, 26, 35, 58, 118,
+    //             191, 213, 292, 397, 555, 538, 267, 214, 176, 180, 107, 71, 63,
+    //             41, 15, 19, 7, 10, 12, 8, 11, 9, 12, 7, 7, 8, 3, 3, 5, 7, 3, 1,
+    //             1, 9, 6, 6, 14, 3, 10, 8, 7, 4, 7, 11, 9, 7, 16, 24, 40, 57,
+    //             186, 374, 310, 205, 97, 84, 97, 76,
+    //           ],
+    //         },
+    //         historical: {
+    //           imputed: false,
+    //           reported: 0,
+    //           values: [
+    //             16, 24, 3, 2, 2, 1, 2, 1, 0, 8, 8, 11, 21, 13, 13, 18, 40, 80,
+    //             160, 327, 520, 443, 642, 833, 1287, 1241, 690, 479, 446, 408,
+    //             269, 188, 137, 80, 43, 34, 33, 16, 13, 15, 17, 18, 9, 8, 10, 16,
+    //             11, 4, 3, 5, 6, 5, 2, 8, 11, 7, 15, 5, 19, 17, 19, 6, 6, 12, 16,
+    //             20, 41, 52, 86, 123, 391, 856, 891, 559, 300, 241, 246, 179,
+    //           ],
+    //         },
+    //         projected: {
+    //           imputed: false,
+    //           start_date: "2026-02-14",
+    //           uncertainty_range: {
+    //             percentile25: [126, 109, 96, 83],
+    //             percentile2_5: [76, 56, 42, 30],
+    //             percentile75: [196, 193, 194, 201],
+    //             percentile97_5: [273, 296, 328, 388],
+    //           },
+    //           values: [165, 154, 147, 142],
+    //         },
+    //       },
+    //     },
+    //   };
+    // });
+    // console.log(regionData);
+    // mapOutcomeVariableSelector.value = "inpatient_hospitalizations";
   }
   if (resetWarnings) {
     updateMapWarnings();
@@ -426,6 +475,8 @@ function getColor(feature) {
       mapTypeSwitch.value,
       imputations,
     );
+    //  let value = 1
+    
     if (mapTypeSwitch.value == "percentDifference") {
       if (isNaN(value[1]) || value[0]) {
         c = d3.rgb(choroplethColorMap(value[2]));
@@ -625,7 +676,6 @@ function drawLegend() {
 
     // Discrete 5-bin legend for hospitalizations/inpatient/ed and positive-tests
     if (mapOutcomeVariableSelector.value != "rate_of_transmission") {
-     
       var edges =
         choroplethDiscreteEdges && choroplethDiscreteEdges.length === 6
           ? choroplethDiscreteEdges
@@ -646,7 +696,7 @@ function drawLegend() {
         .map((color, i) => ({ color, x0: edges[i], x1: edges[i + 1] }));
 
       var xDomain = [edges[0], edges[edges.length - 1]];
-  
+
       var xScale = d3.scaleLinear().domain(xDomain).range([0, legendWidth]);
 
       var content = colorLegend
@@ -863,6 +913,7 @@ function updateMapWarnings() {
   let noForecastThisWeek = 1;
   let someForecastThisWeek;
   let allForecast = 1;
+
   for (let feature of regionData.features) {
     let thisData =
       feature.properties.data[mapPopulationSelector.value][

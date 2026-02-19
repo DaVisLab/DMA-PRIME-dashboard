@@ -9,10 +9,10 @@ mapResetButton.addEventListener("click", () => {
     })
 
     selectedItems.region = undefined
-    selectedItems.diseases = []
+    // selectedItems.diseases = []
 
-    d3.selectAll(".disease-checkbox").attr("checked", null)
-    mapAllDiseaseSelector.removeAttribute("checked")
+    // d3.selectAll(".disease-checkbox").attr("checked", null)
+    // mapAllDiseaseSelector.removeAttribute("checked")
 
     update()
 })
