@@ -58,8 +58,7 @@ options %}
     disabled
   >
     <p slot="label">Geographic unit</p>
-    {% for region in metadata['available_models']['respiratory_diseases'].keys()
-    %}
+    {% for region in metadata['available_models']['influenza'].keys() %}
     <sl-option class="map-geographic-unit-option" value="{{ region }}"
       >{{ metadata['region_sizes'][region] }}</sl-option
     >
@@ -68,7 +67,7 @@ options %}
 
   <!-- population -->
   <sl-select
-    value="{{ metadata['available_models']['respiratory_diseases']['county'] | list | first }}"
+    value="{{ metadata['available_models']['influenza']['state'] | list | first }}"
     id="map-population-selector"
     class="fill-width map-option"
     size="small"
@@ -76,12 +75,14 @@ options %}
   >
     <p slot="label">Select population</p>
     {% for population in
-    metadata['available_models']['respiratory_diseases']['county'].keys() %}
+    metadata['available_models']['influenza']['state'].keys() %}
     <sl-tooltip
       class="map-population-tooltip"
       content="{{ metadata['populations_tooltips'][population] }}"
       trigger="hover"
       hoist
+      placement="right"
+      distance="6"
     >
       <sl-option class="map-population-option" value="{{ population }}"
         >{{ metadata['populations'][population] }}</sl-option
@@ -100,12 +101,14 @@ options %}
   >
     <p slot="label">Select outcome variable</p>
     {% for outcome in
-    metadata['available_models']['respiratory_diseases']['county'].values() |
-    first %}
+    metadata['available_models']['influenza']['state'].values() | first %}
     <sl-tooltip
       class="map-outcome-tooltip"
       content="{{ metadata['outcome_variables_tooltips'][outcome] }}"
       trigger="hover"
+      placement="right"
+      distance="6"
+      flip="false"
       hoist
     >
       <sl-option class="map-outcome-option" value="{{ outcome }}"
@@ -311,7 +314,7 @@ options %}
         width="250"
         height="48"
         viewBox="0 0 250 48"
-        display="initial" 
+        display="initial"
         transform="translate(0 20)"
       >
         <g transform="translate(4 0) scale(0.06)">
@@ -422,49 +425,49 @@ options %}
   mapTypeSwitch = document.getElementById("map-type-switch");
   mapDiseaseSelector = document.getElementById("map-disease-selector");
   mapGeographicUnitSelector = document.getElementById(
-    "map-geographic-unit-selector"
+    "map-geographic-unit-selector",
   );
   mapPopulationSelector = document.getElementById("map-population-selector");
   mapOutcomeVariableSelector = document.getElementById(
-    "map-outcome-variable-selector"
+    "map-outcome-variable-selector",
   );
   mapIncludeImputations = document.getElementById("map-include-imputations");
 
   // Optional toggles
   mapOptionsGeographicLabelsToggle = document.getElementById(
-    "map-options-geographic-labels-toggle"
+    "map-options-geographic-labels-toggle",
   );
   hospitalIconsToggle = document.getElementById(
-    "map-options-hospital-icons-toggle"
+    "map-options-hospital-icons-toggle",
   );
   mobileClinicIconsToggle = document.getElementById(
-    "map-options-mobile-clinic-icons-toggle"
+    "map-options-mobile-clinic-icons-toggle",
   );
   communityPartnerIconsToggle = document.getElementById(
-    "map-options-community-partner-icons-toggle"
+    "map-options-community-partner-icons-toggle",
   );
 
   // State–level chart elements
   mapStateHospitalizationsSubtitle = document.getElementById(
-    "map-state-hospitalizations-subtitle"
+    "map-state-hospitalizations-subtitle",
   );
   mapStateHospitalizationsResizer = document.getElementById(
-    "map-state-hospitalizations-resizer"
+    "map-state-hospitalizations-resizer",
   );
   mapStateHospitalizationsSvg = document.getElementById(
-    "map-state-hospitalizations-svg"
+    "map-state-hospitalizations-svg",
   );
   mapStateHospitalizationsLarge = document.getElementById(
-    "map-state-hospitalizations-large"
+    "map-state-hospitalizations-large",
   );
   mapStateHospitalizationsLargeSubtitle = document.getElementById(
-    "map-state-hospitalizations-large-subtitle"
+    "map-state-hospitalizations-large-subtitle",
   );
   mapStateHospitalizationsLargeResizer = document.getElementById(
-    "map-state-hospitalizations-large-resizer"
+    "map-state-hospitalizations-large-resizer",
   );
   mapStateHospitalizationsLargeSvg = document.getElementById(
-    "map-state-hospitalizations-large-svg"
+    "map-state-hospitalizations-large-svg",
   );
 
   // Main map, legend, title & tooltip
@@ -475,10 +478,10 @@ options %}
   mapDisclaimer = document.getElementById("map-disclaimer");
   mapNoForecastAlert = document.getElementById("map-no-forecast-alert");
   mapNoForecastThisWeekAlert = document.getElementById(
-    "map-no-forecast-this-week-alert"
+    "map-no-forecast-this-week-alert",
   );
   mapMixedForecastThisWeekAlert = document.getElementById(
-    "map-mixed-forecast-this-week-alert"
+    "map-mixed-forecast-this-week-alert",
   );
 
   // Options selected

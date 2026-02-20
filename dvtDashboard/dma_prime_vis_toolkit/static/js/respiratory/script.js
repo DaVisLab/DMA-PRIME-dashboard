@@ -235,7 +235,7 @@ function getUncertaintyValues_percentDiff_ForPanelType(
   }
   // console.log(thisData);
   // console.log(projectionValue);
-  console.log(newData);
+  // console.log(newData);
 
   return newData;
 }
@@ -744,7 +744,7 @@ function drawTooltip(
 
   // create scales
   // apply rate if necessaryand figure find max y value
-  var countMax = panelType == "rate" ? 1 / d.population : 1; // so y scale is never 0-0
+  var countMax = panelType == "rate" ? 1 / d.population : 0.0001; // so y scale is never 0-0
 
   Array("historical", "projected").forEach((e_p) => {
     if (panelType == "rate") {
@@ -779,6 +779,7 @@ function drawTooltip(
   };
   var ttpGraphWidth = ttpWidth - ttpMargins.right - ttpMargins.left;
 
+  console.log(countMax)
   // define scales
   var yScale = d3
     .scaleLinear()

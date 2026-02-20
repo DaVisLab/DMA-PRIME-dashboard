@@ -233,7 +233,7 @@ mapResetButton.addEventListener("click", () => {
 mapTypeSwitch.addEventListener("sl-change", (event) => {
   var dataVarString = d3
     .select(mapOutcomeVariableSelector)
-    .select(`*[value=${mapOutcomeVariableSelector.value}]`)
+    .select(`*[value="${mapOutcomeVariableSelector.value}"]`)
     .html();
   // update legend title
   if (mapTypeSwitch.value == "rate") {
@@ -330,8 +330,9 @@ mapOutcomeVariableSelector.addEventListener("sl-change", (event) => {
 
   var dataVarString = d3
     .select(mapOutcomeVariableSelector)
-    .select(`*[value=${mapOutcomeVariableSelector.value}]`)
+    .select(`*[value="${mapOutcomeVariableSelector.value}"]`)
     .html();
+
   // update legend title
   if (mapTypeSwitch.value == "rate") {
     d3.select("#map-legend-title").text(

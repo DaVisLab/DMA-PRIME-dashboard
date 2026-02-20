@@ -234,6 +234,7 @@ options %}
   var gridSort = document.getElementById("grid-sort");
   var gridTextFilter = document.getElementById("grid-text-filter");
 
+
   // summary elements
   var gridSummary = document.getElementById("grid-summary");
   var gridMainLegend = document.getElementById("grid-main-legend");
@@ -271,6 +272,8 @@ options %}
   gridGeographicUnit = undefined;
   gridPopulation = undefined;
   gridOutcomeVariable = undefined;
+
+  console.log(metadata['outcome_variables'])
 
   // Get scrollbar width - source: https://stackoverflow.com/questions/28360978/how-can-i-get-browser-scrollbar-width
   var scrollDiv = document.createElement("div");

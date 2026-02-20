@@ -401,7 +401,7 @@ function drawLegend() {
 
   const legendLength = 350;
   const columnLabel = d3
-    .select(`sl-option[value=${mapOutcomeVariableSelector.value}]`)
+    .select(`sl-option[value="${mapOutcomeVariableSelector.value}"]`)
     .html();
 
   if (mapRateSwitch.value === "percent") {
@@ -633,7 +633,7 @@ function drawTooltip(dataObject) {
   // 5) Build the "Encounters ... from X to Y: N" string
   let encounterString = d3
     .select(mapOutcomeVariableSelector)
-    .select(`*[value=${mapOutcomeVariableSelector.value}]`)
+    .select(`*[value="${mapOutcomeVariableSelector.value}"]`)
     .html();
 
   encounterString += " from ";
@@ -793,7 +793,7 @@ function drawTooltip(dataObject) {
     .attr("font-size", "var(--sl-font-size-small)")
     .attr("color", "var(--sl-color-neutral-1000)")
     .text(
-      d3.select(`sl-option[value=${mapOutcomeVariableSelector.value}]`).html(),
+      d3.select(`sl-option[value="${mapOutcomeVariableSelector.value}"]`).html(),
     );
 
   if (mapOutcomeVariableSelector.value == "positive_tests") {
@@ -820,12 +820,12 @@ function drawAggregation() {
     var thisData = getData(stateFeature, "weekly");
 
     aggregatedDiseaseHistoryTitle.innerHTML = `State Wide ${d3
-      .select(`sl-option[value=${mapOutcomeVariableSelector.value}]`)
+      .select(`sl-option[value="${mapOutcomeVariableSelector.value}"]`)
       .html()}`;
 
     var encounterString = d3
       .select(mapOutcomeVariableSelector)
-      .select(`*[value=${mapOutcomeVariableSelector.value}]`)
+      .select(`*[value="${mapOutcomeVariableSelector.value}"]`)
       .html();
 
     encounterString += " from ";
@@ -923,7 +923,7 @@ function updateDiseaseCountDisplay() {
       d3.select(`#map-${disease}-count`).html(
         `(<tspan class="disease-last-week-value">${dispPrevVal}</tspan>, <tspan class="disease-current-week-value">${dispVal}</tspan>, <tspan class="disease-current-week-value">New ${d3
           .select(mapOutcomeVariableSelector)
-          .select(`*[value=${mapOutcomeVariableSelector.value}]`)
+          .select(`*[value="${mapOutcomeVariableSelector.value}"]`)
           .html()}</tspan>)`,
       );
     }
@@ -1121,7 +1121,7 @@ function drawLargeTooltip(dataObject) {
   // 5) Build the "Encounters ... from X to Y: N" string
   let encounterString = d3
     .select(mapOutcomeVariableSelector)
-    .select(`*[value=${mapOutcomeVariableSelector.value}]`)
+    .select(`*[value="${mapOutcomeVariableSelector.value}"]`)
     .html();
   encounterString += " from ";
 
@@ -1232,7 +1232,7 @@ function drawLargeTooltip(dataObject) {
     .attr("font-size", "var(--sl-font-size-large)")
     .attr("color", "var(--sl-color-neutral-1000)")
     .text(
-      d3.select(`sl-option[value=${mapOutcomeVariableSelector.value}]`).html(),
+      d3.select(`sl-option[value="${mapOutcomeVariableSelector.value}"]`).html(),
     );
 
   if (mapOutcomeVariableSelector.value == "positive_tests") {
@@ -1256,12 +1256,12 @@ function drawLargeAggregation() {
   var thisData = getData(stateFeature, "weekly");
 
   aggregatedDiseaseHistoryLargeTitle.innerHTML = `State Wide ${d3
-    .select(`sl-option[value=${mapOutcomeVariableSelector.value}]`)
+    .select(`sl-option[value="${mapOutcomeVariableSelector.value}"]`)
     .html()}`;
 
   var encounterString = d3
     .select(mapOutcomeVariableSelector)
-    .select(`*[value=${mapOutcomeVariableSelector.value}]`)
+    .select(`*[value="${mapOutcomeVariableSelector.value}"]`)
     .html();
   encounterString += " from ";
   var thisWeek = parseDate(regionData.metadata.end_date);
@@ -1355,7 +1355,7 @@ function updateMapTitle() {
     .html()}ly `;
   titleStart += `${d3
     .select(mapOutcomeVariableSelector)
-    .select(`*[value=${mapOutcomeVariableSelector.value}]`)
+    .select(`*[value="${mapOutcomeVariableSelector.value}"]`)
     .html()} `;
 
   var titleEnd = "in Prisma and MUSC Health Systems ";

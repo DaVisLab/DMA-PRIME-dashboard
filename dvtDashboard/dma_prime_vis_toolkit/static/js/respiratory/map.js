@@ -852,7 +852,7 @@ function updateMapTitle() {
     .html()} `;
   titleStart += `${d3
     .select(mapOutcomeVariableSelector)
-    .select(`*[value=${mapOutcomeVariableSelector.value}]`)
+    .select(`*[value="${mapOutcomeVariableSelector.value}"]`)
     .html()} `;
 
   var titleEnd = "in South Carolina ";

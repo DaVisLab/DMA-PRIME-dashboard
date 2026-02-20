@@ -3,22 +3,27 @@ await Promise.allSettled([
   customElements.whenDefined("sl-option"),
 ]);
 
-// controlDependencyTest();
-// controlDependencyTestOnGridView();
+controlDependencyTest();
+controlDependencyTestOnGridView();
 
-// document.addEventListener("DOMContentLoaded", async () => {
-//   // Wait until the Shoelace component is defined
-//   await customElements.whenDefined("sl-select");
+document.addEventListener("DOMContentLoaded", async () => {
+  // Wait until the Shoelace component is defined
+  await Promise.allSettled([
+    customElements.whenDefined("sl-select"),
+    customElements.whenDefined("sl-option"),
+  ]);
 
-//   const select = document.querySelector("sl-select");
+  const select = document.querySelector("sl-select");
 
-//   if (select) {
-//     controlDependencyTest();
-//     controlDependencyTestOnGridView();
-//   }
-// });
+  if (select) {
+    controlDependencyTest();
+    controlDependencyTestOnGridView();
+    testTooltipDipendency();
+  }
+});
 
 export function controlDependencyTest() {
+  testTooltipDipendency();
   const disabledRegions = ["county", "zcta", "facility"];
 
   document
@@ -207,4 +212,44 @@ export function controlDependencyTestOnGridView() {
       option.style.display = "";
     });
   }
+}
+function testTooltipDipendency() {
+  const diseaseSelect = document.getElementById("map-disease-selector");
+  const diseases = metadata.diseases;
+
+  function updateOutcomeTooltips() {
+    const selectedKey = diseaseSelect.value;
+    const selectedLabel = diseases[selectedKey] ?? selectedKey;
+
+    const tooltips = document.querySelectorAll(".map-outcome-tooltip");
+    const populationTooltips = document.querySelectorAll(
+      ".map-population-tooltip",
+    );
+
+    tooltips.forEach((t) => {
+      if (!t.dataset.baseContent) t.dataset.baseContent = t.content || "";
+
+      const base = t.dataset.baseContent;
+
+      // Always derive from baseline
+      t.content = base.replaceAll("{DISEASE}", selectedLabel);
+      t.distance = "6";
+      t.placement = "right";
+      t.trigger = "hover";
+    });
+
+    populationTooltips.forEach((t) => {
+      t.distance = "6";
+      t.placement = "right";
+      t.trigger = "hover";
+    });
+  }
+
+  diseaseSelect.addEventListener("sl-change", () => {
+    // If disease change triggers re-render elsewhere, delay one tick
+    queueMicrotask(updateOutcomeTooltips);
+    // or setTimeout(updateOutcomeTooltips, 0);
+  });
+
+  updateOutcomeTooltips();
 }

@@ -288,7 +288,7 @@ function createBarGraph(svg, data, metadata, options = {}) {
     .attr("text-anchor", "middle")
     .attr("fill", "var(--sl-color-neutral-1000)")
     .text(
-      d3.select(`sl-option[value=${mapOutcomeVariableSelector.value}]`).html()
+      d3.select(`sl-option[value="${mapOutcomeVariableSelector.value}"]`).html()
     );
 
   // Always show all years, slant labels for both tooltips
@@ -381,7 +381,7 @@ function createBarGraph(svg, data, metadata, options = {}) {
     .attr("dominant-baseline", "middle")
     .attr("fill", "var(--sl-color-neutral-1000)")
     .text(
-      d3.select(`sl-option[value=${mapOutcomeVariableSelector.value}]`).html()
+      d3.select(`sl-option[value="${mapOutcomeVariableSelector.value}"]`).html()
     );
 
   if (mapOutcomeVariableSelector.value == "positive_tests") {
