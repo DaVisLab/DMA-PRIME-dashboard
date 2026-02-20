@@ -308,11 +308,11 @@ function drawTooltip(
   grid = false,
   allDates = false,
   extraSources = [],
+  smallPopupData = [],
 ) {
   // The beginning bits
   var geographicUnit;
 
-  console.log(extraSources)
   if (grid) {
     geographicUnit = gridGeographicUnitSelector.value;
   } else {
@@ -348,19 +348,31 @@ function drawTooltip(
     historicalDatesArray.length,
   );
 
-  // return
-  // if (data.extra.health_system != undefined) {
-  //   data.extra.health_system = validateFeatureDataLength(
-  //     data.extra.health_system,
-  //     historicalDatesArray.length,
-  //   );
-  // }
-  // if (data.extra.RFA != undefined) {
-  //   data.extra.RFA = validateFeatureDataLength(
-  //     data.extra.RFA,
-  //     historicalDatesArray.length,
-  //   );
-  // }
+  // console.log(smallPopupData);
+  // console.log(data.historical.values);
+
+  // // return
+  // console.log(metadata);
+  // console.log(metadata.all_historical_dates.length);
+  // console.log(metadata.short_history_dates.length);
+  // console.log(data.extra.health_system);
+  // console.log(data.extra.RFA);
+  // console.log(data);
+
+  if (data.extra.health_system != undefined && allDates) {
+    data.extra.health_system = validateFeatureDataLength(
+      data.extra.health_system,
+      historicalDatesArray.length,
+      metadata.short_history_dates.length - smallPopupData.extra.health_system.length,
+    );
+  }
+  if (data.extra.RFA != undefined && allDates) {
+    data.extra.RFA = validateFeatureDataLength(
+      data.extra.RFA,
+      historicalDatesArray.length,
+      metadata.short_history_dates.length - smallPopupData.extra.RFA.length,
+    );
+  }
 
   // console.log(data);
 
@@ -611,6 +623,7 @@ function drawTooltip(
           grid,
           true,
           [],
+          data,
         );
       });
     });
@@ -623,6 +636,7 @@ function drawTooltip(
       "emergency_department_visits",
     ].includes(outcomeVariable)
   ) {
+    
     function ttpOptionsHandler(extraSources, dataSource) {
       // toggle data source-var combo
       if (extraSources.includes(dataSource)) {
@@ -630,6 +644,8 @@ function drawTooltip(
       } else {
         extraSources.push(dataSource);
       }
+
+
       drawTooltip(
         d,
         ttpSVG,
@@ -641,6 +657,7 @@ function drawTooltip(
         grid,
         allDates,
         extraSources,
+        smallPopupData
       );
     }
 
@@ -773,7 +790,7 @@ function drawTooltip(
   const clipPathId = `ttp-clip-path-def-${
     allDates ? "all-dates" : "short-history"
   }`;
-  
+
   let clipPath = defs
     .append("clipPath")
     .attr("id", clipPathId)
@@ -1218,10 +1235,10 @@ function drawTooltip(
 
       predictiveGroup
         .append("path")
-        .datum(d3.range(n)) // ✅ 길이만 맞는 배열이면 됨
+        .datum(d3.range(n))
         .attr("class", "path-uncertainty-95")
         .attr("clip-path", `url(#${clipPathId})`)
-        .attr("d", band95) // ✅ generator를 “실행”시키는 형태
+        .attr("d", band95)
         .attr("fill", populationColorMap[population]["projected"])
         .attr("opacity", 0.2);
     }
@@ -1822,9 +1839,13 @@ async function drawStateBarChart(
   temp.remove();
 }
 
-function validateFeatureDataLength(featureData, targetLength) {
+function validateFeatureDataLength(featureData, targetLength, offset = 0) {
   if (featureData.length < targetLength) {
-    var numToAdd = targetLength - featureData.length;
+    // console.log(targetLength)
+    // console.log(featureData.length)
+    // console.log(offset)
+    let numToAdd = targetLength - offset - featureData.length;
+    // console.log(numToAdd)
     featureData = Array(numToAdd).fill(null).concat(featureData);
   }
 
