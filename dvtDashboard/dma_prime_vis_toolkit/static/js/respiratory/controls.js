@@ -18,12 +18,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (select) {
     controlDependencyTest();
     controlDependencyTestOnGridView();
-    testTooltipDipendency();
+    testDiseaseOutcomeDipendency();
   }
 });
 
 export function controlDependencyTest() {
-  testTooltipDipendency();
+  testDiseaseOutcomeDipendency();
   const disabledRegions = ["county", "zcta", "facility"];
 
   document
@@ -83,10 +83,10 @@ export function controlDependencyTest() {
         option.style.display != "none"
       ) {
         option.style.display = "none";
-        outcomeSelectEl.value = "inpatient_hospitalizations";
-        outcomeSelectEl.dispatchEvent(
-          new CustomEvent("sl-change", { bubbles: true }),
-        );
+        // outcomeSelectEl.value = "inpatient_hospitalizations";
+        // outcomeSelectEl.dispatchEvent(
+        //   new CustomEvent("sl-change", { bubbles: true }),
+        // );
       }
     });
 
@@ -213,7 +213,23 @@ export function controlDependencyTestOnGridView() {
     });
   }
 }
-function testTooltipDipendency() {
+
+function testDisease_OutcomeDipendecy() {
+  const diseaseSelect = document.getElementById("map-disease-selector");
+
+  const selectedKey = diseaseSelect.value;
+  const selectedLabel = diseases[selectedKey] ?? selectedKey;
+
+  diseaseSelect.addEventListener("sl-change", () => {
+    // If disease change triggers re-render elsewhere, delay one tick
+    queueMicrotask(updateOutcomeTooltips);
+    // or setTimeout(updateOutcomeTooltips, 0);
+  });
+
+  updateOutcomeOptions();
+}
+
+function testDiseaseOutcomeDipendency() {
   const diseaseSelect = document.getElementById("map-disease-selector");
   const diseases = metadata.diseases;
 
@@ -245,9 +261,22 @@ function testTooltipDipendency() {
     });
   }
 
+  function updateOutcomeOptions() {
+    const outcomeOptions = document.querySelectorAll(".map-outcome-option");
+    const selectedKey = diseaseSelect.value;
+    const selectedLabel = diseases[selectedKey] ?? selectedKey;
+
+    outcomeOptions.forEach((t) => {
+      if (t.innerHTML.includes("Attributable ED Visits")) {
+        t.innerHTML = `% ${selectedLabel}-Attributable ED Visits`;
+      }
+    });
+  }
+
   diseaseSelect.addEventListener("sl-change", () => {
     // If disease change triggers re-render elsewhere, delay one tick
     queueMicrotask(updateOutcomeTooltips);
+    queueMicrotask(updateOutcomeOptions);
     // or setTimeout(updateOutcomeTooltips, 0);
   });
 

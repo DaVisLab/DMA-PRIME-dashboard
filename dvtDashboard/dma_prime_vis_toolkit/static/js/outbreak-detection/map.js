@@ -447,8 +447,8 @@ function drawLegend() {
     // 4) "Other colors" group (white, light‐pink, unknown) with explanatory labels
     const otherColors = legend.append("g");
     const others = [
-      ["white", `No ${columnLabel}`],
-      ["#ff8000", `New ${columnLabel} from Last Period`],
+      // ["white", `No ${columnLabel}`],
+      // ["#ff8000", `New ${columnLabel} from Last Period`],
       [unknownColor, "Unknown"],
     ];
 

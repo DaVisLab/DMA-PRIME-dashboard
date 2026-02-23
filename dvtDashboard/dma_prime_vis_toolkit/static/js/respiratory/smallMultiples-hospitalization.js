@@ -352,7 +352,7 @@ function callInitSmallMultipleView() {
   ].forEach((el) => {
     el.addEventListener("sl-change", (event) => {
       initSmallMultipleView();
-      // controlDependencyTest();
+      controlDependencyTest();
     });
   });
 

@@ -501,7 +501,7 @@ function drawTooltip(
           } else {
             // console.log(outcomeVariable);
             // console.log(diseaseVariableString);
-            if (outcomeVariable == "inpatient_hospitalizations") {
+            if (outcomeVariable == "inpatient_hospitalizations" || outcomeVariable == "%_influenza-attributable_ed_visits" ) {
               if (
                 diseaseVariableString == "COVID-19" ||
                 diseaseVariableString == "Respiratory Syncytial Virus (RSV)" ||

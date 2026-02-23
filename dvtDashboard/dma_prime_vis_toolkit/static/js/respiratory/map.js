@@ -476,7 +476,7 @@ function getColor(feature) {
       imputations,
     );
     //  let value = 1
-    
+
     if (mapTypeSwitch.value == "percentDifference") {
       if (isNaN(value[1]) || value[0]) {
         c = d3.rgb(choroplethColorMap(value[2]));
@@ -630,25 +630,26 @@ function drawLegend() {
       .attr("text-anchor", "middle")
       .html((d) => `${d}%`);
 
-    var otherColors = legend.append("g");
+    var otherColors = legend.append("g").attr("transform", "translate(0, 80)");
     var others = [
-      [
-        "white",
-        `No ${metadata["outcome_variables"][mapOutcomeVariableSelector.value]}`,
-      ],
-      [
-        "#ff8800",
-        `New ${
-          metadata["outcome_variables"][mapOutcomeVariableSelector.value]
-        } from Last Period`,
-      ],
+      // [
+      //   "white",
+      //   `No ${metadata["outcome_variables"][mapOutcomeVariableSelector.value]}`,
+      // ],
+      // [
+      //   "#ff8800",
+      //   `New ${
+      //     metadata["outcome_variables"][mapOutcomeVariableSelector.value]
+      //   } from Last Period`,
+      // ],
       [unknownColor, "Unknown"],
     ];
 
     others.forEach((d, i) => {
       let group = otherColors
         .append("g")
-        .attr("transform", `translate(0, ${(i + 1) * 20})`);
+        .attr("transform", `translate(0, ${-(i + 1) * 20})`);
+
       group
         .append("rect")
         .attr("x", 0)
@@ -658,6 +659,7 @@ function drawLegend() {
         .attr("fill", d[0])
         .attr("stroke", "black")
         .attr("stroke-width", 1);
+
       group
         .append("text")
         .attr("class", "legend-other-colors")
@@ -740,6 +742,13 @@ function drawLegend() {
           i === 0 ? "start" : i === tickValues.length - 1 ? "end" : "middle",
         );
 
+      console.log(mapOutcomeVariableSelector.value);
+
+      let dataVarString = d3
+        .select(mapOutcomeVariableSelector)
+        .select(`*[value="${mapOutcomeVariableSelector.value}"]`)
+        .html();
+      console.log(dataVarString);
       content
         .append("text")
         .attr("id", `map-legend-title`)
@@ -748,7 +757,7 @@ function drawLegend() {
         .attr("y", 3 * em + legendMargins.top)
         .text(
           `Current Week's ${
-            metadata.outcome_variables[mapOutcomeVariableSelector.value]
+            dataVarString
           } by ${metadata.region_sizes[mapGeographicUnitSelector.value]}`,
         );
     } else {
@@ -825,7 +834,11 @@ function drawLegend() {
             )
             .ticks(6),
         );
-
+      let dataVarString = d3
+        .select(mapOutcomeVariableSelector)
+        .select(`*[value="${mapOutcomeVariableSelector.value}"]`)
+        .html();
+      console.log(dataVarString);
       colorLegendContent
         .append("text")
         .attr("id", `map-legend-title`)
@@ -834,7 +847,7 @@ function drawLegend() {
         .attr("y", 3 * em + legendMargins.top)
         .text(
           `Current Week's ${
-            metadata.outcome_variables[mapOutcomeVariableSelector.value]
+            dataVarString
           } by ${metadata.region_sizes[mapGeographicUnitSelector.value]}`,
         );
     }

@@ -39,7 +39,7 @@ export function showMapTooltip(dataObject) {
     popup.remove();
     return;
   }
-  
+
   if (
     selectedItems.feature &&
     selectedItems.feature.properties.id == dataObject.properties.id
@@ -231,25 +231,6 @@ mapResetButton.addEventListener("click", () => {
 });
 
 mapTypeSwitch.addEventListener("sl-change", (event) => {
-  var dataVarString = d3
-    .select(mapOutcomeVariableSelector)
-    .select(`*[value="${mapOutcomeVariableSelector.value}"]`)
-    .html();
-  // update legend title
-  if (mapTypeSwitch.value == "rate") {
-    d3.select("#map-legend-title").text(
-      `Current Week's ${dataVarString} Rates by ${
-        metadata.region_sizes[mapGeographicUnitSelector.value]
-      }`,
-    );
-  } else {
-    d3.select("#map-legend-title").text(
-      `Current Week's ${dataVarString} by ${
-        metadata.region_sizes[mapGeographicUnitSelector.value]
-      }`,
-    );
-  }
-
   drawStateHospitalizations(
     mapDiseaseSelector.value,
     mapTypeSwitch.value,
@@ -327,26 +308,6 @@ mapPopulationSelector.addEventListener("sl-change", async (event) => {
 
 mapOutcomeVariableSelector.addEventListener("sl-change", (event) => {
   mapOutcomeVariable = mapOutcomeVariableSelector.value;
-
-  var dataVarString = d3
-    .select(mapOutcomeVariableSelector)
-    .select(`*[value="${mapOutcomeVariableSelector.value}"]`)
-    .html();
-
-  // update legend title
-  if (mapTypeSwitch.value == "rate") {
-    d3.select("#map-legend-title").text(
-      `Current Week's ${dataVarString} Rates by ${
-        metadata.region_sizes[mapGeographicUnitSelector.value]
-      }`,
-    );
-  } else {
-    d3.select("#map-legend-title").text(
-      `Current Week's ${dataVarString} by ${
-        metadata.region_sizes[mapGeographicUnitSelector.value]
-      }`,
-    );
-  }
 
   // update tooltip
   if (selectedItems.feature) {
