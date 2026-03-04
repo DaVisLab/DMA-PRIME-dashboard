@@ -198,8 +198,9 @@ export function showMapTooltip(dataObject) {
       .style("color", "black")
       .style("cursor", "pointer")
       .on("click", () => {
+        console.log(metadata.data_version)
         window.open(
-          `/respiratory-model-exploration?disease=${mapDiseaseSelector.value}&geographic-unit=${mapGeographicUnitSelector.value}&population=${mapPopulationSelector.value}&outcome-variable=${mapOutcomeVariableSelector.value}&location=${dataObject.properties.id}`,
+          `/respiratory-model-exploration?disease=${mapDiseaseSelector.value}&geographic-unit=${mapGeographicUnitSelector.value}&population=${mapPopulationSelector.value}&outcome-variable=${mapOutcomeVariableSelector.value}&location=${dataObject.properties.id}&data_version=${metadata.data_version}`,
         );
       });
   }

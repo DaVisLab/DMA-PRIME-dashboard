@@ -106,12 +106,13 @@ def get_all_respiratory_hospitalizations(region_size="zcta", disease="covid-19")
 
 
 @bp.route(
-    "/respiratory/model/<disease>/<geographic_unit>/<population>/<outcome_variable>/<location>",
+    "/respiratory/model/<disease>/<geographic_unit>/<population>/<outcome_variable>/<location>/<data_version>",
     methods=["GET"],
 )
 @login_required
 def get_respiratory_model(
     location,
+    data_version,
     disease="covid_19",
     geographic_unit="region",
     population="state",
@@ -119,7 +120,7 @@ def get_respiratory_model(
 ):
     # def get_respiratory_model(location, disease='covid_19', geographic_unit='region', population='state', outcome_variable='all_hospitalizations'):
     # model information for given combo of option selections
-    data_version = get_data_version_from_request(request, current_user)
+    
     outcome_variable_crosswalk = {
         # 'all_encounters': 'Weekly_Encounters',
         "inpatient_hospitalizations": "Weekly_Inpatient_Hospitalizations",
@@ -142,6 +143,8 @@ def get_respiratory_model(
 
     print(file)
 
+    return send_file(file)
+
     decrypt_key = os.path.join(
         current_app.config["DATADIR"],
         "processed",
@@ -149,9 +152,7 @@ def get_respiratory_model(
         "respiratory",
         "encrypt_key.bin",
     )
-
-    return send_file(file)
-
+     
     try:
         file = decrypt(file, decrypt_key)
         return file
@@ -286,6 +287,30 @@ def data_approver_required(view):
 
     return wrapped_view
 
+def update_respiratory_forecasting_report():
+    new_path = os.path.join(
+                current_app.config["DATADIR"],
+                "processed",
+                "new",
+                "model_reports",
+            )
+    
+    dash_path = os.path.join(
+        current_app.config["DATADIR"],
+        "processed",
+        "current",
+        "model_reports",
+    )
+    
+    previous_path = os.path.join(
+            current_app.config["DATADIR"],
+            "processed",
+            "previous",
+            "model_reports",
+        )
+    
+    shutil.copytree(dash_path, previous_path, dirs_exist_ok=True)
+    shutil.copytree(new_path, dash_path, dirs_exist_ok=True)
 
 @bp.route("/change-version", methods=["PUT"])
 def change_version():
@@ -310,6 +335,8 @@ def change_version():
             "previous",
             dashboard_translation[dashboard],
         )
+        
+        print(change)
         if change == "new":
             new_path = os.path.join(
                 current_app.config["DATADIR"],
@@ -317,11 +344,16 @@ def change_version():
                 "new",
                 dashboard_translation[dashboard],
             )
+            
             shutil.copytree(dash_path, previous_path, dirs_exist_ok=True)
             shutil.copytree(new_path, dash_path, dirs_exist_ok=True)
+            
             current_app.logger.info(
                 f"{current_user.email} approved new data for {dashboard}"
             )
+            
+            if dashboard == "respiratory":
+                update_respiratory_forecasting_report()
 
         if change == "previous":
             shutil.copytree(previous_path, dash_path, dirs_exist_ok=True)

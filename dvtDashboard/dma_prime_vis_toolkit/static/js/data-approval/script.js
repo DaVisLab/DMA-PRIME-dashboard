@@ -25,6 +25,7 @@ tabGroup.addEventListener("sl-tab-show", function(e) {
     let dataVersionButton = d3.selectAll(`.preview-data-button[dashboard=${e.detail.name}][variant=primary]`)
     document.getElementById(`${e.detail.name}-dashboard`).src = `/${e.detail.name}?data_version=${dataVersionButton.attr("dataVersion")}`
 })
+
 tabGroup.addEventListener("sl-tab-hide", function(e) {
     try {
         document.getElementById(`${e.detail.name}-dashboard`).src = ""
@@ -53,6 +54,7 @@ function updateApproveButtons(dashboard) {
         // Overview approve button
         const overviewApproveBtn = document.getElementById(`${dashboard}-approve-button`);
         const overviewRow = document.getElementById(`${dashboard}-row`);
+
         if (overviewApproveBtn) {
             if (dates[dashboard].new === dates[dashboard].current) {
                 overviewApproveBtn.setAttribute('disabled', true);
@@ -62,6 +64,7 @@ function updateApproveButtons(dashboard) {
                 if (overviewRow) overviewRow.classList.add('highlight-approval-row');
             }
         }
+
         // Dashboard panel approve buttons
         d3.selectAll(`.approve-data-button[dashboard=${dashboard}][dataVersion=new]`).each(function() {
             if (dates[dashboard].new === dates[dashboard].current) {
@@ -81,6 +84,7 @@ function approveDashboard(dashboard) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 'change': 'new', 'dashboard': dashboard })
         };
+        
         fetch('/data/change-version', requestOptions)
         .then(response => {
             updateDates(dashboard);

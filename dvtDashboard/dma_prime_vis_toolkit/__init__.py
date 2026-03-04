@@ -265,7 +265,9 @@ def create_app(development=False, dataDir=None):
                 "html": "respiratory/respiratory-model-exploration-panel.html",
             },
         ]
+        
         if location == "":
+            print("ff1")
             return render_template(
                 "respiratory/respiratory-model-base.html",
                 panels=panels,
@@ -277,7 +279,10 @@ def create_app(development=False, dataDir=None):
                 location=location,
             )
         else:
-            src = f"/data/respiratory/model/{disease}/{geographic_unit}/{population}/{outcome_variable}/{location}"
+            print("ff2")
+            print(data_version)
+            src = f"/data/respiratory/model/{disease}/{geographic_unit}/{population}/{outcome_variable}/{location}/{data_version}"
+            
             return render_template(
                 "respiratory/respiratory-model-base.html",
                 panels=panels,
@@ -287,6 +292,7 @@ def create_app(development=False, dataDir=None):
                 population=population,
                 outcome_variable=outcome_variable,
                 location=location,
+                data_version=data_version,
                 src=src,
             )
 
