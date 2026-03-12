@@ -281,6 +281,10 @@ def create_app(development=False, dataDir=None):
         else:
             print("ff2")
             print(data_version)
+            print(outcome_variable)
+            
+            if outcome_variable == "%_influenza-attributable_ed_visits":
+                outcome_variable = "attributable_ed_visits"
             src = f"/data/respiratory/model/{disease}/{geographic_unit}/{population}/{outcome_variable}/{location}/{data_version}"
             
             return render_template(

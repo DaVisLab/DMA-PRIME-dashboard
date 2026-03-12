@@ -48,7 +48,7 @@ options %}
     size="small"
   >
     <p slot="label">Geographic unit</p>
-    {% for region in metadata['available_models']['respiratory_diseases'].keys()
+    {% for region in metadata['available_models']['influenza'].keys()
     %}
     <sl-option class="grid-geographic-unit-option" value="{{ region }}"
       >{{ metadata['region_sizes'][region] }}</sl-option
@@ -58,14 +58,14 @@ options %}
 
   <!-- population -->
   <sl-select
-    value="{{ metadata['available_models']['respiratory_diseases']['county'] | list | first }}"
+    value="{{ metadata['available_models']['influenza']['state'] | list | first }}"
     id="grid-population-selector"
     class="fill-width grid-option"
     size="small"
   >
     <p slot="label">Select population</p>
     {% for population in
-    metadata['available_models']['respiratory_diseases']['county'].keys() %}
+    metadata['available_models']['influenza']['state'].keys() %}
     <sl-tooltip
       class="grid-population-tooltip"
       content="{{ metadata['populations_tooltips'][population] }}"
@@ -80,7 +80,7 @@ options %}
   </sl-select>
 
   <!-- outcome variable -->
-  <!-- <sl-select value="{{ metadata['available_models']['respiratory_diseases']['county'].values() | first | first }}" id="grid-outcome-variable-selector" class="fill-width grid-option" size="small" > -->
+  <!-- <sl-select value="{{ metadata['available_models']['respiratory_diseases']['state'].values() | first | first }}" id="grid-outcome-variable-selector" class="fill-width grid-option" size="small" > -->
   <sl-select
     value="inpatient_hospitalizations"
     id="grid-outcome-variable-selector"
@@ -89,7 +89,7 @@ options %}
   >
     <p slot="label">Select outcome variable</p>
     {% for outcome in
-    metadata['available_models']['respiratory_diseases']['county'].values() |
+    metadata['available_models']['influenza']['state'].values() |
     first %}
     <sl-tooltip
       class="grid-outcome-tooltip"

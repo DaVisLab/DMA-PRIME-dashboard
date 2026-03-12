@@ -10,7 +10,7 @@ options %}
   >
     <p slot="label">Select a disease or group of diseases</p>
     {% for disease, name in metadata['diseases'].items() %}
-    <sl-option value="{{ disease }}" class="map-disease-option"
+    <sl-option value="{{ disease }}" class="exploration-disease-option"
       >{{ name }}</sl-option
     >
     {% endfor %}
@@ -24,9 +24,8 @@ options %}
     size="small"
   >
     <p slot="label">Geographic unit</p>
-    {% for region in metadata['available_models']['respiratory_diseases'].keys()
-    %}
-    <sl-option class="map-geographic-unit-option" value="{{ region }}"
+    {% for region in metadata['available_models']['influenza'].keys() %}
+    <sl-option class="exploration-geographic-unit-option" value="{{ region }}"
       >{{ metadata['region_sizes'][region] }}</sl-option
     >
     {% endfor %}
@@ -34,21 +33,21 @@ options %}
 
   <!-- population -->
   <sl-select
-    value="{{ metadata['available_models']['respiratory_diseases']['county'] | list | first }}"
+    value="{{ metadata['available_models']['influenza']['state'] | list | first }}"
     id="exploration-population-selector"
     class="fill-width"
     size="small"
   >
     <p slot="label">Select population</p>
     {% for population in
-    metadata['available_models']['respiratory_diseases']['county'].keys() %}
+    metadata['available_models']['influenza']['state'].keys() %}
     <sl-tooltip
-      class="map-population-tooltip"
+      class="exploration-population-tooltip"
       content="{{ metadata['populations_tooltips'][population] }}"
       trigger="hover"
       hoist
     >
-      <sl-option class="map-population-option" value="{{ population }}"
+      <sl-option class="exploration-population-option" value="{{ population }}"
         >{{ metadata['populations'][population] }}</sl-option
       >
     </sl-tooltip>
@@ -64,15 +63,14 @@ options %}
   >
     <p slot="label">Select outcome variable</p>
     {% for outcome in
-    metadata['available_models']['respiratory_diseases']['county'].values() |
-    first %}
+    metadata['available_models']['influenza']['state'].values() | first %}
     <sl-tooltip
-      class="map-outcome-tooltip"
+      class="exploration-outcome-tooltip"
       content="{{ metadata['outcome_variables_tooltips'][outcome] }}"
       trigger="hover"
       hoist
     >
-      <sl-option class="map-outcome-option" value="{{ outcome }}"
+      <sl-option class="exploration-outcome-option" value="{{ outcome }}"
         >{{ metadata['outcome_variables'][outcome] }}</sl-option
       >
     </sl-tooltip>
@@ -155,11 +153,10 @@ options %}
   //   window.removeEventListener("keydown", swapTheme);
 </script>
 
-<!-- <script
-  src="{{ url_for('static', filename='js/respiratory/model-exploration-interactions.js') }}"
+<script
+  src="{{ url_for('static', filename='js/respiratory/controls.js') }}"
   type="module"
-></script> -->
-
+></script>
 <script type="module">
   await Promise.allSettled([
     // wait for following to be defined/load in
@@ -170,7 +167,7 @@ options %}
   const iframeContent = document.querySelector("iframe");
 
   document.addEventListener("DOMContentLoaded", async () => {
-    controlDependencyTest();
+    controlDependencyTestOnModelView();
 
     iframeContent.src = `/respiratory-model-exploration?disease=${explorationDiseaseSelector.value}&geographic-unit=${explorationGeographicUnitSelector.value}&population=${explorationPopulationSelector.value}&outcome-variable=${explorationOutcomeVariableSelector.value}&location=SC`;
   });
@@ -187,67 +184,36 @@ options %}
   [popEl, geoEl, outEl, disEl].forEach((el) => {
     el.addEventListener("sl-change", (event) => {
       iframeContent.src = `/respiratory-model-exploration?disease=${explorationDiseaseSelector.value}&geographic-unit=${explorationGeographicUnitSelector.value}&population=${explorationPopulationSelector.value}&outcome-variable=${explorationOutcomeVariableSelector.value}&location=SC`;
+
+      controlDependencyTestOnModelView();
+      testDiseaseOutcomeDipendency();
     });
   });
 
-  async function controlDependencyTest() {
-    await Promise.allSettled([
-      // wait for following to be defined/load in
-      customElements.whenDefined("sl-select"),
-      customElements.whenDefined("sl-option"),
-    ]);
+  function controlDependencyTestOnModelView() {
+    // await Promise.allSettled([
+    //   // wait for following to be defined/load in
+    //   customElements.whenDefined("sl-select"),
+    //   customElements.whenDefined("sl-option"),
+    // ]);
 
-    // 1) population:
-    popEl.querySelectorAll("sl-option").forEach((opt) => {
-      if (opt.value === "general_population") {
-        opt.style.display = "";
-      } else {
-        opt.style.display = "none";
-      }
-    });
+    window._controlDependecyTest(popEl, geoEl, outEl, disEl);
+  }
 
-    // if (popEl.value !== "general_population") {
-    //   popEl.value = "general_population";
-    //   popEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
-    // }
-
-    // // 2) geographic unit: only SC
-    geoEl.querySelectorAll("sl-option").forEach((opt) => {
-      console.log(opt.value);
-      if (opt.value === "state") {
-        opt.style.display = "";
-      } else {
-        opt.style.display = "none";
-      }
-    });
-
-    if (geoEl.value !== "state") {
-      geoEl.value = "state";
-      geoEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
-    }
-
-    outEl.querySelectorAll("sl-option").forEach((opt) => {
-      if (opt.value === "inpatient_hospitalizations") {
-        opt.style.display = "";
-      } else {
-        opt.style.display = "none";
-      }
-    });
-
-    const selectableDiseases = ["covid_19", "influenza", "RSV"];
-
-    disEl.querySelectorAll("sl-option").forEach((opt) => {
-      if (selectableDiseases.includes(opt.value)) {
-        opt.style.display = "";
-      } else {
-        opt.style.display = "none";
-      }
-    });
-
-    // disEl.querySelectorAll("sl-option").forEach((opt) => {
-    //   opt.hidden = false;
-    //   opt.disabled = false;
-    // });
+  function testDiseaseOutcomeDipendency() {
+    const tooltips = document.querySelectorAll(".exploration-outcome-tooltip");
+    const populationTooltips = document.querySelectorAll(
+      ".exploration-population-tooltip",
+    );
+    const outcomeOptions = document.querySelectorAll(
+      ".exploration-outcome-option",
+    );
+    window._testDiseaseOutcomeDipendency(
+      disEl,
+      outcomeOptions,
+      tooltips,
+      populationTooltips,
+    );
   }
 </script>
 

@@ -19,228 +19,82 @@ document.addEventListener("DOMContentLoaded", async () => {
     controlDependencyTest();
     controlDependencyTestOnGridView();
     testDiseaseOutcomeDipendency();
+    testDiseaseOutcomeDipendencyOnGridView();
   }
 });
 
-export function controlDependencyTest() {
-  testDiseaseOutcomeDipendency();
-  const disabledRegions = ["county", "zcta", "facility"];
-
-  document
-    .getElementById("map-population-selector")
-    .querySelectorAll("sl-option")
-    .forEach((option) => {
-      if (option.value == "general_population") {
-        //do nothing
-      } else {
-        option.style.display = "none";
-      }
-    });
-
-  document
-    .getElementById("map-geographic-unit-selector")
-    .querySelectorAll("sl-option")
-    .forEach((option) => {
-      if (option.value == "state") {
-        //do nothing
-      } else {
-        option.style.display = "none";
-      }
-    });
-
-  let selectedPopulation = document.getElementById(
-    "map-population-selector",
-  ).value;
-  const selectEl = document.getElementById("map-geographic-unit-selector");
-  const outcomeSelectEl = document.getElementById(
-    "map-outcome-variable-selector",
-  );
-  const diseaseSelectEl = document.getElementById("map-disease-selector");
-
-  // test population dependency
-  if (selectedPopulation === "general_population") {
-    // 1. test population - region dependency
-    selectEl.querySelectorAll("sl-option").forEach((option) => {
-      if (
-        disabledRegions.includes(option.value) &&
-        option.style.display != "none"
-      ) {
-        option.style.display = "none";
-
-        if (selectEl.value === option.value) {
-          selectEl.value = "region";
-          selectEl.dispatchEvent(
-            new CustomEvent("sl-change", { bubbles: true }),
-          );
-        }
-      }
-    });
-
-    // 2. test population - outcome dependency
-    outcomeSelectEl.querySelectorAll("sl-option").forEach((option) => {
-      if (
-        option.value == "all_hospitalizations" &&
-        option.style.display != "none"
-      ) {
-        option.style.display = "none";
-        // outcomeSelectEl.value = "inpatient_hospitalizations";
-        // outcomeSelectEl.dispatchEvent(
-        //   new CustomEvent("sl-change", { bubbles: true }),
-        // );
-      }
-    });
-
-    // 3. test population - disease dependency
-    diseaseSelectEl.querySelectorAll("sl-option").forEach((option) => {
-      // console.log(option.value);
-      if (
-        "respiratory_diseases" == option.value &&
-        option.style.display != "none"
-      ) {
-        option.style.display = "none";
-        diseaseSelectEl.value = "influenza";
-        diseaseSelectEl.dispatchEvent(
-          new CustomEvent("sl-change", { bubbles: true }),
-        );
-      }
-    });
-  } else {
-    selectEl.querySelectorAll("sl-option").forEach((option) => {
-      option.style.display = "";
-    });
-
-    outcomeSelectEl.querySelectorAll("sl-option").forEach((option) => {
-      option.style.display = "";
-    });
-
-    diseaseSelectEl.querySelectorAll("sl-option").forEach((option) => {
-      option.style.display = "";
-    });
-  }
-}
-
-export function controlDependencyTestOnGridView() {
-  const disabledRegions = ["county", "zcta", "facility"];
-  document
-    .getElementById("grid-population-selector")
-    .querySelectorAll("sl-option")
-    .forEach((option) => {
-      if (option.value == "general_population") {
-        //do nothing
-      } else {
-        option.style.display = "none";
-      }
-    });
-
-  document
-    .getElementById("grid-geographic-unit-selector")
-    .querySelectorAll("sl-option")
-    .forEach((option) => {
-      if (option.value == "state") {
-        //do nothing
-      } else {
-        option.style.display = "none";
-      }
-    });
-
-  let selectedPopulation = document.getElementById(
-    "grid-population-selector",
-  ).value;
-  const selectEl = document.getElementById("grid-geographic-unit-selector");
-  const outcomeSelectEl = document.getElementById(
-    "grid-outcome-variable-selector",
-  );
-  const diseaseSelectEl = document.getElementById("grid-disease-selector");
-
-  // test population dependency
-  if (selectedPopulation === "general_population") {
-    // 1. test population - region dependency
-    selectEl.querySelectorAll("sl-option").forEach((option) => {
-      if (
-        disabledRegions.includes(option.value) &&
-        option.style.display != "none"
-      ) {
-        option.style.display = "none";
-
-        if (selectEl.value === option.value) {
-          selectEl.value = "region";
-          selectEl.dispatchEvent(
-            new CustomEvent("sl-change", { bubbles: true }),
-          );
-        }
-      }
-    });
-
-    // 2. test population - outcome dependency
-    outcomeSelectEl.querySelectorAll("sl-option").forEach((option) => {
-      if (
-        option.value == "all_hospitalizations" &&
-        option.style.display != "none"
-      ) {
-        option.style.display = "none";
-        outcomeSelectEl.value = "inpatient_hospitalizations";
-        outcomeSelectEl.dispatchEvent(
-          new CustomEvent("sl-change", { bubbles: true }),
-        );
-      }
-    });
-
-    // 3. test population - disease dependency
-    diseaseSelectEl.querySelectorAll("sl-option").forEach((option) => {
-      // console.log(option.value);
-      if (
-        "respiratory_diseases" == option.value &&
-        option.style.display != "none"
-      ) {
-        option.style.display = "none";
-        diseaseSelectEl.value = "influenza";
-        diseaseSelectEl.dispatchEvent(
-          new CustomEvent("sl-change", { bubbles: true }),
-        );
-      }
-    });
-  } else {
-    selectEl.querySelectorAll("sl-option").forEach((option) => {
-      option.style.display = "";
-    });
-
-    outcomeSelectEl.querySelectorAll("sl-option").forEach((option) => {
-      option.style.display = "";
-    });
-
-    diseaseSelectEl.querySelectorAll("sl-option").forEach((option) => {
-      option.style.display = "";
-    });
-  }
-}
-
-function testDisease_OutcomeDipendecy() {
-  const diseaseSelect = document.getElementById("map-disease-selector");
-
-  const selectedKey = diseaseSelect.value;
-  const selectedLabel = diseases[selectedKey] ?? selectedKey;
-
-  diseaseSelect.addEventListener("sl-change", () => {
-    // If disease change triggers re-render elsewhere, delay one tick
-    queueMicrotask(updateOutcomeTooltips);
-    // or setTimeout(updateOutcomeTooltips, 0);
+function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
+  // 1) population:
+  popEl.querySelectorAll("sl-option").forEach((opt) => {
+    if (opt.value === "general_population") {
+      opt.style.display = "";
+    } else {
+      opt.style.display = "none";
+    }
   });
 
-  updateOutcomeOptions();
+  if (popEl.value !== "general_population") {
+    popEl.value = "general_population";
+    popEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+  }
+
+  // 2) geographic unit: only SC
+  geoEl.querySelectorAll("sl-option").forEach((opt) => {
+    if (opt.value === "state") {
+      opt.style.display = "";
+    } else if (
+      opt.value == "region" &&
+      popEl.value == "general_population" &&
+      outEl.value == "inpatient_hospitalizations"
+    ) {
+      // exception
+      // -1 influenza -> turn region on
+      opt.style.display = "";
+    } else {
+      opt.style.display = "none";
+    }
+  });
+
+  outEl.querySelectorAll("sl-option").forEach((opt) => {
+    // console.log(opt.value);
+    if (opt.value === "all_hospitalizations" && opt.style.display != "none") {
+      // opt.style.display = "";
+      opt.style.display = "none";
+    } else {
+      // opt.style.display = "none";
+    }
+  });
+
+  const selectableDiseases = ["covid_19", "influenza", "RSV"];
+
+  disEl.querySelectorAll("sl-option").forEach((opt) => {
+    if (selectableDiseases.includes(opt.value)) {
+      opt.style.display = "";
+    } else {
+      opt.style.display = "none";
+    }
+  });
+
+  geoEl.querySelectorAll("sl-option").forEach((option) => {
+    if (geoEl.value != "state" && outEl.value != "inpatient_hospitalizations") {
+      geoEl.value = "state";
+      geoEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+      return;
+    }
+  });
 }
 
-function testDiseaseOutcomeDipendency() {
-  const diseaseSelect = document.getElementById("map-disease-selector");
+function _testDiseaseOutcomeDipendency(
+  disEl,
+  outcomeOptions,
+  tooltips,
+  populationTooltips,
+) {
   const diseases = metadata.diseases;
 
   function updateOutcomeTooltips() {
-    const selectedKey = diseaseSelect.value;
+    const selectedKey = disEl.value;
     const selectedLabel = diseases[selectedKey] ?? selectedKey;
-
-    const tooltips = document.querySelectorAll(".map-outcome-tooltip");
-    const populationTooltips = document.querySelectorAll(
-      ".map-population-tooltip",
-    );
 
     tooltips.forEach((t) => {
       if (!t.dataset.baseContent) t.dataset.baseContent = t.content || "";
@@ -262,8 +116,7 @@ function testDiseaseOutcomeDipendency() {
   }
 
   function updateOutcomeOptions() {
-    const outcomeOptions = document.querySelectorAll(".map-outcome-option");
-    const selectedKey = diseaseSelect.value;
+    const selectedKey = disEl.value;
     const selectedLabel = diseases[selectedKey] ?? selectedKey;
 
     outcomeOptions.forEach((t) => {
@@ -273,12 +126,63 @@ function testDiseaseOutcomeDipendency() {
     });
   }
 
-  diseaseSelect.addEventListener("sl-change", () => {
-    // If disease change triggers re-render elsewhere, delay one tick
-    queueMicrotask(updateOutcomeTooltips);
-    queueMicrotask(updateOutcomeOptions);
-    // or setTimeout(updateOutcomeTooltips, 0);
-  });
-
   updateOutcomeTooltips();
+  updateOutcomeOptions();
+}
+
+window._controlDependecyTest = _controlDependecyTest;
+window._testDiseaseOutcomeDipendency = _testDiseaseOutcomeDipendency;
+
+export function controlDependencyTest() {
+  testDiseaseOutcomeDipendency();
+
+  const popEl = document.getElementById("map-population-selector");
+  const geoEl = document.getElementById("map-geographic-unit-selector");
+  const outEl = document.getElementById("map-outcome-variable-selector");
+  const disEl = document.getElementById("map-disease-selector");
+
+  _controlDependecyTest(popEl, geoEl, outEl, disEl);
+}
+
+export function controlDependencyTestOnGridView() {
+  testDiseaseOutcomeDipendencyOnGridView();
+
+  const popEl = document.getElementById("grid-population-selector");
+  const geoEl = document.getElementById("grid-geographic-unit-selector");
+  const outEl = document.getElementById("grid-outcome-variable-selector");
+  const disEl = document.getElementById("grid-disease-selector");
+
+  _controlDependecyTest(popEl, geoEl, outEl, disEl);
+}
+
+function testDiseaseOutcomeDipendency() {
+  const diseaseSelect = document.getElementById("map-disease-selector");
+  const outcomeOptions = document.querySelectorAll(".map-outcome-option");
+  const tooltips = document.querySelectorAll(".map-outcome-tooltip");
+  const populationTooltips = document.querySelectorAll(
+    ".map-population-tooltip",
+  );
+
+  _testDiseaseOutcomeDipendency(
+    diseaseSelect,
+    outcomeOptions,
+    tooltips,
+    populationTooltips,
+  );
+}
+
+function testDiseaseOutcomeDipendencyOnGridView() {
+  const diseaseSelect = document.getElementById("grid-disease-selector");
+  const outcomeOptions = document.querySelectorAll(".grid-outcome-option");
+  const tooltips = document.querySelectorAll(".grid-outcome-tooltip");
+  const populationTooltips = document.querySelectorAll(
+    ".grid-population-tooltip",
+  );
+
+  _testDiseaseOutcomeDipendency(
+    diseaseSelect,
+    outcomeOptions,
+    tooltips,
+    populationTooltips,
+  );
 }

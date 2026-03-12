@@ -121,6 +121,7 @@ def get_respiratory_model(
     # def get_respiratory_model(location, disease='covid_19', geographic_unit='region', population='state', outcome_variable='all_hospitalizations'):
     # model information for given combo of option selections
     
+    # print(outcome_variable)
     outcome_variable_crosswalk = {
         # 'all_encounters': 'Weekly_Encounters',
         "inpatient_hospitalizations": "Weekly_Inpatient_Hospitalizations",
@@ -128,6 +129,7 @@ def get_respiratory_model(
         "positive_tests": "Weekly_Positive_Tests",
         "rate_of_transmission": "rt",
         "all_hospitalizations": "Weekly_Hospitalizations",
+        "attributable_ed_visits": "Weekly_Percent_ED",
     }
 
     file = os.path.join(

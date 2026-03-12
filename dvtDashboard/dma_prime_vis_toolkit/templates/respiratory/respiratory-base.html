@@ -105,44 +105,11 @@
     "model-exploration-button-tooltip-large",
   );
 
-  // model-exploration-button-link
-
-  // document
-  //   .getElementById("nav-bar")
-  //   .addEventListener("sl-tab-show", (event) => {
-  //     if (event.detail.name == "map") {
-  //       d3.select(modelExplorationButtonTooltipLarge).on("click", () => {
-  //         console.log(
-  //           mapDiseaseSelector.value,
-  //           mapGeographicUnitSelector.value,
-  //           mapPopulationSelector.value,
-  //           mapOutcomeVariableSelector.value,
-  //         );
-  //         // window.open(
-  //         //   `/respiratory-model-exploration?disease=${mapDiseaseSelector.value}&geographic-unit=${mapGeographicUnitSelector.value}&population=${mapPopulationSelector.value}&outcome-variable=${mapOutcomeVariableSelector.value}&location=${dataObject.properties.id}`,
-  //         // );
-  //       });
-  //     } else if (event.detail.name == "grid") {
-  //       // d3.select(modelExplorationButtonTooltipLarge).on("click", () => {
-  //       //   window.open(
-  //       //     `/respiratory-model-exploration?disease=${gridDiseaseSelector.value}&geographic-unit=${gridGeographicUnitSelector.value}&population=${gridPopulationSelector.value}&outcome-variable=${gridOutcomeVariableSelector.value}&location=${dataObject.properties.id}`,
-  //       //   );
-  //       // });
-  //     }
-  //   });
-
-  // d3.select("#model-exploration-button-link").on("click", () => {
-  //   window.open(
-  //     `/respiratory-model-exploration?disease=${mapDiseaseSelector.value}&geographic-unit=${mapGeographicUnitSelector.value}&population=${mapPopulationSelector.value}&outcome-variable=${mapOutcomeVariableSelector.value}&location=SC`,
-  //   );
-  // });
-
   d3.select(modelExplorationButtonTooltipLarge).on("click", () => {
-    window.open(
-      `/respiratory-model-exploration?disease=${mapDiseaseSelector.value}&geographic-unit=${mapGeographicUnitSelector.value}&population=${mapPopulationSelector.value}&outcome-variable=${mapOutcomeVariableSelector.value}&location=${dataObject.properties.id}`,
-    );
+    d3.select(".model-exploration-icon-button").dispatch("click");
   });
 </script>
+
 
 <script type="module">
   // toggle tooltip labels

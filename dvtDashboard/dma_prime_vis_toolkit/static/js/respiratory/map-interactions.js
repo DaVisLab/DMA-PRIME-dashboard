@@ -145,12 +145,7 @@ export function showMapTooltip(dataObject) {
       .style("color", "black")
       .style("cursor", "pointer")
       .on("click", () => {
-        d3.select(modelExplorationButtonTooltipLarge).on("click", () => {
-          window.open(
-            `/respiratory-model-exploration?disease=${mapDiseaseSelector.value}&geographic-unit=${mapGeographicUnitSelector.value}&population=${mapPopulationSelector.value}&outcome-variable=${mapOutcomeVariableSelector.value}&location=${dataObject.properties.id}`,
-          );
-        });
-
+        
         var largeTtp = d3.select(tooltipLarge);
 
         tooltipLarge.show().then(async () => {
@@ -208,6 +203,7 @@ export function showMapTooltip(dataObject) {
   dataVersion++;
   redraw();
 }
+
 map.on("click", (e) => {
   var temp = { x: e.point.x, y: e.point.y };
   var dataObject = deckOverlay.pickObject(temp).object;
