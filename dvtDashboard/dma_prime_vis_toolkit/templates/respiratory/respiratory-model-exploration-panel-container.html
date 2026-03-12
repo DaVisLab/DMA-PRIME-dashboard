@@ -166,12 +166,6 @@ options %}
 
   const iframeContent = document.querySelector("iframe");
 
-  document.addEventListener("DOMContentLoaded", async () => {
-    controlDependencyTestOnModelView();
-
-    iframeContent.src = `/respiratory-model-exploration?disease=${explorationDiseaseSelector.value}&geographic-unit=${explorationGeographicUnitSelector.value}&population=${explorationPopulationSelector.value}&outcome-variable=${explorationOutcomeVariableSelector.value}&location=SC`;
-  });
-
   // console.log(metadata);
   const popEl = document.getElementById("exploration-population-selector");
   const geoEl = document.getElementById("exploration-geographic-unit-selector");
@@ -180,6 +174,12 @@ options %}
   );
   const disEl = document.getElementById("exploration-disease-selector");
   // geoEl.style.dis
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    controlDependencyTestOnModelView();
+    testDiseaseOutcomeDipendency();
+    iframeContent.src = `/respiratory-model-exploration?disease=${explorationDiseaseSelector.value}&geographic-unit=${explorationGeographicUnitSelector.value}&population=${explorationPopulationSelector.value}&outcome-variable=${explorationOutcomeVariableSelector.value}&location=SC`;
+  });
 
   [popEl, geoEl, outEl, disEl].forEach((el) => {
     el.addEventListener("sl-change", (event) => {
@@ -190,12 +190,12 @@ options %}
     });
   });
 
-  function controlDependencyTestOnModelView() {
-    // await Promise.allSettled([
-    //   // wait for following to be defined/load in
-    //   customElements.whenDefined("sl-select"),
-    //   customElements.whenDefined("sl-option"),
-    // ]);
+  async function controlDependencyTestOnModelView() {
+    await Promise.allSettled([
+      // wait for following to be defined/load in
+      customElements.whenDefined("sl-select"),
+      customElements.whenDefined("sl-option"),
+    ]);
 
     window._controlDependecyTest(popEl, geoEl, outEl, disEl);
   }

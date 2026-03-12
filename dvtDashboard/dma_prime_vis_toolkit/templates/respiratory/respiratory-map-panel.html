@@ -495,13 +495,15 @@ options %}
   (function waitForSelectorAndSetPlaceholder() {
     const setPlaceholder = () => {
       const selector = document.getElementById("map-geographic-unit-selector");
+
       const input = document.getElementById("filterInput");
+
       if (selector && input) {
         if (selector.value === "zcta") {
           input.placeholder = "ZCTA";
         } else {
           input.placeholder =
-            selector.value.charAt(0).toUpperCase() + selector.value.slice(1);
+            selector.getAttribute('value').charAt(0).toUpperCase() + selector.getAttribute('value').slice(1);
         }
 
         return true;
