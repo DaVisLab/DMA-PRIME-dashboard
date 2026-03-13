@@ -195,60 +195,6 @@ function addHealthFacilityLayer(targetMap, maps, values) {
 
   symbolImg.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(symbolIcon);
 
-
-  // symbolImg.onload = () => {
-  //   try {
-  //     if (!targetMap.hasImage || !targetMap.hasImage("health-system2")) {
-  //       targetMap.addImage("health-system2", symbolImg, { sdf: true });
-  //     }
-  //   } catch (err) {
-  //     // map.hasImage may not exist in some maplibre versions, attempt add anyway
-  //     try {
-  //       targetMap.addImage("health-system2", symbolImg, { sdf: true });
-  //     } catch (e) {
-  //       console.warn("addImage failed", e);
-  //     }
-  //   }
-
-  //   console.log(maps);
-
-  //   // Add a symbol layer to draw the icon for all features (use filter if needed)
-  //   if (!targetMap.getLayer || !targetMap.getLayer("map-symbol-value")) {
-     
-  //       targetMap.addLayer({
-  //         id: "map-symbol-value",
-  //         type: "symbol",
-  //         source: maps.layers.sourceID,
-  //         layout: {
-  //           "icon-image": "health-system",
-  //           "icon-size": 0.13,
-  //           "icon-allow-overlap": true,
-  //           // "text-field": ["get", "display_name"],
-  //           // "text-size": 0,
-  //           // "text-allow-overlap": true,
-  //           // "text-anchor": "center",
-  //           //   "text-offset": [0, -2],      // shift up
-  //         },
-  //         paint: {
-  //           "icon-color": "red",
-  //           // "icon-halo-color": "black",
-  //           // "icon-halo-width": 2,
-  //           // "icon-halo-blur": 3,
-  //           // [
-  //           //   "case",
-  //           //   ["has", "projected_value"], // Check if the property exists
-  //           //   "red",
-  //           //   "#cccccc", // Fallback color if the property is missing
-  //           // ],
-  //         },
-  //       });
-      
-  //   }
-  // };
-  // symbolImg.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(symbolIcon);
-
-
-
   targetMap.on("mousemove", maps.layers.symbolLayerID, function (e) {
     // // Access the clicked feature's data
     const features = e.features[0];
@@ -267,7 +213,5 @@ function addHealthFacilityLayer(targetMap, maps, values) {
     // dehighlightLine(targetMap, maps.layers.lineLayerID, maps.regionOfInterest);
     dehighlightSymbol(targetMap, maps.layers.symbolLayerID, maps.regionOfInterest);
     deHighlightSmallMultipleUnit();
-
-    // d3.select("#region-legend-hover-indicator-group").style("opacity", 0);
   });
 }
