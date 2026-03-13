@@ -211,7 +211,6 @@ options %}
       locations.forEach((location, i) => {
         const item = document.createElement("sl-menu-item");
 
-        // item.value = toIdFriendly(location);
         item.value = location;
         item.classList.add(`${event.target.value}-id`, "location-id");
         item.textContent = location;
@@ -223,20 +222,32 @@ options %}
         menu.appendChild(item);
       });
     }
+    input.dispatchEvent(new CustomEvent("sl-select"));
   });
 
   // document.addEventListener("DOMContentLoaded", async () => {
   controlDependencyTestOnModelView();
   testDiseaseOutcomeDipendency();
 
-  console.log(metadata.data_version)
-  iframeContent.src = `/respiratory-model-exploration?disease=${explorationDiseaseSelector.value}&geographic-unit=${explorationGeographicUnitSelector.value}&population=${explorationPopulationSelector.value}&outcome-variable=${explorationOutcomeVariableSelector.value}&location=SC`;
-  // });
+  callModelExplorationReport(
+    explorationDiseaseSelector.value,
+    explorationGeographicUnitSelector.value,
+    explorationPopulationSelector.value,
+    explorationOutcomeVariableSelector.value,
+    "SC",
+    metadata.data_version,
+  );
 
-  [popEl, geoEl, outEl, disEl].forEach((el) => {
+  [(popEl, geoEl, outEl, disEl)].forEach((el) => {
     el.addEventListener("sl-change", (event) => {
-      iframeContent.src = `/respiratory-model-exploration?disease=${explorationDiseaseSelector.value}&geographic-unit=${explorationGeographicUnitSelector.value}&population=${explorationPopulationSelector.value}&outcome-variable=${explorationOutcomeVariableSelector.value}&location=${locationIdSearch.value}`;
-
+      callModelExplorationReport(
+        explorationDiseaseSelector.value,
+        explorationGeographicUnitSelector.value,
+        explorationPopulationSelector.value,
+        explorationOutcomeVariableSelector.value,
+        locationIdSearch.value,
+        metadata.data_version,
+      );
       controlDependencyTestOnModelView();
       testDiseaseOutcomeDipendency();
     });
@@ -245,7 +256,14 @@ options %}
   [menu, input].forEach((el) => {
     el.addEventListener("sl-select", (event) => {
       console.log(locationIdSearch.value);
-      iframeContent.src = `/respiratory-model-exploration?disease=${explorationDiseaseSelector.value}&geographic-unit=${explorationGeographicUnitSelector.value}&population=${explorationPopulationSelector.value}&outcome-variable=${explorationOutcomeVariableSelector.value}&location=${locationIdSearch.value}`;
+      callModelExplorationReport(
+        explorationDiseaseSelector.value,
+        explorationGeographicUnitSelector.value,
+        explorationPopulationSelector.value,
+        explorationOutcomeVariableSelector.value,
+        locationIdSearch.value,
+        metadata.data_version,
+      );
     });
   });
 
@@ -273,6 +291,26 @@ options %}
       tooltips,
       populationTooltips,
     );
+  }
+
+  function callModelExplorationReport(
+    diseaseVal,
+    geoVal,
+    popVal,
+    outcomeVal,
+    locVal,
+    dataVersionVal,
+  ) {
+    const params = new URLSearchParams({
+      disease: diseaseVal,
+      "geographic-unit": geoVal,
+      population: popVal,
+      "outcome-variable": outcomeVal,
+      location: locVal,
+      data_version: dataVersionVal,
+    });
+
+    iframeContent.src = `/respiratory-model-exploration?${params.toString()}`;
   }
 </script>
 
