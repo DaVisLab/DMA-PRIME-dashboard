@@ -56,7 +56,7 @@ def add_user():
 
             temp_user = User(
                 email,
-                email[:4] + "123",
+                email.split("@")[0],
                 Bcrypt().generate_password_hash(email[:4] + "789"),
                 access_level=access_level,
                 verified_user=False,

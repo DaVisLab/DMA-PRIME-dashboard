@@ -23,65 +23,129 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
-  // 1) population:
+function _controlReset(popEl, geoEl, outEl, disEl) {
   popEl.querySelectorAll("sl-option").forEach((opt) => {
-    if (opt.value === "general_population") {
-      opt.style.display = "";
-    } else {
-      opt.style.display = "none";
-    }
+    opt.style.display = "";
   });
+  geoEl.querySelectorAll("sl-option").forEach((opt) => {
+    opt.style.display = "";
+  });
+  outEl.querySelectorAll("sl-option").forEach((opt) => {
+    opt.style.display = "";
+  });
+  disEl.querySelectorAll("sl-option").forEach((opt) => {
+    opt.style.display = "";
+  });
+}
 
-  if (popEl.value !== "general_population") {
-    popEl.value = "general_population";
-    popEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
+  _controlReset(popEl, geoEl, outEl, disEl);
+
+  if (geoEl.value == "facility") {
+    document.getElementById("facility-option-container").style.display = "";
+  } else {
+    document.getElementById("facility-option-container").style.display = "none";
   }
 
-  // 2) geographic unit: only SC
-  geoEl.querySelectorAll("sl-option").forEach((opt) => {
-    if (opt.value === "state") {
-      opt.style.display = "";
-    } else if (
-      opt.value == "region" &&
-      popEl.value == "general_population" &&
-      outEl.value == "inpatient_hospitalizations"
-    ) {
-      // exception
-      // -1 influenza -> turn region on
-      opt.style.display = "";
-    } else {
-      opt.style.display = "none";
-    }
-  });
-
-  outEl.querySelectorAll("sl-option").forEach((opt) => {
-    // console.log(opt.value);
-    if (opt.value === "all_hospitalizations" && opt.style.display != "none") {
-      // opt.style.display = "";
-      opt.style.display = "none";
-    } else {
-      // opt.style.display = "none";
-    }
-  });
-
-  const selectableDiseases = ["covid_19", "influenza", "RSV"];
-
-  disEl.querySelectorAll("sl-option").forEach((opt) => {
-    if (selectableDiseases.includes(opt.value)) {
-      opt.style.display = "";
-    } else {
-      opt.style.display = "none";
-    }
-  });
-
-  geoEl.querySelectorAll("sl-option").forEach((option) => {
-    if (geoEl.value != "state" && outEl.value != "inpatient_hospitalizations") {
-      geoEl.value = "state";
+  if (disEl.value == "respiratory_diseases") {
+    if (geoEl.value != "facility") {
+      geoEl.value = "facility";
       geoEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
-      return;
     }
-  });
+
+    // if (popEl.value !== "health_system") {
+    //   popEl.value = "health_system";
+    //   popEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+    // }
+
+    // 2) geographic unit: only SC
+    geoEl.querySelectorAll("sl-option").forEach((opt) => {
+      if (opt.value === "facility") {
+        opt.style.display = "";
+      } else {
+        opt.style.display = "none";
+      }
+    });
+
+    // popEl.querySelectorAll("sl-option").forEach((opt) => {
+    //   if (opt.value === "health_system") {
+    //     opt.style.display = "";
+    //   } else {
+    //     opt.style.display = "none";
+    //   }
+    // });
+
+    outEl.querySelectorAll("sl-option").forEach((opt) => {
+      console.log(opt.value);
+      // if (opt.value === "all_hospitalizations" && opt.style.display != "none") {
+      //   // opt.style.display = "";
+      //   opt.style.display = "none";
+      // } else if (outEl.value === "all_hospitalizations") {
+      //   outEl.value = "inpatient_hospitalizations";
+      //   outEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+      // } else {
+      //   // opt.style.display = "none";
+      // }
+    });
+    // outEl.value = "all_encounter"
+    // outEl.value = "all_encounter"
+    // popEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+  } else {
+    // 1) population:
+    popEl.querySelectorAll("sl-option").forEach((opt) => {
+      if (opt.value === "general_population") {
+        opt.style.display = "";
+      } else {
+        opt.style.display = "none";
+      }
+    });
+
+    if (popEl.value !== "general_population") {
+      popEl.value = "general_population";
+      popEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+    }
+
+    // 2) geographic unit: only SC
+    geoEl.querySelectorAll("sl-option").forEach((opt) => {
+      if (opt.value === "state") {
+        opt.style.display = "";
+      } else if (
+        opt.value == "region" &&
+        popEl.value == "general_population" &&
+        outEl.value == "inpatient_hospitalizations"
+      ) {
+        // exception
+        // -1 influenza -> turn region on
+        opt.style.display = "";
+      } else {
+        opt.style.display = "none";
+      }
+    });
+
+    outEl.querySelectorAll("sl-option").forEach((opt) => {
+      console.log(opt.value);
+      if (opt.value === "all_hospitalizations" && opt.style.display != "none") {
+        // opt.style.display = "";
+        opt.style.display = "none";
+      } else if (outEl.value === "all_hospitalizations") {
+        outEl.value = "inpatient_hospitalizations";
+        outEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+      } else {
+        // opt.style.display = "none";
+      }
+    });
+
+    geoEl.querySelectorAll("sl-option").forEach((option) => {
+      if (
+        geoEl.value != "state" &&
+        outEl.value != "inpatient_hospitalizations"
+      ) {
+        geoEl.value = "state";
+        geoEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+        return;
+      }
+    });
+  }
 }
 
 function _testDiseaseOutcomeDipendency(
@@ -91,6 +155,10 @@ function _testDiseaseOutcomeDipendency(
   populationTooltips,
 ) {
   const diseases = metadata.diseases;
+
+  if (disEl.value == "respiratory_diseases") {
+    return;
+  }
 
   function updateOutcomeTooltips() {
     const selectedKey = disEl.value;

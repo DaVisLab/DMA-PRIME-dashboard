@@ -15,7 +15,7 @@ gridTypeSwitch.addEventListener("sl-change", (event) => {
             setupGridTooltip(d3.select(this), true)
         })
 
-    d3.select(gridMainLegend).select("text").text(d3.select(gridTypeSwitch).select(`*[value=${gridTypeSwitch.value}]`).html())
+    d3.select(gridMainLegend).select("text").text(d3.select(gridTypeSwitch).select(`*[value="${gridTypeSwitch.value}"]`).html())
     drawStateHospitalizations(gridDiseaseSelector.value, gridTypeSwitch.value, gridStateHospitalizationsSvg, gridStateHospitalizationsSubtitle)
 
     if (gridTypeSwitch.value == "percentDifference") {

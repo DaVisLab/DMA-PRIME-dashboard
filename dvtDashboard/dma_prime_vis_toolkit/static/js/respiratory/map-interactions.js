@@ -145,7 +145,6 @@ export function showMapTooltip(dataObject) {
       .style("color", "black")
       .style("cursor", "pointer")
       .on("click", () => {
-        
         var largeTtp = d3.select(tooltipLarge);
 
         tooltipLarge.show().then(async () => {
@@ -193,7 +192,7 @@ export function showMapTooltip(dataObject) {
       .style("color", "black")
       .style("cursor", "pointer")
       .on("click", () => {
-        console.log(metadata.data_version)
+        // console.log(metadata.data_version)
         window.open(
           `/respiratory-model-exploration?disease=${mapDiseaseSelector.value}&geographic-unit=${mapGeographicUnitSelector.value}&population=${mapPopulationSelector.value}&outcome-variable=${mapOutcomeVariableSelector.value}&location=${dataObject.properties.id}&data_version=${metadata.data_version}`,
         );
@@ -245,6 +244,7 @@ mapTypeSwitch.addEventListener("sl-change", (event) => {
 
 mapDiseaseSelector.addEventListener("sl-change", async (event) => {
   await updateMapGeographicUnitOptions();
+
   drawStateHospitalizations(
     mapDiseaseSelector.value,
     mapTypeSwitch.value,
@@ -255,6 +255,21 @@ mapDiseaseSelector.addEventListener("sl-change", async (event) => {
 
   if (popup.isOpen()) {
     popup.remove();
+  }
+  dataVersion++;
+  redraw(true, true);
+});
+
+facilityUnitSelector.addEventListener("change", async (event) => {
+  if (mapGeographicUnitSelector.value == "facility") {
+    // mapOptionsGeographicLabelsToggle.checked = true;
+    hospitalIconsToggle.checked = false;
+    selectedItems.icons = selectedItems.icons.filter(
+      (check) => check !== "hospital",
+    );
+    d3.select(hospitalIconsToggle).attr("disabled", "");
+  } else {
+    d3.select(hospitalIconsToggle).attr("disabled", null);
   }
   dataVersion++;
   redraw(true, true);

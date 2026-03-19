@@ -363,7 +363,8 @@ function drawTooltip(
     data.extra.health_system = validateFeatureDataLength(
       data.extra.health_system,
       historicalDatesArray.length,
-      metadata.short_history_dates.length - smallPopupData.extra.health_system.length,
+      metadata.short_history_dates.length -
+        smallPopupData.extra.health_system.length,
     );
   }
   if (data.extra.RFA != undefined && allDates) {
@@ -416,11 +417,14 @@ function drawTooltip(
       );
   }
   if (geographicUnit == "facility") {
-    regionInfo
-      .select(".ttp-location-name")
-      .html(
-        `${metadata.region_sizes[geographicUnit]}: ${featureData.display_name} (${featureData.facility_type})`,
-      );
+    regionInfo.style("flex-direction", "column");
+    regionInfo.style("align-items", "center");
+    regionInfo.select(".ttp-location-name").html(
+      `${featureData.display_name} (${featureData.facility_type})`,
+      // `${metadata.region_sizes[geographicUnit]}: ${featureData.display_name} (${featureData.facility_type})`,
+    );
+
+    // regionInfo.append("br")
     regionInfo.append("p").html(`Health System: ${featureData.system}`);
   }
 
@@ -473,10 +477,12 @@ function drawTooltip(
     var ttpLegendGroupItem = ttpLegendGroup
       .append("div")
       .attr("class", `tooltip-legend-group-item ${e_p}`);
+
     ttpLegendGroupItem
       .append("sl-icon")
       .attr("name", "square-fill")
       .style("color", populationColorMap[population][e_p]);
+
     ttpLegendGroupItem
       .append("p")
       .attr("class", "tooltip-label")
@@ -492,16 +498,20 @@ function drawTooltip(
           }
         } else {
           if (outcomeVariable == "all_hospitalizations") {
-            text = "All Historical Hospitalizations";
+            text = " All Historical Hospitalizations";
           } else {
-            text = "Historical " + text;
+            text = " Historical " + text;
           }
+
           if (panelType == "percentDifference") {
-            text = `Percent Change of ${text}`;
+            text = ` Percent Change of ${text}`;
           } else {
             // console.log(outcomeVariable);
             // console.log(diseaseVariableString);
-            if (outcomeVariable == "inpatient_hospitalizations" || outcomeVariable == "%_influenza-attributable_ed_visits" ) {
+            if (
+              outcomeVariable == "inpatient_hospitalizations" ||
+              outcomeVariable == "%_influenza-attributable_ed_visits"
+            ) {
               if (
                 diseaseVariableString == "COVID-19" ||
                 diseaseVariableString == "Respiratory Syncytial Virus (RSV)" ||
@@ -517,13 +527,15 @@ function drawTooltip(
           }
         }
         return text;
-      });
+      })
+      .style("transform", "translate(.5rem,0)");
   });
 
   if (panelType == "percentDifference") {
     ttpLegendGroup = ttpLegend
       .append("div")
       .attr("class", "tooltip-legend-group");
+
     var ttpLegendGroupItem = ttpLegendGroup
       .append("div")
       .attr("class", `tooltip-legend-group-item percent-change`);
@@ -539,9 +551,9 @@ function drawTooltip(
       .text(() => {
         var text = outcomeVariableString;
         if (outcomeVariable == "all_hospitalizations") {
-          text = "All Historical Hospitalizations";
+          text = " All Historical Hospitalizations";
         } else {
-          text = "Historical " + text;
+          text = " Historical " + text;
         }
         text += data["historical"].reported ? " (reported)" : " (estimated)";
         return text;
@@ -563,9 +575,9 @@ function drawTooltip(
       .text(() => {
         var text = outcomeVariableString;
         if (outcomeVariable == "all_hospitalizations") {
-          text = "All Historical Hospitalizations";
+          text = " All Historical Hospitalizations";
         } else {
-          text = "Historical " + text;
+          text = " Historical " + text;
         }
         text += " (projected)";
         return text;
@@ -636,7 +648,6 @@ function drawTooltip(
       "emergency_department_visits",
     ].includes(outcomeVariable)
   ) {
-    
     function ttpOptionsHandler(extraSources, dataSource) {
       // toggle data source-var combo
       if (extraSources.includes(dataSource)) {
@@ -644,7 +655,6 @@ function drawTooltip(
       } else {
         extraSources.push(dataSource);
       }
-
 
       drawTooltip(
         d,
@@ -657,7 +667,7 @@ function drawTooltip(
         grid,
         allDates,
         extraSources,
-        smallPopupData
+        smallPopupData,
       );
     }
 
@@ -690,7 +700,7 @@ function drawTooltip(
             .attr("class", "tooltip-label")
             .attr("font-size", "var(--sl-font-size-small)")
             .attr("color", dataSourceColorMap[ds])
-            .text(() => `${buttonText} (reported)`);
+            .text(() => ` ${buttonText} (reported)`);
           buttonText = "Remove " + buttonText;
         } else {
           buttonText = "Add " + buttonText;
@@ -779,7 +789,7 @@ function drawTooltip(
   };
   var ttpGraphWidth = ttpWidth - ttpMargins.right - ttpMargins.left;
 
-  console.log(countMax)
+  console.log(countMax);
   // define scales
   var yScale = d3
     .scaleLinear()
@@ -1764,14 +1774,13 @@ async function drawStateBarChart(
     .attr("x", (d) => stateXScale(d["Date"]))
     .attr("y", (d) => stateYScale(d["count"]))
     .attr("height", (d) => {
-      //   console.log(stateYScale(0) - stateYScale(d["count"]));
-      return stateYScale(0) - stateYScale(d["count"]);
+      return Math.max(stateYScale(0) - stateYScale(d["count"]), 0);
     })
-    .attr("width", barWidth)
+    .attr("width", Math.max(barWidth, 0))
     .attr("stroke", "var(--sl-color-neutral-1000)")
     .attr("stroke-width", 1)
     .attr("fill", "var(--sl-color-neutral-100)")
-    .attr("transform", `translate(-${barWidth}, 0)`)
+    .attr("transform", `translate(${barWidth}, 0)`)
     .on("mouseover", function (event, d) {
       let tooltipDateFormat = d3.timeFormat("%b %d");
       let date = d["Date"];

@@ -134,8 +134,10 @@ map.addControl(new maplibregl.NavigationControl());
 await Promise.allSettled([
   // wait for following to be defined/load in
   customElements.whenDefined("sl-select"),
-  customElements.whenDefined("sl-checkbox"),
+  customElements.whenDefined("sl-option"),
   customElements.whenDefined("sl-button"),
+  customElements.whenDefined("sl-checkbox"),
+  customElements.whenDefined("sl-radio-group"),
 ]);
 
 var styleSheet = new CSSStyleSheet();
@@ -696,7 +698,7 @@ function drawTooltip(dataObject) {
     .append("p")
     .attr("class", "tooltip-title")
     .html(
-      `${d3.select(`sl-option[value=${mapRegionSelector.value}]`).html()}: ${
+      `${d3.select(`sl-option[value="${mapRegionSelector.value}"]`).html()}: ${
         dataObject.properties.identifier
       }`,
     );
@@ -793,7 +795,9 @@ function drawTooltip(dataObject) {
     .attr("font-size", "var(--sl-font-size-small)")
     .attr("color", "var(--sl-color-neutral-1000)")
     .text(
-      d3.select(`sl-option[value="${mapOutcomeVariableSelector.value}"]`).html(),
+      d3
+        .select(`sl-option[value="${mapOutcomeVariableSelector.value}"]`)
+        .html(),
     );
 
   if (mapOutcomeVariableSelector.value == "positive_tests") {
@@ -1182,7 +1186,7 @@ function drawLargeTooltip(dataObject) {
     .append("p")
     .attr("class", "tooltip-title")
     .html(
-      `${d3.select(`sl-option[value=${mapRegionSelector.value}]`).html()}: ${
+      `${d3.select(`sl-option[value="${mapRegionSelector.value}"]`).html()}: ${
         dataObject.properties.identifier
       }`,
     );
@@ -1232,7 +1236,9 @@ function drawLargeTooltip(dataObject) {
     .attr("font-size", "var(--sl-font-size-large)")
     .attr("color", "var(--sl-color-neutral-1000)")
     .text(
-      d3.select(`sl-option[value="${mapOutcomeVariableSelector.value}"]`).html(),
+      d3
+        .select(`sl-option[value="${mapOutcomeVariableSelector.value}"]`)
+        .html(),
     );
 
   if (mapOutcomeVariableSelector.value == "positive_tests") {
@@ -1347,11 +1353,11 @@ function update() {
 function updateMapTitle() {
   var titleStart = `${d3
     .select(mapRateSwitch)
-    .select(`*[value=${mapRateSwitch.value}]`)
+    .select(`*[value="${mapRateSwitch.value}"]`)
     .html()} `;
   titleStart += `of ${d3
     .select(mapTimeSwitch)
-    .select(`*[value=${mapTimeSwitch.value}]`)
+    .select(`*[value="${mapTimeSwitch.value}"]`)
     .html()}ly `;
   titleStart += `${d3
     .select(mapOutcomeVariableSelector)
@@ -1366,7 +1372,7 @@ function updateMapTitle() {
     } else {
       titleEnd += d3
         .select(mapRegionSelector)
-        .select(`*[value=${mapRegionSelector.value}]`)
+        .select(`*[value="${mapRegionSelector.value}"]`)
         .html();
     }
   }
@@ -1384,7 +1390,7 @@ function updateMapTitle() {
         "from Last " +
         d3
           .select(mapTimeSwitch)
-          .select(`*[value=${mapTimeSwitch.value}]`)
+          .select(`*[value="${mapTimeSwitch.value}"]`)
           .html() +
         " " +
         titleEnd;

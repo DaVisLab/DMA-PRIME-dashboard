@@ -99,12 +99,6 @@ options %}
 
     <sl-menu id="location-menu">
       <sl-menu-item value="SC" class="SC-id location-id">SC</sl-menu-item>
-      <!-- {% for region in metadata['region_sizes'].keys() %} {% for location in
-      metadata[region]|sort() %}
-      <sl-menu-item value="{{ location }}" class="{{ region }}-id location-id"
-        >{{ location }}</sl-menu-item
-      >
-      {% endfor %} {% endfor %} -->
     </sl-menu>
   </sl-dropdown>
 </div>
@@ -159,6 +153,8 @@ options %}
   type="module"
 ></script>
 <script type="module">
+  import { updateOutcomeVariableOptions } from "/static/js/respiratory/interfaceOption_utils.js";
+
   await Promise.allSettled([
     // wait for following to be defined/load in
     customElements.whenDefined("sl-select"),
@@ -180,7 +176,7 @@ options %}
 
   //   window.removeEventListener("keydown", swapTheme);
   menu.addEventListener("sl-select", (e) => {
-    const item = e.detail.item; // 선택된 <sl-menu-item>
+    const item = e.detail.item;
     if (!item) return;
 
     input.value = item.value;
@@ -238,16 +234,22 @@ options %}
     metadata.data_version,
   );
 
+  // geoEl.addEventListener("sl-change", (event) => {
+  //   updateOutcomeVariableOptions("exploration");
+  // });
+
   [(popEl, geoEl, outEl, disEl)].forEach((el) => {
     el.addEventListener("sl-change", (event) => {
-      callModelExplorationReport(
-        explorationDiseaseSelector.value,
-        explorationGeographicUnitSelector.value,
-        explorationPopulationSelector.value,
-        explorationOutcomeVariableSelector.value,
-        locationIdSearch.value,
-        metadata.data_version,
-      );
+      console.log(metadata);
+
+      // callModelExplorationReport(
+      //   explorationDiseaseSelector.value,
+      //   explorationGeographicUnitSelector.value,
+      //   explorationPopulationSelector.value,
+      //   explorationOutcomeVariableSelector.value,
+      //   locationIdSearch.value,
+      //   metadata.data_version,
+      // );
       controlDependencyTestOnModelView();
       testDiseaseOutcomeDipendency();
     });
@@ -256,14 +258,14 @@ options %}
   [menu, input].forEach((el) => {
     el.addEventListener("sl-select", (event) => {
       console.log(locationIdSearch.value);
-      callModelExplorationReport(
-        explorationDiseaseSelector.value,
-        explorationGeographicUnitSelector.value,
-        explorationPopulationSelector.value,
-        explorationOutcomeVariableSelector.value,
-        locationIdSearch.value,
-        metadata.data_version,
-      );
+      // callModelExplorationReport(
+      //   explorationDiseaseSelector.value,
+      //   explorationGeographicUnitSelector.value,
+      //   explorationPopulationSelector.value,
+      //   explorationOutcomeVariableSelector.value,
+      //   locationIdSearch.value,
+      //   metadata.data_version,
+      // );
     });
   });
 
@@ -273,6 +275,8 @@ options %}
       customElements.whenDefined("sl-select"),
       customElements.whenDefined("sl-option"),
     ]);
+
+    updateOutcomeVariableOptions("exploration", outEl, disEl, geoEl, popEl);
 
     window._controlDependecyTest(popEl, geoEl, outEl, disEl);
   }

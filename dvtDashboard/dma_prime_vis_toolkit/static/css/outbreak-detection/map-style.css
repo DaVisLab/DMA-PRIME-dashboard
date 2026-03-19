@@ -20,7 +20,7 @@ svg {
 }
 
 #map-title {
-  text-align: center
+  text-align: center;
 }
 
 /* map sidebar/options */
@@ -35,8 +35,6 @@ svg {
   position: relative;
 }
 
-
-
 #map-disease-selector-container::part(content) {
   /* makes disease selector detail content look nicer - not so far from the summary */
   padding-top: 0px;
@@ -46,7 +44,7 @@ svg {
   /* font-size: var(--sl-font-size-x-small); */
   font-size: var(--sl-font-size-x-medium);
 }
-.form-check-input{
+.form-check-input {
   border-color: gray !important;
 }
 
@@ -61,7 +59,7 @@ font-size: 0.7rem !important;
 } */
 
 .disease-last-week-value {
-  color: var(--sl-color-neutral-400)
+  color: var(--sl-color-neutral-400);
 }
 
 .disease-current-week-value {
@@ -88,7 +86,6 @@ font-size: 0.7rem !important;
   font-size: var(--sl-font-size-small);
 }
 
-
 /* ==========================================================================
      3) Choropleth Legend
      ========================================================================== */
@@ -110,7 +107,6 @@ font-size: 0.7rem !important;
 .legend-other-colors {
   font-size: var(--sl-font-size-x-small);
 }
-
 
 /* ==========================================================================
      4) Inline State-Wide Chart (Sidebar Bottom)
@@ -149,6 +145,11 @@ font-size: 0.7rem !important;
   border-top-color: black !important;
 }
 
+.mapboxgl-popup-content,
+.maplibregl-popup-content {
+  padding: 2rem !important;
+  /* background-color: red !important; */
+}
 
 /* ==========================================================================
      6) Small (Inline) Tooltip Layout
@@ -191,7 +192,7 @@ font-size: 0.7rem !important;
   font-size: var(--sl-font-size-2x-small);
 }
 
-#map-tooltip-svg .y-axis>text,
+#map-tooltip-svg .y-axis > text,
 #map-tooltip-svg .legend text {
   font-size: var(--sl-font-size-small);
 }
@@ -223,7 +224,6 @@ font-size: 0.7rem !important;
 #large-tooltip-legend p {
   margin: 0 var(--sl-spacing-2x-small);
 }
-
 
 /* ==========================================================================
      7) Large (Expanded) Tooltip Dialog Layout
@@ -261,7 +261,7 @@ sl-dialog#map-tooltip-large p {
   font-size: var(--sl-font-size-small);
 }
 
-#map-tooltip-large-svg .y-axis>text {
+#map-tooltip-large-svg .y-axis > text {
   font-size: var(--sl-font-size-medium);
 }
 
@@ -319,7 +319,7 @@ sl-dialog#map-tooltip-large p {
 }
 
 .animate {
-  animation: 1s steps(4, end) infinite
+  animation: 1s steps(4, end) infinite;
 }
 
 .loading-dot:nth-child(1) {
@@ -328,41 +328,47 @@ sl-dialog#map-tooltip-large p {
 }
 
 .loading-dot:nth-child(2) {
-  transform: translate(calc(var(--loading-dot-size) * 2 + var(--loading-dot-gap)), 1px);
+  transform: translate(
+    calc(var(--loading-dot-size) * 2 + var(--loading-dot-gap)),
+    1px
+  );
   animation-name: fill-dot-2;
 }
 
 .loading-dot:nth-child(3) {
-  transform: translate(calc(var(--loading-dot-size) * 4 + var(--loading-dot-gap) * 2), 1px);
+  transform: translate(
+    calc(var(--loading-dot-size) * 4 + var(--loading-dot-gap) * 2),
+    1px
+  );
   animation-name: fill-dot-3;
 }
 
 @keyframes fill-dot-1 {
   0% {
-    fill: white
+    fill: white;
   }
 
   25% {
-    fill: black
+    fill: black;
   }
 }
 
 @keyframes fill-dot-2 {
   0% {
-    fill: white
+    fill: white;
   }
 
   50% {
-    fill: black
+    fill: black;
   }
 }
 
 @keyframes fill-dot-3 {
   0% {
-    fill: white
+    fill: white;
   }
 
   75% {
-    fill: black
+    fill: black;
   }
 }

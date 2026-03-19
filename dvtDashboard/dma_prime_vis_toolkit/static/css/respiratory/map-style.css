@@ -96,6 +96,12 @@ path.map-zcta {
     border-style: solid;
     border-radius: .25em;
 }
+.mapboxgl-popup-content,
+.maplibregl-popup-content {
+  padding: 1.5rem !important;
+  /* background-color: red !important; */
+}
+
 
 /* Loading animation */
 :root {

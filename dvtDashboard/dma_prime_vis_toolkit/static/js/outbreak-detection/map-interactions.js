@@ -19,14 +19,14 @@ mapResetButton.addEventListener("click", () => {
 
 mapRateSwitch.addEventListener("sl-change", () => {
     update()
-    mapWeeklyTooltip.content = `${d3.selectAll(`sl-radio-button[value=${mapRateSwitch.value}]`).html()} for the week`
-    mapMonthlyTooltip.content = `${d3.selectAll(`sl-radio-button[value=${mapRateSwitch.value}]`).html()} for the past 4 weeks`
-    mapYearlyTooltip.content = `${d3.selectAll(`sl-radio-button[value=${mapRateSwitch.value}]`).html()} for the past 52 weeks`
+    mapWeeklyTooltip.content = `${d3.selectAll(`sl-radio-button[value="${mapRateSwitch.value}"]`).html()} for the week`
+    mapMonthlyTooltip.content = `${d3.selectAll(`sl-radio-button[value="${mapRateSwitch.value}"]`).html()} for the past 4 weeks`
+    mapYearlyTooltip.content = `${d3.selectAll(`sl-radio-button[value="${mapRateSwitch.value}"]`).html()} for the past 52 weeks`
 })
 
 mapTimeSwitch.addEventListener("sl-change", () => {
     d3.selectAll(".disease-option-count")
-        .html(d3.selectAll(`sl-radio-button[value=${mapTimeSwitch.value}]`).html())
+        .html(d3.selectAll(`sl-radio-button[value="${mapTimeSwitch.value}"]`).html())
     update()
 })
 
@@ -196,25 +196,26 @@ aggregatedDiseaseHistoryResizer.addEventListener("sl-resize", function() {
     drawAggregation()
 })
 
-window.addEventListener("keydown", (event) => {
-    if (event.key == "m") {
-        function waitForChange() {
-            if(changed != true) {
-                window.setTimeout(waitForChange, 10);
-            } else {
-                styleSheet.deleteRule(0)
-                styleSheet.insertRule(`
-                    .maplibregl-popup-content {
-                        /* tooltip's containing div */
-                        background-color: hsla(${getComputedStyle(document.head).getPropertyValue("--sl-color-neutral-0").replace("hsl(", "").replace(")", "")}, 0.925);
-                    }`
-                    ,0)
-                changed = false
-            }
-        }
-        waitForChange()
-    }
-});
+// window.addEventListener("keydown", (event) => {
+//     if (event.key == "m") {
+//         function waitForChange() {
+//             if(changed != true) {
+//                 window.setTimeout(waitForChange, 10);
+//             } else {
+//                 styleSheet.deleteRule(0)
+//                 styleSheet.insertRule(`
+//                     .maplibregl-popup-content {
+//                         /* tooltip's containing div */
+//                         background-color: red;
+//                     }`
+//                     // background-color: hsla(${getComputedStyle(document.head).getPropertyValue("--sl-color-neutral-0").replace("hsl(", "").replace(")", "")}, 0.925);
+//                     ,0)
+//                 changed = false
+//             }
+//         }
+//         waitForChange()
+//     }
+// });
 
 aggregatedDiseaseHistory.addEventListener("click", () => {
     aggregatedDiseaseHistoryLarge.show()

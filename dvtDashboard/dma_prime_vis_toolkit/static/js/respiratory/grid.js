@@ -30,6 +30,8 @@ await Promise.allSettled([
   customElements.whenDefined("sl-select"),
   customElements.whenDefined("sl-option"),
   customElements.whenDefined("sl-button"),
+  customElements.whenDefined("sl-checkbox"),
+  customElements.whenDefined("sl-radio-group"),
 ]);
 
 gridGeographicUnit = gridGeographicUnitSelector.value;
@@ -40,13 +42,13 @@ var regionData = await d3.json(
   `/data/respiratory/${gridGeographicUnitSelector.value}/${gridDiseaseSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random() * 9999999999)}`,
 );
 
-updateGrid(true);
-drawStateHospitalizations(
-  gridDiseaseSelector.value,
-  gridTypeSwitch.value,
-  gridStateHospitalizationsSvg,
-  gridStateHospitalizationsSubtitle,
-);
+await updateGrid(true);
+// drawStateHospitalizations(
+//   gridDiseaseSelector.value,
+//   gridTypeSwitch.value,
+//   gridStateHospitalizationsSvg,
+//   gridStateHospitalizationsSubtitle,
+// );
 
 // set up grids for each location in selected geographic unit
 
@@ -296,8 +298,14 @@ async function updateGrid(fetchData = true) {
   }
 
   // calculate height and width based on that
-  var gridItemHeight = (adjustedHeight - (colItems - 1) * 0.25 * em) / colItems;
-  var gridItemWidth = (adjustedWidth - (rowItems - 1) * 0.25 * em) / rowItems;
+  var gridItemHeight = Math.max(
+    (adjustedHeight - (colItems - 1) * 0.25 * em) / colItems,
+    0,
+  );
+  var gridItemWidth = Math.max(
+    (adjustedWidth - (rowItems - 1) * 0.25 * em) / rowItems,
+    0,
+  );
 
   // create scales
   var gridColor;

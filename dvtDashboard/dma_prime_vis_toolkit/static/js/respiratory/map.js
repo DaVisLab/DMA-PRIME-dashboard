@@ -8,6 +8,12 @@ import {
   drawTooltip,
   drawStateHospitalizations,
 } from "/static/js/respiratory/script.js";
+
+import {
+  facility_dataProcessing,
+  call_data,
+} from "/static/js/respiratory/dataProcessing_utils.js";
+
 export {
   map,
   popup,
@@ -89,12 +95,10 @@ mapGeographicUnit = mapGeographicUnitSelector.value;
 mapPopulation = mapPopulationSelector.value;
 mapOutcomeVariable = mapOutcomeVariableSelector.value;
 
-var regionData = await d3.json(
-  `/data/respiratory/${mapGeographicUnitSelector.value}/${
-    mapDiseaseSelector.value
-  }?data_version=${metadata.data_version}&${parseInt(
-    Math.random() * 9999999999,
-  )}`,
+var regionData = await call_data(
+  mapGeographicUnitSelector.value,
+  mapDiseaseSelector.value,
+  metadata.data_version,
 );
 
 redraw(true, true);
@@ -112,67 +116,30 @@ async function redraw(
   center = false,
 ) {
   updateMapTitle();
+
   if (fetchData == true) {
     d3.select("#map-loading-div").style("visibility", "visible");
     d3.selectAll("#map-loading-div circle").classed("animate", true);
 
-    regionData = await d3.json(
-      `/data/respiratory/${mapGeographicUnitSelector.value}/${
-        mapDiseaseSelector.value
-      }?data_version=${metadata.data_version}&${parseInt(
-        Math.random() * 9999999999,
-      )}`,
+    regionData = await call_data(
+      mapGeographicUnitSelector.value,
+      mapDiseaseSelector.value,
+      metadata.data_version,
     );
 
-    // regionData.features.forEach((item) => {
-    //   console.log(item);
-    //   item.properties.data = {
-    //     general_population: {
-    //       inpatient_hospitalizations: {
-    //         extra: {
-    //           RFA: [
-    //             1.3333333333333333, 1.5, 1.6666666666666667, 1.5, 2, 3, 2, 1.75,
-    //             2.5, 3.5, 4.666666666666667, 4.5, 4.5, 3, 4.333333333333333,
-    //             5.25, 11, 24.333333333333332, 37.5, 67.5, 99.33333333333333,
-    //             96.25, 138.25, 199, 277.25, 261.25, 129.25,
-    //           ],
-    //           health_system: [
-    //             5, 2, 2, 5, 4, 3, 2, 4, 5, 2, 3, 3, 5, 5, 6, 9, 26, 35, 58, 118,
-    //             191, 213, 292, 397, 555, 538, 267, 214, 176, 180, 107, 71, 63,
-    //             41, 15, 19, 7, 10, 12, 8, 11, 9, 12, 7, 7, 8, 3, 3, 5, 7, 3, 1,
-    //             1, 9, 6, 6, 14, 3, 10, 8, 7, 4, 7, 11, 9, 7, 16, 24, 40, 57,
-    //             186, 374, 310, 205, 97, 84, 97, 76,
-    //           ],
-    //         },
-    //         historical: {
-    //           imputed: false,
-    //           reported: 0,
-    //           values: [
-    //             16, 24, 3, 2, 2, 1, 2, 1, 0, 8, 8, 11, 21, 13, 13, 18, 40, 80,
-    //             160, 327, 520, 443, 642, 833, 1287, 1241, 690, 479, 446, 408,
-    //             269, 188, 137, 80, 43, 34, 33, 16, 13, 15, 17, 18, 9, 8, 10, 16,
-    //             11, 4, 3, 5, 6, 5, 2, 8, 11, 7, 15, 5, 19, 17, 19, 6, 6, 12, 16,
-    //             20, 41, 52, 86, 123, 391, 856, 891, 559, 300, 241, 246, 179,
-    //           ],
-    //         },
-    //         projected: {
-    //           imputed: false,
-    //           start_date: "2026-02-14",
-    //           uncertainty_range: {
-    //             percentile25: [126, 109, 96, 83],
-    //             percentile2_5: [76, 56, 42, 30],
-    //             percentile75: [196, 193, 194, 201],
-    //             percentile97_5: [273, 296, 328, 388],
-    //           },
-    //           values: [165, 154, 147, 142],
-    //         },
-    //       },
-    //     },
-    //   };
-    // });
-    // console.log(regionData);
-    // mapOutcomeVariableSelector.value = "inpatient_hospitalizations";
+    if (mapGeographicUnitSelector.value == "facility") {
+      const facility_unit_selected = document.querySelector(
+        'input[name="facilityOptionGroup"]:checked',
+      )?.value;
+
+      regionData.features = facility_dataProcessing(
+        regionData.features,
+        facility_unit_selected,
+      );
+      console.log(regionData.features);
+    }
   }
+
   if (resetWarnings) {
     updateMapWarnings();
   }
@@ -184,10 +151,17 @@ async function redraw(
     mapOutcomeVariableSelector.value,
     mapIncludeImputations.checked,
   );
+
   drawLegend();
 
   var layers = [];
-  if (mapGeographicUnitSelector.value != "facility") {
+  // if (mapGeographicUnitSelector.value != "facility") {
+  if (
+    mapGeographicUnitSelector.value == "state" ||
+    mapGeographicUnitSelector.value == "region" ||
+    mapGeographicUnitSelector.value == "county" ||
+    mapGeographicUnitSelector.value == "zcta"
+  ) {
     layers.push(
       new GeoJsonLayer({
         id: "respiratory_choropleth",
@@ -199,6 +173,37 @@ async function redraw(
         pointType: "circle+text",
         pickable: true,
         getFillColor: (d) => getColor(d),
+        lineWidthMinPixels: 0.75,
+        getLineWidth: 20,
+        getLineColor: [64, 64, 64],
+        updateTriggers: {
+          data: [mapGeographicUnitSelector.value, dataVersion],
+          getFillColor: [
+            mapGeographicUnitSelector.value,
+            mapOutcomeVariableSelector.value,
+            dataVersion,
+          ],
+        },
+      }),
+    );
+  } else if (
+    mapGeographicUnitSelector.value == "facility" &&
+    document.querySelector('input[name="facilityOptionGroup"]:checked')
+      ?.value != "individual-unit"
+  ) {
+    console.log(regionData);
+    layers.push(
+      new GeoJsonLayer({
+        id: "respiratory_choropleth",
+        depthTest: false,
+        pickable: true,
+        data: regionData,
+        stroked: true,
+        filled: true,
+        pointType: "circle+text",
+        pickable: true,
+        getFillColor: (d) => getColor(d),
+        // getFillColor: (d) => "red",
         lineWidthMinPixels: 0.75,
         getLineWidth: 20,
         getLineColor: [64, 64, 64],
@@ -342,6 +347,7 @@ async function redraw(
       }),
     );
   }
+
   if (selectedItems.icons.length) {
     layers.push(
       new IconLayer({
@@ -370,6 +376,7 @@ async function redraw(
       }),
     );
   }
+
   if (mapOptionsGeographicLabelsToggle.checked) {
     if (mapGeographicUnitSelector.value == "facility") {
       layers.push(
@@ -429,6 +436,7 @@ async function redraw(
       );
     }
   }
+
   deckOverlay.setProps({
     layers: layers,
   });
@@ -600,7 +608,7 @@ function drawLegend() {
       .style("font-size", "var(--sl-font-size-x-small)")
       .text(
         `Percent Change of ${d3
-          .select(`sl-option[value=${mapDiseaseSelector.value}]`)
+          .select(`sl-option[value="${mapDiseaseSelector.value}"]`)
           .html()} from Last Week`,
       );
 
@@ -631,19 +639,7 @@ function drawLegend() {
       .html((d) => `${d}%`);
 
     var otherColors = legend.append("g").attr("transform", "translate(0, 80)");
-    var others = [
-      // [
-      //   "white",
-      //   `No ${metadata["outcome_variables"][mapOutcomeVariableSelector.value]}`,
-      // ],
-      // [
-      //   "#ff8800",
-      //   `New ${
-      //     metadata["outcome_variables"][mapOutcomeVariableSelector.value]
-      //   } from Last Period`,
-      // ],
-      [unknownColor, "Unknown"],
-    ];
+    var others = [[unknownColor, "Unknown"]];
 
     others.forEach((d, i) => {
       let group = otherColors
@@ -686,6 +682,7 @@ function drawLegend() {
                 ? choroplethColorMap.domain()
                 : [0];
 
+              console.log(choroplethColorMap.domain);
               var maxValTmp =
                 Array.isArray(dom) && dom.length ? Math.max(0, d3.max(dom)) : 0;
               var t = d3.ticks(0, Math.max(maxValTmp, 1), 5);
@@ -742,13 +739,11 @@ function drawLegend() {
           i === 0 ? "start" : i === tickValues.length - 1 ? "end" : "middle",
         );
 
-      console.log(mapOutcomeVariableSelector.value);
-
       let dataVarString = d3
         .select(mapOutcomeVariableSelector)
         .select(`*[value="${mapOutcomeVariableSelector.value}"]`)
         .html();
-      console.log(dataVarString);
+
       content
         .append("text")
         .attr("id", `map-legend-title`)
@@ -857,11 +852,11 @@ function drawLegend() {
 function updateMapTitle() {
   var titleStart = `${d3
     .select(mapTypeSwitch)
-    .select(`*[value=${mapTypeSwitch.value}]`)
+    .select(`*[value="${mapTypeSwitch.value}"]`)
     .html()} `;
   titleStart += `of ${d3
     .select(mapDiseaseSelector)
-    .select(`*[value=${mapDiseaseSelector.value}]`)
+    .select(`*[value="${mapDiseaseSelector.value}"]`)
     .html()} `;
   titleStart += `${d3
     .select(mapOutcomeVariableSelector)
@@ -873,7 +868,7 @@ function updateMapTitle() {
     titleEnd += "by ";
     titleEnd += d3
       .select(mapGeographicUnitSelector)
-      .select(`*[value=${mapGeographicUnitSelector.value}]`)
+      .select(`*[value="${mapGeographicUnitSelector.value}"]`)
       .html();
   }
 
@@ -1042,10 +1037,12 @@ async function updateMapPopulationOptions() {
 
 async function updateMapOutcomeVariableOptions() {
   d3.selectAll(".map-outcome-tooltip").remove();
+
   var availableOutcomeVariables =
     metadata.available_models[mapDiseaseSelector.value][
       mapGeographicUnitSelector.value
     ][mapPopulationSelector.value];
+    
   d3.select(mapOutcomeVariableSelector)
     .selectAll(".map-outcome-tooltip")
     .data(availableOutcomeVariables)

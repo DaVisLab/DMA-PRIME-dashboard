@@ -4,7 +4,8 @@
 }
 
 #tooltip-large {
-  --header-spacing: var(--sl-spacing-small) var(--sl-spacing-small) var(--sl-spacing-2x-small);
+  --header-spacing: var(--sl-spacing-small) var(--sl-spacing-small)
+    var(--sl-spacing-2x-small);
   --body-spacing: 0 var(--sl-spacing-small) var(--sl-spacing-small);
 }
 
@@ -18,7 +19,8 @@
 }
 
 /* for ttp */
-.tooltip-outer-svg, .tooltip-graph-svg {
+.tooltip-outer-svg,
+.tooltip-graph-svg {
   overflow: visible;
 }
 
@@ -59,7 +61,7 @@ div.tooltip-div p {
 
 .tooltip-prediction-highlighter {
   /* grey rectangle that highlights the prediction in the tooltip */
-  opacity: .5;
+  opacity: 0.5;
   fill: hsl(240 5.3% 58%);
 }
 
@@ -70,22 +72,31 @@ div.tooltip-div p {
 
 .y-axis:not(.state-hospitalizations *) :is(path, line),
 :is(.x-axis-historical, .x-axis-prediction) :is(path, line) {
-  stroke: black
+  stroke: black;
 }
 
 .tooltip-legend {
   display: flex;
   justify-content: space-evenly;
-  min-width: 100%;
-  max-width: min-content;
+  min-width: 50%;
+  /* max-width: 80%; */
+  width: 100%;
+  /* max-width: min-content; */
   flex-wrap: wrap;
 }
 
-.tooltip-legend-group,
+.tooltip-legend-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  /* width: max-content; */
+  width: 100%;
+}
+
 .tooltip-legend-group-item {
   display: flex;
   align-items: center;
-  width: max-content;
+  width: fit-content;
 }
 
 .tooltip-legend-group-item {
