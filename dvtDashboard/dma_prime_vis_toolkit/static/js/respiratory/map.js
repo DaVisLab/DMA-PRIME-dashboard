@@ -136,7 +136,7 @@ async function redraw(
         regionData.features,
         facility_unit_selected,
       );
-      console.log(regionData.features);
+      // console.log(regionData.features);
     }
   }
 
@@ -155,15 +155,12 @@ async function redraw(
   drawLegend();
 
   var layers = [];
-  // if (mapGeographicUnitSelector.value != "facility") {
   if (
     mapGeographicUnitSelector.value == "state" ||
     mapGeographicUnitSelector.value == "region" ||
     mapGeographicUnitSelector.value == "county" ||
     mapGeographicUnitSelector.value == "zcta"
   ) {
-    console.log("dfff");
-    console.log(regionData);
     layers.push(
       new GeoJsonLayer({
         id: "respiratory_choropleth",
@@ -188,7 +185,6 @@ async function redraw(
         },
       }),
     );
-    console.log("----------");
   } else if (
     mapGeographicUnitSelector.value == "facility" &&
     document.querySelector('input[name="facilityOptionGroup"]:checked')
@@ -666,6 +662,8 @@ function drawLegend() {
               return d3.range(6).map((i) => i * step);
             })();
 
+      // console.log(edges);
+
       var bins = choroplethColorMap
         .range()
         .map((color, i) => ({ color, x0: edges[i], x1: edges[i + 1] }));
@@ -693,7 +691,7 @@ function drawLegend() {
 
       // Axis with bin boundaries
       var tickValues = edges;
-      var numberFormatter = d3.format(",.2~f");
+      var numberFormatter = d3.format(",.3~f");
       var axisG = content
         .append("g")
         .attr("id", "map-color-legend-axis")
@@ -812,7 +810,7 @@ function drawLegend() {
         .select(`*[value="${mapOutcomeVariableSelector.value}"]`)
         .html();
 
-      console.log(dataVarString);
+      // console.log(dataVarString);
 
       colorLegendContent
         .append("text")

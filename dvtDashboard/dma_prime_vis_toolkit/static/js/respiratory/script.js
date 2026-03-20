@@ -232,6 +232,7 @@ function getFeatureValue(
     return NaN;
   }
 
+  // console.log(currentDate)
   var dateIndex = dayjs(currentDate).diff(thisData.start_date, "week");
   var thisWeekDatum = parseFloat(thisData.values.at(dateIndex));
 
@@ -256,9 +257,9 @@ function getFeatureValue(
         ((thisWeekDatum - lastWeekDatum) / Math.abs(lastWeekDatum)) * 100;
     }
     return [lastWeekDatum, thisWeekDatum, percentDifference];
-  } else {
-    return thisWeekDatum;
   }
+
+  return thisWeekDatum;
 }
 
 // helper functions
