@@ -33,14 +33,14 @@ options %}
 
   <!-- population -->
   <sl-select
-    value="{{ metadata['available_models']['influenza']['state'] | list | first }}"
+    value="{{ metadata['available_models']['influenza']['region'] | list | first }}"
     id="exploration-population-selector"
     class="fill-width"
     size="small"
   >
     <p slot="label">Select population</p>
     {% for population in
-    metadata['available_models']['influenza']['state'].keys() %}
+    metadata['available_models']['influenza']['region'].keys() %}
     <sl-tooltip
       class="exploration-population-tooltip"
       content="{{ metadata['populations_tooltips'][population] }}"
@@ -63,7 +63,7 @@ options %}
   >
     <p slot="label">Select outcome variable</p>
     {% for outcome in
-    metadata['available_models']['influenza']['state'].values() | first %}
+    metadata['available_models']['influenza']['region'].values() | first %}
     <sl-tooltip
       class="exploration-outcome-tooltip"
       content="{{ metadata['outcome_variables_tooltips'][outcome] }}"
@@ -149,7 +149,7 @@ options %}
 </script>
 
 <script
-  src="{{ url_for('static', filename='js/respiratory/controls.js') }}"
+  src="{{ url_for('static', filename='js/respiratory/utils/controls.js') }}"
   type="module"
 ></script>
 <script type="module">
@@ -157,7 +157,7 @@ options %}
     updateOutcomeOptions,
     updatePopulationOptions,
     updateGeographicOptions,
-  } from "/static/js/respiratory/interfaceOption_utils.js";
+  } from "/static/js/respiratory/utils/interfaceOption_utils.js";
 
   await Promise.allSettled([
     // wait for following to be defined/load in

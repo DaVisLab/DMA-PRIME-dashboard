@@ -12,7 +12,7 @@ import {
 import {
   facility_dataProcessing,
   call_data,
-} from "/static/js/respiratory/dataProcessing_utils.js";
+} from "/static/js/respiratory/utils/dataProcessing_utils.js";
 
 export {
   map,
@@ -144,7 +144,7 @@ async function redraw(
     updateMapWarnings();
   }
 
-  createChoropleth(
+  updateChoropleth(
     regionData,
     mapTypeSwitch.value,
     mapPopulationSelector.value,
@@ -162,6 +162,8 @@ async function redraw(
     mapGeographicUnitSelector.value == "county" ||
     mapGeographicUnitSelector.value == "zcta"
   ) {
+    console.log("dfff");
+    console.log(regionData);
     layers.push(
       new GeoJsonLayer({
         id: "respiratory_choropleth",
@@ -186,12 +188,12 @@ async function redraw(
         },
       }),
     );
+    console.log("----------");
   } else if (
     mapGeographicUnitSelector.value == "facility" &&
     document.querySelector('input[name="facilityOptionGroup"]:checked')
       ?.value != "individual-unit"
   ) {
-    console.log(regionData);
     layers.push(
       new GeoJsonLayer({
         id: "respiratory_choropleth",
@@ -247,36 +249,12 @@ async function redraw(
         pickable: false,
         data: regionData,
         pointType: "icon",
-        // iconAtlas: icons.iconAtlas,
         iconAtlas: "/static/assets/Icons/health-facility-icon.png",
-        // iconMapping: icons.iconMapping,
         iconMapping: {
           marker: { x: 0, y: 0, width: 1128, height: 992, mask: true },
         },
         getIconSize: 95,
-        // getIcon: (d) => d.properties.system,
-        // {
-        //   console.log(d);
-        //   return d.properties.system;
-        // },
         getIcon: () => "marker",
-        // getIconColor: (d) => {
-        //   let val = getFeatureValue(
-        //     d,
-        //     mapPopulationSelector.value,
-        //     mapOutcomeVariableSelector.value,
-        //     mapTypeSwitch.value,
-        //     mapIncludeImputations.checked
-        //   );
-        //   if (val === undefined) {
-        //     let c = unknownColor.rgb();
-        //     return [c.r, c.g, c.b];
-        //   } else if (val.length) {
-        //     val = val[2];
-        //   }
-        //   let c = unknownColor.rgb();
-        //   return isNaN(val) ? [c.r, c.g, c.b] : [0, 0, 0, 255];
-        // },
         getIconColor: () => [0, 0, 0, 255],
         iconSizeMinPixels: 20,
         updateTriggers: {
@@ -475,6 +453,7 @@ function getColor(feature) {
     var imputations = mapIncludeImputations.checked;
 
     var c;
+    // console.log(feature);
 
     let value = getFeatureValue(
       feature,
@@ -483,15 +462,12 @@ function getColor(feature) {
       mapTypeSwitch.value,
       imputations,
     );
-    //  let value = 1
 
     if (mapTypeSwitch.value == "percentDifference") {
-      if (isNaN(value[1]) || value[0]) {
-        c = d3.rgb(choroplethColorMap(value[2]));
-      } else if (value[1] == 0) {
-        c = d3.rgb("white");
+      if (!isNaN(value[value.length - 1])) {
+        c = d3.rgb(choroplethColorMap(value[value.length - 1]));
       } else {
-        c = d3.rgb("#ff8800");
+        c = d3.rgb("white");
       }
     } else {
       c = d3.rgb(choroplethColorMap(value));
@@ -503,75 +479,72 @@ function getColor(feature) {
   }
 }
 
-function createChoropleth(
+function updateChoropleth(
   data,
   mapType,
   population,
   outcomeVariable,
   imputations = true,
 ) {
-  if (mapType == "percentDifference") {
+  if (mapType === "percentDifference") {
     choroplethColorMap = d3
       .scaleThreshold()
       .domain([-100, -50, 0, 50, 100, 500])
       .range(d3.reverse(d3.schemeRdBu[8]).slice(1))
       .unknown(unknownColor);
-  } else {
-    var arr = [];
-
-    if (mapGeographicUnitSelector.value == "state") {
-      var thisData =
-        data.features[0].properties.data[population][outcomeVariable][
-          "historical"
-        ];
-
-      if (mapType == "rate") {
-        arr = thisData.values.map(
-          (d) => (d / data.features[0].properties.population) * 1000,
-        );
-      } else {
-        arr = thisData.values;
-      }
-    } else {
-      arr = getAllFeaturesValue(
-        data.features,
-        population,
-        outcomeVariable,
-        mapType,
-        imputations,
-      );
-    }
-
-    if (outcomeVariable == "rate_of_transmission") {
-      choroplethDiscreteEdges = null;
-
-      const mix = d3.interpolateRgb(
-        populationColorMap[population]["historical"],
-        "red",
-      );
-      choroplethColorMap = d3
-        .scaleLinear()
-        .domain([0, 0.5, 1, Math.max(d3.max(arr), 2)])
-        .range(["white", "#648FFF", mix(0.5), "red"])
-        .unknown(unknownColor)
-        .nice();
-    } else {
-      choroplethColorMap = d3
-        .scaleQuantize()
-        .domain([0, d3.max(arr) || 1])
-        .range(
-          d3.quantize(
-            d3.interpolateRgb(
-              "white",
-              populationColorMap[population]["historical"],
-            ),
-            5,
-          ),
-        )
-        .unknown(unknownColor)
-        .nice();
-    }
+    return;
   }
+
+  let values = [];
+
+  for (const feature of data.features) {
+    const { data } = feature.properties;
+    const variableData = data[population][outcomeVariable];
+
+    let historicalValues = variableData.historical.values.slice(-52);
+    let projectedValues = variableData.projected.values.slice(-52);
+
+    if (mapType === "rate") {
+      historicalValues = historicalValues.map(
+        (value) => (value / feature.properties.population) * 1000,
+      );
+
+      projectedValues = projectedValues.map(
+        (value) => (value / feature.properties.population) * 1000,
+      );
+    }
+    values.push(...historicalValues, ...projectedValues);
+  }
+
+  if (outcomeVariable === "rate_of_transmission") {
+    choroplethDiscreteEdges = null;
+
+    const mix = d3.interpolateRgb(
+      populationColorMap[population].historical,
+      "red",
+    );
+
+    choroplethColorMap = d3
+      .scaleLinear()
+      .domain([0, 0.5, 1, Math.max(d3.max(values) || 0, 2)])
+      .range(["white", "#648FFF", mix(0.5), "red"])
+      .unknown(unknownColor)
+      .nice();
+
+    return;
+  }
+
+  choroplethColorMap = d3
+    .scaleQuantize()
+    .domain([0, d3.max(values) || 1])
+    .range(
+      d3.quantize(
+        d3.interpolateRgb("white", populationColorMap[population].historical),
+        5,
+      ),
+    )
+    .unknown(unknownColor)
+    .nice();
 }
 
 function drawLegend() {
@@ -666,6 +639,7 @@ function drawLegend() {
     });
   } else {
     var legendWidth = Math.max(mapDiv.clientWidth / 3, 340);
+
     var colorLegend = d3
       .select(choroplethLegendSVG)
       .attr("transform", null)
@@ -682,12 +656,14 @@ function drawLegend() {
                 ? choroplethColorMap.domain()
                 : [0];
 
-              console.log(choroplethColorMap.domain);
               var maxValTmp =
                 Array.isArray(dom) && dom.length ? Math.max(0, d3.max(dom)) : 0;
+
               var t = d3.ticks(0, Math.max(maxValTmp, 1), 5);
+
               var s = t.length >= 2 ? t[1] - t[0] : 1;
-              return Array.from({ length: 6 }, (_, i) => i * s);
+              const step = maxValTmp / 5;
+              return d3.range(6).map((i) => i * step);
             })();
 
       var bins = choroplethColorMap
@@ -760,6 +736,7 @@ function drawLegend() {
 
       var colorLegendDefs = colorLegend.append("defs");
       var linearGrdient = colorLegendDefs.append("linearGradient");
+
       linearGrdient
         .attr("id", "linear-gradient")
         .attr("x1", "0%")
@@ -829,11 +806,14 @@ function drawLegend() {
             )
             .ticks(6),
         );
+
       let dataVarString = d3
         .select(mapOutcomeVariableSelector)
         .select(`*[value="${mapOutcomeVariableSelector.value}"]`)
         .html();
+
       console.log(dataVarString);
+
       colorLegendContent
         .append("text")
         .attr("id", `map-legend-title`)
@@ -1042,7 +1022,7 @@ async function updateMapOutcomeVariableOptions() {
     metadata.available_models[mapDiseaseSelector.value][
       mapGeographicUnitSelector.value
     ][mapPopulationSelector.value];
-    
+
   d3.select(mapOutcomeVariableSelector)
     .selectAll(".map-outcome-tooltip")
     .data(availableOutcomeVariables)

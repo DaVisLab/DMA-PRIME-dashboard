@@ -51,7 +51,7 @@ options %}
 
   <!-- region selector -->
   <sl-select
-    value="state"
+    value="region"
     id="map-geographic-unit-selector"
     class="fill-width map-option"
     size="small"
@@ -104,7 +104,7 @@ options %}
 
   <!-- population -->
   <sl-select
-    value="{{ metadata['available_models']['influenza']['state'] | list | first }}"
+    value="{{ metadata['available_models']['influenza']['region'] | list | first }}"
     id="map-population-selector"
     class="fill-width map-option"
     size="small"
@@ -112,7 +112,7 @@ options %}
   >
     <p slot="label">Select population</p>
     {% for population in
-    metadata['available_models']['influenza']['state'].keys() %}
+    metadata['available_models']['influenza']['region'].keys() %}
     <sl-tooltip
       class="map-population-tooltip"
       content="{{ metadata['populations_tooltips'][population] }}"
@@ -138,7 +138,7 @@ options %}
   >
     <p slot="label">Select outcome variable</p>
     {% for outcome in
-    metadata['available_models']['influenza']['state'].values() | first %}
+    metadata['available_models']['influenza']['region'].values() | first %}
     <sl-tooltip
       class="map-outcome-tooltip"
       content="{{ metadata['outcome_variables_tooltips'][outcome] }}"
@@ -569,10 +569,7 @@ options %}
 </script>
 
 <!-- 5) Your module code—now deck, loaders & maplibregl are ready -->
-<!-- <script
-  src="{{ url_for('static', filename='js/respiratory/dataProcessing_utils.js') }}"
-  type="module"
-></script> -->
+
 <script
   src="{{ url_for('static', filename='js/respiratory/map.js') }}"
   type="module"

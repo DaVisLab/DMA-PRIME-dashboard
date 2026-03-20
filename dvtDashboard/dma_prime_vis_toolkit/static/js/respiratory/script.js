@@ -87,52 +87,6 @@ window.addEventListener("keydown", (event) => {
 
 document.adoptedStyleSheets = [styleSheet];
 
-function getFeatureValue(
-  feature,
-  population,
-  outcomeVariable,
-  panelType,
-  imputations,
-) {
-  let thisData =
-    feature.properties.data[population][outcomeVariable]["projected"];
-
-  if (!imputations && thisData.imputed) {
-    if (panelType == "percentDifference") {
-      return [NaN, NaN, NaN];
-    }
-    return NaN;
-  }
-
-  var dateIndex = dayjs(currentDate).diff(thisData.start_date, "week");
-  var thisWeekDatum = parseFloat(thisData.values.at(dateIndex));
-
-  if (panelType == "rate") {
-    thisWeekDatum = (thisWeekDatum / feature.properties.population) * 1000;
-  }
-
-  if (panelType == "percentDifference") {
-    var lastWeekDatum;
-    if (dateIndex == 0) {
-      lastWeekDatum = parseFloat(
-        feature.properties.data[population][outcomeVariable][
-          "historical"
-        ].values.at(expectedShortHistoryDataPoints - 1),
-      );
-    } else {
-      lastWeekDatum = parseFloat(thisData.values.at(dateIndex - 1));
-    }
-    var percentDifference = undefined;
-    if (isNaN(thisWeekDatum) || lastWeekDatum) {
-      percentDifference =
-        ((thisWeekDatum - lastWeekDatum) / Math.abs(lastWeekDatum)) * 100;
-    }
-    return [lastWeekDatum, thisWeekDatum, percentDifference];
-  } else {
-    return thisWeekDatum;
-  }
-}
-
 function getAllValuesFromFeature(
   featureProperties,
   population,
@@ -258,6 +212,53 @@ function getAllFeaturesValue(
   });
 
   return arr;
+}
+
+function getFeatureValue(
+  feature,
+  population,
+  outcomeVariable,
+  panelType,
+  imputations,
+  projectionType = "projected",
+) {
+  let thisData =
+    feature.properties.data[population][outcomeVariable][projectionType];
+
+  if (!imputations && thisData.imputed) {
+    if (panelType == "percentDifference") {
+      return [NaN, NaN, NaN];
+    }
+    return NaN;
+  }
+
+  var dateIndex = dayjs(currentDate).diff(thisData.start_date, "week");
+  var thisWeekDatum = parseFloat(thisData.values.at(dateIndex));
+
+  if (panelType == "rate") {
+    thisWeekDatum = (thisWeekDatum / feature.properties.population) * 1000;
+  }
+
+  if (panelType == "percentDifference") {
+    var lastWeekDatum;
+    if (dateIndex == 0) {
+      lastWeekDatum = parseFloat(
+        feature.properties.data[population][outcomeVariable][
+          "historical"
+        ].values.at(expectedShortHistoryDataPoints - 1),
+      );
+    } else {
+      lastWeekDatum = parseFloat(thisData.values.at(dateIndex - 1));
+    }
+    var percentDifference = undefined;
+    if (isNaN(thisWeekDatum) || lastWeekDatum) {
+      percentDifference =
+        ((thisWeekDatum - lastWeekDatum) / Math.abs(lastWeekDatum)) * 100;
+    }
+    return [lastWeekDatum, thisWeekDatum, percentDifference];
+  } else {
+    return thisWeekDatum;
+  }
 }
 
 // helper functions

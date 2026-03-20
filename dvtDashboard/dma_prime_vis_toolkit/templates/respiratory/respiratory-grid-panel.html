@@ -42,7 +42,7 @@ options %}
 
   <!-- region selector -->
   <sl-select
-    value="state"
+    value="region"
     id="grid-geographic-unit-selector"
     class="fill-width grid-option"
     size="small"
@@ -58,14 +58,14 @@ options %}
 
   <!-- population -->
   <sl-select
-    value="{{ metadata['available_models']['influenza']['state'] | list | first }}"
+    value="{{ metadata['available_models']['influenza']['region'] | list | first }}"
     id="grid-population-selector"
     class="fill-width grid-option"
     size="small"
   >
     <p slot="label">Select population</p>
     {% for population in
-    metadata['available_models']['influenza']['state'].keys() %}
+    metadata['available_models']['influenza']['region'].keys() %}
     <sl-tooltip
       class="grid-population-tooltip"
       content="{{ metadata['populations_tooltips'][population] }}"
@@ -89,7 +89,7 @@ options %}
   >
     <p slot="label">Select outcome variable</p>
     {% for outcome in
-    metadata['available_models']['influenza']['state'].values() |
+    metadata['available_models']['influenza']['region'].values() |
     first %}
     <sl-tooltip
       class="grid-outcome-tooltip"

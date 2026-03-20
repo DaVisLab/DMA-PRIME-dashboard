@@ -11,7 +11,7 @@ import {
 import { showMapTooltip } from "./map-interactions.js";
 
 import { selectedItems, redraw } from "./map.js";
-import { controlDependencyTest } from "./controls.js";
+import { controlDependencyTest } from "./utils/controls.js";
 // import { maps } from "../mapManager.js";
 
 async function getSpatialData() {

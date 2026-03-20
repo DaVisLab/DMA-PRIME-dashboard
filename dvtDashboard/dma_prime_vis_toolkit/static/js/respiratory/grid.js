@@ -7,7 +7,7 @@ import {
   drawTooltip,
   drawStateHospitalizations,
 } from "/static/js/respiratory/script.js";
-import { controlDependencyTestOnGridView } from "./controls.js";
+import { controlDependencyTestOnGridView } from "./utils/controls.js";
 export {
   updateGrid,
   sortGridItems,

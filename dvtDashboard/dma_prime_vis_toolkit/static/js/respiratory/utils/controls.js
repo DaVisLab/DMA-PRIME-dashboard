@@ -24,16 +24,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 function _controlReset(popEl, geoEl, outEl, disEl) {
+  disEl.querySelectorAll("sl-option").forEach((opt) => {
+    if (opt.value == "respiratory_diseases") {
+      opt.style.display = "none";
+    } else {
+      opt.style.display = "";
+    }
+  });
+
   popEl.querySelectorAll("sl-option").forEach((opt) => {
     opt.style.display = "";
+    // console.log(opt.value);
+    if (opt.value == "heath_system") {
+      opt.style.display = "none";
+    } else {
+      opt.style.display = "";
+    }
   });
   geoEl.querySelectorAll("sl-option").forEach((opt) => {
     opt.style.display = "";
   });
   outEl.querySelectorAll("sl-option").forEach((opt) => {
-    opt.style.display = "";
-  });
-  disEl.querySelectorAll("sl-option").forEach((opt) => {
     opt.style.display = "";
   });
 }
@@ -51,7 +62,6 @@ function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
     if (geoEl.value != "facility") {
       geoEl.value = "facility";
 
-      // console.log("fff");
       geoEl.dispatchEvent(
         new CustomEvent("sl-change", {
           bubbles: true,
@@ -83,22 +93,6 @@ function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
         opt.style.display = "none";
       }
     });
-
-    outEl.querySelectorAll("sl-option").forEach((opt) => {
-      console.log(opt.value);
-      // if (opt.value === "all_hospitalizations" && opt.style.display != "none") {
-      //   // opt.style.display = "";
-      //   opt.style.display = "none";
-      // } else if (outEl.value === "all_hospitalizations") {
-      //   outEl.value = "inpatient_hospitalizations";
-      //   outEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
-      // } else {
-      //   // opt.style.display = "none";
-      // }
-    });
-    // outEl.value = "all_encounter"
-    // outEl.value = "all_encounter"
-    // popEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
   } else {
     // 1) population:
     popEl.querySelectorAll("sl-option").forEach((opt) => {
@@ -132,7 +126,7 @@ function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
     });
 
     outEl.querySelectorAll("sl-option").forEach((opt) => {
-      console.log(opt.value);
+      // console.log(opt.value);
       if (opt.value === "all_hospitalizations" && opt.style.display != "none") {
         // opt.style.display = "";
         opt.style.display = "none";
