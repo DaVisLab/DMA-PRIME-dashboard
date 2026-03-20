@@ -153,7 +153,11 @@ options %}
   type="module"
 ></script>
 <script type="module">
-  import { updateOutcomeVariableOptions } from "/static/js/respiratory/interfaceOption_utils.js";
+  import {
+    updateOutcomeOptions,
+    updatePopulationOptions,
+    updateGeographicOptions,
+  } from "/static/js/respiratory/interfaceOption_utils.js";
 
   await Promise.allSettled([
     // wait for following to be defined/load in
@@ -238,18 +242,18 @@ options %}
   //   updateOutcomeVariableOptions("exploration");
   // });
 
-  [(popEl, geoEl, outEl, disEl)].forEach((el) => {
+  [popEl, geoEl, outEl, disEl].forEach((el) => {
     el.addEventListener("sl-change", (event) => {
       console.log(metadata);
 
-      // callModelExplorationReport(
-      //   explorationDiseaseSelector.value,
-      //   explorationGeographicUnitSelector.value,
-      //   explorationPopulationSelector.value,
-      //   explorationOutcomeVariableSelector.value,
-      //   locationIdSearch.value,
-      //   metadata.data_version,
-      // );
+      callModelExplorationReport(
+        explorationDiseaseSelector.value,
+        explorationGeographicUnitSelector.value,
+        explorationPopulationSelector.value,
+        explorationOutcomeVariableSelector.value,
+        locationIdSearch.value,
+        metadata.data_version,
+      );
       controlDependencyTestOnModelView();
       testDiseaseOutcomeDipendency();
     });
@@ -257,15 +261,15 @@ options %}
 
   [menu, input].forEach((el) => {
     el.addEventListener("sl-select", (event) => {
-      console.log(locationIdSearch.value);
-      // callModelExplorationReport(
-      //   explorationDiseaseSelector.value,
-      //   explorationGeographicUnitSelector.value,
-      //   explorationPopulationSelector.value,
-      //   explorationOutcomeVariableSelector.value,
-      //   locationIdSearch.value,
-      //   metadata.data_version,
-      // );
+      // console.log(locationIdSearch.value);
+      callModelExplorationReport(
+        explorationDiseaseSelector.value,
+        explorationGeographicUnitSelector.value,
+        explorationPopulationSelector.value,
+        explorationOutcomeVariableSelector.value,
+        locationIdSearch.value,
+        metadata.data_version,
+      );
     });
   });
 
@@ -275,8 +279,10 @@ options %}
       customElements.whenDefined("sl-select"),
       customElements.whenDefined("sl-option"),
     ]);
-
-    updateOutcomeVariableOptions("exploration", outEl, disEl, geoEl, popEl);
+    
+    updateGeographicOptions("exploration", outEl, disEl, geoEl, popEl);
+    updatePopulationOptions("exploration", outEl, disEl, geoEl, popEl);
+    updateOutcomeOptions("exploration", outEl, disEl, geoEl, popEl);
 
     window._controlDependecyTest(popEl, geoEl, outEl, disEl);
   }

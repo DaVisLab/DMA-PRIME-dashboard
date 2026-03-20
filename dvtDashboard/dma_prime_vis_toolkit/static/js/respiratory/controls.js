@@ -50,7 +50,16 @@ function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
   if (disEl.value == "respiratory_diseases") {
     if (geoEl.value != "facility") {
       geoEl.value = "facility";
-      geoEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+
+      // console.log("fff");
+      geoEl.dispatchEvent(
+        new CustomEvent("sl-change", {
+          bubbles: true,
+          // composed: true,
+          // detail: { value: geoEl.value },
+        }),
+      );
+      return;
     }
 
     // if (popEl.value !== "health_system") {
@@ -67,13 +76,13 @@ function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
       }
     });
 
-    // popEl.querySelectorAll("sl-option").forEach((opt) => {
-    //   if (opt.value === "health_system") {
-    //     opt.style.display = "";
-    //   } else {
-    //     opt.style.display = "none";
-    //   }
-    // });
+    popEl.querySelectorAll("sl-option").forEach((opt) => {
+      if (opt.value === "health_system") {
+        opt.style.display = "";
+      } else {
+        opt.style.display = "none";
+      }
+    });
 
     outEl.querySelectorAll("sl-option").forEach((opt) => {
       console.log(opt.value);
