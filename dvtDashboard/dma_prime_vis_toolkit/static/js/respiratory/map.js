@@ -1,4 +1,3 @@
-const { GeoJsonLayer, IconLayer, TextLayer, MapboxOverlay } = deck;
 import {
   populationColorMap,
   unknownColor,
@@ -14,6 +13,8 @@ import {
   call_data,
 } from "/static/js/respiratory/utils/dataProcessing_utils.js";
 
+const { GeoJsonLayer, IconLayer, TextLayer, MapboxOverlay } = deck;
+
 export {
   map,
   popup,
@@ -27,81 +28,257 @@ export {
   updateMapGeographicUnitOptions,
 };
 
-var icons = {
+const MAP_CENTER = [-81, 33.65];
+const MAP_ZOOM = 7;
+const FACILITY_ICON_MAPPING = {
+  marker: { x: 0, y: 0, width: 1128, height: 992, mask: true },
+};
+const LEGEND_MARGINS = {
+  top: 12,
+  bottom: 16,
+  left: 8,
+  right: 8,
+};
+
+const icons = {
   data: await d3.csv("/data/health-care-facility"),
   iconAtlas: "/static/assets/Icons/icon-pack.png",
   iconMapping: await d3.json("/static/assets/Icons/icon-pack.json"),
 };
 
-var selectedItems = {
+const selectedItems = {
   feature: undefined,
   icons: [],
 };
 
-// For discrete-binned choropleth, store the current bin edges for legend rendering
-var choroplethDiscreteEdges = null;
+let choroplethDiscreteEdges = null;
 
-var choroplethColorMap = d3
+let choroplethColorMap = d3
   .scaleLinear()
   .domain([0, 1])
-  .range(["white", populationColorMap["general_population"]])
+  .range(["white", populationColorMap.general_population])
   .unknown(unknownColor)
   .nice();
 
 const map = new maplibregl.Map({
   container: "map-div",
-  style:
-    "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json",
-  center: [-81, 33.65],
-  zoom: 7,
+  style: "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json",
+  center: MAP_CENTER,
+  zoom: MAP_ZOOM,
 });
 
-await map.once("load", (d) => {
-  d3.selectAll(".map-option").attr("disabled", null);
-});
-
-var popup = new maplibregl.Popup({
+const popup = new maplibregl.Popup({
   focusAfterOpen: false,
   closeOnClick: false,
 });
 
-d3.select(popup.getElement()).style("color", "var(--sl-color-neutral-0)");
-
 const deckOverlay = new MapboxOverlay({
   interleaved: true,
   getCursor: ({ isHovering, isDragging }) => {
-    if (isHovering) {
-      return "pointer";
-    } else if (isDragging) {
-      return "grabbing";
-    } else {
-      return "grab";
-    }
+    if (isHovering) return "pointer";
+    if (isDragging) return "grabbing";
+    return "grab";
   },
 });
 
-map.addControl(deckOverlay);
-map.addControl(new maplibregl.NavigationControl());
-map.setMaxPitch(0);
+let regionData;
+let mapGeographicUnit = mapGeographicUnitSelector.value;
+let mapPopulation = mapPopulationSelector.value;
+let mapOutcomeVariable = mapOutcomeVariableSelector.value;
 
+const getFontFamily = () =>
+  getComputedStyle(document.head)
+    .getPropertyValue("--sl-font-sans")
+    .replace(/\s/g, "")
+    .split(",");
+
+const getSelectedOptionHtml = (selectEl, value) =>
+  d3.select(selectEl).select(`*[value="${value}"]`).html();
+
+const setLoadingVisible = (visible) => {
+  d3.select("#map-loading-div").style("visibility", visible ? "visible" : "hidden");
+  d3.selectAll("#map-loading-div circle").classed("animate", visible);
+};
+
+const isGeographicChoroplethUnit = (unit) =>
+  ["state", "region", "county", "zcta"].includes(unit);
+
+const getSelectedFeatureId = () =>
+  selectedItems.feature?.properties?.id;
+
+const getChoroplethLayer = (regionData) =>
+  new GeoJsonLayer({
+    id: "respiratory_choropleth",
+    depthTest: false,
+    pickable: true,
+    data: regionData,
+    stroked: true,
+    filled: true,
+    pointType: "circle+text",
+    getFillColor: (d) => getColor(d),
+    lineWidthMinPixels: 0.75,
+    getLineWidth: 20,
+    getLineColor: [64, 64, 64],
+    updateTriggers: {
+      data: [mapGeographicUnitSelector.value, dataVersion],
+      getFillColor: [
+        mapGeographicUnitSelector.value,
+        mapOutcomeVariableSelector.value,
+        dataVersion,
+      ],
+    },
+  });
+
+const getFacilityBackgroundLayer = (regionData) =>
+  new GeoJsonLayer({
+    id: "respiratory_facility_background",
+    depthTest: false,
+    pickable: false,
+    data: regionData,
+    pointType: "icon",
+    iconAtlas: "/static/assets/Icons/health-facility-icon.png",
+    iconMapping: FACILITY_ICON_MAPPING,
+    getIconSize: 95,
+    getIcon: () => "marker",
+    getIconColor: () => [0, 0, 0, 255],
+    iconSizeMinPixels: 20,
+    updateTriggers: {
+      data: [mapGeographicUnitSelector.value, dataVersion],
+    },
+  });
+
+const getFacilityLayer = (regionData) =>
+  new GeoJsonLayer({
+    id: "respiratory_facility",
+    depthTest: false,
+    pickable: true,
+    data: regionData,
+    pointType: "icon",
+    iconAtlas: "/static/assets/Icons/health-facility-icon.png",
+    iconMapping: FACILITY_ICON_MAPPING,
+    getIconSize: 80,
+    getIcon: () => "marker",
+    getIconColor: (d) => getColor(d),
+    iconSizeMinPixels: 10,
+    updateTriggers: {
+      data: [mapGeographicUnitSelector.value, dataVersion],
+      getIconColor: [
+        mapGeographicUnitSelector.value,
+        mapOutcomeVariableSelector.value,
+        dataVersion,
+      ],
+    },
+  });
+
+const getFacilityIconOverlayLayer = () =>
+  new IconLayer({
+    id: "hospital-and-cdap",
+    data: icons.data,
+    iconAtlas: icons.iconAtlas,
+    iconMapping: icons.iconMapping,
+    getPosition: (d) => [+d.longitude, +d.latitude],
+    getIcon: (d) => (selectedItems.icons.includes(d.type) ? d.type : null),
+    getSize: 15,
+    pickable: true,
+    parameters: {
+      depthTest: false,
+    },
+    updateTriggers: {
+      getIcon: [
+        hospitalIconsToggle.checked,
+        mobileClinicIconsToggle.checked,
+        communityPartnerIconsToggle.checked,
+      ],
+    },
+  });
+
+const getFacilityLabelLayer = (regionData) =>
+  new TextLayer({
+    id: "text_labels",
+    data: regionData.features,
+    getPosition: (d) => {
+      const coords = getCenter(d);
+      return [coords[0], coords[1]];
+    },
+    getText: (d) => d.properties.display_name,
+    getPixelOffset: () => [0, 35],
+    maxWidth: 10,
+    getAlignmentBaseline: "center",
+    getTextAnchor: "middle",
+    getColor: [0, 0, 0],
+    background: true,
+    getBackgroundColor: [255, 255, 255, 0],
+    backgroundBorderRadius: 10,
+    backgroundPadding: [2, 2],
+    getSize: (d) => getTextSize(d),
+    fontFamily: getFontFamily(),
+    collisionGroup: "text_labels",
+    collisionTestProps: { sizeScale: 2.5 },
+    updateTriggers: {
+      data: [dataVersion],
+      getSize: [dataVersion],
+    },
+  });
+
+const getGeographicLabelLayer = (regionData) => {
+  const unit = mapGeographicUnitSelector.value;
+
+  return new TextLayer({
+    id: "labels",
+    data: regionData.features,
+    getPosition: (d) => getCenter(d),
+    getText:
+      unit === "facility"
+        ? (d) => d.properties.display_name
+        : (d) => d.properties.id.toString(),
+    maxWidth: 10,
+    getAlignmentBaseline: "center",
+    getTextAnchor: "middle",
+    getColor: [0, 0, 0],
+    background: true,
+    getBackgroundColor:
+      unit === "facility" ? [255, 255, 255, 128] : [255, 255, 255, 32],
+    backgroundBorderRadius: unit === "facility" ? 10 : 2,
+    backgroundPadding: unit === "facility" ? [2, 2] : [4, 4],
+    getSize:
+      unit === "facility"
+        ? 12
+        : unit === "zcta"
+          ? Math.min(Math.max(8, map.getZoom() * 1.5), 16)
+          : 16,
+    fontFamily: getFontFamily(),
+    collisionGroup: "labels",
+    collisionTestProps: { sizeScale: 2.5 },
+    updateTriggers: {
+      getSize: [map.getZoom()],
+    },
+  });
+};
 await Promise.allSettled([
-  // wait for following to be defined/load in
   customElements.whenDefined("sl-select"),
   customElements.whenDefined("sl-option"),
   customElements.whenDefined("sl-button"),
 ]);
 
-mapGeographicUnit = mapGeographicUnitSelector.value;
-mapPopulation = mapPopulationSelector.value;
-mapOutcomeVariable = mapOutcomeVariableSelector.value;
+await new Promise((resolve) => map.once("load", resolve));
+d3.selectAll(".map-option").attr("disabled", null);
 
-var regionData = await call_data(
+d3.select(popup.getElement()).style("color", "var(--sl-color-neutral-0)");
+
+map.addControl(deckOverlay);
+map.addControl(new maplibregl.NavigationControl());
+map.setMaxPitch(0);
+
+regionData = await call_data(
   mapGeographicUnitSelector.value,
   mapDiseaseSelector.value,
   metadata.data_version,
 );
 
-redraw(true, true);
+requestAnimationFrame(() => {
+  map.resize();
+  redraw(true, true);
+});
 
 drawStateHospitalizations(
   mapDiseaseSelector.value,
@@ -110,16 +287,11 @@ drawStateHospitalizations(
   mapStateHospitalizationsSubtitle,
 );
 
-async function redraw(
-  resetWarnings = false,
-  fetchData = false,
-  center = false,
-) {
+async function redraw(resetWarnings = false, fetchData = false, center = false) {
   updateMapTitle();
 
-  if (fetchData == true) {
-    d3.select("#map-loading-div").style("visibility", "visible");
-    d3.selectAll("#map-loading-div circle").classed("animate", true);
+  if (fetchData) {
+    setLoadingVisible(true);
 
     regionData = await call_data(
       mapGeographicUnitSelector.value,
@@ -127,16 +299,15 @@ async function redraw(
       metadata.data_version,
     );
 
-    if (mapGeographicUnitSelector.value == "facility") {
-      const facility_unit_selected = document.querySelector(
+    if (mapGeographicUnitSelector.value === "facility") {
+      const facilityUnitSelected = document.querySelector(
         'input[name="facilityOptionGroup"]:checked',
       )?.value;
 
       regionData.features = facility_dataProcessing(
         regionData.features,
-        facility_unit_selected,
+        facilityUnitSelected,
       );
-      // console.log(regionData.features);
     }
   }
 
@@ -154,67 +325,16 @@ async function redraw(
 
   drawLegend();
 
-  var layers = [];
-  if (
-    mapGeographicUnitSelector.value == "state" ||
-    mapGeographicUnitSelector.value == "region" ||
-    mapGeographicUnitSelector.value == "county" ||
-    mapGeographicUnitSelector.value == "zcta"
-  ) {
-    layers.push(
-      new GeoJsonLayer({
-        id: "respiratory_choropleth",
-        depthTest: false,
-        pickable: true,
-        data: regionData,
-        stroked: true,
-        filled: true,
-        pointType: "circle+text",
-        pickable: true,
-        getFillColor: (d) => getColor(d),
-        lineWidthMinPixels: 0.75,
-        getLineWidth: 20,
-        getLineColor: [64, 64, 64],
-        updateTriggers: {
-          data: [mapGeographicUnitSelector.value, dataVersion],
-          getFillColor: [
-            mapGeographicUnitSelector.value,
-            mapOutcomeVariableSelector.value,
-            dataVersion,
-          ],
-        },
-      }),
-    );
+  const layers = [];
+
+  if (isGeographicChoroplethUnit(mapGeographicUnitSelector.value)) {
+    layers.push(getChoroplethLayer(regionData));
   } else if (
-    mapGeographicUnitSelector.value == "facility" &&
-    document.querySelector('input[name="facilityOptionGroup"]:checked')
-      ?.value != "individual-unit"
+    mapGeographicUnitSelector.value === "facility" &&
+    document.querySelector('input[name="facilityOptionGroup"]:checked')?.value !==
+      "individual-unit"
   ) {
-    layers.push(
-      new GeoJsonLayer({
-        id: "respiratory_choropleth",
-        depthTest: false,
-        pickable: true,
-        data: regionData,
-        stroked: true,
-        filled: true,
-        pointType: "circle+text",
-        pickable: true,
-        getFillColor: (d) => getColor(d),
-        // getFillColor: (d) => "red",
-        lineWidthMinPixels: 0.75,
-        getLineWidth: 20,
-        getLineColor: [64, 64, 64],
-        updateTriggers: {
-          data: [mapGeographicUnitSelector.value, dataVersion],
-          getFillColor: [
-            mapGeographicUnitSelector.value,
-            mapOutcomeVariableSelector.value,
-            dataVersion,
-          ],
-        },
-      }),
-    );
+    layers.push(getChoroplethLayer(regionData));
   } else {
     layers.push(
       new GeoJsonLayer({
@@ -227,7 +347,6 @@ async function redraw(
         getLineWidth: 10,
         getLineColor: [128, 128, 128],
       }),
-
       new GeoJsonLayer({
         id: "state_outline",
         pickable: false,
@@ -238,58 +357,8 @@ async function redraw(
         getLineWidth: 20,
         getLineColor: [64, 64, 64],
       }),
-
-      new GeoJsonLayer({
-        id: "respiratory_facility_background",
-        depthTest: false,
-        pickable: false,
-        data: regionData,
-        pointType: "icon",
-        iconAtlas: "/static/assets/Icons/health-facility-icon.png",
-        iconMapping: {
-          marker: { x: 0, y: 0, width: 1128, height: 992, mask: true },
-        },
-        getIconSize: 95,
-        getIcon: () => "marker",
-        getIconColor: () => [0, 0, 0, 255],
-        iconSizeMinPixels: 20,
-        updateTriggers: {
-          data: [mapGeographicUnitSelector.value, dataVersion],
-        },
-      }),
-
-      new GeoJsonLayer({
-        id: "respiratory_facility",
-        depthTest: false,
-        pickable: true,
-        data: regionData,
-        pointType: "icon",
-        // iconAtlas: icons.iconAtlas,
-        iconAtlas: "/static/assets/Icons/health-facility-icon.png",
-        // iconMapping: icons.iconMapping,
-        iconMapping: {
-          marker: { x: 0, y: 0, width: 1128, height: 992, mask: true },
-        },
-        getIconSize: 80,
-        getIcon: () => "marker",
-        // getIcon: (d) => d.properties.system,
-        getIconColor: (d) => getColor(d),
-        iconSizeMinPixels: 10,
-        updateTriggers: {
-          data: [mapGeographicUnitSelector.value, dataVersion],
-          getIconColor: [
-            mapGeographicUnitSelector.value,
-            mapOutcomeVariableSelector.value,
-            dataVersion,
-          ],
-        },
-        // onHover: (info) => {
-        //   selectedItems.feature = info.object
-        //   dataVersion++;
-        //   redraw();
-        // },
-      }),
-
+      getFacilityBackgroundLayer(regionData),
+      getFacilityLayer(regionData),
       new TextLayer({
         id: "text_labels",
         data: regionData.features,
@@ -298,7 +367,7 @@ async function redraw(
           return [coords[0], coords[1]];
         },
         getText: (d) => d.properties.display_name,
-        getPixelOffset: (d) => [0, 35],
+        getPixelOffset: () => [0, 35],
         maxWidth: 10,
         getAlignmentBaseline: "center",
         getTextAnchor: "middle",
@@ -308,10 +377,7 @@ async function redraw(
         backgroundBorderRadius: 10,
         backgroundPadding: [2, 2],
         getSize: (d) => getTextSize(d),
-        fontFamily: getComputedStyle(document.head)
-          .getPropertyValue("--sl-font-sans")
-          .replace(/\s/g, "")
-          .split(","),
+        fontFamily: getFontFamily(),
         collisionGroup: "text_labels",
         collisionTestProps: { sizeScale: 2.5 },
         updateTriggers: {
@@ -323,36 +389,11 @@ async function redraw(
   }
 
   if (selectedItems.icons.length) {
-    layers.push(
-      new IconLayer({
-        id: "hospital-and-cdap",
-        data: icons.data,
-        iconAtlas: icons.iconAtlas,
-        iconMapping: icons.iconMapping,
-        getPosition: (d) => {
-          return [+d.longitude, +d.latitude];
-        },
-        getIcon: (d) => {
-          if (selectedItems.icons.includes(d.type)) return d.type;
-        },
-        getSize: 15,
-        pickable: true,
-        parameters: {
-          depthTest: false,
-        },
-        updateTriggers: {
-          getIcon: [
-            hospitalIconsToggle.checked,
-            mobileClinicIconsToggle.checked,
-            communityPartnerIconsToggle.checked,
-          ],
-        },
-      }),
-    );
+    layers.push(getFacilityIconOverlayLayer());
   }
 
   if (mapOptionsGeographicLabelsToggle.checked) {
-    if (mapGeographicUnitSelector.value == "facility") {
+    if (mapGeographicUnitSelector.value === "facility") {
       layers.push(
         new TextLayer({
           id: "labels",
@@ -368,10 +409,7 @@ async function redraw(
           backgroundBorderRadius: 10,
           backgroundPadding: [2, 2],
           getSize: 12,
-          fontFamily: getComputedStyle(document.head)
-            .getPropertyValue("--sl-font-sans")
-            .replace(/\s/g, "")
-            .split(","),
+          fontFamily: getFontFamily(),
           collisionGroup: "labels",
           collisionTestProps: { sizeScale: 2.5 },
           updateTriggers: {
@@ -379,7 +417,7 @@ async function redraw(
           },
         }),
       );
-    } else if (mapGeographicUnitSelector.value != "state") {
+    } else if (mapGeographicUnitSelector.value !== "state") {
       layers.push(
         new TextLayer({
           id: "labels",
@@ -394,13 +432,10 @@ async function redraw(
           backgroundBorderRadius: 2,
           backgroundPadding: [4, 4],
           getSize:
-            mapGeographicUnitSelector.value == "zcta"
+            mapGeographicUnitSelector.value === "zcta"
               ? Math.min(Math.max(8, map.getZoom() * 1.5), 16)
               : 16,
-          fontFamily: getComputedStyle(document.head)
-            .getPropertyValue("--sl-font-sans")
-            .replace(/\s/g, "")
-            .split(","),
+          fontFamily: getFontFamily(),
           collisionGroup: "labels",
           collisionTestProps: { sizeScale: 2.5 },
           updateTriggers: {
@@ -411,47 +446,40 @@ async function redraw(
     }
   }
 
-  deckOverlay.setProps({
-    layers: layers,
-  });
+  deckOverlay.setProps({ layers });
 
-  d3.select("#map-loading-div").style("visibility", "hidden");
-  d3.selectAll("#map-loading-div circle").classed("animate", false);
+  setLoadingVisible(false);
 
   if (center) {
     map.flyTo({
-      center: [-81, 33.65],
-      zoom: 7,
-      essential: true, // this animation is considered essential with respect to prefers-reduced-motion
+      center: MAP_CENTER,
+      zoom: MAP_ZOOM,
+      essential: true,
     });
   }
 }
 
 function getTextSize(feature) {
+  const selectedId = selectedItems.feature?.properties?.id;
   if (
-    selectedItems.feature !== undefined &&
-    selectedItems.feature.properties.id.toUpperCase().replace("_", " ") ==
-      feature.properties.id
+    selectedId &&
+    selectedId.toUpperCase().replace("_", " ") === feature.properties.id
   ) {
     return 12;
-  } else {
-    return 0;
   }
+
+  return 0;
 }
 
 function getColor(feature) {
-  if (
-    !selectedItems.feature ||
-    selectedItems.feature.properties.id == feature.properties.id
-  ) {
-    var population = mapPopulationSelector.value;
-    var outcomeVariable = mapOutcomeVariableSelector.value;
-    var imputations = mapIncludeImputations.checked;
+  const selectedId = getSelectedFeatureId();
 
-    var c;
-    // console.log(feature);
+  if (!selectedId || selectedId === feature.properties.id) {
+    const population = mapPopulationSelector.value;
+    const outcomeVariable = mapOutcomeVariableSelector.value;
+    const imputations = mapIncludeImputations.checked;
 
-    let value = getFeatureValue(
+    const value = getFeatureValue(
       feature,
       population,
       outcomeVariable,
@@ -459,20 +487,17 @@ function getColor(feature) {
       imputations,
     );
 
-    if (mapTypeSwitch.value == "percentDifference") {
-      if (!isNaN(value[value.length - 1])) {
-        c = d3.rgb(choroplethColorMap(value[value.length - 1]));
-      } else {
-        c = d3.rgb("white");
-      }
-    } else {
-      c = d3.rgb(choroplethColorMap(value));
-    }
+    const color =
+      mapTypeSwitch.value === "percentDifference"
+        ? !isNaN(value.at(-1))
+          ? d3.rgb(choroplethColorMap(value.at(-1)))
+          : d3.rgb("white")
+        : d3.rgb(choroplethColorMap(value));
 
-    return [c.r, c.g, c.b];
-  } else {
-    return [82, 82, 91]; //sl-gray-600
+    return [color.r, color.g, color.b];
   }
+
+  return [82, 82, 91];
 }
 
 function updateChoropleth(
@@ -491,7 +516,7 @@ function updateChoropleth(
     return;
   }
 
-  let values = [];
+  const values = [];
 
   for (const feature of data.features) {
     const { data } = feature.properties;
@@ -509,6 +534,7 @@ function updateChoropleth(
         (value) => (value / feature.properties.population) * 1000,
       );
     }
+
     values.push(...historicalValues, ...projectedValues);
   }
 
@@ -544,30 +570,20 @@ function updateChoropleth(
 }
 
 function drawLegend() {
-  var legendMargins = {
-    top: 12,
-    bottom: 16,
-    left: 8,
-    right: 8,
-  };
-
-  // Add components for choropleth legend
   choroplethLegendSVG.innerHTML = "";
 
   d3.select(mapShapeLegend).attr(
     "display",
-    mapGeographicUnitSelector.value == "facility" ? "initial" : "none",
+    mapGeographicUnitSelector.value === "facility" ? "initial" : "none",
   );
 
-  if (mapTypeSwitch.value == "percentDifference") {
-    var colors = d3.reverse(d3.schemeRdBu[8]).slice(1);
-    var labels = [-100, -50, 0, 50, 100, 500];
-    var legendLength = 350;
-    var legend = d3.select(choroplethLegendSVG).attr("overflow", "visible");
+  if (mapTypeSwitch.value === "percentDifference") {
+    const colors = d3.reverse(d3.schemeRdBu[8]).slice(1);
+    const labels = [-100, -50, 0, 50, 100, 500];
+    const legendLength = 350;
+    const legend = d3.select(choroplethLegendSVG).attr("overflow", "visible");
 
-    legend //.attr("transform", `translate(0, 16)`)
-      .attr("width", legendLength)
-      .attr("height", 140);
+    legend.attr("width", legendLength).attr("height", 140);
 
     legend
       .append("text")
@@ -576,9 +592,10 @@ function drawLegend() {
       .attr("text-anchor", "middle")
       .style("font-size", "var(--sl-font-size-x-small)")
       .text(
-        `Percent Change of ${d3
-          .select(`sl-option[value="${mapDiseaseSelector.value}"]`)
-          .html()} from Last Week`,
+        `Percent Change of ${getSelectedOptionHtml(
+          mapDiseaseSelector,
+          mapDiseaseSelector.value,
+        )} from Last Week`,
       );
 
     legend
@@ -601,17 +618,17 @@ function drawLegend() {
       .data(labels)
       .enter()
       .append("text")
-      .attr("class", `map-legend`)
+      .attr("class", "map-legend")
       .attr("x", (d, i) => (legendLength * (i + 1)) / colors.length)
       .attr("y", 15 + em * 0.75)
       .attr("text-anchor", "middle")
       .html((d) => `${d}%`);
 
-    var otherColors = legend.append("g").attr("transform", "translate(0, 80)");
-    var others = [[unknownColor, "Unknown"]];
+    const otherColors = legend.append("g").attr("transform", "translate(0, 80)");
+    const others = [[unknownColor, "Unknown"]];
 
     others.forEach((d, i) => {
-      let group = otherColors
+      const group = otherColors
         .append("g")
         .attr("transform", `translate(0, ${-(i + 1) * 20})`);
 
@@ -633,225 +650,186 @@ function drawLegend() {
         .attr("dominant-baseline", "middle")
         .text(d[1]);
     });
-  } else {
-    var legendWidth = Math.max(mapDiv.clientWidth / 3, 340);
 
-    var colorLegend = d3
-      .select(choroplethLegendSVG)
-      .attr("transform", null)
-      .attr("width", legendWidth + legendMargins.left + legendMargins.right)
-      .attr("height", 3 * em + legendMargins.top + legendMargins.bottom);
-
-    // Discrete 5-bin legend for hospitalizations/inpatient/ed and positive-tests
-    if (mapOutcomeVariableSelector.value != "rate_of_transmission") {
-      var edges =
-        choroplethDiscreteEdges && choroplethDiscreteEdges.length === 6
-          ? choroplethDiscreteEdges
-          : (function () {
-              var dom = choroplethColorMap.domain
-                ? choroplethColorMap.domain()
-                : [0];
-
-              var maxValTmp =
-                Array.isArray(dom) && dom.length ? Math.max(0, d3.max(dom)) : 0;
-
-              var t = d3.ticks(0, Math.max(maxValTmp, 1), 5);
-
-              var s = t.length >= 2 ? t[1] - t[0] : 1;
-              const step = maxValTmp / 5;
-              return d3.range(6).map((i) => i * step);
-            })();
-
-      // console.log(edges);
-
-      var bins = choroplethColorMap
-        .range()
-        .map((color, i) => ({ color, x0: edges[i], x1: edges[i + 1] }));
-
-      var xDomain = [edges[0], edges[edges.length - 1]];
-
-      var xScale = d3.scaleLinear().domain(xDomain).range([0, legendWidth]);
-
-      var content = colorLegend
-        .append("g")
-        .attr("transform", "translate(0, 8)")
-        .attr("id", "map-color-legend-contents");
-
-      content
-        .selectAll("rect.bin")
-        .data(bins)
-        .enter()
-        .append("rect")
-        .attr("class", "bin")
-        .attr("x", (d) => legendMargins.left + xScale(d.x0))
-        .attr("y", legendMargins.top)
-        .attr("width", (d) => Math.max(1, xScale(d.x1) - xScale(d.x0)))
-        .attr("height", em)
-        .attr("fill", (d) => d.color);
-
-      // Axis with bin boundaries
-      var tickValues = edges;
-      var numberFormatter = d3.format(",.3~f");
-      var axisG = content
-        .append("g")
-        .attr("id", "map-color-legend-axis")
-        .attr(
-          "transform",
-          `translate(${legendMargins.left} ${em + legendMargins.top})`,
-        )
-        .call(
-          d3
-            .axisBottom(xScale)
-            .tickValues(tickValues)
-            .tickFormat(numberFormatter),
-        );
-
-      // Avoid label overflow: anchor first and last labels inside bounds
-      axisG
-        .selectAll("text")
-        .attr("text-anchor", (d, i) =>
-          i === 0 ? "start" : i === tickValues.length - 1 ? "end" : "middle",
-        );
-
-      let dataVarString = d3
-        .select(mapOutcomeVariableSelector)
-        .select(`*[value="${mapOutcomeVariableSelector.value}"]`)
-        .html();
-
-      content
-        .append("text")
-        .attr("id", `map-legend-title`)
-        .attr("class", `map-legend title`)
-        .attr("x", legendWidth / 2 + legendMargins.left)
-        .attr("y", 3 * em + legendMargins.top)
-        .text(
-          `Current Week's ${
-            dataVarString
-          } by ${metadata.region_sizes[mapGeographicUnitSelector.value]}`,
-        );
-    } else {
-      // Continuous gradient legend (default)
-
-      var colorLegendDefs = colorLegend.append("defs");
-      var linearGrdient = colorLegendDefs.append("linearGradient");
-
-      linearGrdient
-        .attr("id", "linear-gradient")
-        .attr("x1", "0%")
-        .attr("y1", "0%")
-        .attr("x2", "100%")
-        .attr("y2", "0%");
-
-      linearGrdient
-        .append("stop")
-        .attr("id", "linear-gradient-stop-0")
-        .attr("offset", "0%")
-        .attr("stop-color", "white");
-
-      if (mapOutcomeVariableSelector.value == "rate_of_transmission") {
-        linearGrdient
-          .append("stop")
-          .attr("id", "linear-gradient-stop-1")
-          .attr(
-            "offset",
-            `${(0.9 / choroplethColorMap.domain().at(-1)) * 100}%`,
-          )
-          .attr("stop-color", choroplethColorMap.range().at(1));
-      }
-
-      linearGrdient
-        .append("stop")
-        .attr("id", "linear-gradient-stop-1")
-        .attr("offset", "100%")
-        .attr("stop-color", choroplethColorMap.range().at(-1));
-
-      // add background
-      colorLegend
-        .append("rect")
-        .attr("class", "map-legend-background")
-        .attr("width", legendWidth + legendMargins.left + legendMargins.right)
-        .attr("height", 3 * em + legendMargins.top + legendMargins.bottom);
-
-      // display the choropleth range using gradient
-      var colorLegendContent = colorLegend
-        .append("g")
-        .attr("id", "map-color-legend-contents");
-
-      colorLegendContent
-        .append("rect")
-        .style("fill", "url(#linear-gradient)")
-        .attr("width", legendWidth)
-        .attr("height", em)
-        .attr("x", legendMargins.left)
-        .attr("y", legendMargins.top);
-
-      colorLegendContent
-        .append("g")
-        .attr("id", "map-color-legend-axis")
-        .attr(
-          "transform",
-          `translate(${legendMargins.left} ${em + legendMargins.top})`,
-        )
-        .call(
-          d3
-            .axisBottom(
-              d3
-                .scaleLinear(d3.extent(choroplethColorMap.domain()), [
-                  0,
-                  legendWidth,
-                ])
-                .nice(),
-            )
-            .ticks(6),
-        );
-
-      let dataVarString = d3
-        .select(mapOutcomeVariableSelector)
-        .select(`*[value="${mapOutcomeVariableSelector.value}"]`)
-        .html();
-
-      // console.log(dataVarString);
-
-      colorLegendContent
-        .append("text")
-        .attr("id", `map-legend-title`)
-        .attr("class", `map-legend title`)
-        .attr("x", legendWidth / 2 + legendMargins.left)
-        .attr("y", 3 * em + legendMargins.top)
-        .text(
-          `Current Week's ${
-            dataVarString
-          } by ${metadata.region_sizes[mapGeographicUnitSelector.value]}`,
-        );
-    }
+    return;
   }
+
+  const legendWidth = Math.max(mapDiv.clientWidth / 3, 340);
+  const colorLegend = d3
+    .select(choroplethLegendSVG)
+    .attr("transform", null)
+    .attr("width", legendWidth + LEGEND_MARGINS.left + LEGEND_MARGINS.right)
+    .attr("height", 3 * em + LEGEND_MARGINS.top + LEGEND_MARGINS.bottom);
+
+  if (mapOutcomeVariableSelector.value !== "rate_of_transmission") {
+    const edges =
+      choroplethDiscreteEdges && choroplethDiscreteEdges.length === 6
+        ? choroplethDiscreteEdges
+        : (() => {
+            const domain = choroplethColorMap.domain?.() ?? [0];
+            const maxVal = Array.isArray(domain) && domain.length ? Math.max(0, d3.max(domain)) : 0;
+            const step = maxVal / 5 || 1;
+            return d3.range(6).map((i) => i * step);
+          })();
+
+    const bins = choroplethColorMap
+      .range()
+      .map((color, i) => ({ color, x0: edges[i], x1: edges[i + 1] }));
+
+    const xScale = d3
+      .scaleLinear()
+      .domain([edges[0], edges.at(-1)])
+      .range([0, legendWidth]);
+
+    const content = colorLegend
+      .append("g")
+      .attr("transform", "translate(0, 8)")
+      .attr("id", "map-color-legend-contents");
+
+    content
+      .selectAll("rect.bin")
+      .data(bins)
+      .enter()
+      .append("rect")
+      .attr("class", "bin")
+      .attr("x", (d) => LEGEND_MARGINS.left + xScale(d.x0))
+      .attr("y", LEGEND_MARGINS.top)
+      .attr("width", (d) => Math.max(1, xScale(d.x1) - xScale(d.x0)))
+      .attr("height", em)
+      .attr("fill", (d) => d.color);
+
+    const tickValues = edges;
+    const numberFormatter = d3.format(",.3~f");
+
+    const axisG = content
+      .append("g")
+      .attr("id", "map-color-legend-axis")
+      .attr(
+        "transform",
+        `translate(${LEGEND_MARGINS.left} ${em + LEGEND_MARGINS.top})`,
+      )
+      .call(
+        d3
+          .axisBottom(xScale)
+          .tickValues(tickValues)
+          .tickFormat(numberFormatter),
+      );
+
+    axisG
+      .selectAll("text")
+      .attr("text-anchor", (d, i) =>
+        i === 0 ? "start" : i === tickValues.length - 1 ? "end" : "middle",
+      );
+
+    const dataVarString = getSelectedOptionHtml(
+      mapOutcomeVariableSelector,
+      mapOutcomeVariableSelector.value,
+    );
+
+    content
+      .append("text")
+      .attr("id", "map-legend-title")
+      .attr("class", "map-legend title")
+      .attr("x", legendWidth / 2 + LEGEND_MARGINS.left)
+      .attr("y", 3 * em + LEGEND_MARGINS.top)
+      .text(
+        `Current Week's ${dataVarString} by ${metadata.region_sizes[mapGeographicUnitSelector.value]}`,
+      );
+
+    return;
+  }
+
+  const defs = colorLegend.append("defs");
+  const linearGradient = defs.append("linearGradient");
+
+  linearGradient
+    .attr("id", "linear-gradient")
+    .attr("x1", "0%")
+    .attr("y1", "0%")
+    .attr("x2", "100%")
+    .attr("y2", "0%");
+
+  linearGradient
+    .append("stop")
+    .attr("id", "linear-gradient-stop-0")
+    .attr("offset", "0%")
+    .attr("stop-color", "white");
+
+  if (mapOutcomeVariableSelector.value === "rate_of_transmission") {
+    linearGradient
+      .append("stop")
+      .attr("id", "linear-gradient-stop-1")
+      .attr("offset", `${(0.9 / choroplethColorMap.domain().at(-1)) * 100}%`)
+      .attr("stop-color", choroplethColorMap.range().at(1));
+  }
+
+  linearGradient
+    .append("stop")
+    .attr("id", "linear-gradient-stop-1")
+    .attr("offset", "100%")
+    .attr("stop-color", choroplethColorMap.range().at(-1));
+
+  colorLegend
+    .append("rect")
+    .attr("class", "map-legend-background")
+    .attr("width", legendWidth + LEGEND_MARGINS.left + LEGEND_MARGINS.right)
+    .attr("height", 3 * em + LEGEND_MARGINS.top + LEGEND_MARGINS.bottom);
+
+  const colorLegendContent = colorLegend.append("g").attr("id", "map-color-legend-contents");
+
+  colorLegendContent
+    .append("rect")
+    .style("fill", "url(#linear-gradient)")
+    .attr("width", legendWidth)
+    .attr("height", em)
+    .attr("x", LEGEND_MARGINS.left)
+    .attr("y", LEGEND_MARGINS.top);
+
+  colorLegendContent
+    .append("g")
+    .attr("id", "map-color-legend-axis")
+    .attr(
+      "transform",
+      `translate(${LEGEND_MARGINS.left} ${em + LEGEND_MARGINS.top})`,
+    )
+    .call(
+      d3
+        .axisBottom(
+          d3
+            .scaleLinear(d3.extent(choroplethColorMap.domain()), [0, legendWidth])
+            .nice(),
+        )
+        .ticks(6),
+    );
+
+  const dataVarString = getSelectedOptionHtml(
+    mapOutcomeVariableSelector,
+    mapOutcomeVariableSelector.value,
+  );
+
+  colorLegendContent
+    .append("text")
+    .attr("id", "map-legend-title")
+    .attr("class", "map-legend title")
+    .attr("x", legendWidth / 2 + LEGEND_MARGINS.left)
+    .attr("y", 3 * em + LEGEND_MARGINS.top)
+    .text(
+      `Current Week's ${dataVarString} by ${metadata.region_sizes[mapGeographicUnitSelector.value]}`,
+    );
 }
 
 function updateMapTitle() {
-  var titleStart = `${d3
-    .select(mapTypeSwitch)
-    .select(`*[value="${mapTypeSwitch.value}"]`)
-    .html()} `;
-  titleStart += `of ${d3
-    .select(mapDiseaseSelector)
-    .select(`*[value="${mapDiseaseSelector.value}"]`)
-    .html()} `;
-  titleStart += `${d3
-    .select(mapOutcomeVariableSelector)
-    .select(`*[value="${mapOutcomeVariableSelector.value}"]`)
-    .html()} `;
+  const titleStart = `${getSelectedOptionHtml(mapTypeSwitch, mapTypeSwitch.value)} of ${getSelectedOptionHtml(
+    mapDiseaseSelector,
+    mapDiseaseSelector.value,
+  )} ${getSelectedOptionHtml(mapOutcomeVariableSelector, mapOutcomeVariableSelector.value)} `;
 
-  var titleEnd = "in South Carolina ";
-  if (mapGeographicUnitSelector.value != "state") {
-    titleEnd += "by ";
-    titleEnd += d3
-      .select(mapGeographicUnitSelector)
-      .select(`*[value="${mapGeographicUnitSelector.value}"]`)
-      .html();
+  let titleEnd = "in South Carolina ";
+  if (mapGeographicUnitSelector.value !== "state") {
+    titleEnd += `by ${getSelectedOptionHtml(mapGeographicUnitSelector, mapGeographicUnitSelector.value)}`;
   }
 
-  var newTitle;
-
+  let newTitle;
   switch (mapTypeSwitch.value) {
     case "count":
       newTitle = titleStart + titleEnd;
@@ -871,11 +849,12 @@ function updateMapTitle() {
 }
 
 function updateMapTooltip(featureProperties) {
-  var ttpDiv = d3.select("#map-tooltip-div");
-  var width = mapDiv.clientWidth;
-  var mapTooltipWidth = Math.max(500, width * 0.3);
-  var mapTooltipHeight = mapTooltipWidth * 0.65;
-  var ttpSVG = ttpDiv
+  const ttpDiv = d3.select("#map-tooltip-div");
+  const width = mapDiv.clientWidth;
+  const mapTooltipWidth = Math.max(500, width * 0.3);
+  const mapTooltipHeight = mapTooltipWidth * 0.65;
+
+  const ttpSVG = ttpDiv
     .select(".tooltip-outer-svg")
     .attr("width", mapTooltipWidth)
     .attr("height", mapTooltipHeight);
@@ -894,34 +873,35 @@ function updateMapTooltip(featureProperties) {
 }
 
 function updateMapWarnings() {
-  // check for alert status
-  let noForecast = 1;
-  let noForecastThisWeek = 1;
-  let someForecastThisWeek;
-  let allForecast = 1;
+  let noForecast = true;
+  let noForecastThisWeek = true;
+  let someForecastThisWeek = false;
+  let allForecast = true;
 
-  for (let feature of regionData.features) {
-    let thisData =
+  for (const feature of regionData.features) {
+    const thisData =
       feature.properties.data[mapPopulationSelector.value][
         mapOutcomeVariableSelector.value
       ];
 
-    let hasProjection = thisData.projected.values.length;
+    const hasProjection = thisData.projected.values.length;
 
-    // essentially trying to "prove wrong" each option
     if (noForecast) {
-      let hasHistorical = thisData.historical.values.length;
-      noForecast &&= !(hasHistorical | hasProjection);
+      const hasHistorical = thisData.historical.values.length;
+      noForecast = !(hasHistorical || hasProjection);
     }
-    if (noForecastThisWeek | allForecast) {
-      let startECurr = dayjs(thisData.projected.start_date).isSame(currentDate);
+
+    if (noForecastThisWeek || allForecast) {
+      const startECurr = dayjs(thisData.projected.start_date).isSame(currentDate);
+
       if (hasProjection) {
-        noForecastThisWeek &&= !startECurr;
-        allForecast &&= startECurr;
+        noForecastThisWeek = noForecastThisWeek && !startECurr;
+        allForecast = allForecast && startECurr;
       }
     }
   }
-  someForecastThisWeek = !(noForecastThisWeek | allForecast);
+
+  someForecastThisWeek = !(noForecastThisWeek || allForecast);
 
   mapNoForecastAlert.hide();
   mapNoForecastThisWeekAlert.hide();
@@ -930,28 +910,26 @@ function updateMapWarnings() {
 
   if (noForecast) {
     mapNoForecastAlert.show();
-  } else {
-    if (noForecastThisWeek) {
-      mapNoForecastThisWeekAlert.show();
-    }
-    if (someForecastThisWeek) {
-      mapMixedForecastThisWeekAlert.show();
-      mapDisclaimer.innerHTML =
-        "Partial forecast submissions available for this week";
-    }
+    return;
   }
 
-  // no forecast: all historical & projection lengths = 0
-  // no forecast this week: all start_date != current_week where projection has length
-  // some forecast this week: some start_date != current_week
-  // all forecast updated: all start_date = current_week (and some projections have length)
+  if (noForecastThisWeek) {
+    mapNoForecastThisWeekAlert.show();
+  }
+
+  if (someForecastThisWeek) {
+    mapMixedForecastThisWeekAlert.show();
+    mapDisclaimer.innerHTML = "Partial forecast submissions available for this week";
+  }
 }
 
 async function updateMapGeographicUnitOptions() {
   d3.selectAll(".map-geographic-unit-option").remove();
-  var availableGeographicUnits = Object.keys(
+
+  const availableGeographicUnits = Object.keys(
     metadata.available_models[mapDiseaseSelector.value],
   );
+
   d3.select(mapGeographicUnitSelector)
     .selectAll(".map-geographic-unit-option")
     .data(availableGeographicUnits)
@@ -961,34 +939,30 @@ async function updateMapGeographicUnitOptions() {
     .attr("value", (d) => d)
     .html((d) => metadata.region_sizes[d]);
 
-  if (availableGeographicUnits.includes(mapGeographicUnit)) {
-    // do nothing
-  } else {
+  if (!availableGeographicUnits.includes(mapGeographicUnit)) {
     mapGeographicUnit = availableGeographicUnits[0];
     mapGeographicUnitSelector.value = mapGeographicUnit;
   }
 
-  updateMapPopulationOptions();
+  await updateMapPopulationOptions();
 }
 
 async function updateMapPopulationOptions() {
   d3.selectAll(".map-population-tooltip").remove();
-  var availablePopulations;
-  if (
-    metadata.available_models[mapDiseaseSelector.value][
-      mapGeographicUnitSelector.value
-    ]
-  ) {
-    availablePopulations = Object.keys(
-      metadata.available_models[mapDiseaseSelector.value][
-        mapGeographicUnitSelector.value
-      ],
-    );
+
+  let availablePopulations;
+  const availableForUnit =
+    metadata.available_models[mapDiseaseSelector.value][mapGeographicUnitSelector.value];
+
+  if (availableForUnit) {
+    availablePopulations = Object.keys(availableForUnit);
   } else {
-    availablePopulations = Object.keys(
-      Object.entries(metadata.available_models[mapDiseaseSelector.value])[0],
-    );
+    const firstGeographicUnit = Object.entries(
+      metadata.available_models[mapDiseaseSelector.value],
+    )[0];
+    availablePopulations = firstGeographicUnit ? Object.keys(firstGeographicUnit[1]) : [];
   }
+
   d3.select(mapPopulationSelector)
     .selectAll(".map-population-tooltip")
     .data(availablePopulations)
@@ -996,30 +970,28 @@ async function updateMapPopulationOptions() {
     .append("sl-tooltip")
     .attr("class", "map-population-tooltip")
     .attr("content", (d) => metadata.populations_tooltips[d])
-    .attr("triger", "hover")
+    .attr("trigger", "hover")
     .attr("hoist", "")
     .append("sl-option")
     .attr("class", "map-population-option")
     .attr("value", (d) => d)
     .html((d) => metadata.populations[d]);
 
-  if (availablePopulations.includes(mapPopulation)) {
-    // do nothing
-  } else {
+  if (!availablePopulations.includes(mapPopulation)) {
     mapPopulation = availablePopulations[0];
     mapPopulationSelector.value = mapPopulation;
   }
 
-  updateMapOutcomeVariableOptions();
+  await updateMapOutcomeVariableOptions();
 }
 
 async function updateMapOutcomeVariableOptions() {
   d3.selectAll(".map-outcome-tooltip").remove();
 
-  var availableOutcomeVariables =
-    metadata.available_models[mapDiseaseSelector.value][
-      mapGeographicUnitSelector.value
-    ][mapPopulationSelector.value];
+  const availableOutcomeVariables =
+    metadata.available_models[mapDiseaseSelector.value][mapGeographicUnitSelector.value][
+      mapPopulationSelector.value
+    ] ?? [];
 
   d3.select(mapOutcomeVariableSelector)
     .selectAll(".map-outcome-tooltip")
@@ -1028,16 +1000,14 @@ async function updateMapOutcomeVariableOptions() {
     .append("sl-tooltip")
     .attr("class", "map-outcome-tooltip")
     .attr("content", (d) => metadata.outcome_variables_tooltips[d])
-    .attr("triger", "hover")
+    .attr("trigger", "hover")
     .attr("hoist", "")
     .append("sl-option")
     .attr("class", "map-outcome-option")
     .attr("value", (d) => d)
     .html((d) => metadata.outcome_variables[d]);
 
-  if (availableOutcomeVariables.includes(mapOutcomeVariable)) {
-    // do nothing
-  } else {
+  if (!availableOutcomeVariables.includes(mapOutcomeVariable)) {
     mapOutcomeVariable = availableOutcomeVariables[0];
     mapOutcomeVariableSelector.value = mapOutcomeVariable;
   }

@@ -24,23 +24,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 function _controlReset(popEl, geoEl, outEl, disEl) {
-  disEl.querySelectorAll("sl-option").forEach((opt) => {
-    if (opt.value == "respiratory_diseases") {
-      opt.style.display = "none";
-    } else {
-      opt.style.display = "";
-    }
-  });
+  // disEl.querySelectorAll("sl-option").forEach((opt) => {
+  //   if (opt.value == "respiratory_diseases") {
+  //     opt.style.display = "none";
+  //   } else {
+  //     opt.style.display = "";
+  //   }
+  // });
 
-  popEl.querySelectorAll("sl-option").forEach((opt) => {
-    opt.style.display = "";
-    // console.log(opt.value);
-    if (opt.value == "heath_system") {
-      opt.style.display = "none";
-    } else {
-      opt.style.display = "";
-    }
-  });
+  // popEl.querySelectorAll("sl-option").forEach((opt) => {
+  //   opt.style.display = "";
+  //   // console.log(opt.value);
+  //   if (opt.value == "heath_system") {
+  //     opt.style.display = "none";
+  //   } else {
+  //     opt.style.display = "";
+  //   }
+  // });
   geoEl.querySelectorAll("sl-option").forEach((opt) => {
     opt.style.display = "";
   });
@@ -52,11 +52,11 @@ function _controlReset(popEl, geoEl, outEl, disEl) {
 function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
   _controlReset(popEl, geoEl, outEl, disEl);
 
-  if (geoEl.value == "facility") {
-    document.getElementById("facility-option-container").style.display = "";
-  } else {
-    document.getElementById("facility-option-container").style.display = "none";
-  }
+  // if (geoEl.value == "facility") {
+  //   document.getElementById("facility-option-container").style.display = "";
+  // } else {
+  //   document.getElementById("facility-option-container").style.display = "none";
+  // }
 
   if (disEl.value == "respiratory_diseases") {
     if (geoEl.value != "facility") {
