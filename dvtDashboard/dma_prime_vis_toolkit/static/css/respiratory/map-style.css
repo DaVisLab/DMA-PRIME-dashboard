@@ -1,59 +1,60 @@
 #map-content {
-    /* needed for choropleth legend to be in the correct spot I think */
-    position: relative;
+  /* needed for choropleth legend to be in the correct spot I think */
+  position: relative;
 }
 
 /* map items */
 #map-title-container {
-    position: absolute;
-    top: var(--sl-spacing-x-large);
+  position: absolute;
+  top: var(--sl-spacing-x-large);
 }
 
-#map-title, #map-disclaimer{
-    text-align: center;
-    color: black;
+#map-title,
+#map-disclaimer {
+  text-align: center;
+  color: black;
 }
 
 .map-toggle::part(control--checked) {
-    /* Hospital icons toggle color is grey */
-    border-color: var(--sl-color-neutral-400);
-    background-color: var(--sl-color-neutral-400);
+  /* Hospital icons toggle color is grey */
+  border-color: var(--sl-color-neutral-400);
+  background-color: var(--sl-color-neutral-400);
 }
 
 path.map-county {
-    /* SC counties */
-    stroke-width: 1;
-    stroke: black;
-    fill: var(--sl-color-gray-300);
+  /* SC counties */
+  stroke-width: 1;
+  stroke: black;
+  fill: var(--sl-color-gray-300);
 }
 
 path.map-zcta {
-    /* ZCTA map items */
-    stroke-width: 0.2;
-    stroke: black;
-    stroke-linejoin: round;
+  /* ZCTA map items */
+  stroke-width: 0.2;
+  stroke: black;
+  stroke-linejoin: round;
 }
 
 #map-alert-container {
-    position: relative;
-    top: -65%;
-    width: max-content;
-    margin-left: auto;
-    margin-right: auto;
+  position: relative;
+  top: -65%;
+  width: max-content;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .map-alert {
-    position: fixed;
-    top: 0;
+  position: fixed;
+  top: 0;
 }
 
 /* legend components */
 #map-legend {
-    position: absolute;
-    bottom: var(--sl-spacing-small);
-    left: var(--sl-spacing-x-large);
-    display: flex;
-    flex-direction: column;
+  position: absolute;
+  bottom: var(--sl-spacing-small);
+  left: var(--sl-spacing-x-large);
+  display: flex;
+  flex-direction: column;
 }
 
 #choropleth-legend-svg {
@@ -61,127 +62,132 @@ path.map-zcta {
 }
 
 .map-legend-background {
-    /* legend backgrounds */
-    fill: var(--sl-color-neutral-50);
-    fill-opacity: .5;
+  /* legend backgrounds */
+  fill: var(--sl-color-neutral-50);
+  fill-opacity: 0.5;
 }
 
 #map-legend g path,
 #map-legend g line {
-    /* legend "axis" */
-    stroke: black;
+  /* legend "axis" */
+  stroke: black;
 }
 
 #map-legend g text {
-    /* legend "axis" */
-    fill: black;
+  /* legend "axis" */
+  fill: black;
 }
 
 #map-legend-title {
-    /* titles for the legends */
-    font-size: var(--sl-font-size-small);
-    text-anchor: middle;
-    fill: black;
+  /* titles for the legends */
+  font-size: var(--sl-font-size-small);
+  text-anchor: middle;
+  fill: black;
 }
 
 .legend-other-colors {
-    font-size: var(--sl-font-size-x-small)
+  font-size: var(--sl-font-size-x-small);
 }
 
 /* tooltip */
 #map-tooltip-div {
-    /* map tooltip's containing div */
-    display: none;
-    border-width: var(--sl-border-radius-small);
-    border-style: solid;
-    border-radius: .25em;
+  /* map tooltip's containing div */
+  display: none;
+  border-width: var(--sl-border-radius-small);
+  border-style: solid;
+  border-radius: 0.25em;
 }
+
 .mapboxgl-popup-content,
 .maplibregl-popup-content {
   padding: 1.5rem !important;
-  /* background-color: red !important; */
 }
-
 
 /* Loading animation */
 :root {
-    --loading-dot-size: var(--sl-spacing-x-small);
-    --loading-dot-gap: var(--sl-spacing-large);
-  }
-  #map-loading-div {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    flex-direction: column;
-    justify-items: center;
-    align-items: center;
-    pointer-events: none;
-  }
+  --loading-dot-size: var(--sl-spacing-x-small);
+  --loading-dot-gap: var(--sl-spacing-large);
+}
+#map-loading-div {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  justify-items: center;
+  align-items: center;
+  pointer-events: none;
+}
 
-  #loading-text {
-    font-family: var(--sl-font-sans);
-    font-size: var(--sl-font-size-2x-large);
-    font-weight: var(--sl-font-weight-semibold);
-    text-align: center;
-    margin-bottom: var(--sl-spacing-small);
-  }
+#loading-text {
+  font-family: var(--sl-font-sans);
+  font-size: var(--sl-font-size-2x-large);
+  font-weight: var(--sl-font-weight-semibold);
+  text-align: center;
+  margin-bottom: var(--sl-spacing-small);
+}
 
-  #loading-dots-svg {
-    margin-left: auto;
-    margin-right: auto;
-    height: calc(var(--loading-dot-size) * 2 + 2px);
-    width: calc(var(--loading-dot-size) * 6 + var(--loading-dot-gap) * 2 + 2px);
-  }
+#loading-dots-svg {
+  margin-left: auto;
+  margin-right: auto;
+  height: calc(var(--loading-dot-size) * 2 + 2px);
+  width: calc(var(--loading-dot-size) * 6 + var(--loading-dot-gap) * 2 + 2px);
+}
 
-  .loading-dot {
-    cx: var(--loading-dot-size);
-    cy: var(--loading-dot-size);
-    r: var(--loading-dot-size);
-    stroke: grey;
-    stroke-width: 1px;
+.loading-dot {
+  cx: var(--loading-dot-size);
+  cy: var(--loading-dot-size);
+  r: var(--loading-dot-size);
+  stroke: grey;
+  stroke-width: 1px;
+  fill: white;
+}
+
+.animate {
+  animation: 1s steps(4, end) infinite;
+}
+
+.loading-dot:nth-child(1) {
+  /* transform: translate(var(--loading-dot-size), 1px); */
+  animation-name: fill-dot-1;
+}
+.loading-dot:nth-child(2) {
+  transform: translate(
+    calc(var(--loading-dot-size) * 2 + var(--loading-dot-gap)),
+    1px
+  );
+  animation-name: fill-dot-2;
+}
+.loading-dot:nth-child(3) {
+  transform: translate(
+    calc(var(--loading-dot-size) * 4 + var(--loading-dot-gap) * 2),
+    1px
+  );
+  animation-name: fill-dot-3;
+}
+
+@keyframes fill-dot-1 {
+  0% {
     fill: white;
   }
-
-  .animate {
-    animation: 1s steps(4, end) infinite
+  25% {
+    fill: black;
   }
-
-  .loading-dot:nth-child(1) { 
-    /* transform: translate(var(--loading-dot-size), 1px); */
-    animation-name: fill-dot-1;
+}
+@keyframes fill-dot-2 {
+  0% {
+    fill: white;
   }
-  .loading-dot:nth-child(2) { 
-    transform: translate(calc(var(--loading-dot-size) * 2 + var(--loading-dot-gap)), 1px);
-    animation-name: fill-dot-2;
+  50% {
+    fill: black;
   }
-  .loading-dot:nth-child(3) { 
-    transform: translate(calc(var(--loading-dot-size) * 4 + var(--loading-dot-gap) * 2), 1px);
-    animation-name: fill-dot-3;
- }
-
-  @keyframes fill-dot-1 {
-    0% {
-      fill: white
-    }
-    25% {
-      fill: black
-    }
+}
+@keyframes fill-dot-3 {
+  0% {
+    fill: white;
   }
-  @keyframes fill-dot-2 {
-    0% {
-      fill: white
-    }
-    50% {
-      fill: black
-    }
+  75% {
+    fill: black;
   }
-  @keyframes fill-dot-3 {
-    0% {
-      fill: white
-    }
-    75% {
-      fill: black
-    }
-  }
+}

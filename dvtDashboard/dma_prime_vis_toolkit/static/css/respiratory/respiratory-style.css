@@ -75,13 +75,13 @@ div.tooltip-div p {
   stroke: black;
 }
 
-.tooltip-legend {
-  display: flex;
-  justify-content: space-evenly;
-  min-width: 50%;
-  /* max-width: 80%; */
+.tooltip-footer {
   width: 100%;
-  /* max-width: min-content; */
+}
+
+.tooltip-legend {
+  min-width: 50%;
+  width: 100%;
   flex-wrap: wrap;
 }
 

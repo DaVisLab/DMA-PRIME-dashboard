@@ -10,13 +10,13 @@ if len(sys.argv) != 4:
 
     sys.exit(1)
 
-with open(sys.argv[1], 'rb') as f:
+with open(sys.argv[1], "rb") as f:
     key = f.read()
 
 p = Path(sys.argv[2])
 
-for file in list(p.glob('**/*.*')):
-    with open(file, 'rb') as f:
+for file in list(p.glob("**/*.*")):
+    with open(file, "rb") as f:
         input = f.read()
 
     header = file.suffix.encode("utf-8")
@@ -27,12 +27,14 @@ for file in list(p.glob('**/*.*')):
     cipher.update(header)
     ciphertext, tag = cipher.encrypt_and_digest(input)
 
-    output_keys = [ 'nonce', 'header', 'ciphertext', 'tag' ]
-    output_values = [ b64encode(x).decode('utf-8') for x in (cipher.nonce, header, ciphertext, tag) ]
+    output_keys = ["nonce", "header", "ciphertext", "tag"]
+    output_values = [
+        b64encode(x).decode("utf-8") for x in (cipher.nonce, header, ciphertext, tag)
+    ]
 
     out_file = Path(sys.argv[3]) / file.relative_to(p)
     out_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(out_file, 'w+') as f:
+    with open(out_file, "w+") as f:
         json.dump(dict(zip(output_keys, output_values)), f)
 
 # with open(sys.argv[2], 'rb') as f:

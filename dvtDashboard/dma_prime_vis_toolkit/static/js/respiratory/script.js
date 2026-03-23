@@ -831,41 +831,41 @@ function drawTooltip(
       "projected",
     );
 
-    var percentile25_percentDiff =
-      getUncertaintyValues_percentDiff_ForPanelType(
-        featureData,
-        population,
-        outcomeVariable,
-        "percentile25",
-        "percentDifference",
-      );
+    // var percentile25_percentDiff =
+    //   getUncertaintyValues_percentDiff_ForPanelType(
+    //     featureData,
+    //     population,
+    //     outcomeVariable,
+    //     "percentile25",
+    //     "percentDifference",
+    //   );
 
-    var percentile75_percentDiff =
-      getUncertaintyValues_percentDiff_ForPanelType(
-        featureData,
-        population,
-        outcomeVariable,
-        "percentile75",
-        "percentDifference",
-      );
+    // var percentile75_percentDiff =
+    //   getUncertaintyValues_percentDiff_ForPanelType(
+    //     featureData,
+    //     population,
+    //     outcomeVariable,
+    //     "percentile75",
+    //     "percentDifference",
+    //   );
 
-    var percentile2_5_percentDiff =
-      getUncertaintyValues_percentDiff_ForPanelType(
-        featureData,
-        population,
-        outcomeVariable,
-        "percentile2_5",
-        "percentDifference",
-      );
+    // var percentile2_5_percentDiff =
+    //   getUncertaintyValues_percentDiff_ForPanelType(
+    //     featureData,
+    //     population,
+    //     outcomeVariable,
+    //     "percentile2_5",
+    //     "percentDifference",
+    //   );
 
-    var percentile97_5_percentDiff =
-      getUncertaintyValues_percentDiff_ForPanelType(
-        featureData,
-        population,
-        outcomeVariable,
-        "percentile97_5",
-        "percentDifference",
-      );
+    // var percentile97_5_percentDiff =
+    //   getUncertaintyValues_percentDiff_ForPanelType(
+    //     featureData,
+    //     population,
+    //     outcomeVariable,
+    //     "percentile97_5",
+    //     "percentDifference",
+    //   );
 
     let pdMax = d3.max([
       ...percentDifferenceHistoricalValues,
@@ -1144,8 +1144,8 @@ function drawTooltip(
       data.projected.uncertainty_range.percentile25 != undefined &&
       data.projected.uncertainty_range.percentile25.length > 0
     ) {
-      console.log(percentDifferenceProjectedValues);
-      console.log(percentile25_percentDiff);
+      // console.log(percentDifferenceProjectedValues);
+      // console.log(percentile25_percentDiff);
       areaPathForPrediction.remove();
 
       predictiveGroup
@@ -1186,11 +1186,34 @@ function drawTooltip(
 
       const firstProjectedValue = data.projected.values[0];
 
+      console.log(featureData);
+      console.log(data.projected.uncertainty_range.percentile75);
       // console.log(data.projected.uncertainty_range.percentile25);
-      const uncertainty25 = data.projected.uncertainty_range.percentile25;
-      const uncertainty75 = data.projected.uncertainty_range.percentile75;
-      const uncertainty2_5 = data.projected.uncertainty_range.percentile2_5;
-      const uncertainty97_5 = data.projected.uncertainty_range.percentile97_5;
+      const uncertainty25 =
+        panelType != "rate"
+          ? data.projected.uncertainty_range.percentile25
+          : data.projected.uncertainty_range.percentile25.map(
+              (value) => value / featureData.population * 1000,
+            );
+
+      const uncertainty75 =
+        panelType != "rate"
+          ? data.projected.uncertainty_range.percentile75
+          : data.projected.uncertainty_range.percentile75.map(
+              (value) => value / featureData.population * 1000,
+            );
+      const uncertainty2_5 =
+        panelType != "rate"
+          ? data.projected.uncertainty_range.percentile2_5
+          : data.projected.uncertainty_range.percentile2_5.map(
+              (value) => value / featureData.population * 1000,
+            );
+      const uncertainty97_5 =
+        panelType != "rate"
+          ? data.projected.uncertainty_range.percentile97_5
+          : data.projected.uncertainty_range.percentile97_5.map(
+              (value) => value / featureData.population * 1000,
+            );
 
       uncertainty25.unshift(firstProjectedValue);
       uncertainty75.unshift(firstProjectedValue);
