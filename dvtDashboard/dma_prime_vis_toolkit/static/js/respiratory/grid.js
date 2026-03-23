@@ -312,13 +312,28 @@ async function updateGrid(fetchData = true) {
 
   if (gridTypeSwitch.value == "percentDifference") {
     gridColor = d3
-      .scaleThreshold()
+      .scaleLinear()
       .domain([-100, -50, 0, 50, 100, 500])
-      .range(d3.reverse(d3.schemeRdBu[8]).slice(1))
+      .range([
+        d3.interpolateRdBu(1 - 0),
+        d3.interpolateRdBu(1 - 0.25),
+        d3.interpolateRdBu(1 - 0.5),
+        d3.interpolateRdBu(1 - 0.7),
+        d3.interpolateRdBu(1 - 0.82),
+        d3.interpolateRdBu(1 - 1),
+      ])
+      .clamp(true)
       .unknown(unknownColor);
+
+    // d3
+    //   .scaleThreshold()
+    //   .domain([-100, -50, 0, 50, 100, 500])
+    //   .range(d3.reverse(d3.schemeRdBu[8]).slice(1))
+    //   .unknown(unknownColor);
   } else {
     gridColor = d3
-      .scaleQuantile()
+      // .scaleQuantile()
+      .scaleLinear()
       .domain(
         d3.extent(
           getAllFeaturesValue(
@@ -330,7 +345,6 @@ async function updateGrid(fetchData = true) {
           ),
         ),
       )
-      .unknown(unknownColor)
       .range(
         d3.quantize(
           d3.interpolateRgb(
@@ -339,7 +353,10 @@ async function updateGrid(fetchData = true) {
           ),
           5,
         ),
-      );
+      )
+      .interpolate(() => (t) => d3.interpolateRdBu(1 - t)) // reversed
+      .unknown(unknownColor)
+      .nice();
   }
 
   var xScale = d3
@@ -389,7 +406,8 @@ async function updateGrid(fetchData = true) {
       // .transition()
       // .duration(1000)
       .attr("width", gridItemWidth)
-      .attr("height", gridItemHeight);
+      .attr("height", gridItemHeight)
+      .style("opacity", 0.8);
 
     if (gridTypeSwitch.value == "percentDifference") {
       let c;

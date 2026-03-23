@@ -41,6 +41,7 @@ function _controlReset(popEl, geoEl, outEl, disEl) {
       opt.style.display = "";
     }
   });
+
   geoEl.querySelectorAll("sl-option").forEach((opt) => {
     opt.style.display = "";
   });

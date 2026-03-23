@@ -4,6 +4,11 @@ from base64 import b64decode
 from io import StringIO
 import json
 
+from pathlib import Path
+
+# from datetime
+import datetime
+
 from flask import current_app, Response
 from flask_login import current_user
 
@@ -68,3 +73,20 @@ def get_data_version_from_request(request, current_user, error="silent"):
         data_version = "current"
 
     return data_version
+
+
+def get_later_date(date1, date2):
+    d1 = datetime.datetime.strptime(date1.strip(), "%Y-%m-%d")
+    d2 = datetime.datetime.strptime(date2.strip(), "%Y-%m-%d")
+
+    return date1.strip() if d1 > d2 else date2.strip()
+
+
+def replace_date_in_file(file_path, old_value, new_value):
+    with open(file_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    content = content.replace(old_value, new_value)
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(content)

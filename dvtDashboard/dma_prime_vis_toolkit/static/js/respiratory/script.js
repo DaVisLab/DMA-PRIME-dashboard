@@ -94,43 +94,44 @@ function getAllValuesFromFeature(
   panelType,
   timeFrame,
 ) {
-  let thisData = featureProperties.data[population][outcomeVariable][timeFrame];
-  let newData = [];
+  const thisData =
+    featureProperties.data[population][outcomeVariable][timeFrame];
+  const newData = [];
+
   for (let i = 0; i < thisData.values.length; i++) {
-    var value = NaN;
+    let value = NaN;
+
     try {
-      if (panelType == "percentDifference") {
-        var thisWeekDatum = parseFloat(thisData.values[i]);
-        var lastWeekDatum = parseFloat(thisData.values[i - 1]);
-        if (isNaN(thisWeekDatum) || lastWeekDatum) {
+      if (panelType === "percentDifference") {
+        const thisWeekDatum = parseFloat(thisData.values[i]);
+        const lastWeekDatum = parseFloat(thisData.values[i - 1]);
+
+        if (!isNaN(thisWeekDatum) && !isNaN(lastWeekDatum)) {
           value =
             ((thisWeekDatum - lastWeekDatum) / Math.abs(lastWeekDatum)) * 100;
         }
+      } else if (panelType === "rate") {
+        value = (thisData.values[i] / featureProperties.population) * 1000;
       } else {
-        if (panelType == "rate") {
-          value = (thisData.values[i] / feature.properties.population) * 1000;
-        } else {
-          value = thisData.values[i];
-        }
+        value = thisData.values[i];
       }
-    } catch {
-      pass;
-    }
+    } catch (e) {}
+
     newData.push(value);
   }
 
   if (
-    timeFrame == "projected" &&
-    panelType == "percentDifference" &&
+    timeFrame === "projected" &&
+    panelType === "percentDifference" &&
     newData.length > 0
   ) {
-    // first projected
-    let lastWeekDatum =
+    const lastWeekDatum =
       featureProperties.data[population][outcomeVariable][
         "historical"
       ].values.at(-1);
-    let thisWeekDatum = thisData.values[0];
-    if (isNaN(thisWeekDatum) || lastWeekDatum) {
+    const thisWeekDatum = thisData.values[0];
+
+    if (!isNaN(thisWeekDatum) && !isNaN(lastWeekDatum)) {
       newData[0] =
         ((thisWeekDatum - lastWeekDatum) / Math.abs(lastWeekDatum)) * 100;
     }
@@ -146,50 +147,46 @@ function getUncertaintyValues_percentDiff_ForPanelType(
   uncertaintyType,
   panelType = "percentDifference",
 ) {
-  let thisData =
-    featureProperties.data[population][outcomeVariable]["projected"][
+  const thisData = [
+    ...featureProperties.data[population][outcomeVariable]["projected"][
       "uncertainty_range"
-    ][uncertaintyType];
+    ][uncertaintyType],
+  ];
 
-  //   console.log(featureProperties.data[population][outcomeVariable]["projected"].values[0])
-  // console.log(thisData);
-  const projectionValue =
-    featureProperties.data[population][outcomeVariable]["projected"].values;
+  const projectionValue = [
+    ...featureProperties.data[population][outcomeVariable]["projected"].values,
+  ];
 
   thisData.unshift(projectionValue[0]);
 
-  let newData = [];
+  const newData = [];
 
   if (thisData && thisData.length > 0) {
-    //  first projected
     for (let i = 0; i < thisData.length; i++) {
-      if (i == 0) {
+      if (i === 0) {
         newData.push(0);
         continue;
       }
 
       let value = NaN;
-      if (panelType == "percentDifference") {
-        var thisWeekDatum = parseFloat(thisData[i]);
-        var lastWeekDatum = parseFloat(projectionValue[i - 1]);
-        if (isNaN(thisWeekDatum) || lastWeekDatum) {
+
+      if (panelType === "percentDifference") {
+        const thisWeekDatum = parseFloat(thisData[i]);
+        const lastWeekDatum = parseFloat(projectionValue[i - 1]);
+
+        if (!isNaN(thisWeekDatum) && !isNaN(lastWeekDatum)) {
           value =
             ((thisWeekDatum - lastWeekDatum) / Math.abs(lastWeekDatum)) * 100;
         }
+      } else if (panelType === "rate") {
+        value = (thisData[i] / featureProperties.population) * 1000;
       } else {
-        if (panelType == "rate") {
-          value = (thisData[i] / feature.properties.population) * 1000;
-        } else {
-          value = thisData[i];
-        }
+        value = thisData[i];
       }
 
       newData.push(value);
     }
   }
-  // console.log(thisData);
-  // console.log(projectionValue);
-  // console.log(newData);
 
   return newData;
 }
@@ -222,27 +219,27 @@ function getFeatureValue(
   imputations,
   projectionType = "projected",
 ) {
-  let thisData =
+  const thisData =
     feature.properties.data[population][outcomeVariable][projectionType];
 
   if (!imputations && thisData.imputed) {
-    if (panelType == "percentDifference") {
+    if (panelType === "percentDifference") {
       return [NaN, NaN, NaN];
     }
     return NaN;
   }
 
-  // console.log(currentDate)
-  var dateIndex = dayjs(currentDate).diff(thisData.start_date, "week");
-  var thisWeekDatum = parseFloat(thisData.values.at(dateIndex));
+  const dateIndex = dayjs(currentDate).diff(thisData.start_date, "week");
+  let thisWeekDatum = parseFloat(thisData.values.at(dateIndex));
 
-  if (panelType == "rate") {
+  if (panelType === "rate") {
     thisWeekDatum = (thisWeekDatum / feature.properties.population) * 1000;
   }
 
-  if (panelType == "percentDifference") {
-    var lastWeekDatum;
-    if (dateIndex == 0) {
+  if (panelType === "percentDifference") {
+    let lastWeekDatum;
+
+    if (dateIndex === 0) {
       lastWeekDatum = parseFloat(
         feature.properties.data[population][outcomeVariable][
           "historical"
@@ -251,18 +248,19 @@ function getFeatureValue(
     } else {
       lastWeekDatum = parseFloat(thisData.values.at(dateIndex - 1));
     }
-    var percentDifference = undefined;
-    if (isNaN(thisWeekDatum) || lastWeekDatum) {
+
+    let percentDifference = undefined;
+    if (!isNaN(thisWeekDatum) && !isNaN(lastWeekDatum)) {
       percentDifference =
         ((thisWeekDatum - lastWeekDatum) / Math.abs(lastWeekDatum)) * 100;
     }
+
     return [lastWeekDatum, thisWeekDatum, percentDifference];
   }
 
   return thisWeekDatum;
 }
 
-// helper functions
 function getBoundsOfCoords(coordinates) {
   var bounds = new maplibregl.LngLatBounds();
   function addCoordToBounds(bounds, arr) {
@@ -321,24 +319,10 @@ function drawTooltip(
     geographicUnit = mapGeographicUnitSelector.value;
   }
 
-  // console.log(shortHistoryDates);
-
   var historicalDatesArray = allDates ? allHistoricalDates : shortHistoryDates;
-  // console.log(historicalDatesArray);
   var featureData = JSON.parse(JSON.stringify(d));
-
   var identifier = featureData.id;
   var data = featureData.data[population][outcomeVariable];
-
-  // if length of data item and historicalDatesArray don't match, need to add null values front
-
-  // if (data.historical.values.length < historicalDatesArray.length) {
-  //   historicalDatesArray = historicalDatesArray.slice(
-  //     historicalDatesArray.length - data.historical.values.length,
-  //   );
-  // }
-
-  // console.log(historicalDatesArray);
 
   data.historical.start_date = d3.timeDay.offset(
     parseDate(data.projected.start_date),
@@ -350,17 +334,6 @@ function drawTooltip(
     historicalDatesArray.length,
   );
 
-  // console.log(smallPopupData);
-  // console.log(data.historical.values);
-
-  // // return
-  // console.log(metadata);
-  // console.log(metadata.all_historical_dates.length);
-  // console.log(metadata.short_history_dates.length);
-  // console.log(data.extra.health_system);
-  // console.log(data.extra.RFA);
-  // console.log(data);
-
   if (data.extra.health_system != undefined && allDates) {
     data.extra.health_system = validateFeatureDataLength(
       data.extra.health_system,
@@ -369,6 +342,7 @@ function drawTooltip(
         smallPopupData.extra.health_system.length,
     );
   }
+
   if (data.extra.RFA != undefined && allDates) {
     data.extra.RFA = validateFeatureDataLength(
       data.extra.RFA,
@@ -376,8 +350,6 @@ function drawTooltip(
       metadata.short_history_dates.length - smallPopupData.extra.RFA.length,
     );
   }
-
-  // console.log(data);
 
   data.projected.start_date = parseDate(data.projected.start_date);
 
@@ -418,6 +390,7 @@ function drawTooltip(
         }`,
       );
   }
+
   if (geographicUnit == "facility") {
     regionInfo.style("flex-direction", "column");
     regionInfo.style("align-items", "center");
@@ -453,6 +426,7 @@ function drawTooltip(
     )} to ${formatDate(historicalDatesArray.at(-1))}`;
     dataInfo.append("p").html(tooltipString);
   }
+
   if (data.projected.values.length) {
     let thisProjectedEndDate = d3.timeDay.offset(
       data.projected.start_date,
@@ -467,9 +441,6 @@ function drawTooltip(
   // add buttons and legends
   var ttpLegend = footer.select(".tooltip-legend").html("");
   var ttpOptions = footer.select(".tooltip-options").html("");
-  // footer.select(".tooltip-options").select(".tooltip-expand").html("");
-  // footer.select(".tooltip-options").select(".tooltip-add-extra").html("");
-  // var ttpOptions = footer.select(".tooltip-options")
 
   var ttpLegendGroup = ttpLegend
     .append("div")
@@ -508,8 +479,6 @@ function drawTooltip(
           if (panelType == "percentDifference") {
             text = ` Percent Change of ${text}`;
           } else {
-            // console.log(outcomeVariable);
-            // console.log(diseaseVariableString);
             if (
               outcomeVariable == "inpatient_hospitalizations" ||
               outcomeVariable == "%_influenza-attributable_ed_visits"
@@ -591,53 +560,25 @@ function drawTooltip(
     var expandPopupButton = ttpOptions
       // .select(".tooltip-expand")
       .append("sl-button")
+      .attr("id", "expand-tooltip-btn")
       .attr("size", "small")
       .attr("variant", "default")
       .html("Expand Graph");
 
-    expandPopupButton.on("click", () => {
+    expandPopupButton.on("click", function () {
       var largeTtp = d3.select(tooltipLarge);
 
       tooltipLarge.show().then(async () => {
-        var allExtendedData;
-        if (grid) {
-          allExtendedData = await d3.json(
-            `/data/respiratory/${gridGeographicUnitSelector.value}/${
-              gridDiseaseSelector.value
-            }/extended?data_version=${metadata.data_version}&${parseInt(
-              Math.random() * 9999999999,
-            )}`,
-          );
-        } else {
-          allExtendedData = await d3.json(
-            `/data/respiratory/${mapGeographicUnitSelector.value}/${
-              mapDiseaseSelector.value
-            }/extended?data_version=${metadata.data_version}&${parseInt(
-              Math.random() * 9999999999,
-            )}`,
-          );
-        }
-        var ttpData = {
-          id: identifier,
-          display_name: data.display_name,
-          county: data.county,
-          data: allExtendedData[identifier],
-          facility_type: data.facility_type,
-          system: data.system,
-        };
-
-        drawTooltip(
-          ttpData,
-          largeTtp.select(".tooltip-outer-svg"),
-          largeTtp.select(".tooltip-header"),
-          largeTtp.select(".tooltip-footer"),
+        expandPopup(
+          d,
+          largeTtp,
           population,
           outcomeVariable,
           panelType,
           grid,
-          true,
           [],
           data,
+          identifier,
         );
       });
     });
@@ -791,7 +732,6 @@ function drawTooltip(
   };
   var ttpGraphWidth = ttpWidth - ttpMargins.right - ttpMargins.left;
 
-  console.log(countMax);
   // define scales
   var yScale = d3
     .scaleLinear()
@@ -831,50 +771,16 @@ function drawTooltip(
       "projected",
     );
 
-    // var percentile25_percentDiff =
-    //   getUncertaintyValues_percentDiff_ForPanelType(
-    //     featureData,
-    //     population,
-    //     outcomeVariable,
-    //     "percentile25",
-    //     "percentDifference",
-    //   );
-
-    // var percentile75_percentDiff =
-    //   getUncertaintyValues_percentDiff_ForPanelType(
-    //     featureData,
-    //     population,
-    //     outcomeVariable,
-    //     "percentile75",
-    //     "percentDifference",
-    //   );
-
-    // var percentile2_5_percentDiff =
-    //   getUncertaintyValues_percentDiff_ForPanelType(
-    //     featureData,
-    //     population,
-    //     outcomeVariable,
-    //     "percentile2_5",
-    //     "percentDifference",
-    //   );
-
-    // var percentile97_5_percentDiff =
-    //   getUncertaintyValues_percentDiff_ForPanelType(
-    //     featureData,
-    //     population,
-    //     outcomeVariable,
-    //     "percentile97_5",
-    //     "percentDifference",
-    //   );
-
     let pdMax = d3.max([
       ...percentDifferenceHistoricalValues,
       ...percentDifferenceProjectedValues,
     ]);
+
     let pdMin = d3.min([
       ...percentDifferenceHistoricalValues,
       ...percentDifferenceProjectedValues,
     ]);
+
     pdMax = Math.min(pdMax, 500);
 
     temp.text(d3.format(".2r")("-100")).attr("x", 0).attr("y", 0);
@@ -886,7 +792,8 @@ function drawTooltip(
       .scaleLinear()
       .domain([pdMin, pdMax])
       .nice()
-      .range([ttpHeight - ttpMargins.bottom, ttpMargins.top]);
+      .range([ttpHeight - ttpMargins.bottom, ttpMargins.top])
+      .clamp(true);
 
     yScale.domain([
       yScale.domain()[1] * (yScale2.domain()[0] / yScale2.domain()[1]),
@@ -936,73 +843,6 @@ function drawTooltip(
     }
   };
 
-  // for data point tooltips (gives date and value)
-  function createDataPointTooltip(event, groupStartDate) {
-    dataPointTTP.html("");
-
-    let tooltipDateFormat = d3.timeFormat("%b %d");
-
-    let thisDataPointShape = event.target;
-    let dataShapeBBox = thisDataPointShape.getBBox();
-
-    let date = d3.timeDay.offset(
-      groupStartDate,
-      7 *
-        d3
-          .select(thisDataPointShape.parentNode)
-          .selectAll(".ttp-data-point")
-          .nodes()
-          .indexOf(thisDataPointShape),
-    );
-
-    let dateStr = `${tooltipDateFormat(
-      d3.timeDay.offset(date, -6),
-    )} - ${tooltipDateFormat(date)}`;
-
-    let value = d3.select(thisDataPointShape).datum();
-    let valueStr =
-      panelType == "rate"
-        ? `${value.toFixed(2)} per 1000`
-        : value.toFixed(2).toString();
-
-    let valueTypeStr;
-    switch (panelType) {
-      case "count":
-        valueTypeStr = "Count";
-        break;
-      case "rate":
-        valueTypeStr = "Rate";
-        break;
-      case "percentDifference":
-        valueTypeStr = "Percent Change";
-        break;
-      default:
-        valueTypeStr = "Count";
-        break;
-    }
-
-    var dx =
-      dataShapeBBox.x + dataShapeBBox.width / 2 + thisDataPointShape.getCTM().e;
-    var dy = 1 * em;
-
-    dataPointTTP.append("text").text(dateStr).attr("x", dx).attr("y", dy);
-
-    dataPointTTP
-      .append("text")
-      .text(`${valueTypeStr}: ${valueStr}`)
-      .attr("x", dx)
-      .attr("y", dy + 0.75 * em);
-
-    dataPointTTP
-      .append("line")
-      .attr("stroke", "black")
-      .attr("stroke-width", 1)
-      .attr("x1", dx)
-      .attr("y1", dy + 1 * em)
-      .attr("x2", dx)
-      .attr("y2", ttpHeight - ttpMargins.bottom);
-  }
-
   // visualize historical
   var historicalGroup = graphSVG.append("g").attr("class", "historical-group");
 
@@ -1015,10 +855,11 @@ function drawTooltip(
           .area()
           .x((_, i) => xScale(historicalDatesArray[i]))
           .y0(panelType == "percentDifference" ? yScale2(0) : yScale(0))
-          .y1((d) =>
-            panelType == "percentDifference" ? yScale2(d) : yScale(d),
-          )
-          .defined((d) => d || d == 0)(
+          .y1((d) => {
+            return panelType == "percentDifference" ? yScale2(d) : yScale(d);
+          })
+          // .defined((d) => d || d == 0)(
+          .defined((d) => d != null && !Number.isNaN(d))(
           panelType == "percentDifference"
             ? percentDifferenceHistoricalValues
             : data.historical.values,
@@ -1061,7 +902,14 @@ function drawTooltip(
       .attr("transform", `translate(-${historicalBarWidth}, 0)`)
       .on("mouseover", function (event, d) {
         if (!isNaN(d)) {
-          createDataPointTooltip(event, historicalDatesArray[0]);
+          createDataPointTooltip(
+            event,
+            dataPointTTP,
+            panelType,
+            ttpHeight,
+            ttpMargins,
+            historicalDatesArray[0],
+          );
         }
       })
       .on("mouseout", function () {
@@ -1132,7 +980,14 @@ function drawTooltip(
       .attr("fill", populationColorMap[population]["projected"])
       .on("mouseover", function (event, d) {
         if (!isNaN(d)) {
-          createDataPointTooltip(event, data.projected.start_date);
+          createDataPointTooltip(
+            event,
+            dataPointTTP,
+            panelType,
+            ttpHeight,
+            ttpMargins,
+            data.projected.start_date,
+          );
         }
       })
       .on("mouseout", function () {
@@ -1144,8 +999,6 @@ function drawTooltip(
       data.projected.uncertainty_range.percentile25 != undefined &&
       data.projected.uncertainty_range.percentile25.length > 0
     ) {
-      // console.log(percentDifferenceProjectedValues);
-      // console.log(percentile25_percentDiff);
       areaPathForPrediction.remove();
 
       predictiveGroup
@@ -1177,7 +1030,14 @@ function drawTooltip(
         .attr("stroke-width", 2)
         .on("mouseover", function (event, d) {
           if (!isNaN(d)) {
-            createDataPointTooltip(event, data.projected.start_date);
+            createDataPointTooltip(
+              event,
+              dataPointTTP,
+              panelType,
+              ttpHeight,
+              ttpMargins,
+              data.projected.start_date,
+            );
           }
         })
         .on("mouseout", function () {
@@ -1186,33 +1046,30 @@ function drawTooltip(
 
       const firstProjectedValue = data.projected.values[0];
 
-      console.log(featureData);
-      console.log(data.projected.uncertainty_range.percentile75);
-      // console.log(data.projected.uncertainty_range.percentile25);
       const uncertainty25 =
         panelType != "rate"
           ? data.projected.uncertainty_range.percentile25
           : data.projected.uncertainty_range.percentile25.map(
-              (value) => value / featureData.population * 1000,
+              (value) => (value / featureData.population) * 1000,
             );
 
       const uncertainty75 =
         panelType != "rate"
           ? data.projected.uncertainty_range.percentile75
           : data.projected.uncertainty_range.percentile75.map(
-              (value) => value / featureData.population * 1000,
+              (value) => (value / featureData.population) * 1000,
             );
       const uncertainty2_5 =
         panelType != "rate"
           ? data.projected.uncertainty_range.percentile2_5
           : data.projected.uncertainty_range.percentile2_5.map(
-              (value) => value / featureData.population * 1000,
+              (value) => (value / featureData.population) * 1000,
             );
       const uncertainty97_5 =
         panelType != "rate"
           ? data.projected.uncertainty_range.percentile97_5
           : data.projected.uncertainty_range.percentile97_5.map(
-              (value) => value / featureData.population * 1000,
+              (value) => (value / featureData.population) * 1000,
             );
 
       uncertainty25.unshift(firstProjectedValue);
@@ -1305,6 +1162,10 @@ function drawTooltip(
         if (!isNaN(d)) {
           createDataPointTooltip(
             event,
+            dataPointTTP,
+            panelType,
+            ttpHeight,
+            ttpMargins,
             d3.timeDay.offset(data.projected.start_date, -7),
           );
         }
@@ -1876,13 +1737,130 @@ async function drawStateBarChart(
 
 function validateFeatureDataLength(featureData, targetLength, offset = 0) {
   if (featureData.length < targetLength) {
-    // console.log(targetLength)
-    // console.log(featureData.length)
-    // console.log(offset)
     let numToAdd = targetLength - offset - featureData.length;
-    // console.log(numToAdd)
     featureData = Array(numToAdd).fill(null).concat(featureData);
   }
 
   return featureData;
+}
+
+async function expandPopup(
+  d,
+  largeTtp,
+  population,
+  outcomeVariable,
+  panelType,
+  grid,
+  [],
+  data,
+  identifier,
+) {
+  let allExtendedData;
+  if (grid) {
+    allExtendedData = await d3.json(
+      `/data/respiratory/${gridGeographicUnitSelector.value}/${
+        gridDiseaseSelector.value
+      }/extended?data_version=${metadata.data_version}&${parseInt(
+        Math.random() * 9999999999,
+      )}`,
+    );
+  } else {
+    allExtendedData = await d3.json(
+      `/data/respiratory/${mapGeographicUnitSelector.value}/${
+        mapDiseaseSelector.value
+      }/extended?data_version=${metadata.data_version}&${parseInt(
+        Math.random() * 9999999999,
+      )}`,
+    );
+  }
+
+  let ttpData = structuredClone(d);
+  ttpData.data = allExtendedData[identifier];
+
+  drawTooltip(
+    ttpData,
+    largeTtp.select(".tooltip-outer-svg"),
+    largeTtp.select(".tooltip-header"),
+    largeTtp.select(".tooltip-footer"),
+    population,
+    outcomeVariable,
+    panelType,
+    grid,
+    true,
+    [],
+    data,
+  );
+}
+
+function createDataPointTooltip(
+  event,
+  dataPointTTP,
+  panelType,
+  ttpHeight,
+  ttpMargins,
+  groupStartDate,
+) {
+  dataPointTTP.html("");
+
+  let tooltipDateFormat = d3.timeFormat("%b %d");
+
+  let thisDataPointShape = event.target;
+  let dataShapeBBox = thisDataPointShape.getBBox();
+
+  let date = d3.timeDay.offset(
+    groupStartDate,
+    7 *
+      d3
+        .select(thisDataPointShape.parentNode)
+        .selectAll(".ttp-data-point")
+        .nodes()
+        .indexOf(thisDataPointShape),
+  );
+
+  let dateStr = `${tooltipDateFormat(
+    d3.timeDay.offset(date, -6),
+  )} - ${tooltipDateFormat(date)}`;
+  let value = d3.select(thisDataPointShape).datum();
+
+  let valueStr =
+    panelType == "rate"
+      ? `${value.toFixed(2)} per 1000`
+      : value.toFixed(2).toString();
+
+  let valueTypeStr;
+  switch (panelType) {
+    case "count":
+      valueTypeStr = "Count";
+      break;
+    case "rate":
+      valueTypeStr = "Rate";
+      break;
+    case "percentDifference":
+      valueTypeStr = "Percent Change";
+      break;
+    default:
+      valueTypeStr = "Count";
+      break;
+  }
+
+  var dx =
+    dataShapeBBox.x + dataShapeBBox.width / 2 + thisDataPointShape.getCTM().e;
+  var dy = 1 * em;
+
+  dataPointTTP.append("text").text(dateStr).attr("x", dx).attr("y", dy);
+
+  dataPointTTP
+    .append("text")
+    .text(`${valueTypeStr}: ${valueStr}`)
+    .attr("x", dx)
+    .attr("y", dy + 0.75 * em);
+
+  dataPointTTP
+    .append("line")
+    .attr("stroke", "black")
+    .attr("stroke-width", 1)
+    .attr("x1", dx)
+    .attr("y1", dy + 1 * em)
+    .attr("x2", dx)
+    .attr("y2", ttpHeight - ttpMargins.bottom);
 }

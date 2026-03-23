@@ -1,7 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="sl-theme-dark">
-
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
 
@@ -11,129 +10,241 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
 
     <!-- Shoelace -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/light.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/dark.css" />
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/shoelace-autoloader.js">
-    </script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/light.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/themes/dark.css"
+    />
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.1/cdn/shoelace-autoloader.js"
+    ></script>
     <script>
-        document.documentElement.classList.remove('sl-theme-light')
-        document.documentElement.classList.remove('sl-theme-dark')
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.classList.add('sl-theme-dark')
-        } else {
-            document.documentElement.classList.add('sl-theme-light')
-        }
+      document.documentElement.classList.remove("sl-theme-light");
+      document.documentElement.classList.remove("sl-theme-dark");
+      if (
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches
+      ) {
+        document.documentElement.classList.add("sl-theme-dark");
+      } else {
+        document.documentElement.classList.add("sl-theme-light");
+      }
     </script>
 
     <!-- Own css -->
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/data-approval/style.css') }}" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{ url_for('static', filename='css/data-approval/style.css') }}"
+    />
+  </head>
 
-
-</head>
-
-<body>
-
+  <body>
     <sl-tab-group id="tab-group">
-        <sl-tab id="main-tab" slot="nav" panel="main" disabled>
-            <a href="{{ url_for('index') }}" id="main-tab-link">DMA-PRIME</a></sl-tab>
-        <sl-tab id="overview-tab" slot="nav" panel="overview">Overview</sl-tab>
-        <sl-tab id="respiratory-tab" slot="nav" panel="respiratory">Respiratory</sl-tab>
-        <sl-tab id="wastewater-tab" slot="nav" panel="wastewater">Wastewater</sl-tab>
-        <sl-tab id="outbreak-detection-tab" slot="nav" panel="outbreak-detection">Outbreak Detection</sl-tab>
-        <sl-tab id="opioid-hcv-hiv-tab" slot="nav" panel="opioid-hcv-hiv">Opioid, HCV, HIV</sl-tab>
-        <sl-tab id="mobile-health-clinics-tab" slot="nav" panel="mobile-health-clinics">Mobile Health Clinic Tracking</sl-tab>
+      <sl-tab id="main-tab" slot="nav" panel="main" disabled>
+        <a href="{{ url_for('index') }}" id="main-tab-link"
+          >DMA-PRIME</a
+        ></sl-tab
+      >
+      <sl-tab id="overview-tab" slot="nav" panel="overview">Overview</sl-tab>
+      <sl-tab id="respiratory-tab" slot="nav" panel="respiratory"
+        >Respiratory</sl-tab
+      >
+      <sl-tab id="wastewater-tab" slot="nav" panel="wastewater"
+        >Wastewater</sl-tab
+      >
+      <sl-tab id="outbreak-detection-tab" slot="nav" panel="outbreak-detection"
+        >Outbreak Detection</sl-tab
+      >
+      <sl-tab id="opioid-hcv-hiv-tab" slot="nav" panel="opioid-hcv-hiv"
+        >Opioid, HCV, HIV</sl-tab
+      >
+      <sl-tab
+        id="mobile-health-clinics-tab"
+        slot="nav"
+        panel="mobile-health-clinics"
+        >Mobile Health Clinic Tracking</sl-tab
+      >
 
-        <sl-tab-panel id="overview-panel" name="overview" active>
-            <div id="overview-container" class="panel-container">
-                <div style="width: 100%;">
-                    <table id="overview-table">
-                        <tr id="overview-table-column-headers">
-                            {% for col in column_headers %}<th>{{ col.display }}</th>{% endfor %}
-                            <th style="text-align: right; vertical-align: top; border-bottom: 2px solid black; background: transparent;">
-                                <sl-button id="approve-all-button" variant="success" size="large" pill style="font-size: 1.1em; margin-right: 0;">
-                                    <sl-icon slot="prefix" name="check2-circle"></sl-icon>
-                                    Approve All
-                                </sl-button>
-                            </th>
-                        </tr>
-                        {% for dash in dashboards %}<tr id="{{ dash.code }}-row">
-                            <th>{{ dash.display }}</th>
-                            {% for col in column_headers[1:4] %}<td id="{{ dash.code }}-{{ col.code }}" class="overview-table-date data-date" dashboard="{{ dash.code }}" dataVersion="{{ col.code }}">{{ dates[dash.code][col.code] }}</td>{% endfor %}
-                            <td id="{{ dash.code }}-approve"><sl-button id="{{ dash.code }}-approve-button" class="approve-data-button overview" dashboard="{{ dash.code }}" dataVersion="new">Approve New Data</sl-button></td>
-                            <td id="{{ dash.code }}-revert"><sl-button id="{{ dash.code }}-revert-button" class="approve-data-button overview" dashboard="{{ dash.code }}" dataVersion="previous">Revert to Last Approved Data</sl-button></td>
-                        </tr>{% endfor %}
-                    </table>
-                </div>
+      <sl-tab-panel id="overview-panel" name="overview" active>
+        <div id="overview-container" class="panel-container">
+          <div style="width: 100%">
+            <table id="overview-table">
+              <tr id="overview-table-column-headers">
+                {% for col in column_headers %}
+                <th>{{ col.display }}</th>
+                {% endfor %}
+                <th
+                  style="
+                    text-align: right;
+                    vertical-align: top;
+                    border-bottom: 2px solid black;
+                    background: transparent;
+                  "
+                >
+                  <sl-button
+                    id="approve-all-button"
+                    variant="success"
+                    size="large"
+                    pill
+                    style="font-size: 1.1em; margin-right: 0"
+                  >
+                    <sl-icon slot="prefix" name="check2-circle"></sl-icon>
+                    Approve All
+                  </sl-button>
+                </th>
+              </tr>
+              {% for dash in dashboards %}
+              <tr id="{{ dash.code }}-row">
+                <th>{{ dash.display }}</th>
+                {% for col in column_headers[1:4] %}
+                <td
+                  id="{{ dash.code }}-{{ col.code }}"
+                  class="overview-table-date data-date"
+                  dashboard="{{ dash.code }}"
+                  dataVersion="{{ col.code }}"
+                >
+                  {{ dates[dash.code][col.code] }}
+                </td>
+                {% endfor %}
+                <td id="{{ dash.code }}-approve">
+                  <sl-button
+                    id="{{ dash.code }}-approve-button"
+                    class="approve-data-button overview"
+                    dashboard="{{ dash.code }}"
+                    dataVersion="new"
+                    >Approve New Data</sl-button
+                  >
+                </td>
+                <td id="{{ dash.code }}-revert">
+                  <sl-button
+                    id="{{ dash.code }}-revert-button"
+                    class="approve-data-button overview"
+                    dashboard="{{ dash.code }}"
+                    dataVersion="previous"
+                    >Revert to Last Approved Data</sl-button
+                  >
+                </td>
+              </tr>
+              {% endfor %}
+            </table>
+          </div>
+        </div>
+      </sl-tab-panel>
+      {% for dash in dashboards %}
+      <sl-tab-panel id="{{ dash.code }}-panel" name="{{ dash.code }}">
+        <div class="panel-container dashboard-container">
+          <div class="dashboard-data-buttons-container">
+            <div>
+              {% for col in column_headers[1:] %}
+              <sl-menu class="dashboard-overview">
+                <sl-menu-label class="data-date-label"
+                  >{{ col.display }}</sl-menu-label
+                >
+                <sl-menu-item
+                  class="data-date"
+                  dashboard="{{ dash.code }}"
+                  dataVersion="{{ col.code }}"
+                  >{{ dates[dash.code][col.code] }}</sl-menu-item
+                >
+              </sl-menu>
+              {% endfor %}
             </div>
-        </sl-tab-panel>
-        {% for dash in dashboards %}
-        <sl-tab-panel id="{{ dash.code }}-panel" name="{{ dash.code }}">
-            <div class="panel-container dashboard-container">
-                <div class="dashboard-data-buttons-container">
-                    <div>
-                        {% for col in column_headers[1:] %}
-                        <sl-menu class="dashboard-overview">
-                            <sl-menu-label class="data-date-label">{{ col.display }}</sl-menu-label>
-                            <sl-menu-item class="data-date" dashboard="{{ dash.code }}" dataVersion="{{ col.code }}">{{ dates[dash.code][col.code] }}</sl-menu-item>
-                        </sl-menu>
-                        {% endfor %}
-                    </div>
-                    <sl-divider></sl-divider>
-                    <div class="preview-data-button-container">
-                        <sl-button class="preview-data-button" dashboard="{{ dash.code }}" dataVersion="new" variant="primary">Preview New Data</sl-button>
-                        <sl-button class="preview-data-button" dashboard="{{ dash.code }}" dataVersion="current" >Preview Current Data</sl-button>
-                        <sl-button class="preview-data-button" dashboard="{{ dash.code }}" dataVersion="previous">Preview Previous Data</sl-button>
-                    </div>
-                    <sl-divider></sl-divider>
-                    <div class="approve-data-button-container">
-                        <sl-button class="approve-data-button" dashboard="{{ dash.code }}" dataVersion="new">Approve New Data</sl-button>
-                        <sl-button class="approve-data-button" dashboard="{{ dash.code }}" dataVersion="previous">Revert to Previous Data</sl-button>
-                    </div>
-                </div>
-                <iframe id="{{ dash.code }}-dashboard" title="{{ dash.display }} Dashboard">
-                </iframe>
+            <sl-divider></sl-divider>
+            <div class="preview-data-button-container">
+              <sl-button
+                class="preview-data-button"
+                dashboard="{{ dash.code }}"
+                dataVersion="new"
+                variant="primary"
+                >Preview New Data</sl-button
+              >
+              <sl-button
+                class="preview-data-button"
+                dashboard="{{ dash.code }}"
+                dataVersion="current"
+                >Preview Current Data</sl-button
+              >
+              <sl-button
+                class="preview-data-button"
+                dashboard="{{ dash.code }}"
+                dataVersion="previous"
+                >Preview Previous Data</sl-button
+              >
             </div>
-        </sl-tab-panel>
-        {% endfor %}
+            <sl-divider></sl-divider>
+            <div class="approve-data-button-container">
+              <sl-button
+                class="approve-data-button"
+                dashboard="{{ dash.code }}"
+                dataVersion="new"
+                >Approve New Data</sl-button
+              >
+              <sl-button
+                class="approve-data-button"
+                dashboard="{{ dash.code }}"
+                dataVersion="previous"
+                >Revert to Previous Data</sl-button
+              >
+            </div>
+          </div>
+          <iframe
+            id="{{ dash.code }}-dashboard"
+            title="{{ dash.display }} Dashboard"
+          >
+          </iframe>
+        </div>
+      </sl-tab-panel>
+      {% endfor %}
     </sl-tab-group>
 
     <script>
-        var tabGroup = document.getElementById("tab-group")
+      var tabGroup = document.getElementById("tab-group")
 
-        var dates = {{ dates | safe }}
-
+      var dates = {{ dates | safe }}
     </script>
     <script>
-        let sessionTimer;
-        let activityTimer;
+      let sessionTimer;
+      let activityTimer;
 
-        function setupTimers() {
-            resetSessionTimer()
-            resetActivityTimer()
-        }
+      function setupTimers() {
+        resetSessionTimer();
+        resetActivityTimer();
+      }
 
-        function resetSessionTimer() {
-            fetch('auth/refresh')
-            clearTimeout(sessionTimer);
-            sessionTimer = setTimeout(() => {
-                resetSessionTimer()
-            }, (15 * 60) * 1000);  // 15 minutes
-        }
+      function resetSessionTimer() {
+        fetch("auth/refresh");
+        clearTimeout(sessionTimer);
+        sessionTimer = setTimeout(
+          () => {
+            resetSessionTimer();
+          },
+          15 * 60 * 1000,
+        ); // 15 minutes
+      }
 
-        function resetActivityTimer() {
-            clearTimeout(activityTimer);
-            activityTimer = setTimeout(() => {
-                window.location.href = "/auth/logout";
-            }, (15 * 60 - 5) * 1000);  // 14 minutes, 55 seconds
-        }
+      function resetActivityTimer() {
+        clearTimeout(activityTimer);
+        activityTimer = setTimeout(
+          () => {
+            window.location.href = "/auth/logout";
+          },
+          (15 * 60 - 5) * 1000,
+        ); // 14 minutes, 55 seconds
+      }
 
-        window.onload = setupTimers;
-        document.onmousemove = resetActivityTimer;
-        document.onkeypress = resetActivityTimer;
+      window.onload = setupTimers;
+      document.onmousemove = resetActivityTimer;
+      document.onkeypress = resetActivityTimer;
     </script>
 
-    <script type="module" src="{{ url_for('static', filename='js/data-approval/script.js') }}"></script>
-
-</body>
-
+    <script
+      type="module"
+      src="{{ url_for('static', filename='js/data-approval/script.js') }}"
+    ></script>
+  </body>
 </html>

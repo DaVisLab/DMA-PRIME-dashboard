@@ -13,6 +13,8 @@ from flask import (
 )
 import os
 import shutil
+from pathlib import Path
+from datetime import datetime
 
 bp = Blueprint("data", __name__, url_prefix="/data")
 from flask_login import login_required
@@ -120,7 +122,7 @@ def get_respiratory_model(
 ):
     # def get_respiratory_model(location, disease='covid_19', geographic_unit='region', population='state', outcome_variable='all_hospitalizations'):
     # model information for given combo of option selections
-    
+
     # print(outcome_variable)
     outcome_variable_crosswalk = {
         # 'all_encounters': 'Weekly_Encounters',
@@ -154,7 +156,7 @@ def get_respiratory_model(
         "respiratory",
         "encrypt_key.bin",
     )
-     
+
     try:
         file = decrypt(file, decrypt_key)
         return file
@@ -289,30 +291,70 @@ def data_approver_required(view):
 
     return wrapped_view
 
-def update_respiratory_forecasting_report():
-    new_path = os.path.join(
-                current_app.config["DATADIR"],
-                "processed",
-                "new",
-                "model_reports",
-            )
-    
+
+def revert_respiratory_forecasting_report():
     dash_path = os.path.join(
         current_app.config["DATADIR"],
         "processed",
         "current",
         "model_reports",
     )
-    
+
     previous_path = os.path.join(
-            current_app.config["DATADIR"],
-            "processed",
-            "previous",
-            "model_reports",
-        )
-    
+        current_app.config["DATADIR"],
+        "processed",
+        "previous",
+        "model_reports",
+    )
+
+    shutil.copytree(previous_path, dash_path, dirs_exist_ok=True)
+
+
+def update_respiratory_forecasting_report():
+    new_path = os.path.join(
+        current_app.config["DATADIR"],
+        "processed",
+        "new",
+        "model_reports",
+    )
+
+    dash_path = os.path.join(
+        current_app.config["DATADIR"],
+        "processed",
+        "current",
+        "model_reports",
+    )
+
+    previous_path = os.path.join(
+        current_app.config["DATADIR"],
+        "processed",
+        "previous",
+        "model_reports",
+    )
+
     shutil.copytree(dash_path, previous_path, dirs_exist_ok=True)
     shutil.copytree(new_path, dash_path, dirs_exist_ok=True)
+
+
+def get_date_respiratory_forecasting_report():
+
+    print("fdfff")
+    forecasting_report_folder = (
+        Path(current_app.config["DATADIR"]) / "processed" / "new" / "model_reports"
+    )
+
+    # get latest file by creation time
+    latest_file = max(
+        (f for f in forecasting_report_folder.iterdir() if f.is_file()),
+        key=lambda f: f.stat().st_ctime,
+        default=None,
+    )
+
+    if latest_file is None:
+        return None
+
+    return datetime.fromtimestamp(latest_file.stat().st_ctime).strftime("%Y-%m-%d")
+
 
 @bp.route("/change-version", methods=["PUT"])
 def change_version():
@@ -337,8 +379,7 @@ def change_version():
             "previous",
             dashboard_translation[dashboard],
         )
-        
-        print(change)
+
         if change == "new":
             new_path = os.path.join(
                 current_app.config["DATADIR"],
@@ -346,19 +387,23 @@ def change_version():
                 "new",
                 dashboard_translation[dashboard],
             )
-            
+
             shutil.copytree(dash_path, previous_path, dirs_exist_ok=True)
             shutil.copytree(new_path, dash_path, dirs_exist_ok=True)
-            
+
             current_app.logger.info(
                 f"{current_user.email} approved new data for {dashboard}"
             )
-            
+
             if dashboard == "respiratory":
                 update_respiratory_forecasting_report()
 
         if change == "previous":
             shutil.copytree(previous_path, dash_path, dirs_exist_ok=True)
+
+            if dashboard == "respiratory":
+                revert_respiratory_forecasting_report()
+
             current_app.logger.info(
                 f"{current_user.email} reverted data for {dashboard}"
             )
@@ -374,6 +419,8 @@ def change_version():
 @bp.route("/get-date/<data_version>/<dashboard>", methods=["GET"])
 def send_data_date(data_version, dashboard):
 
+    print("data update necessecity check")
+    print(dashboard)
     if not current_user.data_approver:
         current_app.logger.info(f"{current_user.email} attempted to retrieve data date")
         return "Need data approval access", 401
@@ -408,6 +455,7 @@ def send_respiratory_file_changes():
         "respiratory",
         "respiratory_changes.txt",
     )
+
     with open(file, "r") as f:
         changes = f.readlines()
         additions = []
@@ -443,6 +491,8 @@ def get_data_date(data_version, dashboard):
     try:
         if data_version == "all":
             if dashboard == "all":
+                # print("data version - all")
+                # print("dashboard version - not all")
                 for dash in all_dashboards:
                     output[dashboard_translation[dash]] = {}
                     for ver in all_data_versions:
@@ -456,6 +506,8 @@ def get_data_date(data_version, dashboard):
                         with open(file_path) as f:
                             output[dashboard_translation[dash]][ver] = f.read()
             else:
+                # print("data version - all")
+                # print("dashboard version - not all")
                 output[dashboard] = {}
                 for ver in all_data_versions:
                     file_path = os.path.join(
@@ -468,6 +520,8 @@ def get_data_date(data_version, dashboard):
                     with open(file_path) as f:
                         output[dashboard][ver] = f.read()
         elif dashboard == "all":
+            # print("data version - not all")
+            # print("dashboard version - all")
             for dash in all_dashboards:
                 file_path = os.path.join(
                     current_app.config["DATADIR"],
@@ -479,6 +533,9 @@ def get_data_date(data_version, dashboard):
                 with open(file_path) as f:
                     output[dash] = {[data_version]: f.read()}
         else:
+            # print("data version - not all")
+            # print("dashboard version - not all")
+
             file_path = os.path.join(
                 current_app.config["DATADIR"],
                 "processed",
@@ -492,5 +549,25 @@ def get_data_date(data_version, dashboard):
 
     except:  # something broke so send none and error will get passed along
         output = None
+
+    if dashboard == "respiratory":
+        respiratory_forcasting_update_date = get_date_respiratory_forecasting_report()
+        new_date = get_later_date(
+            respiratory_forcasting_update_date, output["respiratory"]["new"]
+        )
+
+        if output["respiratory"]["new"].strip() != new_date:
+            replace_date_in_file(
+                os.path.join(
+                    current_app.config["DATADIR"],
+                    "processed",
+                    "new",
+                    "respiratory",
+                    "date.txt",
+                ),
+                output["respiratory"]["new"],
+                new_date,
+            )
+            output["respiratory"]["new"] = new_date
 
     return output

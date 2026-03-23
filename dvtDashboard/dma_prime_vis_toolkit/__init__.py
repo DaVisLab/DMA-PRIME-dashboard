@@ -196,7 +196,7 @@ def create_app(development=False, dataDir=None):
                 "displayName": "Grid View",
                 # "active": True,
                 "html": "respiratory/respiratory-grid-panel.html",
-            },  
+            },
             {
                 "name": "exploration",
                 "displayName": "Model Exploration",
@@ -205,7 +205,7 @@ def create_app(development=False, dataDir=None):
             },
         ]
         print(panels)
-        
+
         return render_template(
             "respiratory/respiratory-base.html", panels=panels, metadata=metadata
         )
@@ -265,7 +265,7 @@ def create_app(development=False, dataDir=None):
                 "html": "respiratory/respiratory-model-exploration-panel.html",
             },
         ]
-        
+
         if location == "":
             print("ff1")
             return render_template(
@@ -282,11 +282,11 @@ def create_app(development=False, dataDir=None):
             print("ff2")
             print(data_version)
             print(outcome_variable)
-            
+
             if outcome_variable == "%_influenza-attributable_ed_visits":
                 outcome_variable = "attributable_ed_visits"
             src = f"/data/respiratory/model/{disease}/{geographic_unit}/{population}/{outcome_variable}/{location}/{data_version}"
-            
+
             return render_template(
                 "respiratory/respiratory-model-base.html",
                 panels=panels,
@@ -390,7 +390,6 @@ def create_app(development=False, dataDir=None):
 
         panels = [
             {"name": "main", "displayName": "DMA-PRIME"},
-           
             # {
             #     "name": "outbreak-detection",
             #     "displayName": "Outbreak Detection",
