@@ -344,6 +344,7 @@ options %}
     style="border-left: 1px solid lightgray; height: 100%; position: relative"
   >
     <div class="fill-width fill-height" id="map-div"></div>
+    <div id="geo-tooltip"></div>
     <div id="map-legend">
       <svg
         id="map-shape-legend"
@@ -370,15 +371,6 @@ options %}
         <text x="50" y="35" font-size="14" font-family="sans-serif" fill="#000">
           Prisma/MUSC Health System
         </text>
-
-        <!-- <path fill="#CCCCCC" stroke="black" d="M 12 0 L 22 20 L 2 20 Z"></path>
-        <text x="26" y="16" font-size="var(--sl-font-size-medium)">
-          Prisma Health System
-        </text>
-        <circle r="10" fill="#CCCCCC" stroke="black" cx="12" cy="36"></circle>
-        <text x="26" font-size="var(--sl-font-size-medium)" y="42">
-          MUSC Health System
-        </text>  -->
       </svg>
       <svg id="choropleth-legend-svg"></svg>
     </div>
@@ -426,6 +418,7 @@ options %}
       </sl-alert>
     </div>
   </div>
+
   <!-- </div> -->
 </div>
 {% endblock %} {% block scripts %}

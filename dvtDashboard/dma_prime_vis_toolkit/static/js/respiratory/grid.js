@@ -1,12 +1,13 @@
 import {
-  populationColorMap,
-  unknownColor,
   getFeatureValue,
   getAllValuesFromFeature,
   getAllFeaturesValue,
-  drawTooltip,
   drawStateHospitalizations,
 } from "/static/js/respiratory/script.js";
+
+import { unknownColor, populationColorMap } from "/static/js/respiratory/utils/colors.js";
+
+import { drawTooltip } from "/static/js/respiratory/tooltip.js";
 import { controlDependencyTestOnGridView } from "./utils/controls.js";
 export {
   updateGrid,

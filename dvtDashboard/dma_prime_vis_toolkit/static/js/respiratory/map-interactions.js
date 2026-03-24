@@ -1,9 +1,10 @@
 import {
   getBoundsOfCoords,
-  drawTooltip,
   drawStateHospitalizations,
   drawLargeStateHospitalizations,
 } from "/static/js/respiratory/script.js";
+
+import { drawTooltip } from "/static/js/respiratory/tooltip.js";
 
 import {
   map,
@@ -225,10 +226,25 @@ map.on("zoom", () => {
 });
 
 map.on("click", (e) => {
-  const temp = { x: e.point.x, y: e.point.y };
-  const dataObject = deckOverlay.pickObject(temp).object;
+  try {
+    const temp = { x: e.point.x, y: e.point.y };
+    const dataObject = deckOverlay.pickObject(temp).object;
 
-  showMapTooltip(dataObject);
+    showMapTooltip(dataObject);
+  } catch (e) {
+    popup.remove()
+    selectedItems.feature = undefined;
+    dataVersion++;
+    redraw(false, false, true);
+  }
+});
+
+map.on("mousemove", "respiratory_choropleth", (e) => {
+  console.log("fff");
+});
+
+map.on("mouseleave", "respiratory_choropleth", (e) => {
+  console.log("ddd");
 });
 
 mapResetButton.addEventListener("click", () => {

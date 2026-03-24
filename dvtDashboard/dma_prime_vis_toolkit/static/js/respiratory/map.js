@@ -1,12 +1,16 @@
 import {
-  populationColorMap,
-  unknownColor,
   getCenter,
   getFeatureValue,
   getAllFeaturesValue,
-  drawTooltip,
   drawStateHospitalizations,
 } from "/static/js/respiratory/script.js";
+
+import {
+  unknownColor,
+  populationColorMap,
+} from "/static/js/respiratory/utils/colors.js";
+
+import { drawTooltip } from "/static/js/respiratory/tooltip.js";
 
 import {
   facility_dataProcessing,
@@ -50,8 +54,6 @@ const selectedItems = {
   feature: undefined,
   icons: [],
 };
-
-let choroplethDiscreteEdges = null;
 
 let choroplethColorMap = d3
   .scaleLinear()
@@ -130,6 +132,31 @@ const getChoroplethLayer = (regionData) =>
         mapOutcomeVariableSelector.value,
         dataVersion,
       ],
+    },
+    onHover: (info) => {
+      const tooltip = document.getElementById("geo-tooltip");
+      console.log(info);
+      if (info.picked) {
+         const height = tooltip.offsetHeight;
+        tooltip.style.display = "block";
+        tooltip.style.left = info.x + "px";
+        tooltip.style.top = info.y - height + "px";
+        const properties = info.object.properties;
+
+        let val = getFeatureValue(
+          info.object,
+          mapPopulationSelector.value,
+          mapOutcomeVariableSelector.value,
+          mapTypeSwitch.value,
+          mapIncludeImputations.checked,
+        );
+
+        val = mapTypeSwitch.value === "percentDifference" ? val[2] : val;
+
+        tooltip.innerText = `${properties.id}: ${val.toFixed(2)}`;
+      } else {
+        tooltip.style.display = "none";
+      }
     },
   });
 
@@ -434,6 +461,7 @@ function getColor(feature) {
       imputations,
     );
 
+    // console.log(value)
     const color =
       mapTypeSwitch.value === "percentDifference"
         ? !isNaN(value.at(-1))
@@ -494,8 +522,6 @@ function updateChoropleth(
   }
 
   if (outcomeVariable === "rate_of_transmission") {
-    choroplethDiscreteEdges = null;
-
     const mix = d3.interpolateRgb(
       populationColorMap[population].historical,
       "red",
@@ -706,12 +732,6 @@ function drawLegend() {
         .tickValues(tickValues)
         .tickFormat(d3.format(",.3~f")),
     );
-
-  colorLegendContent
-    .append("circle")
-    .attr("cx", 10)
-    .attr("cy", 10)
-    .attr("r", 5);
 
   const dataVarString = getSelectedOptionHtml(
     mapOutcomeVariableSelector,
