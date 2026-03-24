@@ -6,6 +6,8 @@ export async function updateOutcomeOptions(view, outEl, disEl, geoEl, popEl) {
   let availableOutcomeVariables =
     metadata.available_models[disEl.value][geoEl.value][popEl.value];
 
+  console.log(availableOutcomeVariables);
+  console.log(metadata.outcome_variables);
   d3.select(`#${view}-outcome-variable-selector`)
     .selectAll(`.${view}-outcome-tooltip`)
     .data(availableOutcomeVariables)
@@ -25,6 +27,7 @@ export async function updateOutcomeOptions(view, outEl, disEl, geoEl, popEl) {
   } else {
     // mapOutcomeVariable = availableOutcomeVariables[0];
     outEl.value = availableOutcomeVariables[0];
+    outEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
   }
 }
 
@@ -61,6 +64,7 @@ export async function updatePopulationOptions(
     // do nothing
   } else {
     popEl.value = availablePopulations[0];
+    popEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
   }
 }
 
@@ -95,5 +99,6 @@ export async function updateGeographicOptions(
     // do nothing
   } else {
     geoEl.value = availableGeographicUnits[0];
+    geoEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
   }
 }

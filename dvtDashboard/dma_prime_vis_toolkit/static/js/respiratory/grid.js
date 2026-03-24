@@ -1,11 +1,15 @@
-import {
-  getFeatureValue,
-  getAllValuesFromFeature,
-  getAllFeaturesValue,
-  drawStateHospitalizations,
-} from "/static/js/respiratory/script.js";
+import { drawStateHospitalizations } from "/static/js/respiratory/script.js";
 
-import { unknownColor, populationColorMap } from "/static/js/respiratory/utils/colors.js";
+import {
+  getCurDateValueFromFeature,
+  getAllValuesFromFeature,
+  getAllCurDateValuesFromFeatures,
+} from "/static/js/respiratory/utils/dataProcessing_utils.js";
+
+import {
+  unknownColor,
+  populationColorMap,
+} from "/static/js/respiratory/utils/colors.js";
 
 import { drawTooltip } from "/static/js/respiratory/tooltip.js";
 import { controlDependencyTestOnGridView } from "./utils/controls.js";
@@ -325,19 +329,12 @@ async function updateGrid(fetchData = true) {
       ])
       .clamp(true)
       .unknown(unknownColor);
-
-    // d3
-    //   .scaleThreshold()
-    //   .domain([-100, -50, 0, 50, 100, 500])
-    //   .range(d3.reverse(d3.schemeRdBu[8]).slice(1))
-    //   .unknown(unknownColor);
   } else {
     gridColor = d3
-      // .scaleQuantile()
       .scaleLinear()
       .domain(
         d3.extent(
-          getAllFeaturesValue(
+          getAllCurDateValuesFromFeatures(
             regionData.features,
             gridPopulationSelector.value,
             gridOutcomeVariableSelector.value,
@@ -394,7 +391,7 @@ async function updateGrid(fetchData = true) {
       countMax = d3.max([...data[e_p]["values"], countMax]);
     });
 
-    let value = getFeatureValue(
+    let value = getCurDateValueFromFeature(
       feature,
       gridPopulationSelector.value,
       gridOutcomeVariableSelector.value,
@@ -575,7 +572,7 @@ function sortGridItems() {
     case "value-high": // sort value high-low
       d3.selectAll("div.grid-container").sort((a, b) => {
         var aValue =
-          getFeatureValue(
+          getCurDateValueFromFeature(
             a,
             gridPopulationSelector.value,
             gridOutcomeVariableSelector.value,
@@ -583,7 +580,7 @@ function sortGridItems() {
             gridIncludeImputations.checked,
           ) || -1;
         var bValue =
-          getFeatureValue(
+          getCurDateValueFromFeature(
             b,
             gridPopulationSelector.value,
             gridOutcomeVariableSelector.value,
@@ -597,7 +594,7 @@ function sortGridItems() {
     case "value-low": // sort value low-high
       d3.selectAll("div.grid-container").sort((a, b) => {
         var aValue =
-          getFeatureValue(
+          getCurDateValueFromFeature(
             a,
             gridPopulationSelector.value,
             gridOutcomeVariableSelector.value,
@@ -605,7 +602,7 @@ function sortGridItems() {
             gridIncludeImputations.checked,
           ) || -1;
         var bValue =
-          getFeatureValue(
+          getCurDateValueFromFeature(
             b,
             gridPopulationSelector.value,
             gridOutcomeVariableSelector.value,
@@ -641,7 +638,7 @@ function sortGridItems() {
     default: // sort value high-low
       d3.selectAll("div.grid-container").sort((a, b) => {
         var aValue =
-          getFeatureValue(
+          getCurDateValueFromFeature(
             a,
             gridPopulationSelector.value,
             gridOutcomeVariableSelector.value,
@@ -649,7 +646,7 @@ function sortGridItems() {
             gridIncludeImputations.checked,
           ) || -1;
         var bValue =
-          getFeatureValue(
+          getCurDateValueFromFeature(
             b,
             gridPopulationSelector.value,
             gridOutcomeVariableSelector.value,

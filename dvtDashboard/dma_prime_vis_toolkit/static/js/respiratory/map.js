@@ -1,16 +1,19 @@
 import {
   getCenter,
-  getFeatureValue,
-  getAllFeaturesValue,
   drawStateHospitalizations,
 } from "/static/js/respiratory/script.js";
+
+import { getCurDateValueFromFeature } from "/static/js/respiratory/utils/dataProcessing_utils.js";
 
 import {
   unknownColor,
   populationColorMap,
 } from "/static/js/respiratory/utils/colors.js";
 
-import { drawTooltip } from "/static/js/respiratory/tooltip.js";
+import {
+  drawTooltip,
+  showSimpleGeoTooltip,
+} from "/static/js/respiratory/tooltip.js";
 
 import {
   facility_dataProcessing,
@@ -134,29 +137,7 @@ const getChoroplethLayer = (regionData) =>
       ],
     },
     onHover: (info) => {
-      const tooltip = document.getElementById("geo-tooltip");
-      console.log(info);
-      if (info.picked) {
-         const height = tooltip.offsetHeight;
-        tooltip.style.display = "block";
-        tooltip.style.left = info.x + "px";
-        tooltip.style.top = info.y - height + "px";
-        const properties = info.object.properties;
-
-        let val = getFeatureValue(
-          info.object,
-          mapPopulationSelector.value,
-          mapOutcomeVariableSelector.value,
-          mapTypeSwitch.value,
-          mapIncludeImputations.checked,
-        );
-
-        val = mapTypeSwitch.value === "percentDifference" ? val[2] : val;
-
-        tooltip.innerText = `${properties.id}: ${val.toFixed(2)}`;
-      } else {
-        tooltip.style.display = "none";
-      }
+      showSimpleGeoTooltip(info);
     },
   });
 
@@ -453,7 +434,7 @@ function getColor(feature) {
     const outcomeVariable = mapOutcomeVariableSelector.value;
     const imputations = mapIncludeImputations.checked;
 
-    const value = getFeatureValue(
+    const value = getCurDateValueFromFeature(
       feature,
       population,
       outcomeVariable,

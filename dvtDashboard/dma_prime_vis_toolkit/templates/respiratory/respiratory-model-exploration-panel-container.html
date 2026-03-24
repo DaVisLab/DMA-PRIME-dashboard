@@ -215,9 +215,10 @@ options %}
         item.classList.add(`${event.target.value}-id`, "location-id");
         item.textContent = location;
 
+        console.log(item.value);
         if (i == 0) {
-          document.getElementById("location-id-search").value =
-            toIdFriendly(location);
+          document.getElementById("location-id-search").value = location;
+          // toIdFriendly(location);
         }
         menu.appendChild(item);
       });
@@ -225,7 +226,6 @@ options %}
     input.dispatchEvent(new CustomEvent("sl-select"));
   });
 
-  // document.addEventListener("DOMContentLoaded", async () => {
   controlDependencyTestOnModelView();
   testDiseaseOutcomeDipendency();
 
@@ -238,13 +238,12 @@ options %}
     metadata.data_version,
   );
 
-  // geoEl.addEventListener("sl-change", (event) => {
-  //   updateOutcomeVariableOptions("exploration");
-  // });
-
   [popEl, geoEl, outEl, disEl].forEach((el) => {
     el.addEventListener("sl-change", (event) => {
       console.log(metadata);
+
+      controlDependencyTestOnModelView();
+      testDiseaseOutcomeDipendency();
 
       callModelExplorationReport(
         explorationDiseaseSelector.value,
@@ -254,8 +253,6 @@ options %}
         locationIdSearch.value,
         metadata.data_version,
       );
-      controlDependencyTestOnModelView();
-      testDiseaseOutcomeDipendency();
     });
   });
 
@@ -279,7 +276,7 @@ options %}
       customElements.whenDefined("sl-select"),
       customElements.whenDefined("sl-option"),
     ]);
-    
+
     updateGeographicOptions("exploration", outEl, disEl, geoEl, popEl);
     updatePopulationOptions("exploration", outEl, disEl, geoEl, popEl);
     updateOutcomeOptions("exploration", outEl, disEl, geoEl, popEl);

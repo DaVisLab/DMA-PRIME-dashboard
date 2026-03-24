@@ -1,11 +1,25 @@
+import {
+  unknownColor,
+  dataSourceColorMap,
+  populationColorMap,
+} from "/static/js/respiratory/utils/colors.js";
 
-import { unknownColor,  dataSourceColorMap, populationColorMap,
- } from "/static/js/respiratory/utils/colors.js";
+import {
+  getCurDateValueFromFeature,
+  getAllValuesFromFeature,
+} from "/static/js/respiratory/utils/dataProcessing_utils.js";
+
+import { popup, selectedItems } from "/static/js/respiratory/map.js";
 
 // visualization variables
 var formatInt = d3.format(".0f");
 var formatDate = d3.timeFormat("%b %d, %Y");
 var ttpHistoryWidthPercentage = 3 / 4;
+
+export function closePopupAndClearSelection() {
+  selectedItems.feature = undefined;
+  if (popup.isOpen()) popup.remove();
+}
 
 export function drawTooltip(
   d,
@@ -66,11 +80,6 @@ export function drawTooltip(
   // get dimensions
   var ttpHeight = ttpSVG.node().clientHeight;
   var ttpWidth = ttpSVG.node().clientWidth;
-
-  // to use later
-  ttpSVG.datum({ extraSources: extraSources });
-
-  // create titles/subtitles
   var outcomeVariableString = metadata["outcome_variables"][outcomeVariable];
 
   const diseaseVariable = mapDiseaseSelector.value;
@@ -156,7 +165,22 @@ export function drawTooltip(
   var ttpLegendGroup = ttpLegend
     .append("div")
     .attr("class", "tooltip-legend-group");
+  // initTooltip(
+  //   header,
+  //   footer,
+  //   geographicUnit,
+  //   identifier,
+  //   panelType,
+  //   outcomeVariableString,
+  //   diseaseVariableString,
+  //   data,
+  //   historicalDatesArray,
+  // );
 
+  // to use later
+  ttpSVG.datum({ extraSources: extraSources });
+
+  // create titles/subtitles
   Array("historical", "projected").forEach(function (e_p) {
     var ttpLegendGroupItem = ttpLegendGroup
       .append("div")
@@ -455,7 +479,7 @@ export function drawTooltip(
     allDates ? "all-dates" : "short-history"
   }`;
 
-  let clipPath = defs
+  defs
     .append("clipPath")
     .attr("id", clipPathId)
     .attr("clipPathUnits", "userSpaceOnUse")
@@ -466,6 +490,8 @@ export function drawTooltip(
     .attr("height", ttpHeight - ttpMargins.bottom - ttpMargins.top);
 
   if (panelType == "percentDifference") {
+    console.log(featureData);
+
     var percentDifferenceHistoricalValues = getAllValuesFromFeature(
       featureData,
       population,
@@ -481,6 +507,8 @@ export function drawTooltip(
       panelType,
       "projected",
     );
+
+    console.log(percentDifferenceProjectedValues);
 
     let pdMax = d3.max([
       ...percentDifferenceHistoricalValues,
@@ -528,7 +556,6 @@ export function drawTooltip(
   } else {
     xScaleHistorical
       .domain([
-        // d3.timeDay.offset(startShortHistory, -7),
         d3.timeDay.offset(historicalDatesArray[0], -7),
         shortHistoryDates[expectedShortHistoryDataPoints - 1],
       ])
@@ -645,6 +672,7 @@ export function drawTooltip(
   let lastHistoricalValueIndex = data.historical.values.findLastIndex(
     (d) => !isNaN(parseFloat(d)),
   );
+
   let projectedValues = data.projected.values;
 
   if (projectedValues.length) {
@@ -653,40 +681,57 @@ export function drawTooltip(
         d3.timeDay.offset(data.projected.start_date, -7),
       )
     ) {
-      // last historical date is week before projected start date
-      projectedValues.splice(
-        0,
-        0,
-        data.historical.values[lastHistoricalValueIndex],
-      );
+      const valueAppended =
+        panelType != "percentDifference"
+          ? data.historical.values[lastHistoricalValueIndex]
+          : ((data.historical.values[lastHistoricalValueIndex] -
+              data.historical.values[lastHistoricalValueIndex - 1]) /
+              data.historical.values[lastHistoricalValueIndex - 1]) *
+            100;
+
+      if (panelType == "percentDifference") {
+        percentDifferenceProjectedValues.splice(0, 0, valueAppended);
+      } else {
+        projectedValues.splice(0, 0, valueAppended);
+      }
     } else {
       projectedValues.splice(0, 0, projectedValues[0]);
     }
 
+    const values =
+      panelType == "percentDifference"
+        ? percentDifferenceProjectedValues
+        : projectedValues;
+
     let areaPathForPrediction = predictiveGroup
       .selectAll("path")
-      .data(projectedValues.slice(1))
+      .data(d3.range(values.length - 1))
       .enter()
       .append("path")
       .attr("class", "ttp-data-point")
-      .attr("clip-path", `url(#${clipPathId})`)
-      .attr("d", (_, i1) =>
-        d3
-          .area()
-          .x((_, i2) =>
-            xScale(
-              d3.timeDay.offset(data.projected.start_date, 7 * (i1 + i2 - 1)),
-            ),
-          )
-          .y0(panelType == "percentDifference" ? yScale2(0) : yScale(0))
-          .y1((d) =>
-            panelType == "percentDifference" ? yScale2(d) : yScale(d),
-          )
-          .defined((d) => d || d == 0)(
-          panelType == "percentDifference"
-            ? percentDifferenceProjectedValues.slice(i1, i1 + 2)
-            : projectedValues.slice(i1, i1 + 2),
-        ),
+      // .attr("clip-path", `url(#${clipPathId})`)
+      .attr(
+        "d",
+        (_, i1) =>
+          d3
+            .area()
+            .x((_, i2) => {
+              return xScale(
+                d3.timeDay.offset(data.projected.start_date, 7 * (i1 + i2)),
+              );
+            })
+            .y0(panelType == "percentDifference" ? yScale2(0) : yScale(0))
+            .y1((d) =>
+              panelType == "percentDifference" ? yScale2(d) : yScale(d),
+            )
+            .defined((d) => d != null && !Number.isNaN(d))(
+            values.slice(i1, i1 + 2),
+          ),
+        //   .defined((d) => d || d == 0)(
+        //   panelType == "percentDifference"
+        //     ? percentDifferenceProjectedValues.slice(i1, i1 + 2)
+        //     : projectedValues.slice(i1, i1 + 2),
+        // ),
       )
       .attr("fill", populationColorMap[population]["projected"])
       .on("mouseover", function (event, d) {
@@ -714,7 +759,8 @@ export function drawTooltip(
 
       predictiveGroup
         .selectAll("path")
-        .data(projectedValues.slice(1)) // one segment per consecutive pair
+        .data(d3.range(values.length - 1))
+        // .data(projectedValues.slice(1)) // one segment per consecutive pair
         .enter()
         .append("path")
         .attr("class", "ttp-data-point")
@@ -730,10 +776,8 @@ export function drawTooltip(
             .y((d) =>
               panelType == "percentDifference" ? yScale2(d) : yScale(d),
             )
-            .defined((d) => d || d === 0)(
-            panelType == "percentDifference"
-              ? percentDifferenceProjectedValues.slice(i1, i1 + 2)
-              : projectedValues.slice(i1, i1 + 2),
+            .defined((d) => d != null && !Number.isNaN(d))(
+            values.slice(i1, i1 + 2),
           ),
         )
         .attr("fill", "none")
@@ -910,9 +954,21 @@ export function drawTooltip(
         d3
           .line()
           .defined((d) => d || d == 0)
-          .x((_, i) => xScale(d3.timeDay.offset(predictionDates[i], -7)))
+          .x((_, i) =>
+            xScale(
+              d3.timeDay.offset(
+                [
+                  historicalDatesArray[historicalDatesArray.length - 1],
+                  ...predictionDates,
+                ][i],
+              ),
+            ),
+          )
           .y((d, i) => yScale(d))
-          .curve(d3.curveMonotoneX)(data.projected.values),
+          .curve(d3.curveMonotoneX)([
+          data.historical.values[data.historical.values.length - 1],
+          ...data.projected.values,
+        ]),
       )
       .attr("class", "projected-path-percent-diff-type")
       .attr("stroke", "#666666")
@@ -947,15 +1003,6 @@ export function drawTooltip(
         .axisBottom(xScaleHistorical)
         .tickSize(4)
         .tickFormat((d, i) => {
-          // if (i > 0) {
-          //   if (
-          //     historicalDatesArray[i].getMonth() ==
-          //     historicalDatesArray[i - 1].getMonth()
-          //   ) {
-          //     return "";
-          //   }
-          // }
-
           return xScaleHistorical.range()[1] - xScaleHistorical(d) > 2 * em
             ? d3.timeFormat("%b %Y")(d)
             : "";
@@ -1097,8 +1144,6 @@ function validateFeatureDataLength(featureData, targetLength, offset = 0) {
   return featureData;
 }
 
-
-
 function createDataPointTooltip(
   event,
   dataPointTTP,
@@ -1172,7 +1217,6 @@ function createDataPointTooltip(
     .attr("y2", ttpHeight - ttpMargins.bottom);
 }
 
-
 async function expandPopup(
   d,
   largeTtp,
@@ -1219,4 +1263,122 @@ async function expandPopup(
     [],
     data,
   );
+}
+
+function initTooltip(
+  header,
+  footer,
+  geographicUnit,
+  identifier,
+  panelType,
+  outcomeVariableString,
+  diseaseVariableString,
+  data,
+  historicalDatesArray,
+) {
+  var regionInfo = header.select(".tooltip-region-info");
+  regionInfo.node().innerHTML = "";
+
+  if (geographicUnit != "state") {
+    regionInfo
+      .append("p")
+      .attr("class", "ttp-location-name")
+      .html(`${metadata.region_sizes[geographicUnit]}: ${identifier}`);
+  } else {
+    regionInfo
+      .append("p")
+      .attr("class", "ttp-location-name")
+      .html("South Carolina");
+  }
+
+  if (geographicUnit == "zcta") {
+    // TODO: Make county names display correctly (e.g. McCormick instead of Mccormick)
+    regionInfo
+      .append("p")
+      .html(
+        `County: ${
+          featureData.county[0].toUpperCase() + featureData.county.substring(1)
+        }`,
+      );
+  }
+
+  if (geographicUnit == "facility") {
+    regionInfo.style("flex-direction", "column");
+    regionInfo.style("align-items", "center");
+    regionInfo.select(".ttp-location-name").html(
+      `${featureData.display_name} (${featureData.facility_type})`,
+      // `${metadata.region_sizes[geographicUnit]}: ${featureData.display_name} (${featureData.facility_type})`,
+    );
+
+    // regionInfo.append("br")
+    regionInfo.append("p").html(`Health System: ${featureData.system}`);
+  }
+
+  var dataInfo = header.select(".tooltip-data-info");
+  dataInfo.node().innerHTML = "";
+
+  if (panelType == "rate") {
+    dataInfo
+      .append("p")
+      .html(
+        `Rate of ${outcomeVariableString} (per 1000 people) - ${diseaseVariableString}`,
+      );
+  } else {
+    dataInfo
+      .append("p")
+      .html(`Count of ${outcomeVariableString} - ${diseaseVariableString}`);
+  }
+
+  if (data.historical.values.length) {
+    var tooltipString = `${
+      data["historical"].reported ? "Reported" : ""
+    } ${outcomeVariableString} from ${formatDate(
+      historicalDatesArray[0],
+    )} to ${formatDate(historicalDatesArray.at(-1))}`;
+    dataInfo.append("p").html(tooltipString);
+  }
+
+  if (data.projected.values.length) {
+    let thisProjectedEndDate = d3.timeDay.offset(
+      data.projected.start_date,
+      7 * (data.projected.values.length - 1),
+    );
+    var tooltipString = `Projected ${outcomeVariableString} from ${formatDate(
+      d3.timeDay.offset(data.projected.start_date, -6),
+    )} to ${formatDate(thisProjectedEndDate)}`;
+    dataInfo.append("p").html(tooltipString);
+  }
+
+  // add buttons and legends
+  var ttpLegend = footer.select(".tooltip-legend").html("");
+  var ttpOptions = footer.select(".tooltip-options").html("");
+
+  var ttpLegendGroup = ttpLegend
+    .append("div")
+    .attr("class", "tooltip-legend-group");
+}
+
+export function showSimpleGeoTooltip(info) {
+  const tooltip = document.getElementById("geo-tooltip");
+  if (info.picked) {
+    const height = tooltip.offsetHeight;
+    tooltip.style.display = "block";
+    tooltip.style.left = info.x + "px";
+    tooltip.style.top = info.y - height + "px";
+    const properties = info.object.properties;
+
+    let val = getCurDateValueFromFeature(
+      info.object,
+      mapPopulationSelector.value,
+      mapOutcomeVariableSelector.value,
+      mapTypeSwitch.value,
+      mapIncludeImputations.checked,
+    );
+
+    val = mapTypeSwitch.value === "percentDifference" ? val[2] : val;
+
+    tooltip.innerText = `${properties.id}: ${val.toFixed(2)} \n ${currentDate.toLocaleDateString()}`;
+  } else {
+    tooltip.style.display = "none";
+  }
 }

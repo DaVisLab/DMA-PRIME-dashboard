@@ -4,7 +4,10 @@ import {
   drawLargeStateHospitalizations,
 } from "/static/js/respiratory/script.js";
 
-import { drawTooltip } from "/static/js/respiratory/tooltip.js";
+import {
+  drawTooltip,
+  closePopupAndClearSelection,
+} from "/static/js/respiratory/tooltip.js";
 
 import {
   map,
@@ -20,11 +23,6 @@ import {
 
 const MAP_CENTER = [-81, 33.65];
 const MAP_ZOOM = 7;
-
-function closePopupAndClearSelection() {
-  selectedItems.feature = undefined;
-  if (popup.isOpen()) popup.remove();
-}
 
 function resetMapView() {
   map.flyTo({
@@ -120,8 +118,7 @@ export function showMapTooltip(dataObject) {
   const mapTooltipHeight = mapTooltipWidth * 0.65;
 
   if (dataObject == null) {
-    selectedItems.feature = undefined;
-    popup.remove();
+    closePopupAndClearSelection();
     return;
   }
 
@@ -232,19 +229,11 @@ map.on("click", (e) => {
 
     showMapTooltip(dataObject);
   } catch (e) {
-    popup.remove()
-    selectedItems.feature = undefined;
+    console.log(e);
+    closePopupAndClearSelection();
     dataVersion++;
     redraw(false, false, true);
   }
-});
-
-map.on("mousemove", "respiratory_choropleth", (e) => {
-  console.log("fff");
-});
-
-map.on("mouseleave", "respiratory_choropleth", (e) => {
-  console.log("ddd");
 });
 
 mapResetButton.addEventListener("click", () => {
@@ -285,7 +274,17 @@ mapDiseaseSelector.addEventListener("sl-change", async () => {
   redraw(true, true);
 });
 
-facilityUnitSelector.addEventListener("change", async () => {
+mapFacilityUnitSelector.addEventListener("change", async () => {
+  const facilityUnitSelected = document.querySelector(
+    'input[name="facilityOptionGroup"]:checked',
+  )?.value;
+
+  if (facilityUnitSelected == "individual-unit") {
+    document.getElementById("map-shape-legend").style.display = "";
+  } else {
+    document.getElementById("map-shape-legend").style.display = "none";
+  }
+
   syncHospitalIconToggle();
   dataVersion++;
   redraw(true, true);

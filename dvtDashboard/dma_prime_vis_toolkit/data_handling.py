@@ -125,7 +125,7 @@ def get_respiratory_model(
 
     # print(outcome_variable)
     outcome_variable_crosswalk = {
-        # 'all_encounters': 'Weekly_Encounters',
+        'all_encounters': 'Weekly_Encounters',
         "inpatient_hospitalizations": "Weekly_Inpatient_Hospitalizations",
         "emergency_department_visits": "Weekly_ED_Visits",
         "positive_tests": "Weekly_Positive_Tests",

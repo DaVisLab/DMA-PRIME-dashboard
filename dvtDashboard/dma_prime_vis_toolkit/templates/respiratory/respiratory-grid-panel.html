@@ -48,13 +48,50 @@ options %}
     size="small"
   >
     <p slot="label">Geographic unit</p>
-    {% for region in metadata['available_models']['influenza'].keys()
-    %}
+    {% for region in metadata['available_models']['influenza'].keys() %}
     <sl-option class="grid-geographic-unit-option" value="{{ region }}"
       >{{ metadata['region_sizes'][region] }}</sl-option
     >
     {% endfor %}
   </sl-select>
+
+  <!-- <div
+    id="grid-facility-option-container"
+    style="font-size: 0.9rem; display: none"
+  >    <div class="form-check form-check-reverse">
+      <input
+        class="form-check-input"
+        type="radio"
+        name="facilityOptionGroup"
+        id="facility-option-individual-unit"
+        value="individual-unit"
+        checked
+      />
+      <label class="form-check-label" for="option1"> Individual Unit </label>
+    </div>
+
+    <div class="form-check form-check-reverse">
+      <input
+        class="form-check-input"
+        type="radio"
+        name="facilityOptionGroup"
+        id="facility-option-prisma"
+        value="prisma"
+      />
+      <label class="form-check-label" for="PRISMA"> Prisma </label>
+    </div>
+
+    <div class="form-check form-check-reverse">
+      <input
+        class="form-check-input"
+        type="radio"
+        name="facilityOptionGroup"
+        id="facility-option-musc"
+        value="musc"
+      />
+      <label class="form-check-label" for="MUSC"> MUSC </label>
+    </div>
+  </div> -->
 
   <!-- population -->
   <sl-select
@@ -89,8 +126,7 @@ options %}
   >
     <p slot="label">Select outcome variable</p>
     {% for outcome in
-    metadata['available_models']['influenza']['region'].values() |
-    first %}
+    metadata['available_models']['influenza']['region'].values() | first %}
     <sl-tooltip
       class="grid-outcome-tooltip"
       content="{{ metadata['outcome_variables_tooltips'][outcome] }}"
@@ -225,6 +261,10 @@ options %}
   gridGeographicUnitSelector = document.getElementById(
     "grid-geographic-unit-selector",
   );
+  gridFacilityUnitSelector = document.getElementById(
+    "grid-facility-option-container",
+  );
+
   gridPopulationSelector = document.getElementById("grid-population-selector");
   gridOutcomeVariableSelector = document.getElementById(
     "grid-outcome-variable-selector",
@@ -233,7 +273,6 @@ options %}
 
   var gridSort = document.getElementById("grid-sort");
   var gridTextFilter = document.getElementById("grid-text-filter");
-
 
   // summary elements
   var gridSummary = document.getElementById("grid-summary");
@@ -273,7 +312,7 @@ options %}
   gridPopulation = undefined;
   gridOutcomeVariable = undefined;
 
-  console.log(metadata['outcome_variables'])
+  console.log(metadata["outcome_variables"]);
 
   // Get scrollbar width - source: https://stackoverflow.com/questions/28360978/how-can-i-get-browser-scrollbar-width
   var scrollDiv = document.createElement("div");

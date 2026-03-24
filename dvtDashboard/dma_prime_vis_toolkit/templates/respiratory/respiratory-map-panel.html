@@ -65,7 +65,10 @@ options %}
     {% endfor %}
   </sl-select>
 
-  <div id="facility-option-container" style="font-size: 0.9rem; display: none">
+  <div
+    id="map-facility-option-container"
+    style="font-size: 0.9rem; display: none"
+  >
     <!-- Vertical Radio Group -->
     <div class="form-check form-check-reverse">
       <input
@@ -76,7 +79,9 @@ options %}
         value="individual-unit"
         checked
       />
-      <label class="form-check-label" for="option1"> Individual Unit </label>
+      <label class="form-check-label" for="facility-option-individual-unit">
+        Individual Unit
+      </label>
     </div>
 
     <div class="form-check form-check-reverse">
@@ -87,7 +92,9 @@ options %}
         id="facility-option-prisma"
         value="prisma"
       />
-      <label class="form-check-label" for="PRISMA"> Prisma </label>
+      <label class="form-check-label" for="facility-option-prisma">
+        Prisma
+      </label>
     </div>
 
     <div class="form-check form-check-reverse">
@@ -98,7 +105,7 @@ options %}
         id="facility-option-musc"
         value="musc"
       />
-      <label class="form-check-label" for="MUSC"> MUSC </label>
+      <label class="form-check-label" for="facility-option-musc"> MUSC </label>
     </div>
   </div>
 
@@ -458,7 +465,9 @@ options %}
     "map-geographic-unit-selector",
   );
 
-  facilityUnitSelector = document.getElementById("facility-option-container");
+  mapFacilityUnitSelector = document.getElementById(
+    "map-facility-option-container",
+  );
   mapPopulationSelector = document.getElementById("map-population-selector");
   mapOutcomeVariableSelector = document.getElementById(
     "map-outcome-variable-selector",

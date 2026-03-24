@@ -25,21 +25,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 function _controlReset(popEl, geoEl, outEl, disEl) {
   disEl.querySelectorAll("sl-option").forEach((opt) => {
-    if (opt.value == "respiratory_diseases") {
-      opt.style.display = "none";
-    } else {
-      opt.style.display = "";
-    }
+    // if (opt.value == "respiratory_diseases") {
+    //   opt.style.display = "none";
+    // } else {
+    //   opt.style.display = "";
+    // }
+    opt.style.display = "";
   });
 
   popEl.querySelectorAll("sl-option").forEach((opt) => {
     opt.style.display = "";
     // console.log(opt.value);
-    if (opt.value == "heath_system") {
-      opt.style.display = "none";
-    } else {
-      opt.style.display = "";
-    }
+    // if (opt.value == "heath_system") {
+    //   opt.style.display = "none";
+    // } else {
+    //   opt.style.display = "";
+    // }
   });
 
   geoEl.querySelectorAll("sl-option").forEach((opt) => {
@@ -54,9 +55,14 @@ function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
   _controlReset(popEl, geoEl, outEl, disEl);
 
   if (geoEl.value == "facility") {
-    document.getElementById("facility-option-container").style.display = "";
+    document.getElementById("map-facility-option-container").style.display = "";
+    // document.getElementById("grid-facility-option-container").style.display =
+    //   "";
   } else {
-    document.getElementById("facility-option-container").style.display = "none";
+    document.getElementById("map-facility-option-container").style.display =
+      "none";
+    // document.getElementById("grid-facility-option-container").style.display =
+    //   "none";
   }
 
   if (disEl.value == "respiratory_diseases") {
@@ -66,17 +72,16 @@ function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
       geoEl.dispatchEvent(
         new CustomEvent("sl-change", {
           bubbles: true,
-          // composed: true,
-          // detail: { value: geoEl.value },
         }),
       );
       return;
     }
 
-    // if (popEl.value !== "health_system") {
-    //   popEl.value = "health_system";
-    //   popEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
-    // }
+    if (popEl.value !== "health_system") {
+      popEl.value = "health_system";
+      popEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+      return;
+    }
 
     // 2) geographic unit: only SC
     geoEl.querySelectorAll("sl-option").forEach((opt) => {
