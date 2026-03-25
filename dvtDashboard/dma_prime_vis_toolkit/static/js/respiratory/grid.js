@@ -48,24 +48,34 @@ var regionData = await d3.json(
 );
 
 await updateGrid(true);
-// drawStateHospitalizations(
-//   gridDiseaseSelector.value,
-//   gridTypeSwitch.value,
-//   gridStateHospitalizationsSvg,
-//   gridStateHospitalizationsSubtitle,
-// );
-
-// set up grids for each location in selected geographic unit
-
-// location div - attach feature data here
-// sl-tooltip
-// graph (svg)
-// popup (div slot=content)
 
 async function updateData() {
   regionData = await d3.json(
     `/data/respiratory/${gridGeographicUnitSelector.value}/${gridDiseaseSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random() * 9999999999)}`,
   );
+
+  if (gridGeographicUnitSelector.value == "facility") {
+    const facilityUnitSelected = document.querySelector(
+      'input[name="grid-facilityOptionGroup"]:checked',
+    )?.value;
+
+    if (facilityUnitSelected == "individual-unit") {
+      regionData.features = regionData.features.filter(
+        (item) =>
+          item.properties.id.toLowerCase() != "musc" &&
+          item.properties.id.toLowerCase() != "prisma",
+      );
+    } else {
+      regionData.features = regionData.features.filter(
+        (item) =>
+          item.properties.id.toLowerCase() ==
+          facilityUnitSelected.toLowerCase(),
+      );
+    }
+  }
+
+  // regionData
+
   gridContainer.innerHTML = "";
 
   var gridContainerD3 = d3.select(gridContainer);
@@ -753,6 +763,7 @@ async function updateGridOutcomeVariableOptions() {
     metadata.available_models[gridDiseaseSelector.value][
       gridGeographicUnitSelector.value
     ][gridPopulationSelector.value];
+
   d3.select(gridOutcomeVariableSelector)
     .selectAll(".grid-outcome-tooltip")
     .data(availableOutcomeVariables)

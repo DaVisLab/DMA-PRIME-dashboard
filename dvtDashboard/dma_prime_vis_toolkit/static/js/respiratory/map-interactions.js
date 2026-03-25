@@ -276,8 +276,9 @@ mapDiseaseSelector.addEventListener("sl-change", async () => {
 
 mapFacilityUnitSelector.addEventListener("change", async () => {
   const facilityUnitSelected = document.querySelector(
-    'input[name="facilityOptionGroup"]:checked',
+    'input[name="map-facilityOptionGroup"]:checked',
   )?.value;
+
 
   if (facilityUnitSelected == "individual-unit") {
     document.getElementById("map-shape-legend").style.display = "";

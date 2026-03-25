@@ -139,17 +139,3 @@ mapSecondarySidebarClose.addEventListener("sl-focus", function(event) {
     zctaDiseaseInfoPanel.removeAttribute("active")
     redraw()
 })
-
-// window.removeEventListener("keydown", swapTheme)
-window.addEventListener("keydown", (event) => {
-    if (event.key == "m" && document.activeElement.id !== "map-zcta-county-search") {
-        if (Array.from(document.documentElement.classList).includes('sl-theme-light')) {
-            document.documentElement.classList.remove('sl-theme-light')
-            document.documentElement.classList.add('sl-theme-dark')
-        } else {
-            document.documentElement.classList.remove('sl-theme-dark')
-            document.documentElement.classList.add('sl-theme-light')
-        }
-        changed = true
-    }
-});

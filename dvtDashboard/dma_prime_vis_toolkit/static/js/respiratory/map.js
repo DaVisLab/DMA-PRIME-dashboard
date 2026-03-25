@@ -255,7 +255,7 @@ async function redraw(
 
     if (mapGeographicUnitSelector.value === "facility") {
       const facilityUnitSelected = document.querySelector(
-        'input[name="facilityOptionGroup"]:checked',
+        'input[name="map-facilityOptionGroup"]:checked',
       )?.value;
 
       regionData.features = facility_dataProcessing(
@@ -285,7 +285,7 @@ async function redraw(
     layers.push(getChoroplethLayer(regionData));
   } else if (
     mapGeographicUnitSelector.value === "facility" &&
-    document.querySelector('input[name="facilityOptionGroup"]:checked')
+    document.querySelector('input[name="map-facilityOptionGroup"]:checked')
       ?.value !== "individual-unit"
   ) {
     layers.push(getChoroplethLayer(regionData));
@@ -863,6 +863,9 @@ async function updateMapGeographicUnitOptions() {
 }
 
 async function updateMapPopulationOptions() {
+  // todo
+  // updatePopulationOptions
+
   d3.selectAll(".map-population-tooltip").remove();
 
   let availablePopulations;

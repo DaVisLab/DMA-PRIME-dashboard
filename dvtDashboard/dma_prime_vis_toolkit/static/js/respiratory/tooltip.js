@@ -114,12 +114,19 @@ export function drawTooltip(
   if (geographicUnit == "facility") {
     regionInfo.style("flex-direction", "column");
     regionInfo.style("align-items", "center");
-    regionInfo.select(".ttp-location-name").html(
-      `${featureData.display_name} (${featureData.facility_type})`,
-      // `${metadata.region_sizes[geographicUnit]}: ${featureData.display_name} (${featureData.facility_type})`,
-    );
 
-    // regionInfo.append("br")
+    const facilityUnitSelected = document.querySelector(
+      'input[name="map-facilityOptionGroup"]:checked',
+    )?.value;
+
+    if (facilityUnitSelected == "individual-unit") {
+      regionInfo
+        .select(".ttp-location-name")
+        .html(`${featureData.display_name} (${featureData.facility_type})`);
+    } else {
+      regionInfo.select(".ttp-location-name").html("");
+    }
+
     regionInfo.append("p").html(`Health System: ${featureData.system}`);
   }
 

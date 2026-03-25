@@ -1,3 +1,5 @@
+import { getAllFacilityOptionContainers } from "./controlSelector.js";
+
 await Promise.allSettled([
   customElements.whenDefined("sl-select"),
   customElements.whenDefined("sl-option"),
@@ -53,16 +55,16 @@ function _controlReset(popEl, geoEl, outEl, disEl) {
 
 function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
   _controlReset(popEl, geoEl, outEl, disEl);
+  const facilityOptionContainers = getAllFacilityOptionContainers();
 
   if (geoEl.value == "facility") {
-    document.getElementById("map-facility-option-container").style.display = "";
-    // document.getElementById("grid-facility-option-container").style.display =
-    //   "";
+    Array.from(facilityOptionContainers).forEach(
+      (el) => (el.style.display = ""),
+    );
   } else {
-    document.getElementById("map-facility-option-container").style.display =
-      "none";
-    // document.getElementById("grid-facility-option-container").style.display =
-    //   "none";
+    Array.from(facilityOptionContainers).forEach(
+      (el) => (el.style.display = "none"),
+    );
   }
 
   if (disEl.value == "respiratory_diseases") {

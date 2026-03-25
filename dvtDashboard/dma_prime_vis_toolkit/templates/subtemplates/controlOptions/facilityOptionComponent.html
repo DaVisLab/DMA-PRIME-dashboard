@@ -1,0 +1,49 @@
+<div
+  id="{{ prefix }}-facility-option-container"
+  data-prefix="{{ prefix }}"
+  class="facility-option-container"
+  style="font-size: 0.9rem; display: none"
+>
+  <div class="form-check form-check-reverse">
+    <input
+      class="form-check-input"
+      type="radio"
+      name="{{ prefix }}-facilityOptionGroup"
+      id="{{ prefix }}-facility-option-individual-unit"
+      value="individual-unit"
+      checked
+    />
+    <label
+      class="form-check-label"
+      for="{{ prefix }}-facility-option-individual-unit"
+    >
+      Individual Unit
+    </label>
+  </div>
+
+  <div class="form-check form-check-reverse">
+    <input
+      class="form-check-input"
+      type="radio"
+      name="{{ prefix }}-facilityOptionGroup"
+      id="{{ prefix }}-facility-option-prisma"
+      value="prisma"
+    />
+    <label class="form-check-label" for="{{ prefix }}-facility-option-prisma">
+      Prisma
+    </label>
+  </div>
+
+  <div class="form-check form-check-reverse">
+    <input
+      class="form-check-input"
+      type="radio"
+      name="{{ prefix }}-facilityOptionGroup"
+      id="{{ prefix }}-facility-option-musc"
+      value="musc"
+    />
+    <label class="form-check-label" for="{{ prefix }}-facility-option-musc">
+      MUSC
+    </label>
+  </div>
+</div>

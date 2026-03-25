@@ -1,5 +1,6 @@
 {% set min_width = "350px" %} {% extends "subtemplates/panel.html" %} {% block
 options %}
+
 <div id="map-options" class="sidebar-container">
   <!-- reset map button (zoom & zcta selection) -->
   <sl-button
@@ -65,49 +66,8 @@ options %}
     {% endfor %}
   </sl-select>
 
-  <div
-    id="map-facility-option-container"
-    style="font-size: 0.9rem; display: none"
-  >
-    <!-- Vertical Radio Group -->
-    <div class="form-check form-check-reverse">
-      <input
-        class="form-check-input"
-        type="radio"
-        name="facilityOptionGroup"
-        id="facility-option-individual-unit"
-        value="individual-unit"
-        checked
-      />
-      <label class="form-check-label" for="facility-option-individual-unit">
-        Individual Unit
-      </label>
-    </div>
-
-    <div class="form-check form-check-reverse">
-      <input
-        class="form-check-input"
-        type="radio"
-        name="facilityOptionGroup"
-        id="facility-option-prisma"
-        value="prisma"
-      />
-      <label class="form-check-label" for="facility-option-prisma">
-        Prisma
-      </label>
-    </div>
-
-    <div class="form-check form-check-reverse">
-      <input
-        class="form-check-input"
-        type="radio"
-        name="facilityOptionGroup"
-        id="facility-option-musc"
-        value="musc"
-      />
-      <label class="form-check-label" for="facility-option-musc"> MUSC </label>
-    </div>
-  </div>
+  {% with prefix='map' %} {% include
+  'subtemplates/controlOptions/facilityOptionComponent.html' %} {% endwith %}
 
   <!-- population -->
   <sl-select

@@ -25,43 +25,33 @@ async function getSpatialData() {
 
   let regionData = await d3.json(
     `/data/respiratory/${mapSpatialResoultion}/${mapDiseaseSelected}?data_version=current&${parseInt(
-      Math.random() * 9999999999
-    )}`
+      Math.random() * 9999999999,
+    )}`,
   );
 
-  console.log(regionData);
-  // let imputedDataAvailable =regionData.features.filter(d=>{
-  //   const data = d.properties.data;
+  if (mapSpatialResoultion == "facility") {
+    const facilityUnitSelected = document.querySelector(
+      'input[name="map-facilityOptionGroup"]:checked',
+    )?.value;
 
-  //   const generalPopulationData = data["general_population"] || {};
-  //   const healthSystyemData = data["health_system"] || {};
-
-  //   let hasImputed = false;
-
-  //   if(Object.keys(generalPopulationData).length>0)
-  //     Object.keys(generalPopulationData).forEach((outcomeVar)=>{
-  //       const outcomeData = generalPopulationData[outcomeVar];
-  //       if (outcomeData.historical.imputed || outcomeData.projected.imputed) {
-  //         hasImputed = true;
-  //       }
-  //     })
-
-  //   if(Object.keys(healthSystyemData).length > 0 )
-  //     Object.keys(healthSystyemData).forEach((outcomeVar)=>{
-  //       const outcomeData = generalPopulationData[outcomeVar];
-  //       if (outcomeData.historical.imputed || outcomeData.projected.imputed) {
-  //         hasImputed = true;
-  //       }
-  //     })
-
-  //   return hasImputed;
-  // })
-
-  // console.log(imputedDataAvailable)
+    if (facilityUnitSelected == "individual-unit") {
+      regionData.features = regionData.features.filter(
+        (item) =>
+          item.properties.id.toLowerCase() != "musc" &&
+          item.properties.id.toLowerCase() != "prisma",
+      );
+    } else {
+      regionData.features = regionData.features.filter(
+        (item) =>
+          item.properties.id.toLowerCase() ==
+          facilityUnitSelected.toLowerCase(),
+      );
+    }
+  }
 
   let valueTypeSwitch = document.getElementById("map-type-switch").value;
   let allowImputations = document.getElementById(
-    "map-include-imputations"
+    "map-include-imputations",
   ).checked;
 
   function getValueOfInterest(valueType, featureProperties, allowImputations) {
@@ -104,8 +94,6 @@ async function getSpatialData() {
     return transformed;
   }
 
-  // console.log(regionData);
-
   return regionData.features.map((d) => {
     let returnValue = {
       name: d.properties.NAME,
@@ -143,7 +131,7 @@ async function getSpatialData() {
     returnValue.data = getValueOfInterest(
       valueTypeSwitch,
       d.properties.data[mapDataSourceSelector][mapOutcomeSelector],
-      allowImputations
+      allowImputations,
     );
 
     return returnValue;
@@ -280,7 +268,7 @@ function drawingSmallMultipleUnit(svg, data) {
 
 function drawingSmallMultiples(dataBySpace) {
   const svgContainer = document.getElementById(
-    "respiratory-smallMultiples-container"
+    "respiratory-smallMultiples-container",
   );
 
   svgContainer.innerHTML = "";
@@ -354,6 +342,11 @@ function callInitSmallMultipleView() {
       initSmallMultipleView();
       controlDependencyTest();
     });
+  });
+
+  mapFacilityUnitSelector.addEventListener("change", (event) => {
+    initSmallMultipleView();
+    controlDependencyTest();
   });
 
   document
