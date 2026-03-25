@@ -196,27 +196,6 @@ aggregatedDiseaseHistoryResizer.addEventListener("sl-resize", function() {
     drawAggregation()
 })
 
-// window.addEventListener("keydown", (event) => {
-//     if (event.key == "m") {
-//         function waitForChange() {
-//             if(changed != true) {
-//                 window.setTimeout(waitForChange, 10);
-//             } else {
-//                 styleSheet.deleteRule(0)
-//                 styleSheet.insertRule(`
-//                     .maplibregl-popup-content {
-//                         /* tooltip's containing div */
-//                         background-color: red;
-//                     }`
-//                     // background-color: hsla(${getComputedStyle(document.head).getPropertyValue("--sl-color-neutral-0").replace("hsl(", "").replace(")", "")}, 0.925);
-//                     ,0)
-//                 changed = false
-//             }
-//         }
-//         waitForChange()
-//     }
-// });
-
 aggregatedDiseaseHistory.addEventListener("click", () => {
     aggregatedDiseaseHistoryLarge.show()
 })
