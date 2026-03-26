@@ -190,10 +190,24 @@ options %}
     return str.replace(/\s+/g, "-");
   }
 
+  function titleCase(str) {
+    // Convert the string to lowercase to ensure consistent capitalization, then split into words
+    str = str.toLowerCase().split(" ");
+
+    // Iterate over each word and capitalize the first letter
+    for (var i = 0; i < str.length; i++) {
+      str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
+    }
+
+    // Join the words back into a single string with spaces
+    return str.join(" ");
+  }
+
   geoEl.addEventListener("sl-change", (event) => {
     const locations = metadata[event.target.value].sort();
     const menu = document.getElementById("location-menu");
 
+    console.log(metadata[event.target.value])
     menu.innerHTML = "";
 
     if (event.target.value == "state") {
@@ -211,13 +225,15 @@ options %}
       locations.forEach((location, i) => {
         const item = document.createElement("sl-menu-item");
 
-        item.value = location;
+        console.log(metadata[event.target.value]);
+
+        item.value = titleCase(location);
         item.classList.add(`${event.target.value}-id`, "location-id");
-        item.textContent = location;
+        item.textContent = titleCase(location);
 
         console.log(item.value);
         if (i == 0) {
-          document.getElementById("location-id-search").value = location;
+          document.getElementById("location-id-search").value = titleCase(location);
           // toIdFriendly(location);
         }
         menu.appendChild(item);
