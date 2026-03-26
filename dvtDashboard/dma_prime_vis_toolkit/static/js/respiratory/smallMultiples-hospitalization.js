@@ -24,7 +24,7 @@ async function getSpatialData() {
   const mapOutcomeSelector = mapOutcomeVariableSelector.value;
 
   let regionData = await d3.json(
-    `/data/respiratory/${mapSpatialResoultion}/${mapDiseaseSelected}?data_version=current&${parseInt(
+    `/data/respiratory/${mapSpatialResoultion}/${mapDiseaseSelected}?data_version=${metadata.data_version}&${parseInt(
       Math.random() * 9999999999,
     )}`,
   );
@@ -60,6 +60,7 @@ async function getSpatialData() {
       return null;
     }
 
+    // console.log(featureProperties)
     let historicalVals = featureProperties.historical.values;
     let projectedVals = featureProperties.projected.values;
     let vals = historicalVals.concat(projectedVals);
@@ -128,11 +129,17 @@ async function getSpatialData() {
       // .toLowerCase()
       .replaceAll("-", " ")
       .replaceAll(" ", "_");
-    returnValue.data = getValueOfInterest(
-      valueTypeSwitch,
-      d.properties.data[mapDataSourceSelector][mapOutcomeSelector],
-      allowImputations,
-    );
+
+    try {
+      returnValue.data = getValueOfInterest(
+        valueTypeSwitch,
+        d.properties.data[mapDataSourceSelector][mapOutcomeSelector],
+        allowImputations,
+      );
+    } catch (e) {
+      console.log(e);
+      returnValue.data = [];
+    }
 
     return returnValue;
   });
@@ -157,7 +164,6 @@ function trendStrict(arr) {
 let isSmallMultipleClicked = false;
 
 function drawingSmallMultipleUnit(svg, data) {
-  // console.log(data);
   svg
     .attr("id", `small-multiple-${data.id}`)
     .attr("class", `small-multiple-unit small-multiple-item-${data.id}`)
@@ -339,14 +345,14 @@ function callInitSmallMultipleView() {
     mapIncludeImputations,
   ].forEach((el) => {
     el.addEventListener("sl-change", (event) => {
-      initSmallMultipleView();
       controlDependencyTest();
+      initSmallMultipleView();
     });
   });
 
   mapFacilityUnitSelector.addEventListener("change", (event) => {
-    initSmallMultipleView();
     controlDependencyTest();
+    initSmallMultipleView();
   });
 
   document

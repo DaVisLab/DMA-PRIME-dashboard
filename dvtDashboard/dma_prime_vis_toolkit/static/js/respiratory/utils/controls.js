@@ -114,8 +114,10 @@ function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
     if (popEl.value !== "general_population") {
       popEl.value = "general_population";
       popEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+      return
     }
 
+    console.log(geoEl.value)
     // 2) geographic unit: only SC
     geoEl.querySelectorAll("sl-option").forEach((opt) => {
       if (opt.value === "state") {
@@ -141,6 +143,7 @@ function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
       } else if (outEl.value === "all_hospitalizations") {
         outEl.value = "inpatient_hospitalizations";
         outEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+        return
       } else {
         // opt.style.display = "none";
       }

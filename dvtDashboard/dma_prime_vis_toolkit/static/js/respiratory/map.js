@@ -798,6 +798,8 @@ function updateMapWarnings() {
 
     const hasProjection = thisData.projected.values.length;
 
+    // console.log(thisData.projected.values.length)
+
     if (noForecast) {
       const hasHistorical = thisData.historical.values.length;
       noForecast = !(hasHistorical || hasProjection);
@@ -807,6 +809,10 @@ function updateMapWarnings() {
       const startECurr = dayjs(thisData.projected.start_date).isSame(
         currentDate,
       );
+
+      // console.log(thisData.projected.start_date)
+      // console.log(currentDate)
+      // console.log(startECurr)
 
       if (hasProjection) {
         noForecastThisWeek = noForecastThisWeek && !startECurr;

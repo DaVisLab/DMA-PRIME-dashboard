@@ -710,6 +710,8 @@ export function drawTooltip(
         ? percentDifferenceProjectedValues
         : projectedValues;
 
+    console.log(data.projected.start_date);
+    console.log(values);
     let areaPathForPrediction = predictiveGroup
       .selectAll("path")
       .data(d3.range(values.length - 1))
@@ -717,28 +719,21 @@ export function drawTooltip(
       .append("path")
       .attr("class", "ttp-data-point")
       // .attr("clip-path", `url(#${clipPathId})`)
-      .attr(
-        "d",
-        (_, i1) =>
-          d3
-            .area()
-            .x((_, i2) => {
-              return xScale(
-                d3.timeDay.offset(data.projected.start_date, 7 * (i1 + i2)),
-              );
-            })
-            .y0(panelType == "percentDifference" ? yScale2(0) : yScale(0))
-            .y1((d) =>
-              panelType == "percentDifference" ? yScale2(d) : yScale(d),
-            )
-            .defined((d) => d != null && !Number.isNaN(d))(
-            values.slice(i1, i1 + 2),
-          ),
-        //   .defined((d) => d || d == 0)(
-        //   panelType == "percentDifference"
-        //     ? percentDifferenceProjectedValues.slice(i1, i1 + 2)
-        //     : projectedValues.slice(i1, i1 + 2),
-        // ),
+      .attr("d", (_, i1) =>
+        d3
+          .area()
+          .x((_, i2) => {
+            return xScale(
+              d3.timeDay.offset(data.projected.start_date, 7 * (i1 + i2 - 1)),
+            );
+          })
+          .y0(panelType == "percentDifference" ? yScale2(0) : yScale(0))
+          .y1((d) =>
+            panelType == "percentDifference" ? yScale2(d) : yScale(d),
+          )
+          .defined((d) => d != null && !Number.isNaN(d))(
+          values.slice(i1, i1 + 2),
+        ),
       )
       .attr("fill", populationColorMap[population]["projected"])
       .on("mouseover", function (event, d) {
