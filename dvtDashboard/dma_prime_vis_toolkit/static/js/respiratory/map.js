@@ -73,6 +73,20 @@ const map = new maplibregl.Map({
   zoom: MAP_ZOOM,
 });
 
+await Promise.allSettled([
+  customElements.whenDefined("sl-select"),
+  customElements.whenDefined("sl-option"),
+  customElements.whenDefined("sl-button"),
+  customElements.whenDefined("sl-resize-observer"),
+  customElements.whenDefined("sl-tooltip"),
+  customElements.whenDefined("sl-radio-group"),
+  customElements.whenDefined("sl-radio-button"),
+]);
+
+await new Promise((resolve) => {
+  map.once("load", resolve);
+});
+
 const popup = new maplibregl.Popup({
   focusAfterOpen: false,
   closeOnClick: false,
@@ -204,13 +218,6 @@ const getFacilityIconOverlayLayer = () =>
     },
   });
 
-await Promise.allSettled([
-  customElements.whenDefined("sl-select"),
-  customElements.whenDefined("sl-option"),
-  customElements.whenDefined("sl-button"),
-]);
-
-await new Promise((resolve) => map.once("load", resolve));
 d3.selectAll(".map-option").attr("disabled", null);
 
 d3.select(popup.getElement()).style("color", "var(--sl-color-neutral-0)");
@@ -224,6 +231,16 @@ regionData = await call_data(
   mapDiseaseSelector.value,
   metadata.data_version,
 );
+
+window.onload = async () => {
+  
+  await redraw(true, false, true);
+}
+
+// setTimeout(() => {
+//   // Force a resize after initial load to ensure proper rendering
+//   redraw(false, false, false);
+// }, 5000);
 
 requestAnimationFrame(() => {
   map.resize();

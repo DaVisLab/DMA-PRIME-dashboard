@@ -14,11 +14,12 @@
 
   <style>
     header {
+  
       background-color: var(--sl-color-neutral-100); /* Dark background */
       padding: 10px 20px; 
       width: 100%; /* Full width */
       display: flex;
-      align-items: center; /* Align icons vertically /*
+      align-items: center; /* Align icons vertically */
       z-index: 1000; /* Keeps it above other content */
       height: var(--sl-font-size-4x-large); /* Define a fixed height */
     }
@@ -34,14 +35,22 @@
     }
 
     #subpage-container {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+       /* display: grid; */
+      /*grid-template-columns: repeat(3, 1fr); */
+      display: flex;
+      flex-direction: column;
       align-items: center;
       align-content: space-around;
       justify-content: space-around;
       height: calc(100% - var(--sl-font-size-4x-large));
       width: 100%;
       padding: var(--sl-spacing-2x-large);
+    }
+
+    .big-subpage a {
+      align-items: center;
+      display: flex;
+      flex-direction: column;
     }
 
     .subpage a {
@@ -57,6 +66,26 @@
       color: white;
       text-align: center;
     }
+
+     .big-subpage p,a {
+      font-family: var(--sl-font-sans);
+      font-size: var(--sl-font-size-x-large);
+      text-decoration: none;
+      color: white;
+      text-align: center;
+    }
+
+    .big-subpage sl-icon,img,embed {
+      font-size: calc(min(40vw, 30vh));
+      height: calc(min(40vw, 30vh));
+      width: calc(min(40vw, 30vh));
+    }
+
+    .big-subpage:hover, .subpage:hover {
+      transform: scale(1.05);
+      transition: transform 0.3s ease;
+    }
+
 
     .subpage sl-icon,img,embed {
       font-size: calc(min(30vw, 20vh));
@@ -93,12 +122,40 @@
       align-items: center;
       pointer-events: none;
     }
+
     #notification-container sl-alert {
       pointer-events: auto;
       min-width: 300px;
       max-width: 90vw;
       margin-bottom: 8px;
     }
+
+     /* ===== 2) Background image with drop shadow ===== */
+      .background {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        opacity: 0.4;
+        filter: brightness(0.95);
+        pointer-events: none;
+      }
+
+      .background::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        width: 100vw;
+        /* max width of the background image */
+        aspect-ratio: 16/9;
+        /* change to the real ratio (e.g., 3/2, 4/3) */
+        background: url("/static/assets/ProjectOverview/login-background.png")
+          center / contain no-repeat;
+        filter: drop-shadow(0 20px 40px rgba(255, 255, 255, 0.3)) 
+                drop-shadow(0 -20px 40px rgba(255, 255, 255, 0.3))
+                blur(2px);
+        border-radius: 12px;
+      }
   </style>
 </head>
 
@@ -134,15 +191,40 @@
 
   <div id="subpage-container">
 
-    {% if current_user["access_level"] >= 0 %}
-    <div class="subpage">
-      <a href="{{ url_for('respiratory') }}">
-        <sl-icon name="lungs"></sl-icon>
-        <p>Respiratory Virus Forecasting: Covid-19, Influenza, RSV</p>
+    <div class="background"></div>
+
+    <div style="display:flex; height: 60%; width: 90%; align-items: center; justify-content: space-around;">
+      {% if current_user["access_level"] >= 0 %}
+        <div class="big-subpage">
+          <a href="{{ url_for('respiratory') }}">
+            <sl-icon name="lungs"></sl-icon>
+            <p>Respiratory Virus Forecasting: Covid-19, Influenza, RSV</p>
+          </a>
+        </div>
+        {% endif %}
+
+      {% if current_user["access_level"] >= 0 %}
+      <div class="big-subpage">
+        <a href="{{ url_for('outbreak_detection') }}">
+          <sl-icon name="virus2"></sl-icon>
+          <p>Outbreak Detection: All Infectious Diseases</p>
+        </a>
+      </div>
+      {% endif %}
+
+       {# Data-approval icon for liorr@clemson.edu or admin in development #}
+    {% if current_user.data_approver or (current_user.access_level == 1 and DEVELOPMENT) %}
+    <div class="big-subpage">
+      <a href="{{ url_for('approval_page') }}">
+        <sl-icon name="star"></sl-icon>
+        <p>Data Approval</p>    
       </a>
     </div>
     {% endif %}
+    </div>
 
+    <div style="display:flex; height: 40%; width: 90%; align-items: center; justify-content: space-around;">
+      
     <div class="subpage">
       <a href="{{ url_for('waste_water') }}">
         <sl-icon name="droplet-half"></sl-icon>
@@ -150,14 +232,7 @@
       </a>
     </div>
 
-    {% if current_user["access_level"] >= 0 %}
-    <div class="subpage">
-      <a href="{{ url_for('outbreak_detection') }}">
-        <sl-icon name="virus2"></sl-icon>
-        <p>Outbreak Detection: All Infectious Diseases</p>
-      </a>
-    </div>
-    {% endif %}
+   
 
     {% if current_user["access_level"] >= 0 %}
     <div class="subpage">
@@ -180,15 +255,10 @@
     </div>
     {% endif %}
 
-    {# Data-approval icon for liorr@clemson.edu or admin in development #}
-    {% if current_user.data_approver or (current_user.access_level == 1 and DEVELOPMENT) %}
-    <div class="subpage">
-      <a href="{{ url_for('approval_page') }}">
-        <sl-icon name="star"></sl-icon>
-        <p>Data Approval</p>    
-      </a>
     </div>
-    {% endif %}
+    
+  
+
 
   </div>
 

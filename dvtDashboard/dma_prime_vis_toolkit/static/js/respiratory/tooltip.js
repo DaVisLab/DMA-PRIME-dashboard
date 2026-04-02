@@ -1178,8 +1178,8 @@ function createDataPointTooltip(
 
   let valueStr =
     panelType == "rate"
-      ? `${value.toFixed(2)} per 1000`
-      : value.toFixed(2).toString();
+      ? `${value.toFixed(3)} per 1000`
+      : value.toFixed(3).toString();
 
   let valueTypeStr;
   switch (panelType) {
@@ -1379,7 +1379,7 @@ export function showSimpleGeoTooltip(info) {
 
     val = mapTypeSwitch.value === "percentDifference" ? val[2] : val;
 
-    tooltip.innerText = `${properties.id}: ${val.toFixed(2)} \n ${currentDate.toLocaleDateString()}`;
+    tooltip.innerText = `${properties.id}: ${val.toFixed(3)} \n ${currentDate.toLocaleDateString()}`;
   } else {
     tooltip.style.display = "none";
   }

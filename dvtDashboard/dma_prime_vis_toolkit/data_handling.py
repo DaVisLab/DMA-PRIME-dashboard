@@ -338,7 +338,6 @@ def update_respiratory_forecasting_report():
 
 def get_date_respiratory_forecasting_report():
 
-    print("fdfff")
     forecasting_report_folder = (
         Path(current_app.config["DATADIR"]) / "processed" / "new" / "model_reports"
     )
