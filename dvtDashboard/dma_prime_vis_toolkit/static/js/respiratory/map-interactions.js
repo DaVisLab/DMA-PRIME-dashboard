@@ -21,6 +21,15 @@ import {
   updateMapGeographicUnitOptions,
 } from "/static/js/respiratory/map.js";
 
+import {
+  setGridDiseaseSelectorValue,
+  setGridGeographicUnitSelectorValue,
+  setGridPopulationSelectorValue,
+  setGridOutcomeVariableSelectorValue,
+  setGridFacilityUnitSelectorValue,
+  setGridTypeSwitchValue,
+} from "/static/js/respiratory/grid-interactions.js";
+
 const MAP_CENTER = [-81, 33.65];
 const MAP_ZOOM = 7;
 
@@ -257,6 +266,8 @@ mapTypeSwitch.addEventListener("sl-change", () => {
 
   dataVersion++;
   redraw();
+
+  setGridTypeSwitchValue(mapTypeSwitch.value);
 });
 
 mapDiseaseSelector.addEventListener("sl-change", async () => {
@@ -272,13 +283,15 @@ mapDiseaseSelector.addEventListener("sl-change", async () => {
   closePopupAndClearSelection();
   dataVersion++;
   redraw(true, true);
+
+  // update grid view
+  setGridDiseaseSelectorValue(mapDiseaseSelector.value);
 });
 
 mapFacilityUnitSelector.addEventListener("change", async () => {
   const facilityUnitSelected = document.querySelector(
     'input[name="map-facilityOptionGroup"]:checked',
   )?.value;
-
 
   if (facilityUnitSelected == "individual-unit") {
     document.getElementById("map-shape-legend").style.display = "";
@@ -289,6 +302,9 @@ mapFacilityUnitSelector.addEventListener("change", async () => {
   syncHospitalIconToggle();
   dataVersion++;
   redraw(true, true);
+
+  // update grid view
+  setGridFacilityUnitSelectorValue(facilityUnitSelected);
 });
 
 mapGeographicUnitSelector.addEventListener("sl-change", async () => {
@@ -301,6 +317,9 @@ mapGeographicUnitSelector.addEventListener("sl-change", async () => {
 
   dataVersion++;
   redraw(true, true);
+
+  // update grid view
+  setGridGeographicUnitSelectorValue(mapGeographicUnit);
 });
 
 mapPopulationSelector.addEventListener("sl-change", async () => {
@@ -313,6 +332,9 @@ mapPopulationSelector.addEventListener("sl-change", async () => {
 
   dataVersion++;
   redraw(true);
+
+  // update grid view
+  setGridPopulationSelectorValue(mapPopulation);
 });
 
 mapOutcomeVariableSelector.addEventListener("sl-change", () => {
@@ -324,6 +346,9 @@ mapOutcomeVariableSelector.addEventListener("sl-change", () => {
 
   dataVersion++;
   redraw(true);
+
+  // update grid view
+  setGridOutcomeVariableSelectorValue(mapOutcomeVariable);
 });
 
 mapIncludeImputations.addEventListener("sl-change", () => {
@@ -375,3 +400,74 @@ mapStateHospitalizationsLargeResizer.addEventListener("sl-resize", () => {
     mapStateHospitalizationsLargeSubtitle,
   );
 });
+
+export function setMapDiseaseSelectorValue(value) {
+  if (value == mapDiseaseSelector.value) return;
+
+  mapDiseaseSelector.value = value;
+  mapDiseaseSelector.dispatchEvent(
+    new CustomEvent("sl-change", {
+      bubbles: true,
+    }),
+  );
+}
+
+export function setMapGeographicUnitSelectorValue(value) {
+  if (value == mapGeographicUnitSelector.value) return;
+
+  mapGeographicUnitSelector.value = value;
+  mapGeographicUnitSelector.dispatchEvent(
+    new CustomEvent("sl-change", {
+      bubbles: true,
+    }),
+  );
+}
+
+export function setMapPopulationSelectorValue(value) {
+  if (value == mapPopulationSelector.value) return;
+
+  mapPopulationSelector.value = value;
+  mapPopulationSelector.dispatchEvent(
+    new CustomEvent("sl-change", {
+      bubbles: true,
+    }),
+  );
+}
+
+export function setMapOutcomeVariableSelectorValue(value) {
+  if (value == mapOutcomeVariableSelector.value) return;
+
+  mapOutcomeVariableSelector.value = value;
+  mapOutcomeVariableSelector.dispatchEvent(
+    new CustomEvent("sl-change", {
+      bubbles: true,
+    }),
+  );
+}
+
+export function setMapFacilityUnitSelectorValue(value) {
+  const facilityUnitSelected = document.querySelector(
+    'input[name="map-facilityOptionGroup"]:checked',
+  )?.value;
+
+  if (value == facilityUnitSelected) return;
+
+  document.getElementById(`map-facility-option-${value}`).checked = true;
+
+  mapFacilityUnitSelector.dispatchEvent(
+    new CustomEvent("change", {
+      bubbles: true,
+    }),
+  );
+}
+
+export function setMapTypeSwitchValue(value) {
+  if (value == mapTypeSwitch.value) return;
+
+  mapTypeSwitch.value = value;
+  mapTypeSwitch.dispatchEvent(
+    new CustomEvent("sl-change", {
+      bubbles: true,
+    }),
+  );
+}

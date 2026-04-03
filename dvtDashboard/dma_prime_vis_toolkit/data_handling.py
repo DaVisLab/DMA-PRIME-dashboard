@@ -337,7 +337,6 @@ def update_respiratory_forecasting_report():
 
 
 def get_date_respiratory_forecasting_report():
-
     forecasting_report_folder = (
         Path(current_app.config["DATADIR"]) / "processed" / "new" / "model_reports"
     )
@@ -345,14 +344,36 @@ def get_date_respiratory_forecasting_report():
     # get latest file by creation time
     latest_file = max(
         (f for f in forecasting_report_folder.iterdir() if f.is_file()),
-        key=lambda f: f.stat().st_ctime,
+        key=lambda f: f.stat().st_mtime,  
         default=None,
     )
 
     if latest_file is None:
         return None
+    # print(latest_file.stat().st_mtime)
+    # print(datetime.fromtimestamp(latest_file.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S"))
+    
+    return  datetime.fromtimestamp(latest_file.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
 
-    return datetime.fromtimestamp(latest_file.stat().st_ctime).strftime("%Y-%m-%d")
+
+def get_update_data_date_by_version_dashboard(version, dashboard):
+    forecasting_report_folder = (
+        Path(current_app.config["DATADIR"]) / "processed" / f"{version}" / f"{dashboard}"
+    )
+
+    # get latest file by creation time
+    latest_file = max(
+        (f for f in forecasting_report_folder.iterdir() if f.is_file()),
+        key=lambda f: f.stat().st_mtime,  
+        default=None,
+    )
+
+    if latest_file is None:
+        return None
+    # print(latest_file.stat().st_mtime)
+    # print(datetime.fromtimestamp(latest_file.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S"))
+    
+    return  datetime.fromtimestamp(latest_file.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
 
 
 @bp.route("/change-version", methods=["PUT"])
@@ -419,7 +440,7 @@ def change_version():
 def send_data_date(data_version, dashboard):
 
     print("data update necessecity check")
-    print(dashboard)
+    # print(dashboard)
     if not current_user.data_approver:
         current_app.logger.info(f"{current_user.email} attempted to retrieve data date")
         return "Need data approval access", 401
@@ -495,61 +516,31 @@ def get_data_date(data_version, dashboard):
                 for dash in all_dashboards:
                     output[dashboard_translation[dash]] = {}
                     for ver in all_data_versions:
-                        file_path = os.path.join(
-                            current_app.config["DATADIR"],
-                            "processed",
-                            ver,
-                            dash,
-                            "date.txt",
-                        )
-                        with open(file_path) as f:
-                            output[dashboard_translation[dash]][ver] = f.read()
+                        
+                        output[dashboard_translation[dash]][ver] = get_update_data_date_by_version_dashboard(ver, dash)
             else:
                 # print("data version - all")
                 # print("dashboard version - not all")
                 output[dashboard] = {}
                 for ver in all_data_versions:
-                    file_path = os.path.join(
-                        current_app.config["DATADIR"],
-                        "processed",
-                        ver,
-                        dashboard_translation[dashboard],
-                        "date.txt",
-                    )
-                    with open(file_path) as f:
-                        output[dashboard][ver] = f.read()
+                    output[dashboard][ver] = get_update_data_date_by_version_dashboard(ver, dashboard_translation[dashboard])
+                    
         elif dashboard == "all":
             # print("data version - not all")
             # print("dashboard version - all")
             for dash in all_dashboards:
-                file_path = os.path.join(
-                    current_app.config["DATADIR"],
-                    "processed",
-                    data_version,
-                    dashboard_translation[dash],
-                    "date.txt",
-                )
-                with open(file_path) as f:
-                    output[dash] = {[data_version]: f.read()}
+                output[dash] = {[data_version]: get_update_data_date_by_version_dashboard(data_version, dashboard_translation[dash])}
+                
         else:
             # print("data version - not all")
             # print("dashboard version - not all")
-
-            file_path = os.path.join(
-                current_app.config["DATADIR"],
-                "processed",
-                data_version,
-                dashboard_translation[dashboard],
-                "date.txt",
-            )
-            if os.path.exists(file_path):
-                with open(file_path) as f:
-                    output[dashboard] = {[data_version]: f.read()}
-
+            output[dashboard] = {[data_version]: get_update_data_date_by_version_dashboard(data_version, dashboard_translation[dashboard])}
+            
     except:  # something broke so send none and error will get passed along
         output = None
 
     if dashboard == "respiratory":
+        # print(output["respiratory"]["new"])
         respiratory_forcasting_update_date = get_date_respiratory_forecasting_report()
         new_date = get_later_date(
             respiratory_forcasting_update_date, output["respiratory"]["new"]
@@ -567,6 +558,7 @@ def get_data_date(data_version, dashboard):
                 output["respiratory"]["new"],
                 new_date,
             )
-            output["respiratory"]["new"] = new_date
+            output["respiratory"]["new"] = new_date            
+    # print(output)
 
     return output

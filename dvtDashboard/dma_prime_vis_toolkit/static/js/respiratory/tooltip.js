@@ -172,6 +172,7 @@ export function drawTooltip(
   var ttpLegendGroup = ttpLegend
     .append("div")
     .attr("class", "tooltip-legend-group");
+    
   // initTooltip(
   //   header,
   //   footer,

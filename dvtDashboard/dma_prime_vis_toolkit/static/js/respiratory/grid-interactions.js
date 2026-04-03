@@ -2,6 +2,7 @@ import {
   drawStateHospitalizations,
   drawLargeStateHospitalizations,
 } from "/static/js/respiratory/script.js";
+
 import {
   updateGrid,
   sortGridItems,
@@ -11,6 +12,15 @@ import {
   updateGridPopulationOptions,
   updateGridGeographicUnitOptions,
 } from "/static/js/respiratory/grid.js";
+
+import {
+  setMapDiseaseSelectorValue,
+  setMapGeographicUnitSelectorValue,
+  setMapPopulationSelectorValue,
+  setMapOutcomeVariableSelectorValue,
+  setMapFacilityUnitSelectorValue,
+  setMapTypeSwitchValue,
+} from "/static/js/respiratory/map-interactions.js";
 
 gridContainerResizer.addEventListener("sl-resize", updateGrid);
 
@@ -22,6 +32,13 @@ gridCloseTtpsButton.addEventListener("click", () => {
 
 gridFacilityUnitSelector.addEventListener("change", async () => {
   updateGrid();
+
+  const facilityUnitSelected = document.querySelector(
+    'input[name="grid-facilityOptionGroup"]:checked',
+  )?.value;
+
+  // update map view
+  setMapFacilityUnitSelectorValue(facilityUnitSelected);
 });
 
 gridTypeSwitch.addEventListener("sl-change", (event) => {
@@ -52,6 +69,9 @@ gridTypeSwitch.addEventListener("sl-change", (event) => {
     d3.select(gridSecondaryLegend).style("display", "none");
   }
   updateGrid();
+
+  // update map view
+  setMapTypeSwitchValue(gridTypeSwitch.value);
 });
 
 gridDiseaseSelector.addEventListener("sl-change", async (event) => {
@@ -69,12 +89,18 @@ gridDiseaseSelector.addEventListener("sl-change", async (event) => {
     gridStateHospitalizationsSvg,
     gridStateHospitalizationsSubtitle,
   );
+
+  // update map view
+  setMapDiseaseSelectorValue(gridDiseaseSelector.value);
 });
 
 gridGeographicUnitSelector.addEventListener("sl-change", async (event) => {
   await updateGridPopulationOptions();
   gridGeographicUnit = gridGeographicUnitSelector.value;
   updateGrid(true);
+
+  // update map view
+  setMapGeographicUnitSelectorValue(gridGeographicUnit);
 });
 
 gridPopulationSelector.addEventListener("sl-change", async (event) => {
@@ -87,6 +113,9 @@ gridPopulationSelector.addEventListener("sl-change", async (event) => {
       setupGridTooltip(d3.select(this), true);
     });
   updateGrid();
+
+  // update map view
+  setMapPopulationSelectorValue(gridPopulation);
 });
 
 gridOutcomeVariableSelector.addEventListener("sl-change", (event) => {
@@ -98,6 +127,9 @@ gridOutcomeVariableSelector.addEventListener("sl-change", (event) => {
       setupGridTooltip(d3.select(this), true);
     });
   updateGrid();
+
+  // update map view
+  setMapOutcomeVariableSelectorValue(gridOutcomeVariable);
 });
 
 gridIncludeImputations.addEventListener("sl-change", updateGrid);
@@ -130,3 +162,74 @@ gridStateHospitalizationsLargeResizer.addEventListener("sl-resize", () => {
     gridStateHospitalizationsLargeSubtitle,
   );
 });
+
+export function setGridDiseaseSelectorValue(value) {
+  if (value == gridDiseaseSelector.value) return;
+
+  gridDiseaseSelector.value = value;
+  gridDiseaseSelector.dispatchEvent(
+    new CustomEvent("sl-change", {
+      bubbles: true,
+    }),
+  );
+}
+
+export function setGridGeographicUnitSelectorValue(value) {
+  if (value == gridGeographicUnitSelector.value) return;
+
+  gridGeographicUnitSelector.value = value;
+  gridGeographicUnitSelector.dispatchEvent(
+    new CustomEvent("sl-change", {
+      bubbles: true,
+    }),
+  );
+}
+
+export function setGridPopulationSelectorValue(value) {
+  if (value == gridPopulationSelector.value) return;
+
+  gridPopulationSelector.value = value;
+  gridPopulationSelector.dispatchEvent(
+    new CustomEvent("sl-change", {
+      bubbles: true,
+    }),
+  );
+}
+
+export function setGridOutcomeVariableSelectorValue(value) {
+  if (value == gridOutcomeVariableSelector.value) return;
+
+  gridOutcomeVariableSelector.value = value;
+  gridOutcomeVariableSelector.dispatchEvent(
+    new CustomEvent("sl-change", {
+      bubbles: true,
+    }),
+  );
+}
+
+export function setGridFacilityUnitSelectorValue(value) {
+  const facilityUnitSelected = document.querySelector(
+    'input[name="grid-facilityOptionGroup"]:checked',
+  )?.value;
+
+  if (value == facilityUnitSelected) return;
+
+  document.getElementById(`grid-facility-option-${value}`).checked = true;
+
+  gridFacilityUnitSelector.dispatchEvent(
+    new CustomEvent("change", {
+      bubbles: true,
+    }),
+  );
+}
+
+export function setGridTypeSwitchValue(value) {
+  if (value == gridTypeSwitch.value) return;
+
+  gridTypeSwitch.value = value;
+  gridTypeSwitch.dispatchEvent(
+    new CustomEvent("sl-change", {
+      bubbles: true,
+    }),
+  );
+}

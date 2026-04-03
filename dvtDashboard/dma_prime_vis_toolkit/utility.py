@@ -76,8 +76,8 @@ def get_data_version_from_request(request, current_user, error="silent"):
 
 
 def get_later_date(date1, date2):
-    d1 = datetime.datetime.strptime(date1.strip(), "%Y-%m-%d")
-    d2 = datetime.datetime.strptime(date2.strip(), "%Y-%m-%d")
+    d1 = datetime.datetime.strptime(date1.strip(), "%Y-%m-%d %H:%M:%S")
+    d2 = datetime.datetime.strptime(date2.strip(), "%Y-%m-%d %H:%M:%S")
 
     return date1.strip() if d1 > d2 else date2.strip()
 
