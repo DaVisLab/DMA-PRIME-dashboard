@@ -191,7 +191,7 @@
 
   <div id="subpage-container">
 
-    <div class="background"></div>
+    <!-- <div class="background"></div> -->
 
     <div style="display:flex; height: 60%; width: 90%; align-items: center; justify-content: space-around;">
       {% if current_user["access_level"] >= 0 %}
@@ -213,14 +213,14 @@
       {% endif %}
 
        {# Data-approval icon for liorr@clemson.edu or admin in development #}
-    {% if current_user.data_approver or (current_user.access_level == 1 and DEVELOPMENT) %}
-    <div class="big-subpage">
-      <a href="{{ url_for('approval_page') }}">
-        <sl-icon name="star"></sl-icon>
-        <p>Data Approval</p>    
-      </a>
-    </div>
-    {% endif %}
+        {% if current_user.data_approver or (current_user.access_level == 1 and DEVELOPMENT) %}
+        <div class="big-subpage">
+          <a href="{{ url_for('approval_page') }}">
+            <sl-icon name="star"></sl-icon>
+            <p>Data Approval</p>    
+          </a>
+        </div>
+        {% endif %}
     </div>
 
     <div style="display:flex; height: 40%; width: 90%; align-items: center; justify-content: space-around;">
@@ -240,7 +240,7 @@
         <img src="{{ url_for('static', filename='assets/Icons/syringe-1309-svgrepo-com.svg') }}"></img>
         <p>Opioid Overdose and HCV and HIV Hospitalizations
           <br>
-          <tspan class="beta-warning">(Beta)</tspan>
+          <!-- <tspan class="beta-warning">(Beta)</tspan> -->
         </p>
       </a>
     </div>
