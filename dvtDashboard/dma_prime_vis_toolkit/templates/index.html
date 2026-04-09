@@ -156,6 +156,25 @@
                 blur(2px);
         border-radius: 12px;
       }
+
+ .admin-link {
+    float: right;  
+    display: flex; 
+    align-items: center; 
+    gap: 6px; 
+    font-size: 1.2rem;
+    margin-right: 1rem;
+    color: inherit;
+  transition: background 0.2s ease;
+  }
+
+  .admin-link:hover {
+    color: var(--sl-color-primary-600); 
+  }
+
+  .admin-link:hover sl-icon-button {
+    color: var(--sl-color-primary-600);
+  }
   </style>
 </head>
 
@@ -175,16 +194,27 @@
         <sl-icon-button name="house"></sl-icon-button>
       </a>
 
-      {% if current_user["access_level"] == 1 %}
-      <a style="float: right ;" href="{{ url_for('admin_controls') }}">
-        <sl-icon-button name="database-gear"></sl-icon-button>
-      </a>
-      {% endif %}
+      
 
       {% if current_user %}
       <sl-button id="log_out" style="float: right; font-size: 2rem; margin-top: 3px; align-items: center;" size="medium">
         <a href="{{ url_for('auth.logout') }}">Logout</a>
       </sl-button>
+      {% endif %}
+
+      {% if current_user["access_level"] == 1 %}
+      <a class="admin-link" href="{{ url_for('admin_controls') }}">
+        <sl-icon-button name="database-gear"></sl-icon-button>
+        User Management Page
+      </a>
+      {% endif %}
+
+       {% if current_user["access_level"] == 1 %}
+      <a  class="admin-link"  href="{{ url_for('approval_page') }}">
+        <!-- <sl-icon-button name="database-gear"></sl-icon-button> -->
+        <sl-icon-button name="star"></sl-icon-button>
+        Data Approval Page
+      </a>
       {% endif %}
     </nav>
   </header>
@@ -198,7 +228,7 @@
         <div class="big-subpage">
           <a href="{{ url_for('respiratory') }}">
             <sl-icon name="lungs"></sl-icon>
-            <p>Respiratory Virus Forecasting: Covid-19, Influenza, RSV</p>
+            <p>Respiratory Virus Forecasting: COVID-19, Influenza, RSV</p>
           </a>
         </div>
         {% endif %}
@@ -211,16 +241,6 @@
         </a>
       </div>
       {% endif %}
-
-       {# Data-approval icon for liorr@clemson.edu or admin in development #}
-        {% if current_user.data_approver or (current_user.access_level == 1 and DEVELOPMENT) %}
-        <div class="big-subpage">
-          <a href="{{ url_for('approval_page') }}">
-            <sl-icon name="star"></sl-icon>
-            <p>Data Approval</p>    
-          </a>
-        </div>
-        {% endif %}
     </div>
 
     <div style="display:flex; height: 40%; width: 90%; align-items: center; justify-content: space-around;">
@@ -256,10 +276,6 @@
     {% endif %}
 
     </div>
-    
-  
-
-
   </div>
 
   <script>

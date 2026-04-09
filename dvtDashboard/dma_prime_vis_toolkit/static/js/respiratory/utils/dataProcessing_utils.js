@@ -156,3 +156,4 @@ export function getAllValuesFromFeature(
 
   return newData;
 }
+

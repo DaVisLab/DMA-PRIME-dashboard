@@ -20,6 +20,8 @@ import {
   call_data,
 } from "/static/js/respiratory/utils/dataProcessing_utils.js";
 
+import { getDateWithOffset } from "/static/js/helper.js";
+
 const { GeoJsonLayer, IconLayer, TextLayer, MapboxOverlay } = deck;
 
 export {
@@ -233,9 +235,8 @@ regionData = await call_data(
 );
 
 window.onload = async () => {
-  
   await redraw(true, false, true);
-}
+};
 
 // setTimeout(() => {
 //   // Force a resize after initial load to ensure proper rendering
@@ -774,6 +775,33 @@ function updateMapTitle() {
       break;
   }
 
+  let numOfProjections = 0;
+  let projectionStartDate;
+
+  console.log(regionData);
+  console.log(metadata);
+
+  const observation = `${mapDiseaseSelector.value}-${mapGeographicUnitSelector.value}-${mapPopulationSelector.value}-${mapOutcomeVariableSelector.value}`;
+  const observationCreatedDate = metadata["observation_created_date"][observation];
+
+  // for (const feature of regionData.features) {
+  //   const thisData =
+  //     feature.properties.data[mapPopulationSelector.value][
+  //       mapOutcomeVariableSelector.value
+  //     ];
+
+  //   const hasProjection = thisData.projected.values.length;
+
+  //   if (hasProjection) {
+  //     projectionStartDate = thisData.projected.start_date;
+  //     numOfProjections= Math.max(numOfProjections, thisData.projected.values.length);
+  //   }
+  // }
+
+  // const lastProjectionData=getDateWithOffset(projectionStartDate, numOfProjections-1)
+
+  if(observationCreatedDate)
+    newTitle += `<br /> (Last Update: ${observationCreatedDate})`;
   mapTitle.innerHTML = newTitle;
 }
 
@@ -827,7 +855,8 @@ function updateMapWarnings() {
         currentDate,
       );
 
-      // console.log(thisData.projected.start_date)
+      console.log(thisData.projected.start_date);
+      console.log(thisData.projected);
       // console.log(currentDate)
       // console.log(startECurr)
 
