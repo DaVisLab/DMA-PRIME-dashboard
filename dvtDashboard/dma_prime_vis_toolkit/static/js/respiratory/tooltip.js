@@ -172,7 +172,7 @@ export function drawTooltip(
   var ttpLegendGroup = ttpLegend
     .append("div")
     .attr("class", "tooltip-legend-group");
-    
+
   // initTooltip(
   //   header,
   //   footer,
@@ -1363,11 +1363,16 @@ function initTooltip(
 
 export function showSimpleGeoTooltip(info) {
   const tooltip = document.getElementById("geo-tooltip");
+
   if (info.picked) {
-    const height = tooltip.offsetHeight;
+    const parent = tooltip.parentElement;
+
+    const style = window.getComputedStyle(parent);
+    const paddingLeft = parseFloat(style.paddingLeft);
+    console.log(paddingLeft);
     tooltip.style.display = "block";
-    tooltip.style.left = info.x + "px";
-    tooltip.style.top = info.y - height + "px";
+    const gap = 10; // mouse - tooltip gap
+
     const properties = info.object.properties;
 
     let val = getCurDateValueFromFeature(
@@ -1381,6 +1386,10 @@ export function showSimpleGeoTooltip(info) {
     val = mapTypeSwitch.value === "percentDifference" ? val[2] : val;
 
     tooltip.innerText = `${properties.id}: ${val.toFixed(3)} \n ${currentDate.toLocaleDateString()}`;
+    const rect = tooltip.getBoundingClientRect();
+
+    tooltip.style.left = info.x - rect.width / 2 + paddingLeft + "px";
+    tooltip.style.top = info.y - rect.height - 10 + "px";
   } else {
     tooltip.style.display = "none";
   }

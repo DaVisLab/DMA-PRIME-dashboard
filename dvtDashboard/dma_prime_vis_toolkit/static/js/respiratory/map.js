@@ -283,9 +283,9 @@ async function redraw(
     }
   }
 
-  if (resetWarnings) {
-    updateMapWarnings();
-  }
+  // if (resetWarnings) {
+  //   updateMapWarnings();
+  // }
 
   updateChoropleth(
     regionData,
@@ -854,11 +854,6 @@ function updateMapWarnings() {
       const startECurr = dayjs(thisData.projected.start_date).isSame(
         currentDate,
       );
-
-      console.log(thisData.projected.start_date);
-      console.log(thisData.projected);
-      // console.log(currentDate)
-      // console.log(startECurr)
 
       if (hasProjection) {
         noForecastThisWeek = noForecastThisWeek && !startECurr;
