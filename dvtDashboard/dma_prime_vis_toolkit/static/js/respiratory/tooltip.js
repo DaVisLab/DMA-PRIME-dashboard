@@ -9,17 +9,10 @@ import {
   getAllValuesFromFeature,
 } from "/static/js/respiratory/utils/dataProcessing_utils.js";
 
-import { popup, selectedItems } from "/static/js/respiratory/map.js";
-
 // visualization variables
 var formatInt = d3.format(".0f");
 var formatDate = d3.timeFormat("%b %d, %Y");
 var ttpHistoryWidthPercentage = 3 / 4;
-
-export function closePopupAndClearSelection() {
-  selectedItems.feature = undefined;
-  if (popup.isOpen()) popup.remove();
-}
 
 export function drawTooltip(
   d,
@@ -319,7 +312,6 @@ export function drawTooltip(
           outcomeVariable,
           panelType,
           grid,
-          [],
           data,
           identifier,
         );
@@ -1227,7 +1219,6 @@ async function expandPopup(
   outcomeVariable,
   panelType,
   grid,
-  [],
   data,
   identifier,
 ) {
@@ -1369,7 +1360,6 @@ export function showSimpleGeoTooltip(info) {
 
     const style = window.getComputedStyle(parent);
     const paddingLeft = parseFloat(style.paddingLeft);
-    console.log(paddingLeft);
     tooltip.style.display = "block";
     const gap = 10; // mouse - tooltip gap
 

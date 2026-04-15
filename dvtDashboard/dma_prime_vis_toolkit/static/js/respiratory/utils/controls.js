@@ -117,7 +117,7 @@ function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
       return
     }
 
-    console.log(geoEl.value)
+    // console.log(geoEl.value)
     // 2) geographic unit: only SC
     geoEl.querySelectorAll("sl-option").forEach((opt) => {
       if (opt.value === "state") {
@@ -200,7 +200,6 @@ function _testDiseaseOutcomeDipendency(
   function updateOutcomeOptions() {
     const selectedKey = disEl.value;
     const selectedLabel = diseases[selectedKey] ?? selectedKey;
-
     outcomeOptions.forEach((t) => {
       if (t.innerHTML.includes("Attributable ED Visits")) {
         t.innerHTML = `% ${selectedLabel}-Attributable ED Visits`;

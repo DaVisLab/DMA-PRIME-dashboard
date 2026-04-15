@@ -3,6 +3,7 @@ from Cryptodome.Cipher import AES
 from base64 import b64decode
 from io import StringIO
 import json
+import pickle
 
 from pathlib import Path
 
@@ -90,3 +91,8 @@ def replace_date_in_file(file_path, old_value, new_value):
 
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(content)
+
+
+def load_pickle(path):
+    with open(path, "rb") as f:
+        return pickle.load(f)

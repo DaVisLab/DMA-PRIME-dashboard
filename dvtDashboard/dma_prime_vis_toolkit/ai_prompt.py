@@ -15,9 +15,7 @@ from flask import (
     request,
 )
 import os
-import shutil
 from groq import Groq
-import textwrap
 from pathlib import Path
 
 bp = Blueprint("ai", __name__, url_prefix="/ai")

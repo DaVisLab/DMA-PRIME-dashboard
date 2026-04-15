@@ -759,10 +759,12 @@ async function updateGridPopulationOptions() {
 
 async function updateGridOutcomeVariableOptions() {
   d3.selectAll(".grid-outcome-tooltip").remove();
-  var availableOutcomeVariables =
+
+  console.log(metadata.available_models);
+  const availableOutcomeVariables =
     metadata.available_models[gridDiseaseSelector.value][
       gridGeographicUnitSelector.value
-    ][gridPopulationSelector.value];
+    ][gridPopulationSelector.value] ?? [];
 
   d3.select(gridOutcomeVariableSelector)
     .selectAll(".grid-outcome-tooltip")
@@ -778,9 +780,7 @@ async function updateGridOutcomeVariableOptions() {
     .attr("value", (d) => d)
     .html((d) => metadata.outcome_variables[d]);
 
-  if (availableOutcomeVariables.includes(gridOutcomeVariable)) {
-    // do nothing
-  } else {
+  if (!availableOutcomeVariables.includes(gridOutcomeVariable)) {
     gridOutcomeVariable = availableOutcomeVariables[0];
     gridOutcomeVariableSelector.value = gridOutcomeVariable;
   }

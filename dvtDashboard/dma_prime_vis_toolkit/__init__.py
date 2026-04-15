@@ -106,15 +106,19 @@ def create_app(development=False, dataDir=None):
     app.register_blueprint(authenticate.bp)
 
     from . import data_handling
-
     app.register_blueprint(data_handling.bp)
 
     from . import ai_prompt
-
     app.register_blueprint(ai_prompt.bp)
+    
+    from . import KG_recommendation
+    
+    app.register_blueprint(KG_recommendation.bp)
+    kg_path = os.path.join(app.static_folder, "assets", "kg_test_covid.pkl")
+    print(kg_path)
+    app.predefined_kg = load_pickle(kg_path)
 
     from . import admin
-
     app.register_blueprint(admin.bp)
 
     # landing page, though now respiratory
@@ -279,9 +283,8 @@ def create_app(development=False, dataDir=None):
                 location=location,
             )
         else:
-            print("ff2")
-            print(data_version)
-            print(outcome_variable)
+            # print(data_version)
+            # print(outcome_variable)
 
             if outcome_variable == "%_influenza-attributable_ed_visits":
                 outcome_variable = "attributable_ed_visits"
@@ -390,36 +393,30 @@ def create_app(development=False, dataDir=None):
 
         panels = [
             {"name": "main", "displayName": "DMA-PRIME"},
-            # {
-            #     "name": "outbreak-detection",
-            #     "displayName": "Outbreak Detection",
-            #     # 'active': True,
-            #     "html": "outbreak-detection/outbreak-detection-panel_dy.html",
-            # },
-            # {
-            #     "name": "riskindex-assessment",
-            #     "displayName": "Risk Index Assessment",
-            #     # 'active': True,
-            #     "html": "outbreak-detection/riskindex-analysis.html",
-            # },
-            # # {
-            # #     'name': 'outbreak-exploration',
-            # #     'displayName': 'Test Interface',
-            # #     # 'active': True,
-            # #     'html': 'outbreak-detection/test-page.html'
-            # # },
-            # {
-            #     "name": "outbreak-exploration2",
-            #     "displayName": "Test Interface2",
-            #     "active": True,
-            #     "html": "outbreak-detection/test-page2.html",
-            # },
             {
-                "name": "map",
-                "displayName": "Map View",
-                "active": True,
-                "html": "outbreak-detection/outbreak-detection-map-panel.html",
+                "name": "outbreak-detection",
+                "displayName": "Outbreak Detection",
+                # 'active': True,
+                "html": "outbreak-detection/outbreak-detection-panel_dy.html",
             },
+            {
+                "name": "riskindex-assessment",
+                "displayName": "Risk Index Assessment",
+                # 'active': True,
+                "html": "outbreak-detection/riskindex-analysis.html",
+            },
+            {
+                "name": "outbreak-exploration2",
+                "displayName": "Test Interface2",
+                "active": True,
+                "html": "outbreak-detection/test-page.html",
+            },
+            # {
+            #     "name": "map",
+            #     "displayName": "Map View",
+            #     "active": True,
+            #     "html": "outbreak-detection/outbreak-detection-map-panel.html",
+            # },
         ]
         return render_template(
             "outbreak-detection/outbreak-detection-base.html",

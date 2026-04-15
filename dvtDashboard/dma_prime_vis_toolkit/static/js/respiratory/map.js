@@ -20,8 +20,6 @@ import {
   call_data,
 } from "/static/js/respiratory/utils/dataProcessing_utils.js";
 
-import { getDateWithOffset } from "/static/js/helper.js";
-
 const { GeoJsonLayer, IconLayer, TextLayer, MapboxOverlay } = deck;
 
 export {
@@ -93,6 +91,7 @@ const popup = new maplibregl.Popup({
   focusAfterOpen: false,
   closeOnClick: false,
 });
+
 
 const deckOverlay = new MapboxOverlay({
   interleaved: true,
@@ -222,7 +221,12 @@ const getFacilityIconOverlayLayer = () =>
 
 d3.selectAll(".map-option").attr("disabled", null);
 
-d3.select(popup.getElement()).style("color", "var(--sl-color-neutral-0)");
+const el = popup.getElement();
+if (el) {
+  d3.select(el).style("color", "var(--sl-color-neutral-0)");
+}
+
+// d3.select(popup.getElement()).style("color", "var(--sl-color-neutral-0)");
 
 map.addControl(deckOverlay);
 map.addControl(new maplibregl.NavigationControl());
@@ -775,30 +779,8 @@ function updateMapTitle() {
       break;
   }
 
-  let numOfProjections = 0;
-  let projectionStartDate;
-
-  console.log(regionData);
-  console.log(metadata);
-
   const observation = `${mapDiseaseSelector.value}-${mapGeographicUnitSelector.value}-${mapPopulationSelector.value}-${mapOutcomeVariableSelector.value}`;
   const observationCreatedDate = metadata["observation_created_date"][observation];
-
-  // for (const feature of regionData.features) {
-  //   const thisData =
-  //     feature.properties.data[mapPopulationSelector.value][
-  //       mapOutcomeVariableSelector.value
-  //     ];
-
-  //   const hasProjection = thisData.projected.values.length;
-
-  //   if (hasProjection) {
-  //     projectionStartDate = thisData.projected.start_date;
-  //     numOfProjections= Math.max(numOfProjections, thisData.projected.values.length);
-  //   }
-  // }
-
-  // const lastProjectionData=getDateWithOffset(projectionStartDate, numOfProjections-1)
 
   if(observationCreatedDate)
     newTitle += `<br /> (Last Update: ${observationCreatedDate})`;

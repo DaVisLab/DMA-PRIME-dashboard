@@ -6,7 +6,6 @@ import {
 
 import {
   drawTooltip,
-  closePopupAndClearSelection,
 } from "/static/js/respiratory/tooltip.js";
 
 import {
@@ -121,6 +120,11 @@ function ensurePopupButtons(dataObject) {
   }
 }
 
+function closePopupAndClearSelection() {
+  selectedItems.feature = undefined;
+  if (popup.isOpen()) popup.remove();
+}
+
 export function showMapTooltip(dataObject) {
   const width = mapDiv.clientWidth;
   const mapTooltipWidth = Math.max(500, width * 0.3);
@@ -224,6 +228,7 @@ popup.on("close", () => {
   dataVersion++;
   redraw(false, false, true);
 });
+
 
 map.on("zoom", () => {
   if (mapGeographicUnitSelector.value === "zcta") {

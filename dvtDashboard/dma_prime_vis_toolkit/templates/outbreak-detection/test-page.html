@@ -108,9 +108,25 @@ options %}
       flex-direction: column;
     "
   >
-    <div id="table-view-container-aiPage" style="height: 40%">
+    <div style="width: 100%; height: 10%; display: flex">
+      <div style="width: 15%; height: 100%">
+        <sl-select
+          value="region"
+          id="map-region-selector"
+          class="fill-width map-option"
+          size="small"
+        >
+          <p slot="label">Geographic Unit</p>
+          <sl-option value="region">Region</sl-option>
+          <sl-option value="county">County</sl-option>
+          <sl-option value="zcta">Zip-Code Tabulation Area (ZCTA)</sl-option>
+        </sl-select>
+      </div>
+    </div>
+
+    <div id="vis-container-aiPage" style="height: 40%">
       <div
-        id="table-vis-container"
+        id="vis-container"
         style="
           height: 100%;
           width: 100%;
@@ -119,12 +135,32 @@ options %}
           align-items: center;
         "
       >
-        <div id="table-container" style="height: 100%; width: 50%; overflow-y: auto;">
-          <table id="table-component" class="table table-striped" style="width:100%"></table>
-        </div>
+        <div
+          id="smallMultiples-container"
+          style="
+            height: 100%;
+            width: 20%;
+            max-width: 20%;
+            overflow-y: auto;
+            padding: 0px;
+          "
+        ></div>
 
-        <div id="ai-generated-vis-container" style="height: 100%; width: 50%">
-          sample vis...
+        <div
+          id="map-container"
+          style="height: 100%; width: 50%; overflow-y: auto"
+        ></div>
+
+        <div
+          id="ai-generated-helper-vis-container"
+          style="
+            height: 100%;
+            width: 30%;
+            border: 1px solid gray;
+            border-radius: 1rem;
+          "
+        >
+          helper vis...
         </div>
       </div>
     </div>
@@ -214,7 +250,10 @@ options %}
 <!-- DataTables Table -->
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-<link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.bootstrap5.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.bootstrap5.min.css"
+/>
 
 <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
 <link
@@ -227,6 +266,14 @@ options %}
   src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
   integrity=""
   crossorigin="anonymous"
+></script>
+<script
+  src="{{ url_for('static', filename='js/mouse-interaction-logger/mouse_interaction_logger.js') }}"
+  type="module"
+></script>
+<script
+  src="{{ url_for('static', filename='js/outbreak-detection/dyhan/ai-test/DOMInit.js') }}"
+  type="module"
 ></script>
 <script
   src="{{ url_for('static', filename='js/outbreak-detection/dyhan/ai-test/infoManager.js') }}"
