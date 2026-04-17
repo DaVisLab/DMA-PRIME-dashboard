@@ -122,25 +122,31 @@ export async function visViewUpdate() {
       data["properties"]["data"][diseaseOfInterest][temporalResolution];
   }
 
-  const dataContext = structuredClone(mapData.features);
-  dataContext.forEach((item) => {
-    // console.log(item);
-    delete item.geometry;
-    delete item.id;
-    delete item.feature;
-    item.valueOfInterest_latest =
-      item.properties.valueOfInterest[
-        item.properties.valueOfInterest.length - 1
-      ];
-    item.dataStatistics = computeStatistics(item.properties.valueOfInterest);
-    item.last7values = item.properties.valueOfInterest.slice(-7);
-    item.diseaseOfInterest = diseaseOfInterest;
-    item.regionResolution = spatialResolution;
-    item.temporalResolution = temporalResolution;
-    delete item.properties;
-  });
+  //// the following code snippet is for saving statistics of data to deliver ai server
+  //// for AI to know the data distribution and do better inference
+  //// it may not be necessary if we use RAG
+  // const dataContext = structuredClone(mapData.features);
 
-  systemSpecification.dataContext = dataContext;
+  // console.log(dataContext)
+
+  // dataContext.forEach((item) => {
+  //   console.log(item);
+  //   delete item.geometry;
+  //   delete item.id;
+  //   delete item.feature;
+  //   item.valueOfInterest_latest =
+  //     item.properties.valueOfInterest[
+  //       item.properties.valueOfInterest.length - 1
+  //     ];
+  //   item.dataStatistics = computeStatistics(item.properties.valueOfInterest);
+  //   item.last7values = item.properties.valueOfInterest.slice(-7);
+  //   item.diseaseOfInterest = diseaseOfInterest;
+  //   item.regionResolution = spatialResolution;
+  //   item.temporalResolution = temporalResolution;
+  //   delete item.properties;
+  // });
+
+  // systemSpecification.dataContext = dataContext;
 
   // console.log(dataContext)
   drawD3Map(mapData, "map-container");

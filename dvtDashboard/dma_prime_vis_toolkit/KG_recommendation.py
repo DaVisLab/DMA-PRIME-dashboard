@@ -1,6 +1,7 @@
 from typing import List, Dict, Tuple, Set
 import pandas as pd
 import networkx as nx
+from networkx.readwrite import json_graph
 from typing import Optional
 from flask import (
     Blueprint,
@@ -12,18 +13,42 @@ from flask import (
     current_app,
     request,
 )
+from flask_login import current_user
+
 import os
 
 bp = Blueprint("recommendation", __name__, url_prefix="/recommendation")
 
 
-user_logs = {"user":[]
+user_logs = {
+    "user":[]
 }
+
+@bp.route("/get_predefined_kg", methods=["GET"])
+def get_predefined_kg():
+    return {"status": "success", "knowledge_graph":  json_graph.node_link_data(current_app.predefined_kg)}
 
 @bp.route("/save_user_logs", methods=["POST"])
 def save_user_logs():
+    params = request.get_json()
     
-    print(list(current_app.predefined_kg.nodes(data=True))[:5])
+    print(current_user.email)
+    print(params["logs_queue"])
+    
+    # TODO: need to give weights to KG
+    if current_user.email not in user_logs:
+        user_logs[current_user.email] = []
+    
+    combined = user_logs[current_user.email] + params["logs_queue"]
+
+    unique = {}
+    for item in combined:
+        unique[item["kgId"]] = item
+
+    user_logs[current_user.email] = list(unique.values())
+    
+    print(user_logs)
+    # print(list(current_app.predefined_kg.nodes(data=True))[:5])
 
     # print("save user logs")
     # global user_logs
@@ -35,9 +60,23 @@ def save_user_logs():
 @bp.route("/get_recommendation", methods=["GET"])
 def get_recommendation_based_on_user_logs_kg():
     print("get recommendation")
-    target = "state_SC_region_Upstate_county_Abbeville"
-    recommended_items=recommend_regions(current_app.predefined_kg, target=target, visited_set=user_logs["user"])
-    return {"status": "success", "recommendations": recommended_items}
+    
+    returnVals = []
+    exploredNodes = set([log["kgId"] for log in user_logs[current_user.email]])
+    seen_ids = set()
+    
+    for curNode in exploredNodes:
+        recommended_items, _ =recommend_regions(current_app.predefined_kg, target=curNode, visited_set=user_logs[current_user.email])
+        # print(recommended_items)
+        for item in recommended_items:
+            # print(item)
+            item_id = item["node"]  # 기준 key (중요)
+
+            if item_id not in seen_ids:
+                seen_ids.add(item_id)
+                returnVals.append(item)
+    
+    return {"status": "success", "recommendations": returnVals}
 
 def get_candidates(G: nx.Graph, target: str, relation: str = "SIMILAR_SEASONAL") -> List[str]:
     candidates = []
@@ -94,7 +133,6 @@ def score_diversity(
     if not sims:
         return 1.0
 
-    # selected와 덜 비슷할수록 diversity 높음
     return 1.0 - max(sims)
 
 def score_serendipity(
@@ -148,7 +186,6 @@ def recommend_regions(
 
     ranked = sorted(ranked, key=lambda x: x["score"], reverse=True)
 
-    # diversity를 더 강하게 적용하고 싶으면 greedy rerank
     final_list = []
     for item in ranked:
         if len(final_list) >= top_k:

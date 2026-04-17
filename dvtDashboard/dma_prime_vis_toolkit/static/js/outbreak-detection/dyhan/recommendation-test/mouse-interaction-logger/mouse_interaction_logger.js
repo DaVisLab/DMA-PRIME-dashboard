@@ -1,16 +1,27 @@
-let queue = [];
+import { getNodeID, returnKGVerifiedId } from "../KGUtils.js";
+import { highlightNodeInKG } from "../drawKGNetwork.js";
+import { showRecommendationResults } from "../showRecommendataionResults.js";
+
+let logs_queue = [];
 
 async function keepUserInteractionLog(type, data) {
-  console.log(data);
-  //   if (data.tag !== "svg") {
-  //     return;
-  //   }
-  if (data == null) {
+  // console.log(data);
+
+  if (data == null || data.tag.includes("node")) {
     return;
   }
 
-  queue.push({ type, data, time: Date.now() });
+  highlightNodeInKG(getNodeID(data.id));
+  // console.log(getNodeID(data.id));
 
+  logs_queue.push({
+    type,
+    kgId: returnKGVerifiedId(getNodeID(data.id)),
+    elementInfo: { tag: data.tag, id: data.id },
+    time: Date.now(),
+  });
+
+  console.log(logs_queue);
   const resp = await fetch("/recommendation/save_user_logs", {
     method: "POST",
     credentials: "same-origin",
@@ -19,7 +30,7 @@ async function keepUserInteractionLog(type, data) {
       Accept: "application/json",
     },
     body: JSON.stringify({
-      queue: queue,
+      logs_queue: logs_queue,
     }),
   });
 
@@ -31,24 +42,14 @@ async function keepUserInteractionLog(type, data) {
       Accept: "application/json",
     },
   });
-  
+
   const ttt = await resp2.json();
   console.log(ttt);
+  showRecommendationResults(ttt.recommendations);
 
-  console.log(queue);
+  console.log(logs_queue);
+  logs_queue = [];
 }
-
-// setInterval(() => {
-//   if (queue.length === 0) return;
-
-//   fetch("/log", {
-//     method: "POST",
-//     headers: {"Content-Type": "application/json"},
-//     body: JSON.stringify(queue)
-//   });
-
-//   queue = [];
-// }, 3000);
 
 function getElementInfo(el) {
   while (el && !el.id) {

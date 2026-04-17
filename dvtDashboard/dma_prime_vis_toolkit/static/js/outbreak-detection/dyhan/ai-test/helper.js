@@ -302,7 +302,9 @@ export const systemSpecification = {
 
 
 export function computeStatistics(values) {
+
   if (!Array.isArray(values) || values.length === 0) {
+    // console.log(values)
     throw new Error("Input must be a non-empty array of numbers");
   }
 

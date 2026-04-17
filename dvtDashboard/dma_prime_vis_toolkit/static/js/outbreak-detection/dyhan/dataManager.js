@@ -11,6 +11,18 @@ export const outbreak_data = {
   zcta: null,
 };
 
+export async function getPredefinedKG() {
+  const resp = await fetch("/recommendation/get_predefined_kg", {
+    method: "GET",
+    credentials: "same-origin",
+  });
+  const data = await resp.json();
+
+  console.log(data);
+
+  return data.knowledge_graph;
+}
+
 async function getRiskIndexBySpatialResoultionIn(mapSpatialResoultion) {
   const data = await getOutbreakDataBySpatialResoultionIn(mapSpatialResoultion);
 

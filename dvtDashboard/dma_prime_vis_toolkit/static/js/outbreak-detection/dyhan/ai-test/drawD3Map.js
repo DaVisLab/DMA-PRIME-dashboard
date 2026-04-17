@@ -34,6 +34,8 @@ export async function drawD3Map(
   const height = containerSizeInfo.height;
   const width = containerSizeInfo.width;
 
+  d3.select(visContainer).selectAll("*").remove();
+
   const svg = d3
     .select(visContainer)
     .append("svg")
@@ -48,7 +50,6 @@ export async function drawD3Map(
   // Path generator
   const path = makePath(width, height, spatialData, projName);
   console.log(features);
-
 
   // ---- Draw ----
   svg.selectAll("*").remove(); // clear previous
@@ -116,7 +117,6 @@ export function getColorTheme(
       .filter(Number.isFinite)
       .filter((d) => d > 0 && d !== null && d !== undefined);
     [min, max] = d3.extent(vals);
-   
   } else {
     let curValues = vals
       .map((d) => +d[feature])

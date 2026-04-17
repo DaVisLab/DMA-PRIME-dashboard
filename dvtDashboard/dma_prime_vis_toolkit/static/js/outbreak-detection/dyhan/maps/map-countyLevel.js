@@ -25,6 +25,7 @@ export function drawCountyMap(targetMap, featuresDataBySpace, maps) {
 
   const featuresDataBySpace_region = maps.regional_data;
 
+  console.log(featuresDataBySpace_region)
   let values = featuresDataBySpace.map((d) => d.properties.projected_value);
 
   targetMap.addSource(maps.layers.county_map_layer.sourceID, {

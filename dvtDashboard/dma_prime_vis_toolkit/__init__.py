@@ -115,7 +115,6 @@ def create_app(development=False, dataDir=None):
     
     app.register_blueprint(KG_recommendation.bp)
     kg_path = os.path.join(app.static_folder, "assets", "kg_test_covid.pkl")
-    print(kg_path)
     app.predefined_kg = load_pickle(kg_path)
 
     from . import admin
