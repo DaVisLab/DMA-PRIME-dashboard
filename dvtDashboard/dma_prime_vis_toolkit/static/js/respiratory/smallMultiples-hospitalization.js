@@ -54,13 +54,16 @@ async function getSpatialData() {
     "map-include-imputations",
   ).checked;
 
-  function getValueOfInterest(valueType, featureProperties, allowImputations) {
-    // console.log(featureProperties);
+  function getValueOfInterest(
+    valueType,
+    featureProperties,
+    allowImputations,
+    population,
+  ) {
     if (!allowImputations && featureProperties.historical.imputed) {
       return null;
     }
 
-    // console.log(featureProperties)
     let historicalVals = featureProperties.historical.values;
     let projectedVals = featureProperties.projected.values;
     let vals = historicalVals.concat(projectedVals);
@@ -70,6 +73,10 @@ async function getSpatialData() {
     if (valueType === "percentDifference") {
       // Percent difference from the previous week for each element
       transformed = vals.map((current, i, arr) => {
+        if (current == null || isNaN(current)) {
+          return null;
+        }
+
         if (
           i === 0 ||
           arr[i - 1] === 0 ||
@@ -84,7 +91,10 @@ async function getSpatialData() {
       });
     } else if (valueType === "rate") {
       // Convert each value to rate per 1,000 people
-      transformed = vals.map((v) => (v / scPopulation) * 1000);
+      transformed = vals.map((v) => {
+        if (v == null || !population) return null;
+        return (v / population) * 1000;
+      });
     } else if (valueType === "count") {
       // Raw counts (no transformation)
       transformed = vals;
@@ -135,9 +145,9 @@ async function getSpatialData() {
         valueTypeSwitch,
         d.properties.data[mapDataSourceSelector][mapOutcomeSelector],
         allowImputations,
+        d.properties.population,
       );
-    } catch (e) {
-      console.log(e);
+    } catch (error) {
       returnValue.data = [];
     }
 
@@ -209,9 +219,15 @@ function drawingSmallMultipleUnit(svg, data) {
     return;
   }
 
-  //   console.log(data);
-  // let values = data.data.values;
   const processed = data.data.map((d, i) => ({ x: i, y: d }));
+  const finiteValues = processed
+    .map((d) => d.y)
+    .filter((value) => Number.isFinite(value));
+
+  if (!finiteValues.length) {
+    svg.style("background-color", "gray");
+    return;
+  }
 
   const margin = { top: 10, right: 20, bottom: 0, left: 0 };
   const width = svg.node().clientWidth;
@@ -228,8 +244,8 @@ function drawingSmallMultipleUnit(svg, data) {
   const y = d3
     .scaleLinear()
     .domain([
-      d3.min([0, d3.min(processed, (d) => d.y)]),
-      d3.max(processed, (d) => d.y),
+      d3.min([0, d3.min(finiteValues)]),
+      d3.max(finiteValues),
     ])
     .nice()
     .range([height, margin.top]);
@@ -248,7 +264,9 @@ function drawingSmallMultipleUnit(svg, data) {
     .attr("stroke-width", 1)
     .attr("d", line);
 
-  const last7 = processed.slice(-7).filter((d) => d.y !== null);
+  const last7 = processed
+    .slice(-7)
+    .filter((d) => d.y !== null && !Number.isNaN(d.y));
   const trend = trendStrict(last7.map((d) => d.y));
 
   //   const processed_last10 = processed.slice(-7);
@@ -314,18 +332,24 @@ if (document.readyState === "loading") {
   callInitSmallMultipleView();
 }
 
+let latestSmallMultipleData = [];
+let resizeHandlerAttached = false;
+
 async function initSmallMultipleView() {
   const diseaseDataBySpace = await getSpatialData();
 
   const filteredDataByName = returnFilteredDataByName(diseaseDataBySpace);
   const sortedData = returnSortedData(filteredDataByName);
 
-  // console.log(diseaseDataBySpace);
+  latestSmallMultipleData = sortedData;
   drawingSmallMultiples(sortedData);
 
-  window.addEventListener("resize", () => {
-    drawingSmallMultiples(sortedData);
-  });
+  if (!resizeHandlerAttached) {
+    window.addEventListener("resize", () => {
+      drawingSmallMultiples(latestSmallMultipleData);
+    });
+    resizeHandlerAttached = true;
+  }
 
   // const ro = new ResizeObserver(() => {
   //   drawingSmallMultiples(diseaseDataBySpace);

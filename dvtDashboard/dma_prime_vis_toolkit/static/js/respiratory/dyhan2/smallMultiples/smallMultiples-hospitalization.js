@@ -156,14 +156,12 @@ function drawingSmallMultipleUnit(svg, data) {
     .on("mouseover", function () {
       let targets = targetMapsAndLayersByCurrentSpatialResolution();
 
-      console.log(targets);
       if (targets.mapSpatialResoultion !== "facility") {
         highlightLine(targets.targetMap, targets.targetLayer.lineLayerID, [
           data.id,
           ...maps.regionOfInterest,
         ]);
       } else {
-        console.log( data.id)
         highlightSymbol(targets.targetMap, targets.targetLayer.symbolLayerID, [
           data.id,
           ...maps.regionOfInterest,
@@ -353,8 +351,6 @@ if (document.readyState === "loading") {
 async function initSmallMultipleView() {
   const diseaseDataBySpace = await getSpatialData();
 
-  console.log(diseaseDataBySpace);
-  // console.log(diseaseDataBySpace);
   drawingSmallMultiples(diseaseDataBySpace);
 
   window.addEventListener("resize", () => {

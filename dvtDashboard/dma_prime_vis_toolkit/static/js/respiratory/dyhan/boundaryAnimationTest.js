@@ -100,7 +100,6 @@ function centroidOf(d, path) {
 }
 
 function scaleFromCenter(d, path, scale) {
-  console.log(d);
   const [cx, cy] = centroidOf(d, path);
   return `translate(${cx},${cy}) scale(${scale}) translate(${-cx},${-cy})`;
 }
@@ -221,7 +220,6 @@ function applyBehavior(selection, behaviors, meta) {
   }
 
   let dur = meta.dur;
-  console.log(dur);
   // 순차 실행
   list.forEach((name) => {
     switch (name) {

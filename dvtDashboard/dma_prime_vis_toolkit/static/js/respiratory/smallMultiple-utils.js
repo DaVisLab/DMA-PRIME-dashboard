@@ -127,6 +127,13 @@ export function resetSmallMultipleUnitPosition(featureID) {
 
 export function returnSortedData(dataBySpace) {
   const listOrder = document.getElementById("sortSelecter").value;
+  const latestFiniteValue = (data) => {
+    const value = data.data
+      .slice()
+      .reverse()
+      .find((d) => Number.isFinite(d));
+    return value ?? -Infinity;
+  };
 
   if (listOrder === "alphabetical-high") {
     dataBySpace.sort((a, b) => {
@@ -142,32 +149,18 @@ export function returnSortedData(dataBySpace) {
   }
   if (listOrder === "value-high") {
     dataBySpace.sort((a, b) => {
-      let aLast = a.data
-        .slice()
-        .reverse()
-        .find((d) => d != null);
-      let bLast = b.data
-        .slice()
-        .reverse()
-        .find((d) => d != null);
-      return bLast - aLast;
+      return latestFiniteValue(b) - latestFiniteValue(a);
     });
     return dataBySpace;
   }
   if (listOrder === "value-low") {
     dataBySpace.sort((a, b) => {
-      let aLast = a.data
-        .slice()
-        .reverse()
-        .find((d) => d != null);
-      let bLast = b.data
-        .slice()
-        .reverse()
-        .find((d) => d != null);
-      return aLast - bLast;
+      return latestFiniteValue(a) - latestFiniteValue(b);
     });
     return dataBySpace;
   }
+
+  return dataBySpace;
 }
 
 export function returnFilteredDataByName(dataBySpace) {

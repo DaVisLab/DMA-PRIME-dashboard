@@ -1,7 +1,7 @@
 
 function changeModel() {
     if (modelLocation) {
-        modelExploration.src = `/data/respiratory/model/${explorationDiseaseSelector.value}/${explorationGeographicUnitSelector.value}/${explorationPopulationSelector.value}/${explorationOutcomeVariableSelector.value}/${modelLocation}`
+        modelExploration.src = `/data/respiratory/model/${explorationDiseaseSelector.value}/${explorationGeographicUnitSelector.value}/${explorationPopulationSelector.value}/${explorationOutcomeVariableSelector.value}/${modelLocation}/${metadata.data_version}`
     } else {
         modelExploration.src = ''
     }
@@ -12,7 +12,7 @@ locationMenu.addEventListener("sl-select", event => {
 
     modelLocation = selectedLocation.value
 
-    locationIdSearch.value = d3.select(`sl-menu-item[value='${modelLocation}'`).node().getTextLabel()
+    locationIdSearch.value = d3.select(`sl-menu-item[value='${modelLocation}']`).node().getTextLabel()
     changeModel()
 })
 
@@ -30,7 +30,7 @@ locationIdSearch.addEventListener("sl-change", event => {
     var exactMatch = d3.selectAll("sl-menu-item.location-id").nodes().some(e => e.value == locationIdSearch.value)
     if (exactMatch) {
         modelLocation = locationIdSearch.value
-        locationIdSearch.value = d3.select(`sl-menu-item[value='${modelLocation}'`).node().getTextLabel()
+        locationIdSearch.value = d3.select(`sl-menu-item[value='${modelLocation}']`).node().getTextLabel()
         d3.selectAll("sl-menu-item.location-id").each(function() {
             let menuItem = d3.select(this)
             menuItem.classed("hide", !menuItem.classed(`${explorationGeographicUnitSelector.value}-id`))
@@ -107,7 +107,7 @@ async function updateExplorationPopulationOptions() {
         .append("sl-tooltip")
         .attr("class", "exploration-population-tooltip")
         .attr("content", d => metadata.populations_tooltips[d])
-        .attr("triger", "hover")
+        .attr("trigger", "hover")
         .attr("hoist", "")
         .append("sl-option")
         .attr("class", "exploration-population-option")
@@ -134,7 +134,7 @@ async function updateExplorationOutcomeVariableOptions() {
         .append("sl-tooltip")
         .attr("class", "exploration-outcome-tooltip")
         .attr("content", d => metadata.outcome_variables_tooltips[d])
-        .attr("triger", "hover")
+        .attr("trigger", "hover")
         .attr("hoist", "")
         .append("sl-option")
         .attr("class", "exploration-outcome-option")

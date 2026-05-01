@@ -159,8 +159,6 @@ export function drawZipMap(targetMap, featuresDataBySpace, maps) {
     // } else {
     //   features.properties.clicked = true;
     // }
-
-    console.log(maps.layers.zip_map_layer.fillLayerID);
   });
 
   targetMap.on(

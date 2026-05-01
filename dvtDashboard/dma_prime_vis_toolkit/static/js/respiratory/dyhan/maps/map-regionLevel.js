@@ -24,7 +24,6 @@ export function drawRegionMap(targetMap, featuresDataBySpace, maps) {
 
   let values = featuresDataBySpace.map((d) => d.properties.projected_value);
 
-  console.log(featuresDataBySpace)
   targetMap.addSource(maps.layers.region_map_layer.sourceID, {
     type: "geojson",
     data: {
@@ -34,7 +33,6 @@ export function drawRegionMap(targetMap, featuresDataBySpace, maps) {
   });
   const maxValue = d3.max(values);
 
-  console.log(values);
   fillAreaGeoJSONLayer(
     targetMap,
     maps.layers.region_map_layer.sourceID,

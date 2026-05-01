@@ -158,7 +158,9 @@ export function getAllValuesFromFeature(
       } else {
         value = thisData.values[i];
       }
-    } catch (e) {}
+    } catch (error) {
+      value = NaN;
+    }
 
     newData.push(value);
   }

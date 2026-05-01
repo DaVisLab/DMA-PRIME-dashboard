@@ -242,8 +242,7 @@ map.on("click", (e) => {
     const dataObject = deckOverlay.pickObject(temp).object;
 
     showMapTooltip(dataObject);
-  } catch (e) {
-    console.log(e);
+  } catch (error) {
     closePopupAndClearSelection();
     dataVersion++;
     redraw(false, false, true);
@@ -457,7 +456,10 @@ export function setMapFacilityUnitSelectorValue(value) {
 
   if (value == facilityUnitSelected) return;
 
-  document.getElementById(`map-facility-option-${value}`).checked = true;
+  const facilityOption = document.getElementById(`map-facility-option-${value}`);
+  if (!facilityOption) return;
+
+  facilityOption.checked = true;
 
   mapFacilityUnitSelector.dispatchEvent(
     new CustomEvent("change", {

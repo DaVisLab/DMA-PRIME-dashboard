@@ -214,7 +214,10 @@ export function setGridFacilityUnitSelectorValue(value) {
 
   if (value == facilityUnitSelected) return;
 
-  document.getElementById(`grid-facility-option-${value}`).checked = true;
+  const facilityOption = document.getElementById(`grid-facility-option-${value}`);
+  if (!facilityOption) return;
+
+  facilityOption.checked = true;
 
   gridFacilityUnitSelector.dispatchEvent(
     new CustomEvent("change", {

@@ -124,7 +124,7 @@ options %}
 
   <!-- imputation inclusion checkbox -->
   <sl-checkbox id="map-include-imputations" class="map-option" checked disabled
-    >Include imputated data</sl-checkbox
+    >Include imputed data</sl-checkbox
   >
 
   <!-- Map Resources section -->
@@ -411,80 +411,80 @@ options %}
 
 <!-- 3) Your initialization + controls (unchanged) -->
 <script>
-  dataVersion = 0;
+  var dataVersion = 0;
 
   // Map controls
-  mapResetButton = document.getElementById("map-reset-button");
-  mapTypeSwitch = document.getElementById("map-type-switch");
-  mapDiseaseSelector = document.getElementById("map-disease-selector");
-  mapGeographicUnitSelector = document.getElementById(
+  var mapResetButton = document.getElementById("map-reset-button");
+  var mapTypeSwitch = document.getElementById("map-type-switch");
+  var mapDiseaseSelector = document.getElementById("map-disease-selector");
+  var mapGeographicUnitSelector = document.getElementById(
     "map-geographic-unit-selector",
   );
 
-  mapFacilityUnitSelector = document.getElementById(
+  var mapFacilityUnitSelector = document.getElementById(
     "map-facility-option-container",
   );
-  mapPopulationSelector = document.getElementById("map-population-selector");
-  mapOutcomeVariableSelector = document.getElementById(
+  var mapPopulationSelector = document.getElementById("map-population-selector");
+  var mapOutcomeVariableSelector = document.getElementById(
     "map-outcome-variable-selector",
   );
-  mapIncludeImputations = document.getElementById("map-include-imputations");
+  var mapIncludeImputations = document.getElementById("map-include-imputations");
 
   // Optional toggles
-  mapOptionsGeographicLabelsToggle = document.getElementById(
+  var mapOptionsGeographicLabelsToggle = document.getElementById(
     "map-options-geographic-labels-toggle",
   );
-  hospitalIconsToggle = document.getElementById(
+  var hospitalIconsToggle = document.getElementById(
     "map-options-hospital-icons-toggle",
   );
-  mobileClinicIconsToggle = document.getElementById(
+  var mobileClinicIconsToggle = document.getElementById(
     "map-options-mobile-clinic-icons-toggle",
   );
-  communityPartnerIconsToggle = document.getElementById(
+  var communityPartnerIconsToggle = document.getElementById(
     "map-options-community-partner-icons-toggle",
   );
 
   // State–level chart elements
-  mapStateHospitalizationsSubtitle = document.getElementById(
+  var mapStateHospitalizationsSubtitle = document.getElementById(
     "map-state-hospitalizations-subtitle",
   );
-  mapStateHospitalizationsResizer = document.getElementById(
+  var mapStateHospitalizationsResizer = document.getElementById(
     "map-state-hospitalizations-resizer",
   );
-  mapStateHospitalizationsSvg = document.getElementById(
+  var mapStateHospitalizationsSvg = document.getElementById(
     "map-state-hospitalizations-svg",
   );
-  mapStateHospitalizationsLarge = document.getElementById(
+  var mapStateHospitalizationsLarge = document.getElementById(
     "map-state-hospitalizations-large",
   );
-  mapStateHospitalizationsLargeSubtitle = document.getElementById(
+  var mapStateHospitalizationsLargeSubtitle = document.getElementById(
     "map-state-hospitalizations-large-subtitle",
   );
-  mapStateHospitalizationsLargeResizer = document.getElementById(
+  var mapStateHospitalizationsLargeResizer = document.getElementById(
     "map-state-hospitalizations-large-resizer",
   );
-  mapStateHospitalizationsLargeSvg = document.getElementById(
+  var mapStateHospitalizationsLargeSvg = document.getElementById(
     "map-state-hospitalizations-large-svg",
   );
 
   // Main map, legend, title & tooltip
-  mapDiv = document.getElementById("map-div");
-  mapShapeLegend = document.getElementById("map-shape-legend");
-  choroplethLegendSVG = document.getElementById("choropleth-legend-svg");
-  mapTitle = document.getElementById("map-title");
-  mapDisclaimer = document.getElementById("map-disclaimer");
-  mapNoForecastAlert = document.getElementById("map-no-forecast-alert");
-  mapNoForecastThisWeekAlert = document.getElementById(
+  var mapDiv = document.getElementById("map-div");
+  var mapShapeLegend = document.getElementById("map-shape-legend");
+  var choroplethLegendSVG = document.getElementById("choropleth-legend-svg");
+  var mapTitle = document.getElementById("map-title");
+  var mapDisclaimer = document.getElementById("map-disclaimer");
+  var mapNoForecastAlert = document.getElementById("map-no-forecast-alert");
+  var mapNoForecastThisWeekAlert = document.getElementById(
     "map-no-forecast-this-week-alert",
   );
-  mapMixedForecastThisWeekAlert = document.getElementById(
+  var mapMixedForecastThisWeekAlert = document.getElementById(
     "map-mixed-forecast-this-week-alert",
   );
 
   // Options selected
-  mapGeographicUnit = undefined;
-  mapPopulation = undefined;
-  mapOutcomeVariable = undefined;
+  var mapGeographicUnit = undefined;
+  var mapPopulation = undefined;
+  var mapOutcomeVariable = undefined;
 </script>
 
 <script>
@@ -499,9 +499,12 @@ options %}
         if (selector.value === "zcta") {
           input.placeholder = "ZCTA";
         } else {
-          input.placeholder =
-            selector.getAttribute("value").charAt(0).toUpperCase() +
-            selector.getAttribute("value").slice(1);
+          const selectedGeography =
+            selector.value || selector.getAttribute("value") || "";
+          input.placeholder = selectedGeography
+            ? selectedGeography.charAt(0).toUpperCase() +
+              selectedGeography.slice(1)
+            : "Location";
         }
 
         return true;

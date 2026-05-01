@@ -129,6 +129,16 @@ const isGeographicChoroplethUnit = (unit) =>
 
 const getSelectedFeatureId = () => selectedItems.feature?.properties?.id;
 
+const toRateValue = (value, population) => {
+  if (value === null || value === undefined || !population) return null;
+
+  const numericValue = Number(value);
+  const numericPopulation = Number(population);
+  if (!Number.isFinite(numericValue) || numericPopulation <= 0) return null;
+
+  return (numericValue / numericPopulation) * 1000;
+};
+
 const getChoroplethLayer = (regionData) =>
   new GeoJsonLayer({
     id: "respiratory_choropleth",
@@ -464,7 +474,6 @@ function getColor(feature) {
       imputations,
     );
 
-    // console.log(value)
     const color =
       mapTypeSwitch.value === "percentDifference"
         ? !isNaN(value.at(-1))
@@ -512,16 +521,19 @@ function updateChoropleth(
     let projectedValues = variableData.projected.values.slice(-52);
 
     if (mapType === "rate") {
-      historicalValues = historicalValues.map(
-        (value) => (value / feature.properties.population) * 1000,
+      historicalValues = historicalValues.map((value) =>
+        toRateValue(value, feature.properties.population),
       );
 
-      projectedValues = projectedValues.map(
-        (value) => (value / feature.properties.population) * 1000,
+      projectedValues = projectedValues.map((value) =>
+        toRateValue(value, feature.properties.population),
       );
     }
 
-    values.push(...historicalValues, ...projectedValues);
+    values.push(
+      ...historicalValues.filter((value) => Number.isFinite(value)),
+      ...projectedValues.filter((value) => Number.isFinite(value)),
+    );
   }
 
   if (outcomeVariable === "rate_of_transmission") {
@@ -782,8 +794,9 @@ function updateMapTitle() {
   const observation = `${mapDiseaseSelector.value}-${mapGeographicUnitSelector.value}-${mapPopulationSelector.value}-${mapOutcomeVariableSelector.value}`;
   const observationCreatedDate = metadata["observation_created_date"][observation];
 
-  if(observationCreatedDate)
+  if (observationCreatedDate) {
     newTitle += `<br /> (Last Update: ${observationCreatedDate})`;
+  }
   mapTitle.innerHTML = newTitle;
 }
 
@@ -824,8 +837,6 @@ function updateMapWarnings() {
       ];
 
     const hasProjection = thisData.projected.values.length;
-
-    // console.log(thisData.projected.values.length)
 
     if (noForecast) {
       const hasHistorical = thisData.historical.values.length;

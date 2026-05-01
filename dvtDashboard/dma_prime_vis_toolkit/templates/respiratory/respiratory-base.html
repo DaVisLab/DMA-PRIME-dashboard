@@ -36,17 +36,15 @@
   dayjs.extend(window.dayjs_plugin_isSameOrAfter);
   dayjs.extend(window.dayjs_plugin_isSameOrBefore);
 
-  // A value... I forget where I got it from - I think the US census
-  // TODO: Find a better place to put this value? maybe script.js?
-  // TODO: Find source for value
-  scPopulation = 5118425;
+  // South Carolina population baseline used by state-level rate charts.
+  var scPopulation = 5118425;
 </script>
 <!-- Contains helper functions/data/constants -->
 <script>
   function parseDate(dateString) {
     return dayjs(dateString, "YYYY-MM-DD").toDate()
   }
-  metadata = {{ metadata | safe }}
+  var metadata = {{ metadata | tojson }}
 
   var currentDate = parseDate(metadata.current_date)
 
@@ -98,10 +96,18 @@
 </sl-dialog>
 {% endblock %} {% block bodyScripts %}
 <script>
-  tooltipLarge = document.getElementById("tooltip-large");
-  tooltipLarge.addEventListener("close", () => (tooltipLarge.innerHTML = ""));
+  var tooltipLarge = document.getElementById("tooltip-large");
+  function clearLargeTooltipContent() {
+    tooltipLarge
+      .querySelectorAll(
+        ".tooltip-region-info, .tooltip-data-info, .tooltip-legend, .tooltip-options, #tooltip-large-svg",
+      )
+      .forEach((node) => (node.innerHTML = ""));
+  }
+  tooltipLarge.addEventListener("sl-after-hide", clearLargeTooltipContent);
+  tooltipLarge.addEventListener("close", clearLargeTooltipContent);
 
-  modelExplorationButtonTooltipLarge = document.getElementById(
+  var modelExplorationButtonTooltipLarge = document.getElementById(
     "model-exploration-button-tooltip-large",
   );
 
@@ -116,7 +122,7 @@
   document.addEventListener("keyup", function (e) {
     if (e.key == "l") {
       d3.selectAll(".tooltip-label-group").each(function (d) {
-        display =
+        const display =
           d3.select(this).attr("display") == "none" ? "initial" : "none";
         d3.select(this).attr("display", display);
       });

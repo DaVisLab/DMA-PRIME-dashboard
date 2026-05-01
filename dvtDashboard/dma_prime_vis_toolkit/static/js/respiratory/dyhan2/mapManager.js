@@ -33,7 +33,6 @@ async function drawMap() {
   });
 
   const healthData_bySpatialResolution = await getSpatialData(mapSpatialResoultion);
-  console.log(healthData_bySpatialResolution);
 
   maps.healthData_bySpatialResolution = healthData_bySpatialResolution;
 

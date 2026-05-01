@@ -1,9 +1,15 @@
-{% set min_width = "350px" %} {% extends "subtemplates/panel.html" %} {% block
+{% set min_width = "350px" %}
+{% set default_disease = "influenza" %}
+{% set default_geographic_unit = "state" %}
+{% set default_population = metadata['available_models'][default_disease][default_geographic_unit] | list | first %}
+{% set default_outcomes = metadata['available_models'][default_disease][default_geographic_unit][default_population] %}
+{% set default_outcome = "inpatient_hospitalizations" if "inpatient_hospitalizations" in default_outcomes else default_outcomes | first %}
+{% extends "subtemplates/panel.html" %} {% block
 options %}
 <div id="exploration-options" class="sidebar-container">
   <!-- disease selector -->
   <sl-select
-    value="influenza"
+    value="{{ default_disease }}"
     id="exploration-disease-selector"
     class="fill-width"
     size="small"
@@ -18,7 +24,7 @@ options %}
 
   <!-- region selector -->
   <sl-select
-    value="state"
+    value="{{ default_geographic_unit }}"
     id="exploration-geographic-unit-selector"
     class="fill-width"
     size="small"
@@ -33,14 +39,14 @@ options %}
 
   <!-- population -->
   <sl-select
-    value="{{ metadata['available_models']['influenza']['region'] | list | first }}"
+    value="{{ default_population }}"
     id="exploration-population-selector"
     class="fill-width"
     size="small"
   >
     <p slot="label">Select population</p>
     {% for population in
-    metadata['available_models']['influenza']['region'].keys() %}
+    metadata['available_models'][default_disease][default_geographic_unit].keys() %}
     <sl-tooltip
       class="exploration-population-tooltip"
       content="{{ metadata['populations_tooltips'][population] }}"
@@ -56,14 +62,13 @@ options %}
 
   <!-- outcome variable -->
   <sl-select
-    value="inpatient_hospitalizations"
+    value="{{ default_outcome }}"
     id="exploration-outcome-variable-selector"
     class="fill-width"
     size="small"
   >
     <p slot="label">Select outcome variable</p>
-    {% for outcome in
-    metadata['available_models']['influenza']['region'].values() | first %}
+    {% for outcome in default_outcomes %}
     <sl-tooltip
       class="exploration-outcome-tooltip"
       content="{{ metadata['outcome_variables_tooltips'][outcome] }}"
@@ -120,32 +125,32 @@ options %}
 
 <script>
   //   var modelLocation = null;
-  explorationDiseaseSelector = document.getElementById(
+  var explorationDiseaseSelector = document.getElementById(
     "exploration-disease-selector",
   );
-  explorationGeographicUnitSelector = document.getElementById(
+  var explorationGeographicUnitSelector = document.getElementById(
     "exploration-geographic-unit-selector",
   );
 
-  explorationPopulationSelector = document.getElementById(
+  var explorationPopulationSelector = document.getElementById(
     "exploration-population-selector",
   );
 
-  explorationOutcomeVariableSelector = document.getElementById(
+  var explorationOutcomeVariableSelector = document.getElementById(
     "exploration-outcome-variable-selector",
   );
 
   // Location selector
-  locationIdSearch = document.getElementById("location-id-search");
-  locationMenu = document.getElementById("location-menu");
+  var locationIdSearch = document.getElementById("location-id-search");
+  var locationMenu = document.getElementById("location-menu");
 
   //
-  modelExploration = document.getElementById("model-exploration");
+  var modelExploration = document.getElementById("model-exploration");
 
   // // Options selected
-  explorationGeographicUnit = explorationGeographicUnitSelector.value;
-  explorationPopulation = explorationPopulationSelector.value;
-  explorationOutcomeVariable = explorationOutcomeVariableSelector.value;
+  var explorationGeographicUnit = explorationGeographicUnitSelector.value;
+  var explorationPopulation = explorationPopulationSelector.value;
+  var explorationOutcomeVariable = explorationOutcomeVariableSelector.value;
 </script>
 
 <script
@@ -167,7 +172,6 @@ options %}
 
   const iframeContent = document.querySelector("iframe");
 
-  // console.log(metadata);
   const popEl = document.getElementById("exploration-population-selector");
   const geoEl = document.getElementById("exploration-geographic-unit-selector");
   const outEl = document.getElementById(
@@ -191,6 +195,7 @@ options %}
   }
 
   function titleCase(str) {
+    str = String(str);
     // Convert the string to lowercase to ensure consistent capitalization, then split into words
     str = str.toLowerCase().split(" ");
 
@@ -204,10 +209,9 @@ options %}
   }
 
   geoEl.addEventListener("sl-change", (event) => {
-    const locations = metadata[event.target.value].sort();
+    const locations = Array.from(metadata[event.target.value] ?? []).sort();
     const menu = document.getElementById("location-menu");
 
-    console.log(metadata[event.target.value])
     menu.innerHTML = "";
 
     if (event.target.value == "state") {
@@ -225,13 +229,10 @@ options %}
       locations.forEach((location, i) => {
         const item = document.createElement("sl-menu-item");
 
-        console.log(metadata[event.target.value]);
-
         item.value = titleCase(location);
         item.classList.add(`${event.target.value}-id`, "location-id");
         item.textContent = titleCase(location);
 
-        console.log(item.value);
         if (i == 0) {
           document.getElementById("location-id-search").value = titleCase(location);
           // toIdFriendly(location);
@@ -256,8 +257,6 @@ options %}
 
   [popEl, geoEl, outEl, disEl].forEach((el) => {
     el.addEventListener("sl-change", (event) => {
-      console.log(metadata);
-
       controlDependencyTestOnModelView();
       testDiseaseOutcomeDipendency();
 
@@ -274,7 +273,6 @@ options %}
 
   [menu, input].forEach((el) => {
     el.addEventListener("sl-select", (event) => {
-      // console.log(locationIdSearch.value);
       callModelExplorationReport(
         explorationDiseaseSelector.value,
         explorationGeographicUnitSelector.value,

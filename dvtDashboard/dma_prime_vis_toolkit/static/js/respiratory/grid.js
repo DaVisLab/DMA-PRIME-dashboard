@@ -142,7 +142,7 @@ async function updateData() {
           .on("click", () => {
             d3.select(modelExplorationButtonTooltipLarge).on("click", () => {
               window.open(
-                `/respiratory-model-exploration?disease=${gridDiseaseSelector.value}&geographic-unit=${gridGeographicUnitSelector.value}&population=${gridPopulationSelector.value}&outcome-variable=${gridOutcomeVariableSelector.value}&location=${location}`,
+                `/respiratory-model-exploration?disease=${gridDiseaseSelector.value}&geographic-unit=${gridGeographicUnitSelector.value}&population=${gridPopulationSelector.value}&outcome-variable=${gridOutcomeVariableSelector.value}&location=${location}&data_version=${metadata.data_version}`,
               );
             });
             var largeTtp = d3.select(tooltipLarge);
@@ -182,7 +182,7 @@ async function updateData() {
           )
           .on("click", () => {
             window.open(
-              `/respiratory-model-exploration?disease=${gridDiseaseSelector.value}&geographic-unit=${gridGeographicUnitSelector.value}&population=${gridPopulationSelector.value}&ouctome-variable=${gridOutcomeVariableSelector.value}&location=${location}`,
+              `/respiratory-model-exploration?disease=${gridDiseaseSelector.value}&geographic-unit=${gridGeographicUnitSelector.value}&population=${gridPopulationSelector.value}&outcome-variable=${gridOutcomeVariableSelector.value}&location=${location}&data_version=${metadata.data_version}`,
             );
           });
       });
@@ -394,9 +394,10 @@ async function updateGrid(fetchData = true) {
     // process data
     Array("historical", "projected").forEach((e_p) => {
       if (gridTypeSwitch.value == "rate") {
-        data[e_p]["values"] = data[e_p]["values"].map((d) =>
-          d === null ? null : (d / feature.properties.population) * 1000,
-        );
+        data[e_p]["values"] = data[e_p]["values"].map((d) => {
+          if (d === null || !feature.properties.population) return null;
+          return (d / feature.properties.population) * 1000;
+        });
       }
       countMax = d3.max([...data[e_p]["values"], countMax]);
     });
@@ -440,6 +441,9 @@ async function updateGrid(fetchData = true) {
       .clamp(true);
 
     if (gridTypeSwitch.value == "percentDifference") {
+      gridSVG.selectAll(".grid-item-percent-zero-line").remove();
+      gridSVG.selectAll(".grid-item-percent-difference-line").remove();
+
       var percentDifferenceValues = getAllValuesFromFeature(
         feature.properties,
         gridPopulationSelector.value,
@@ -447,9 +451,16 @@ async function updateGrid(fetchData = true) {
         gridTypeSwitch.value,
         "historical",
       );
-      let pdMax = d3.max(percentDifferenceValues);
-      let pdMin = d3.min(percentDifferenceValues);
+      const finitePercentDifferenceValues = percentDifferenceValues.filter(
+        (d) => Number.isFinite(d),
+      );
+      let pdMax = d3.max(finitePercentDifferenceValues) ?? 1;
+      let pdMin = d3.min(finitePercentDifferenceValues) ?? -1;
       pdMax = Math.min(pdMax, 500);
+      if (pdMin === pdMax) {
+        pdMin -= 1;
+        pdMax += 1;
+      }
 
       var yScale2 = d3
         .scaleLinear()
@@ -457,12 +468,15 @@ async function updateGrid(fetchData = true) {
         .nice()
         .range([gridItemHeight - 2, margins.top]);
 
-      yScale.domain([
-        yScale.domain()[1] * (yScale2.domain()[0] / yScale2.domain()[1]),
-        yScale.domain()[1],
-      ]);
+      if (yScale2.domain()[1] !== 0) {
+        yScale.domain([
+          yScale.domain()[1] * (yScale2.domain()[0] / yScale2.domain()[1]),
+          yScale.domain()[1],
+        ]);
+      }
       gridSVG
         .insert("line", ".grid-item-historical-line")
+        .attr("class", "grid-item-percent-zero-line")
         .attr("x1", 0)
         .attr("x2", gridWidth)
         .attr("y1", yScale2(0))
@@ -489,6 +503,7 @@ async function updateGrid(fetchData = true) {
       historicalGroup.attr("stroke-dasharray", "3").attr("stroke", "#444444");
       gridSVG
         .append("path")
+        .attr("class", "grid-item-percent-difference-line")
         .attr(
           "d",
           d3
@@ -518,7 +533,7 @@ async function updateGrid(fetchData = true) {
       dotPlacementY = yScale(displayValue);
     }
 
-    if (displayValue) {
+    if (Number.isFinite(displayValue)) {
       valuePlacementY = 0.25 * em;
       if (dotPlacementY < 0.625 * em) {
         valuePlacementY = 0.625 * em - dotPlacementY;
@@ -578,49 +593,28 @@ function setupGridTooltip(ttpDiv, redraw = false) {
 }
 
 function sortGridItems() {
+  const getSortableValue = (feature) => {
+    const value = getCurDateValueFromFeature(
+      feature,
+      gridPopulationSelector.value,
+      gridOutcomeVariableSelector.value,
+      gridTypeSwitch.value,
+      gridIncludeImputations.checked,
+    );
+
+    const sortableValue = Array.isArray(value) ? value.at(-1) : value;
+    return Number.isFinite(sortableValue) ? sortableValue : -1;
+  };
+
   switch (gridSort.value) {
     case "value-high": // sort value high-low
       d3.selectAll("div.grid-container").sort((a, b) => {
-        var aValue =
-          getCurDateValueFromFeature(
-            a,
-            gridPopulationSelector.value,
-            gridOutcomeVariableSelector.value,
-            gridTypeSwitch.value,
-            gridIncludeImputations.checked,
-          ) || -1;
-        var bValue =
-          getCurDateValueFromFeature(
-            b,
-            gridPopulationSelector.value,
-            gridOutcomeVariableSelector.value,
-            gridTypeSwitch.value,
-            gridIncludeImputations.checked,
-          ) || -1;
-
-        return bValue - aValue;
+        return getSortableValue(b) - getSortableValue(a);
       });
       break;
     case "value-low": // sort value low-high
       d3.selectAll("div.grid-container").sort((a, b) => {
-        var aValue =
-          getCurDateValueFromFeature(
-            a,
-            gridPopulationSelector.value,
-            gridOutcomeVariableSelector.value,
-            gridTypeSwitch.value,
-            gridIncludeImputations.checked,
-          ) || -1;
-        var bValue =
-          getCurDateValueFromFeature(
-            b,
-            gridPopulationSelector.value,
-            gridOutcomeVariableSelector.value,
-            gridTypeSwitch.value,
-            gridIncludeImputations.checked,
-          ) || -1;
-
-        return aValue - bValue;
+        return getSortableValue(a) - getSortableValue(b);
       });
       break;
     case "alphabetical-low": // sort value a-z-0-9
@@ -647,24 +641,7 @@ function sortGridItems() {
       break;
     default: // sort value high-low
       d3.selectAll("div.grid-container").sort((a, b) => {
-        var aValue =
-          getCurDateValueFromFeature(
-            a,
-            gridPopulationSelector.value,
-            gridOutcomeVariableSelector.value,
-            gridTypeSwitch.value,
-            gridIncludeImputations.checked,
-          ) || -1;
-        var bValue =
-          getCurDateValueFromFeature(
-            b,
-            gridPopulationSelector.value,
-            gridOutcomeVariableSelector.value,
-            gridTypeSwitch.value,
-            gridIncludeImputations.checked,
-          ) || -1;
-
-        return bValue - aValue;
+        return getSortableValue(b) - getSortableValue(a);
       });
       break;
   }
@@ -676,26 +653,31 @@ function filterGridItems() {
   d3.selectAll("div.grid-container").classed("hide", (feature) => {
     let matched = false;
 
-    if (!gridTextFilter.value | (gridTextFilter.value == "")) {
+    if (!gridTextFilter.value || gridTextFilter.value == "") {
       matched = true;
     } else {
       if (feature.properties.county) {
-        matched |= feature.properties.county
+        matched =
+          matched ||
+          feature.properties.county
           .toString()
           .toLowerCase()
           .includes(filterString);
       }
-      matched |= feature.properties.id
+      matched =
+        matched ||
+        feature.properties.id
         .toString()
         .toLowerCase()
         .includes(filterString);
     }
 
-    matched &=
-      gridIncludeImputations.checked ||
-      !feature.properties.data[gridPopulationSelector.value][
-        gridOutcomeVariableSelector.value
-      ]["historical"].imputed;
+    matched =
+      matched &&
+      (gridIncludeImputations.checked ||
+        !feature.properties.data[gridPopulationSelector.value][
+          gridOutcomeVariableSelector.value
+        ]["historical"].imputed);
     return !matched;
   });
 
@@ -740,7 +722,7 @@ async function updateGridPopulationOptions() {
     .append("sl-tooltip")
     .attr("class", "grid-population-tooltip")
     .attr("content", (d) => metadata.populations_tooltips[d])
-    .attr("triger", "hover")
+    .attr("trigger", "hover")
     .attr("hoist", "")
     .append("sl-option")
     .attr("class", "grid-population-option")
@@ -760,7 +742,6 @@ async function updateGridPopulationOptions() {
 async function updateGridOutcomeVariableOptions() {
   d3.selectAll(".grid-outcome-tooltip").remove();
 
-  console.log(metadata.available_models);
   const availableOutcomeVariables =
     metadata.available_models[gridDiseaseSelector.value][
       gridGeographicUnitSelector.value
@@ -773,7 +754,7 @@ async function updateGridOutcomeVariableOptions() {
     .append("sl-tooltip")
     .attr("class", "grid-outcome-tooltip")
     .attr("content", (d) => metadata.outcome_variables_tooltips[d])
-    .attr("triger", "hover")
+    .attr("trigger", "hover")
     .attr("hoist", "")
     .append("sl-option")
     .attr("class", "grid-outcome-option")

@@ -26,8 +26,6 @@ export function drawMapLayers(targetMap, featuresDataBySpace, maps) {
 
   let values = featuresDataBySpace.map((d) => d.properties.projected_value);
 
-  console.log(values);
-
   targetMap.addSource(maps.layers.sourceID, {
     type: "geojson",
     data: {
@@ -138,8 +136,6 @@ function addHealthFacilityLayer(targetMap, maps, values) {
       }
     }
 
-    console.log(maps);
-
     // Add a symbol layer to draw the icon for all features (use filter if needed)
     if (!targetMap.getLayer || !targetMap.getLayer("health-system-layer")) {
       try {
@@ -199,7 +195,6 @@ function addHealthFacilityLayer(targetMap, maps, values) {
     // // Access the clicked feature's data
     const features = e.features[0];
 
-    console.log(features.properties.id)
     highlightSymbol(targetMap, maps.layers.symbolLayerID, [
       features.properties.id,
       ...maps.regionOfInterest,

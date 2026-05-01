@@ -66,6 +66,8 @@ function getCenter(feature) {
 }
 
 function fixCoord(coord) {
+  coord = coord.toString();
+
   while (coord[1] == "0") {
     coord = coord[0] + coord.slice(2);
   }
@@ -304,7 +306,7 @@ async function drawStateBarChart(
       }&${parseInt(Math.random() * 9999999999)}`,
     );
     stateData = Object.entries(stateData[disease]).map((d) => {
-      temp = { Date: parseDate(d[0]), count: d[1] };
+      const temp = { Date: parseDate(d[0]), count: d[1] };
       if (panelType == "rate") {
         temp["count"] /= scPopulation / 1000;
       }

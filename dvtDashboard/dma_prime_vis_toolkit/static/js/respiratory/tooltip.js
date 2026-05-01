@@ -490,8 +490,6 @@ export function drawTooltip(
     .attr("height", ttpHeight - ttpMargins.bottom - ttpMargins.top);
 
   if (panelType == "percentDifference") {
-    console.log(featureData);
-
     var percentDifferenceHistoricalValues = getAllValuesFromFeature(
       featureData,
       population,
@@ -507,8 +505,6 @@ export function drawTooltip(
       panelType,
       "projected",
     );
-
-    console.log(percentDifferenceProjectedValues);
 
     let pdMax = d3.max([
       ...percentDifferenceHistoricalValues,
@@ -681,13 +677,22 @@ export function drawTooltip(
         d3.timeDay.offset(data.projected.start_date, -7),
       )
     ) {
+      const currentHistoricalValue = Number(
+        data.historical.values[lastHistoricalValueIndex],
+      );
+      const previousHistoricalValue = Number(
+        data.historical.values[lastHistoricalValueIndex - 1],
+      );
       const valueAppended =
         panelType != "percentDifference"
           ? data.historical.values[lastHistoricalValueIndex]
-          : ((data.historical.values[lastHistoricalValueIndex] -
-              data.historical.values[lastHistoricalValueIndex - 1]) /
-              data.historical.values[lastHistoricalValueIndex - 1]) *
-            100;
+          : !Number.isFinite(currentHistoricalValue) ||
+              !Number.isFinite(previousHistoricalValue) ||
+              previousHistoricalValue === 0
+            ? null
+            : ((currentHistoricalValue - previousHistoricalValue) /
+                Math.abs(previousHistoricalValue)) *
+              100;
 
       if (panelType == "percentDifference") {
         percentDifferenceProjectedValues.splice(0, 0, valueAppended);
@@ -703,8 +708,6 @@ export function drawTooltip(
         ? percentDifferenceProjectedValues
         : projectedValues;
 
-    console.log(data.projected.start_date);
-    console.log(values);
     let areaPathForPrediction = predictiveGroup
       .selectAll("path")
       .data(d3.range(values.length - 1))

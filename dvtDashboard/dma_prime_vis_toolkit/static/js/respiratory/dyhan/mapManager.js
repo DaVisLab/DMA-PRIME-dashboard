@@ -20,9 +20,6 @@ async function drawMap() {
   const mapSpatialResoultion = document.getElementById(
     "map-resolution-selector"
   ).value;
-  
-  console.log(mapSpatialResoultion);
-
   maps = {};
   maps.region_map = undefined;
   maps.county_map = undefined;

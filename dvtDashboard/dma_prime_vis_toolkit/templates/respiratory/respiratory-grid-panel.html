@@ -126,7 +126,7 @@ options %}
 
   <!-- imputation inclusion checkbox -->
   <sl-checkbox id="grid-include-imputations" checked
-    >Include imputated data</sl-checkbox
+    >Include imputed data</sl-checkbox
   >
 
   <div id="grid-info">
@@ -220,21 +220,21 @@ options %}
 <!-- 3) Your initialization + controls (unchanged) -->
 <script>
   // grid controls
-  gridCloseTtpsButton = document.getElementById("grid-close-ttps-button");
-  gridTypeSwitch = document.getElementById("grid-type-switch");
-  gridDiseaseSelector = document.getElementById("grid-disease-selector");
-  gridGeographicUnitSelector = document.getElementById(
+  var gridCloseTtpsButton = document.getElementById("grid-close-ttps-button");
+  var gridTypeSwitch = document.getElementById("grid-type-switch");
+  var gridDiseaseSelector = document.getElementById("grid-disease-selector");
+  var gridGeographicUnitSelector = document.getElementById(
     "grid-geographic-unit-selector",
   );
-  gridFacilityUnitSelector = document.getElementById(
+  var gridFacilityUnitSelector = document.getElementById(
     "grid-facility-option-container",
   );
 
-  gridPopulationSelector = document.getElementById("grid-population-selector");
-  gridOutcomeVariableSelector = document.getElementById(
+  var gridPopulationSelector = document.getElementById("grid-population-selector");
+  var gridOutcomeVariableSelector = document.getElementById(
     "grid-outcome-variable-selector",
   );
-  gridIncludeImputations = document.getElementById("grid-include-imputations");
+  var gridIncludeImputations = document.getElementById("grid-include-imputations");
 
   var gridSort = document.getElementById("grid-sort");
   var gridTextFilter = document.getElementById("grid-text-filter");
@@ -245,37 +245,37 @@ options %}
   var gridSecondaryLegend = document.getElementById("grid-secondary-legend");
 
   // containing elements
-  gridContent = document.getElementById("grid-content");
-  gridContainer = document.getElementById("grid-container");
-  gridContainerResizer = document.getElementById("grid-container-resizer");
+  var gridContent = document.getElementById("grid-content");
+  var gridContainer = document.getElementById("grid-container");
+  var gridContainerResizer = document.getElementById("grid-container-resizer");
 
   // State–level chart elements
-  gridStateHospitalizationsSubtitle = document.getElementById(
+  var gridStateHospitalizationsSubtitle = document.getElementById(
     "grid-state-hospitalizations-subtitle",
   );
-  gridStateHospitalizationsResizer = document.getElementById(
+  var gridStateHospitalizationsResizer = document.getElementById(
     "grid-state-hospitalizations-resizer",
   );
-  gridStateHospitalizationsSvg = document.getElementById(
+  var gridStateHospitalizationsSvg = document.getElementById(
     "grid-state-hospitalizations-svg",
   );
-  gridStateHospitalizationsLarge = document.getElementById(
+  var gridStateHospitalizationsLarge = document.getElementById(
     "grid-state-hospitalizations-large",
   );
-  gridStateHospitalizationsLargeSubtitle = document.getElementById(
+  var gridStateHospitalizationsLargeSubtitle = document.getElementById(
     "grid-state-hospitalizations-large-subtitle",
   );
-  gridStateHospitalizationsLargeResizer = document.getElementById(
+  var gridStateHospitalizationsLargeResizer = document.getElementById(
     "grid-state-hospitalizations-large-resizer",
   );
-  gridStateHospitalizationsLargeSvg = document.getElementById(
+  var gridStateHospitalizationsLargeSvg = document.getElementById(
     "grid-state-hospitalizations-large-svg",
   );
 
   // Options selected
-  gridGeographicUnit = undefined;
-  gridPopulation = undefined;
-  gridOutcomeVariable = undefined;
+  var gridGeographicUnit = undefined;
+  var gridPopulation = undefined;
+  var gridOutcomeVariable = undefined;
 
   // Get scrollbar width - source: https://stackoverflow.com/questions/28360978/how-can-i-get-browser-scrollbar-width
   var scrollDiv = document.createElement("div");

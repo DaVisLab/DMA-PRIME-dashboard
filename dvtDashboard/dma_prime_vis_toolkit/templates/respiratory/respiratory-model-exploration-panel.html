@@ -104,7 +104,7 @@
 
     <sl-menu id="location-menu">
       {% for region in metadata['region_sizes'].keys() %} {% for location in
-      metadata[region]|sort() %}
+      metadata.get(region, [])|sort() %}
       <sl-menu-item value="{{ location }}" class="{{ region }}-id location-id"
         >{{ location }}</sl-menu-item
       >
@@ -135,32 +135,32 @@
   var modelLocation = null;
 
   // Controls
-  explorationDiseaseSelector = document.getElementById(
+  var explorationDiseaseSelector = document.getElementById(
     "exploration-disease-selector",
   );
-  explorationGeographicUnitSelector = document.getElementById(
+  var explorationGeographicUnitSelector = document.getElementById(
     "exploration-geographic-unit-selector",
   );
 
-  explorationPopulationSelector = document.getElementById(
+  var explorationPopulationSelector = document.getElementById(
     "exploration-population-selector",
   );
 
-  explorationOutcomeVariableSelector = document.getElementById(
+  var explorationOutcomeVariableSelector = document.getElementById(
     "exploration-outcome-variable-selector",
   );
 
   // Location selector
-  locationIdSearch = document.getElementById("location-id-search");
-  locationMenu = document.getElementById("location-menu");
+  var locationIdSearch = document.getElementById("location-id-search");
+  var locationMenu = document.getElementById("location-menu");
 
   //
-  modelExploration = document.getElementById("model-exploration");
+  var modelExploration = document.getElementById("model-exploration");
 
   // Options selected
-  explorationGeographicUnit = "{{ geographic_unit }}";
-  explorationPopulation = "{{ population }}";
-  explorationOutcomeVariable = "{{ outcome_variable }}";
+  var explorationGeographicUnit = "{{ geographic_unit }}";
+  var explorationPopulation = "{{ population }}";
+  var explorationOutcomeVariable = "{{ outcome_variable }}";
 
   // window.removeEventListener("keydown", swapTheme);
 </script>

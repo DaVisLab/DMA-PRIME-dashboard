@@ -24,8 +24,6 @@ async function getHospitalizationData(diseaseOfInterest, valueType) {
 
     return temp;
   });
-  console.log(stateData);
-
   // } catch (error) {
   //   stateData = [{ Date: "2020-01-01", count: 1 }];
   // }
