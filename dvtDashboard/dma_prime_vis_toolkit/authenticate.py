@@ -2,6 +2,7 @@ import pyotp
 import qrcode
 from io import BytesIO
 from base64 import b64encode
+from urllib.parse import urljoin, urlparse
 
 from flask import (
     Blueprint,
@@ -15,7 +16,14 @@ from flask import (
     current_app,
 )
 
-from flask_login import LoginManager, login_user, logout_user, login_url, current_user
+from flask_login import (
+    LoginManager,
+    current_user,
+    login_required,
+    login_url,
+    login_user,
+    logout_user,
+)
 
 from flask_bcrypt import Bcrypt
 import jwt
@@ -28,11 +36,35 @@ bp = Blueprint(
 
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
+bcrypt = Bcrypt()
+
+
+def _is_safe_redirect_target(target):
+    """Allow next redirects only within this host."""
+    if not target:
+        return False
+
+    host_url = urlparse(request.host_url)
+    redirect_url = urlparse(urljoin(request.host_url, target))
+    return (
+        redirect_url.scheme in ("http", "https")
+        and host_url.netloc == redirect_url.netloc
+    )
+
+
+def _safe_next_url(default_endpoint="index"):
+    next_url = request.args.get("next")
+    if _is_safe_redirect_target(next_url):
+        return next_url
+    return url_for(default_endpoint)
 
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    try:
+        return User.query.get(int(user_id))
+    except (TypeError, ValueError):
+        return None
 
 
 @login_manager.unauthorized_handler
@@ -64,15 +96,29 @@ def unauthorized():
 
 
 @bp.route("/refresh", methods=["GET"])
+@login_required
 def refresh():
+    """Refresh the authenticated session before the permanent-session timeout."""
     login_user(current_user)
     return "", 204
 
 
 @bp.route("/two_factor_setup", methods=["GET"])
 def two_factor_setup():
-    user = User.query.filter_by(email=session["email"]).first()
-    unique_key = pyotp.random_base32()
+    email = session.get("email")
+    if not email:
+        flash("Please log in before setting up 2FA")
+        return redirect(url_for("auth.login"))
+
+    user = User.query.filter_by(email=email).first()
+    if user is None:
+        session.pop("email", None)
+        flash("Account not found")
+        return redirect(url_for("auth.login"))
+
+    # Keep an existing secret stable so refreshing the setup page does not
+    # silently invalidate a QR code the user already scanned.
+    unique_key = user.two_factor_auth or pyotp.random_base32()
     user.two_factor_auth = unique_key
     db.session.commit()
     uri = pyotp.totp.TOTP(unique_key).provisioning_uri(
@@ -88,42 +134,52 @@ def two_factor_setup():
 
 @bp.route("/two_factor_auth", methods=["GET", "POST"])
 def two_factor_auth():
+    email = session.get("email")
+    if not email:
+        flash("Please log in before entering a 2FA code")
+        return redirect(url_for("auth.login"))
+
+    curr_user = User.query.filter_by(email=email).first()
+    if curr_user is None or curr_user.two_factor_auth is None:
+        session.pop("email", None)
+        flash("2FA setup was not found for this account")
+        return redirect(url_for("auth.login"))
+
     if request.method == "POST":
-        otp_2fa = request.form["2fa_code"]
-        curr_user = User.query.filter(User.email == session["email"]).first()
+        otp_2fa = request.form.get("2fa_code", "").strip()
         key = curr_user.two_factor_auth  # "DMA_2FA_KEY"
         totp = pyotp.TOTP(key)
-        authenticate_2fa = totp.verify(otp_2fa)
+        authenticate_2fa = totp.verify(otp_2fa, valid_window=1)
         if authenticate_2fa:
             flash("2FA Authentication Successful")
             login_user(curr_user)
             current_app.logger.info(f"Successful login of user {curr_user.email}")
-            next = request.args.get("next")
-            return redirect(next or url_for("index"))
+            return redirect(_safe_next_url())
         else:
             flash("Incorrect 2FA code")
             current_app.logger.info(f"Failed 2FA of user {curr_user.email}")
-            session["email"] = session["email"]
     return render_template("authentication/two_factor_auth.html")
 
 
 @bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email_username = request.form["email_username"]
-        password = request.form["password"]
+        email_username = request.form.get("email_username", "").strip()
+        password = request.form.get("password", "")
+
+        if not email_username or not password:
+            flash("Email/username and password are required")
+            return render_template("authentication/login.html")
 
         curr_user = User.query.filter(
             (User.email == email_username) | (User.username == email_username)
         ).first()
 
-        # flash(type(curr_user.access_level))
-        # print(curr_user.access_level)
         if curr_user is None:
             current_app.logger.info(f"Login attempt with user {email_username}")
             flash("Incorrect username or email")
         else:
-            if Bcrypt().check_password_hash(curr_user.password, password):
+            if bcrypt.check_password_hash(curr_user.password, password):
                 current_app.logger.info(
                     f"Correct username and password of user {email_username}"
                 )
@@ -134,8 +190,7 @@ def login():
                     current_app.logger.info(
                         f"Successful login of user {curr_user.email}"
                     )
-                    next = request.args.get("next")
-                    return redirect(next or url_for("index"))
+                    return redirect(_safe_next_url())
                 else:
                     # allow waste water only access
 
@@ -144,15 +199,14 @@ def login():
                         current_app.logger.info(
                             f"Successful login of user {curr_user.email}"
                         )
-                        next = request.args.get("next")
-                        return redirect(next or url_for("index"))
+                        return redirect(_safe_next_url())
 
                     if curr_user.two_factor_auth is None:
-                        next = request.args.get("next") or url_for("index")
-                        return redirect(url_for("auth.two_factor_setup", next=next))
+                        next_url = _safe_next_url()
+                        return redirect(url_for("auth.two_factor_setup", next=next_url))
                     else:
-                        next = request.args.get("next") or url_for("index")
-                        return redirect(url_for("auth.two_factor_auth", next=next))
+                        next_url = _safe_next_url()
+                        return redirect(url_for("auth.two_factor_auth", next=next_url))
             else:
                 current_app.logger.info(
                     f"Incorrect password attempt of user {curr_user.email}"
@@ -170,12 +224,16 @@ def logout():
 
 @bp.route("/signup", methods=["GET", "POST"])
 def signup():
+    """Allow local development users to create accounts without admin setup."""
     if current_app.config["DEVELOPMENT"]:
-        """Signup user by adding the user to the database."""
         if request.method == "POST":
-            username = request.form["username"]
-            password = request.form["password"]
-            email = request.form["email"]
+            username = request.form.get("username", "").strip()
+            password = request.form.get("password", "")
+            email = request.form.get("email", "").strip()
+
+            if not username or not password or not email:
+                flash("Username, email, and password are required")
+                return redirect("/auth/signup")
 
             try:
                 old_user = User.query.filter_by(email=email).first()
@@ -186,7 +244,7 @@ def signup():
                 temp_user = User(
                     email,
                     username,
-                    Bcrypt().generate_password_hash(password),
+                    bcrypt.generate_password_hash(password),
                     access_level=0,
                     verified_user=False,
                 )
@@ -209,10 +267,19 @@ def signup():
 
 @bp.route("/verify_email/<token>", methods=["GET"])
 def verify_email(token):
-    data = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
+    try:
+        data = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
+    except jwt.InvalidTokenError:
+        flash("Invalid or expired verification link")
+        return redirect("/auth/login")
+
     email = data["email"]
 
     user = User.query.filter_by(email=email).first()
+    if user is None:
+        flash("Account not found")
+        return redirect("/auth/login")
+
     user.verified_user = True
     db.session.commit()
     current_app.logger.info(f"{email} verified account email")
@@ -224,7 +291,11 @@ def verify_email(token):
 def get_email():
     if request.method == "GET":
         return render_template("authentication/reset_password.html")
-    email = request.form["email"]
+    email = request.form.get("email", "").strip()
+    if not email:
+        flash("Email is required")
+        return render_template("authentication/reset_password.html")
+
     curr_user = User.query.filter_by(email=email).first()
 
     if curr_user:
@@ -247,9 +318,17 @@ def get_email():
 
 @bp.route("/reset_password/<token>", methods=["GET", "POST"])
 def reset_password(token):
-    data = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
+    try:
+        data = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
+    except jwt.InvalidTokenError:
+        flash("Invalid or expired reset link")
+        return redirect("/auth/login")
+
     email = data["email"]
     curr_user = User.query.filter_by(email=email).first()
+    if curr_user is None:
+        flash("Account not found")
+        return redirect("/auth/login")
 
     if request.method == "GET":
         return render_template(
@@ -258,11 +337,20 @@ def reset_password(token):
             verified=curr_user.verified_user,
         )
 
-    password = request.form["password"]
-    curr_user.password = Bcrypt().generate_password_hash(password)
+    password = request.form.get("password", "")
+    confirm_password = request.form.get("password_2", password)
+    if password != confirm_password:
+        flash("Passwords do not match")
+        return render_template(
+            "authentication/reset_password.html",
+            email=email,
+            verified=curr_user.verified_user,
+        )
+
+    curr_user.password = bcrypt.generate_password_hash(password)
 
     if not curr_user.verified_user:
-        username = request.form["username"]
+        username = request.form.get("username", "").strip() or email.split("@")[0]
         curr_user.username = username
     curr_user.verified_user = True
     db.session.commit()
@@ -270,5 +358,5 @@ def reset_password(token):
 
     current_app.logger.info(f"{email} changed account password")
 
-    flash("Password Changed Succesfully. Please Log in")
+    flash("Password Changed Successfully. Please Log in")
     return redirect("/auth/login")

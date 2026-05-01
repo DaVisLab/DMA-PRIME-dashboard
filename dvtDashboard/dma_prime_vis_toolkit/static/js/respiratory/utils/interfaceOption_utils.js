@@ -1,34 +1,86 @@
-export async function updateOutcomeOptions(view, outEl, disEl, geoEl, popEl) {
-  d3.select(`#${view}-outcome-variable-selector`)
-    .selectAll(`.${view}-outcome-tooltip`)
-    .remove();
+function dispatchSelectionChange(element) {
+  element.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+}
 
-  let availableOutcomeVariables =
-    metadata.available_models[disEl.value][geoEl.value][popEl.value];
+function ensureSelectedValue(element, availableValues) {
+  if (!availableValues.length || availableValues.includes(element.value)) {
+    return;
+  }
 
-  console.log(availableOutcomeVariables);
-  console.log(metadata.outcome_variables);
-  d3.select(`#${view}-outcome-variable-selector`)
-    .selectAll(`.${view}-outcome-tooltip`)
-    .data(availableOutcomeVariables)
+  element.value = availableValues[0];
+  dispatchSelectionChange(element);
+}
+
+function labelFrom(dictionary, value) {
+  return dictionary?.[value] ?? value;
+}
+
+function appendTooltipOptions(
+  selector,
+  tooltipClass,
+  optionClass,
+  values,
+  labels,
+  tooltips,
+) {
+  d3.select(selector).selectAll(`.${tooltipClass}`).remove();
+
+  const wrappers = d3
+    .select(selector)
+    .selectAll(`.${tooltipClass}`)
+    .data(values)
     .enter()
     .append("sl-tooltip")
-    .attr("class", `${view}-outcome-tooltip`)
-    .attr("content", (d) => metadata.outcome_variables_tooltips[d])
-    .attr("triger", "hover")
-    .attr("hoist", "")
-    .append("sl-option")
-    .attr("class", `${view}-outcome-option`)
-    .attr("value", (d) => d)
-    .html((d) => metadata.outcome_variables[d]);
+    .attr("class", tooltipClass)
+    .attr("content", (d) => labelFrom(tooltips, d))
+    .attr("trigger", "hover")
+    .attr("hoist", "");
 
-  if (availableOutcomeVariables.includes(outEl.value)) {
-    // do nothing
-  } else {
-    // mapOutcomeVariable = availableOutcomeVariables[0];
-    outEl.value = availableOutcomeVariables[0];
-    outEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
-  }
+  wrappers
+    .append("sl-option")
+    .attr("class", optionClass)
+    .attr("value", (d) => d)
+    .html((d) => labelFrom(labels, d));
+}
+
+function appendPlainOptions(selector, optionClass, values, labels) {
+  d3.select(selector).selectAll(`.${optionClass}`).remove();
+
+  d3.select(selector)
+    .selectAll(`.${optionClass}`)
+    .data(values)
+    .enter()
+    .append("sl-option")
+    .attr("class", optionClass)
+    .attr("value", (d) => d)
+    .html((d) => labelFrom(labels, d));
+}
+
+function getAvailableOutcomes(disEl, geoEl, popEl) {
+  return metadata.available_models?.[disEl.value]?.[geoEl.value]?.[popEl.value] ?? [];
+}
+
+function getAvailablePopulations(disEl, geoEl) {
+  return Object.keys(metadata.available_models?.[disEl.value]?.[geoEl.value] ?? {});
+}
+
+function getAvailableGeographicUnits(disEl) {
+  return Object.keys(metadata.available_models?.[disEl.value] ?? {});
+}
+
+export async function updateOutcomeOptions(view, outEl, disEl, geoEl, popEl) {
+  const availableOutcomeVariables = getAvailableOutcomes(disEl, geoEl, popEl);
+
+  appendTooltipOptions(
+    `#${view}-outcome-variable-selector`,
+    `${view}-outcome-tooltip`,
+    `${view}-outcome-option`,
+    availableOutcomeVariables,
+    metadata.outcome_variables,
+    metadata.outcome_variables_tooltips,
+  );
+
+  ensureSelectedValue(outEl, availableOutcomeVariables);
 }
 
 export async function updatePopulationOptions(
@@ -38,34 +90,18 @@ export async function updatePopulationOptions(
   geoEl,
   popEl,
 ) {
-  d3.select(`#${view}-population-variable-selector`)
-    .selectAll(`.${view}-population-tooltip`)
-    .remove();
+  const availablePopulations = getAvailablePopulations(disEl, geoEl);
 
-  let availablePopulations = Object.keys(
-    metadata.available_models[disEl.value][geoEl.value],
+  appendTooltipOptions(
+    `#${view}-population-variable-selector`,
+    `${view}-population-tooltip`,
+    `${view}-population-option`,
+    availablePopulations,
+    metadata.populations,
+    metadata.populations_tooltips,
   );
 
-  d3.select(`#${view}-population-variable-selector`)
-    .selectAll(`.${view}-population-tooltip`)
-    .data(availablePopulations)
-    .enter()
-    .append("sl-tooltip")
-    .attr("class", `${view}-population-tooltip`)
-    .attr("content", (d) => metadata.populations_tooltips[d])
-    .attr("triger", "hover")
-    .attr("hoist", "")
-    .append("sl-option")
-    .attr("class", `${view}-population-option`)
-    .attr("value", (d) => d)
-    .html((d) => metadata.populations[d]);
-
-  if (availablePopulations.includes(popEl.value)) {
-    // do nothing
-  } else {
-    popEl.value = availablePopulations[0];
-    popEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
-  }
+  ensureSelectedValue(popEl, availablePopulations);
 }
 
 export async function updateGeographicOptions(
@@ -75,30 +111,14 @@ export async function updateGeographicOptions(
   geoEl,
   popEl,
 ) {
-  d3.select(`#${view}-geographic-variable-selector`)
-    .selectAll(`.${view}-geographic-unit-option`)
-    .remove();
+  const availableGeographicUnits = getAvailableGeographicUnits(disEl);
 
-  // d3.selectAll(".map-geographic-unit-option").remove();
-
-  let availableGeographicUnits = Object.keys(
-    metadata.available_models[disEl.value],
+  appendPlainOptions(
+    `#${view}-geographic-unit-selector`,
+    `${view}-geographic-unit-option`,
+    availableGeographicUnits,
+    metadata.region_sizes,
   );
 
-  // d3.select(mapGeographicUnitSelector)
-  d3.select(`#${view}-geographic-unit-selector`)
-    .selectAll(`.${view}-geographic-unit-option`)
-    .data(availableGeographicUnits)
-    .enter()
-    .append("sl-option")
-    .attr("class", `${view}-geographic-unit-option`)
-    .attr("value", (d) => d)
-    .html((d) => metadata.region_sizes[d]);
-
-  if (availableGeographicUnits.includes(geoEl.value)) {
-    // do nothing
-  } else {
-    geoEl.value = availableGeographicUnits[0];
-    geoEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
-  }
+  ensureSelectedValue(geoEl, availableGeographicUnits);
 }

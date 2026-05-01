@@ -1,3 +1,39 @@
+function finiteNumber(value, fallback = NaN) {
+  const parsedValue = parseFloat(value);
+  return Number.isFinite(parsedValue) ? parsedValue : fallback;
+}
+
+function safeRate(value, population) {
+  const numericValue = finiteNumber(value);
+  const numericPopulation = finiteNumber(population);
+
+  if (
+    !Number.isFinite(numericValue) ||
+    !Number.isFinite(numericPopulation) ||
+    numericPopulation <= 0
+  ) {
+    return NaN;
+  }
+
+  return (numericValue / numericPopulation) * 1000;
+}
+
+function safePercentDifference(currentValue, previousValue) {
+  const currentNumber = finiteNumber(currentValue);
+  const previousNumber = finiteNumber(previousValue);
+
+  if (!Number.isFinite(currentNumber) || !Number.isFinite(previousNumber)) {
+    return undefined;
+  }
+
+  // A zero previous value has no meaningful percent-change denominator.
+  if (previousNumber === 0) {
+    return undefined;
+  }
+
+  return ((currentNumber - previousNumber) / Math.abs(previousNumber)) * 100;
+}
+
 export async function call_data(geoSelected, diseaseSelected, data_version) {
   return await d3.json(
     `/data/respiratory/${geoSelected}/${
@@ -63,11 +99,10 @@ export function getCurDateValueFromFeature(
   }
 
   const dateIndex = dayjs(currentDate).diff(thisData.start_date, "week");
-  // console.log(dateIndex);
-  let thisWeekDatum = parseFloat(thisData.values.at(dateIndex));
+  let thisWeekDatum = finiteNumber(thisData.values.at(dateIndex));
 
   if (panelType === "rate") {
-    thisWeekDatum = (thisWeekDatum / feature.properties.population) * 1000;
+    thisWeekDatum = safeRate(thisWeekDatum, feature.properties.population);
   }
 
   if (panelType === "percentDifference") {
@@ -78,16 +113,15 @@ export function getCurDateValueFromFeature(
         feature.properties.data[population][outcomeVariable]["historical"]
           .values;
 
-      lastWeekDatum = parseFloat(histData.at(histData.length - 1));
+      lastWeekDatum = finiteNumber(histData.at(histData.length - 1));
     } else {
-      lastWeekDatum = parseFloat(thisData.values.at(dateIndex - 1));
+      lastWeekDatum = finiteNumber(thisData.values.at(dateIndex - 1));
     }
 
-    let percentDifference = undefined;
-    if (!isNaN(thisWeekDatum) && !isNaN(lastWeekDatum)) {
-      percentDifference =
-        ((thisWeekDatum - lastWeekDatum) / Math.abs(lastWeekDatum)) * 100;
-    }
+    const percentDifference = safePercentDifference(
+      thisWeekDatum,
+      lastWeekDatum,
+    );
 
     return [lastWeekDatum, thisWeekDatum, percentDifference];
   }
@@ -112,19 +146,15 @@ export function getAllValuesFromFeature(
 
     try {
       if (panelType === "percentDifference") {
-        const thisWeekDatum = parseFloat(thisData.values[i]);
-        const lastWeekDatum = parseFloat(thisData.values[i - 1]);
-
-        if (!isNaN(thisWeekDatum) && !isNaN(lastWeekDatum)) {
-          value =
-            ((thisWeekDatum - lastWeekDatum) / Math.abs(lastWeekDatum)) * 100;
-        }
+        const thisWeekDatum = finiteNumber(thisData.values[i]);
+        const lastWeekDatum = finiteNumber(thisData.values[i - 1]);
+        value = safePercentDifference(thisWeekDatum, lastWeekDatum) ?? 0;
 
         if (!isFinite(value)) {
           value = 0;
         }
       } else if (panelType === "rate") {
-        value = (thisData.values[i] / featureProperties.population) * 1000;
+        value = safeRate(thisData.values[i], featureProperties.population);
       } else {
         value = thisData.values[i];
       }
@@ -145,15 +175,18 @@ export function getAllValuesFromFeature(
 
     const thisWeekDatum = thisData.values[0];
 
-    if (!isNaN(thisWeekDatum) && !isNaN(lastWeekDatum)) {
+    const projectedPercentDifference = safePercentDifference(
+      thisWeekDatum,
+      lastWeekDatum,
+    );
+
+    if (projectedPercentDifference !== undefined) {
       // newData.unshift(
       //   ((thisWeekDatum - lastWeekDatum) / Math.abs(lastWeekDatum)) * 100,
       // );
-      newData[0] =
-        ((thisWeekDatum - lastWeekDatum) / Math.abs(lastWeekDatum)) * 100;
+      newData[0] = projectedPercentDifference;
     }
   }
 
   return newData;
 }
-

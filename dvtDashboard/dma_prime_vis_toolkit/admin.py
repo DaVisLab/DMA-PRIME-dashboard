@@ -20,8 +20,12 @@ bp = Blueprint(
     "admin", __name__, url_prefix="/admin"
 )  # allow admin.py to import these routes
 
+bcrypt = Bcrypt()
+
 
 def admin_required(view):
+    """Restrict a route to users with dashboard admin privileges."""
+
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if current_user.access_level != 1:
@@ -34,6 +38,21 @@ def admin_required(view):
         return view(**kwargs)
 
     return wrapped_view
+
+
+def _reset_password_url(email):
+    """Build the account setup/reset URL shown to admins after user creation."""
+    token = jwt.encode(
+        {"email": email}, current_app.config["SECRET_KEY"], algorithm="HS256"
+    )
+    reset_password_url = url_for("auth.reset_password", token=token, _external=True)
+
+    if not current_app.config["DEVELOPMENT"]:
+        reset_password_url = (
+            "https://dmaprime.clemson.edu/auth" + reset_password_url.split("/auth")[-1]
+        )
+
+    return reset_password_url
 
 
 @bp.route("/add-user", methods=["GET", "POST"])
@@ -57,7 +76,7 @@ def add_user():
             temp_user = User(
                 email,
                 email.split("@")[0],
-                Bcrypt().generate_password_hash(email[:4] + "789"),
+                bcrypt.generate_password_hash(email[:4] + "789"),
                 access_level=access_level,
                 verified_user=False,
             )
@@ -68,21 +87,7 @@ def add_user():
                 f"{current_user.email} created user {email} with access level {access_level}"
             )
 
-            token = jwt.encode(
-                {"email": email}, current_app.config["SECRET_KEY"], algorithm="HS256"
-            )
-
-            reset_password_url = url_for(
-                "auth.reset_password", token=token, _external=True
-            )
-
-            if not current_app.config["DEVELOPMENT"]:
-                reset_password_url = (
-                    "https://dmaprime.clemson.edu/auth"
-                    + reset_password_url.split("/auth")[-1]
-                )
-
-            flash(reset_password_url, "link")
+            flash(_reset_password_url(email), "link")
         except Exception as e:
             current_app.logger.info(
                 f"{current_user.email} failed to create user {email} (error)"
@@ -139,6 +144,13 @@ def change_user():
 
         # db = get_db()
         the_user = User.query.filter_by(email=email).first()
+        if the_user is None:
+            flash("User does not exist")
+            current_app.logger.info(
+                f"{current_user.email} failed to change {email} (user does not exist)"
+            )
+            return redirect("/admin")
+
         try:
             if field == "username":
                 the_user.username = new_value
@@ -147,7 +159,7 @@ def change_user():
                     f"{current_user.email} changed username of {email}"
                 )
             elif field == "password":
-                the_user.password = Bcrypt().generate_password_hash(new_value)
+                the_user.password = bcrypt.generate_password_hash(new_value)
                 db.session.commit()
                 current_app.logger.info(
                     f"{current_user.email} changed password of {email}"
@@ -160,11 +172,16 @@ def change_user():
                 )
             elif field == "data_approver":
                 the_user.data_approver = new_value.lower() == "true" or new_value == "1"
-                print(the_user.data_approver)
                 db.session.commit()
                 current_app.logger.info(
                     f"{current_user.email} changed data_approver status of {email}"
                 )
+            else:
+                flash("Unsupported user field")
+                current_app.logger.info(
+                    f"{current_user.email} attempted unsupported user field {field}"
+                )
+                return redirect("/admin")
 
         except Exception as e:
             current_app.logger.info(

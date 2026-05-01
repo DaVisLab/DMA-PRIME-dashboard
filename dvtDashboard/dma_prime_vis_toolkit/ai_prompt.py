@@ -1,51 +1,63 @@
-import functools
-import base64, re
-from pydantic import BaseModel
-import requests
-from typing import Any
-from .utility import *
-from flask import (
-    Blueprint,
-    flash,
-    send_file,
-    redirect,
-    url_for,
-    render_template,
-    current_app,
-    request,
-)
+"""AI prompt endpoints used by the exploratory outbreak-detection interface."""
+
+import base64
+import json
 import os
-from groq import Groq
+import re
 from pathlib import Path
 
-bp = Blueprint("ai", __name__, url_prefix="/ai")
+import requests
+from flask import Blueprint, current_app, request
+from flask_login import login_required
+from werkzeug.utils import secure_filename
 
-client = Groq(
-    api_key="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",
-)
+bp = Blueprint("ai", __name__, url_prefix="/ai")
 
 ollama_url = "http://localhost:11434/api/generate"
 ollama_chat_url = "http://localhost:11434/api/chat"
 # force ollama to use cpu only
-os.environ["OLLAMA_USE_GPU"] = "false"
+os.environ.setdefault("OLLAMA_USE_GPU", "false")
 
 project_dir = Path(__file__).resolve().parent
-frontend_dir = os.path.join(project_dir, "static")
+frontend_dir = project_dir / "static"
+DEFAULT_AI_TIMEOUT_SECONDS = 60
+
+
+def _json_payload(*required_fields):
+    """Parse a JSON request body and report missing fields consistently."""
+    params = request.get_json(silent=True) or {}
+    missing = [field for field in required_fields if field not in params]
+    if missing:
+        return (
+            params,
+            {"error": "Missing required JSON fields", "missing": missing},
+            400,
+        )
+    return params, None, None
+
+
+def _frontend_path(relative_path):
+    """Resolve a frontend file path while preventing path traversal."""
+    resolved_path = (frontend_dir / Path(relative_path)).resolve()
+    if resolved_path != frontend_dir and frontend_dir not in resolved_path.parents:
+        raise ValueError(f"Path is outside static assets: {relative_path}")
+    return resolved_path
 
 
 @bp.route("/classify_user_intent", methods=["POST"])
+@login_required
 def ai_prompt_input():
-    params = request.get_json()
-    # Flask passes route variables as keyword args; the parameter name must match
+    params, error, status_code = _json_payload("prompt", "interfaceContext")
+    if error:
+        return error, status_code
+
     prompt = params["prompt"]
     interface_context = params["interfaceContext"]
 
-    return_resp = ""
     try:
         user_intent = ai_input_categorization(prompt)
         update_required = ai_decide_interface_update_required(prompt, interface_context)
 
-        print(user_intent)
         return_resp = {
             "user_intent": user_intent["response"],
             "update_required": update_required["response"],
@@ -59,25 +71,26 @@ def ai_prompt_input():
 
 
 @bp.route("/request_chart", methods=["POST"])
+@login_required
 def ai_prompt_request_chart():
-    params = request.get_json()
-    # Flask passes route variables as keyword args; the parameter name must match
+    params, error, status_code = _json_payload("prompt")
+    if error:
+        return error, status_code
+
     prompt = params["prompt"]
     returnValue = ai_return_visChart(prompt)
     return {"response": returnValue}
 
 
 @bp.route("/generate_tutorial", methods=["POST"])
+@login_required
 def ai_prompt_generate_tutorial():
-    params = request.get_json()
-    # Flask passes route variables as keyword args; the parameter name must match
+    params, error, status_code = _json_payload("system_specification")
+    if error:
+        return error, status_code
+
     system_specification = params["system_specification"]
 
-    # print(system_specification)
-
-    # print(type(system_specification))
-
-    interface_context = system_specification["systemInfo"]
     view_specifications = system_specification["viewInfo"]
     selector_specifications = system_specification["selectorInfo"]
     data_context = system_specification["dataContext"]
@@ -105,14 +118,14 @@ def ai_prompt_generate_tutorial():
   - Do NOT invent encodings or coordination. If missing, write exactly:
     "Not specified in the provided spec."
       """
-        returnVal = get_ai_genearated_response(prompt)
+        returnVal = get_ai_generated_response(prompt)
         description_for_selector.append(json.loads(returnVal["response"]))
 
     for view_spec in view_specifications:
 
-        spec_path = os.path.join(frontend_dir, Path(view_spec["specification"]))
+        spec_path = _frontend_path(view_spec["specification"])
 
-        with open(spec_path, "r") as file:
+        with open(spec_path, "r", encoding="utf-8") as file:
             content = file.read()
             prompt = f"""You are an expert in data visualization and visual analytics. Analyze the following D3.js visualization code to understand what the user sees and can do in the visualization interface.Your goal is to explain the chart from a user’s perspective, focusing on what information it presents, what role it plays in analysis, and how users can interact with it to gain insights.
 
@@ -185,7 +198,7 @@ def ai_prompt_generate_tutorial():
                       - Data context: {data_context}
                       - D3js code: {content}
                   """
-            returnVal = get_ai_genearated_response(prompt)
+            returnVal = get_ai_generated_response(prompt)
             description_for_view.append(json.loads(returnVal["response"]))
 
     return {
@@ -194,35 +207,6 @@ def ai_prompt_generate_tutorial():
             "description_for_selector": description_for_selector,
         }
     }
-
-
-# Your task:
-# Write a first-time user tutorial that explains how to use the interface effectively and how to interpret insights from it.
-
-# interface context:
-# {interface_context}
-# """
-#     returnVals = []
-#     for view_spec in view_specifications:
-#       user_prompt = f"""Write exactly ONE tutorial item for the following VIEW.
-
-#       view spec: {view_spec}
-#       RULES
-# - Output MUST be a single JSON object (NOT an array).
-# - Output MUST have EXACTLY these keys: "ID", "type", "Style", "Coordination".
-# - type MUST be "view".
-# - ID MUST be exactly: expected_id (copy character-for-character).
-# - Do NOT invent encodings or coordination. If missing, write exactly:
-#   "Not specified in the provided spec."
-
-# Return ONLY the JSON object.
-
-#       """
-#       returnVal = get_ai_genearated_chat(SYSTEM_PROMPT, user_prompt)
-#       print(returnVal)
-#       returnVals.append(returnVal)
-
-#     return {"response": returnVals}
 
 
 def ai_input_categorization(prompt):
@@ -249,7 +233,7 @@ Hard Rules:
 }}
 """
 
-    return get_ai_genearated_response(request_prompt)
+    return get_ai_generated_response(request_prompt)
 
 
 def ai_decide_interface_update_required(prompt, interfaceContext):
@@ -297,12 +281,16 @@ Hard Rules:
 }}
 """
 
-    return get_ai_genearated_response(request_prompt)
+    return get_ai_generated_response(request_prompt)
 
 
 @bp.route("/general_request", methods=["POST"])
+@login_required
 def ai_answer_generalQuestion():
-    params = request.get_json()
+    params, error, status_code = _json_payload("prompt", "interfaceContext")
+    if error:
+        return error, status_code
+
     prompt = params["prompt"]
     interfaceContext = params["interfaceContext"]
 
@@ -329,13 +317,11 @@ Rules:
 - If the question cannot be answered using the visible interface, say so explicitly.
 - Keep answers grounded in visualization reasoning and analytical thinking."""
 
-    return get_ai_genearated_response(request_prompt)
+    return get_ai_generated_response(request_prompt)
 
 
 def ai_return_visChart(prompt):
-    print(
-        "ai_return_visChart received prompt"
-    )  # Debug log to check the incoming prompt
+    current_app.logger.debug("AI chart request received")
 
     request_prompt = f"""You are a strict Vega-Lite v6 JSON generator for rendering with vega-embed in JavaScript.  
     
@@ -357,55 +343,38 @@ def ai_return_visChart(prompt):
                         - Output ONLY raw JSON. Do NOT wrap the JSON in markdown code fences.
                         - If you cannot comply, output exactly: {"error":"cannot_comply"}"""
 
-    return get_ai_genearated_response(request_prompt)
-    # chat_completion = client.chat.completions.create(
-    #     messages=[
-    #         {"role": "system", "content": SYSTEM_PROMPT},
-    #         {"role": "user", "content": prompt},
-    #     ],
-    #     model="llama-3.3-70b-versatile",
-    #     temperature=0.1,  # 🔑 형식 안정성
-    # )
-
-    # return chat_completion.choices[0].message.content.strip()
+    return get_ai_generated_response(request_prompt)
 
 
 @bp.route("/request_insights_from_data", methods=["POST"])
+@login_required
 def ai_prompt_request_insights_from_data():
-    # params = request.get_json()
-    # # Flask passes route variables as keyword args; the parameter name must match
-    # prompt = params["prompt"]
     # ---- Text field ----
-    # print(request.form)
     user_prompt = request.form.get("prompt")
 
     # ---- JSON fields (sent as strings) ----
-    vega_lite_spec_structure = json.loads(
-        request.form.get("vega_lite_spec_structure", "{}")
-    )
-    transformed_data = json.loads(request.form.get("transformed_data", "[]"))
+    try:
+        vega_lite_spec_structure = json.loads(
+            request.form.get("vega_lite_spec_structure", "{}")
+        )
+        transformed_data = json.loads(request.form.get("transformed_data", "[]"))
+    except json.JSONDecodeError:
+        return {"error": "Invalid JSON in form fields"}, 400
 
     # ---- File field ----
     image_file = request.files.get("image_file")
+    img_base64 = None
 
     if image_file:
-        print("image saved")
         img_bytes = image_file.read()
         img_base64 = base64.b64encode(img_bytes).decode("utf-8")
 
-        upload_dir = Path("uploads")
-        upload_dir.mkdir(exist_ok=True)
+        filename = secure_filename(image_file.filename)
+        if filename:
+            upload_dir = Path(current_app.instance_path) / "uploads"
+            upload_dir.mkdir(exist_ok=True)
 
-        img_path = upload_dir / image_file.filename
-        img_path.write_bytes(img_bytes)
-    else:
-        img_bytes = None
-        img_path = None
-
-    # print(user_prompt)
-    # print(vega_lite_spec_structure)
-    # print(transformed_data)
-    # print(image_file)
+            (upload_dir / filename).write_bytes(img_bytes)
 
     returnValue = ai_return_insights_from_data_attributes(
         user_prompt, vega_lite_spec_structure, transformed_data, img_base64
@@ -422,9 +391,7 @@ def png_bytes_to_data_url(img_bytes: bytes) -> str:
 def ai_return_insights_from_data_attributes(
     user_prompt, vega_lite_spec_structure, transformed_data, img_base64
 ):
-    print(
-        "ai_return_insights_from_data_attributes received prompt:", user_prompt
-    )  # Debug log to check the incoming prompt
+    current_app.logger.debug("AI insight request received")
 
     request_prompt = f"""
 You are an analytics assistant specialized in Vega-Lite v6 geoshape maps.
@@ -592,31 +559,17 @@ MAP_IMAGE:
 (image provided)
 """
 
-    return get_ai_genearated_response(request_prompt, [img_base64])
-    # chat_completion = client.chat.completions.create(
-    #     messages=[
-    #         {"role": "system", "content": SYSTEM_PROMPT},
-    #         {
-    #             "role": "user",
-    #             "content": [
-    #                 {"type": "text", "text": user_prompt},
-    #                 {
-    #                     "type": "image_url",
-    #                     "image_url": {"url": f"data:image/png;base64,{img_base64}"},
-    #                 },
-    #             ],
-    #         },
-    #     ],
-    #     # model="llama-3.3-70b-versatile",
-    #     model="meta-llama/llama-4-scout-17b-16e-instruct",
-    #     temperature=0.1,
-    # )
-
-    # resp = extract_json(chat_completion.choices[0].message.content)
-    # return resp
+    images = [img_base64] if img_base64 else None
+    return get_ai_generated_response(request_prompt, images)
 
 
-def get_ai_genearated_chat(system_prompt, user_prompt, images=[]):
+def _post_ollama(url, payload):
+    response = requests.post(url, json=payload, timeout=DEFAULT_AI_TIMEOUT_SECONDS)
+    response.raise_for_status()
+    return response.json()
+
+
+def get_ai_generated_chat(system_prompt, user_prompt, images=None):
     payload = {
         "model": "gemma3",
         "messages": [
@@ -626,51 +579,46 @@ def get_ai_genearated_chat(system_prompt, user_prompt, images=[]):
         "stream": False,
     }
 
-    if len(images) == 0:
-        pass
-    else:
+    if images:
         payload["images"] = images
 
     try:
-        response = requests.post(ollama_chat_url, json=payload)
-        response.raise_for_status()
-        response = response.json()
-        # print(response.get("response", "No response found"))
-
+        response = _post_ollama(ollama_chat_url, payload)
         content = response.get("message", {}).get("content", "")
-
-        print(response)
-
         returnValue = extract_json(content)
 
-    except requests.exceptions.RequestException as e:
+    except (requests.exceptions.RequestException, ValueError):
         returnValue = "No response found"
-        print(f"An error occurred: {e}")
+        current_app.logger.exception("Ollama chat request failed")
 
     return {"response": returnValue}
 
 
-def get_ai_genearated_response(prompt, images=[]):
+def get_ai_generated_response(prompt, images=None):
     payload = {"model": "gemma3", "prompt": prompt, "stream": False}
 
-    if len(images) == 0:
-        pass
-    else:
+    if images:
         payload["images"] = images
 
     try:
-        response = requests.post(ollama_url, json=payload)
-        response.raise_for_status()
-        response = response.json()
-        print(response.get("response", "No response found"))
-
+        response = _post_ollama(ollama_url, payload)
         returnValue = extract_json(response["response"])
 
-    except requests.exceptions.RequestException as e:
+    except (requests.exceptions.RequestException, KeyError, ValueError):
         returnValue = "No response found"
-        print(f"An error occurred: {e}")
+        current_app.logger.exception("Ollama generate request failed")
 
     return {"response": returnValue}
+
+
+def get_ai_genearated_chat(system_prompt, user_prompt, images=None):
+    """Backward-compatible wrapper for the misspelled helper name."""
+    return get_ai_generated_chat(system_prompt, user_prompt, images)
+
+
+def get_ai_genearated_response(prompt, images=None):
+    """Backward-compatible wrapper for the misspelled helper name."""
+    return get_ai_generated_response(prompt, images)
 
 
 def ai_explain_visChart(prompt):
@@ -678,7 +626,9 @@ def ai_explain_visChart(prompt):
 
 
 def extract_json(text):
-    text = re.sub(r"[^\x00-\x7F]", "", text)
+    if text is None:
+        return ""
+
     text = re.sub(r"```json\s*", "", text, flags=re.IGNORECASE)
     text = text.replace("```", "")
 

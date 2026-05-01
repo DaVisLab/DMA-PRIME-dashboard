@@ -20,6 +20,9 @@ d3.json('/data/respiratory/changed_files')
         }
     }
   })
+  .catch(() => {
+    // The changed-files summary is optional; approvals still work without it.
+  })
 
 tabGroup.addEventListener("sl-tab-show", function(e) {
     let dataVersionButton = d3.selectAll(`.preview-data-button[dashboard=${e.detail.name}][variant=primary]`)
@@ -87,9 +90,11 @@ function approveDashboard(dashboard) {
         
         fetch('/data/change-version', requestOptions)
         .then(response => {
+            if (!response.ok) throw new Error('Approval request failed');
             updateDates(dashboard);
             updateApproveButtons(dashboard);
-        });
+        })
+        .catch(() => updateApproveButtons(dashboard));
     }
 }
 
@@ -115,6 +120,7 @@ d3.selectAll(".approve-data-button").on("click", function(d) {
 
     fetch('/data/change-version', requestOptions)
     .then(response => {
+        if (!response.ok) throw new Error('Approval request failed');
         
         if (!this.classList.contains("overview")) {
             document.getElementById(`${this.getAttribute("dashboard")}-dashboard`).src = `/${this.getAttribute("dashboard")}?data_version=current`
@@ -125,15 +131,14 @@ d3.selectAll(".approve-data-button").on("click", function(d) {
         updateDates(this.getAttribute("dashboard"))
         updateApproveButtons(this.getAttribute("dashboard")); // <-- Add this line to update button state after approval
     })
+    .catch(() => updateApproveButtons(this.getAttribute("dashboard")))
     
 })
 
 function updateDates(dashboard) {
     d3.json(`/data/get-date/all/${dashboard}`).then(dates => {
         Object.entries(dates[dashboard]).forEach(([version, date]) => {
-            console.log(d3.selectAll(`.data-date[dataVersion=${version}][dashboard=${dashboard}]`))
             d3.selectAll(`.data-date[dataVersion=${version}][dashboard=${dashboard}]`).html(date)
-            console.log(version, date)
         })
     })
 }

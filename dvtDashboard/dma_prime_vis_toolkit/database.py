@@ -3,12 +3,13 @@ from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from dataclasses import dataclass
 
-
 db = SQLAlchemy()
 
 
 @dataclass
 class User(UserMixin, db.Model):
+    """Application user record used by Flask-Login and admin access controls."""
+
     __tablename__ = "user"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -34,6 +35,7 @@ class User(UserMixin, db.Model):
         self.password = password
         self.access_level = access_level
         self.data_approver = data_approver
+        self.verified_user = verified_user
 
 
 @click.command("init-db")

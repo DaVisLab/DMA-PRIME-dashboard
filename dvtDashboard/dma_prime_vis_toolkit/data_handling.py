@@ -1,46 +1,79 @@
 import functools
-
-from .utility import *
-from flask import (
-    Blueprint,
-    flash,
-    send_file,
-    redirect,
-    url_for,
-    render_template,
-    current_app,
-    request,
-)
 import os
 import shutil
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+from flask import (
+    Blueprint,
+    abort,
+    flash,
+    current_app,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
+from flask_login import current_user, login_required
+
+from .utility import (
+    ALLOWED_DATA_VERSIONS,
+    dashboard_translation,
+    decrypt,
+    get_data_version_from_request,
+    get_later_date,
+    main_dir,
+    replace_date_in_file,
+)
 
 bp = Blueprint("data", __name__, url_prefix="/data")
-from flask_login import login_required
+
+GEOJSON_FILES = {
+    "state": "sc_state_population_simplified.json",
+    "county": "tl_2024_sc_county_simplified.json",
+    "zcta": "tl_2024_sc_zcta_simplified.json",
+}
+SPATIAL_UNITS = {"state", "region", "county", "zcta"}
+DATA_DASHBOARDS = [
+    "respiratory",
+    "waste_water",
+    "other_infectious_diseases",
+    "opioid_hcv_hiv",
+    "mhc",
+]
+UI_TO_DATA_DASHBOARD = {
+    "respiratory": "respiratory",
+    "wastewater": "waste_water",
+    "outbreak-detection": "other_infectious_diseases",
+    "opioid-hcv-hiv": "opioid_hcv_hiv",
+    "mobile-health-clinics": "mhc",
+}
+
+
+def _dashboard_folder(dashboard):
+    """Normalize UI dashboard names to the data directory names."""
+    return UI_TO_DATA_DASHBOARD.get(dashboard) or (
+        dashboard if dashboard in DATA_DASHBOARDS else None
+    )
+
+
+def _dashboard_ui_code(dashboard_folder):
+    return dashboard_translation.get(dashboard_folder, dashboard_folder)
 
 
 # Fetching
 @bp.route("/map/<geographic_unit>", methods=["GET"])
 @login_required
 def map_data(geographic_unit):
+    """Serve only the bundled GeoJSON boundaries used by the front end."""
+    filename = GEOJSON_FILES.get(geographic_unit)
+    if filename is None:
+        abort(404)
 
-    if geographic_unit == "state":
-        return send_file(
-            f"{current_app.root_path}/static/assets/GeoJSON/sc_state_population_simplified.json"
-        )
-    else:
-        return send_file(
-            f"{current_app.root_path}/static/assets/GeoJSON/tl_2024_sc_{geographic_unit}_simplified.json"
-        )
-    # if geographic_unit == "state":
-    #     return send_file(
-    #         f"{main_dir}/static/assets/GeoJSON/sc_state_population_simplified.json"
-    #     )
-    # else:
-    #     return send_file(
-    #         f"{main_dir}/static/assets/GeoJSON/tl_2024_sc_{geographic_unit}_simplified.json"
-    #     )
+    return send_file(
+        os.path.join(current_app.root_path, "static", "assets", "GeoJSON", filename)
+    )
 
 
 @bp.route("/health-care-facility", methods=["GET"])
@@ -65,6 +98,9 @@ def health_care_facility():
 @login_required
 def get_respiratory_hospitalizations(region_size="zcta", disease="covid-19"):
     # hospitalization data based on disease
+    if region_size not in SPATIAL_UNITS:
+        abort(404)
+
     data_version = get_data_version_from_request(request, current_user)
     file = os.path.join(
         current_app.config["DATADIR"],
@@ -88,6 +124,9 @@ def get_respiratory_hospitalizations(region_size="zcta", disease="covid-19"):
 @login_required
 def get_all_respiratory_hospitalizations(region_size="zcta", disease="covid-19"):
     # hospitalization data based on disease
+    if region_size not in SPATIAL_UNITS:
+        abort(404)
+
     data_version = get_data_version_from_request(request, current_user)
     file = os.path.join(
         current_app.config["DATADIR"],
@@ -120,12 +159,12 @@ def get_respiratory_model(
     population="state",
     outcome_variable="all_hospitalizations",
 ):
-    # def get_respiratory_model(location, disease='covid_19', geographic_unit='region', population='state', outcome_variable='all_hospitalizations'):
-    # model information for given combo of option selections
+    """Return the pre-rendered model report for a selected option combination."""
+    if data_version not in ALLOWED_DATA_VERSIONS:
+        abort(404)
 
-    # print(outcome_variable)
     outcome_variable_crosswalk = {
-        'all_encounters': 'Weekly_Encounters',
+        "all_encounters": "Weekly_Encounters",
         "inpatient_hospitalizations": "Weekly_Inpatient_Hospitalizations",
         "emergency_department_visits": "Weekly_ED_Visits",
         "positive_tests": "Weekly_Positive_Tests",
@@ -133,6 +172,9 @@ def get_respiratory_model(
         "all_hospitalizations": "Weekly_Hospitalizations",
         "attributable_ed_visits": "Weekly_Percent_ED",
     }
+    model_outcome = outcome_variable_crosswalk.get(outcome_variable)
+    if model_outcome is None:
+        abort(404)
 
     file = os.path.join(
         current_app.config["DATADIR"],
@@ -142,26 +184,13 @@ def get_respiratory_model(
         # "metrics",
         # geographic_unit,
         # "-".join(disease.upper().split("_")),
-        f"{geographic_unit}-{disease}-{outcome_variable_crosswalk[outcome_variable]}-{population}_{location}.html",
+        f"{geographic_unit}-{disease}-{model_outcome}-{population}_{location}.html",
     )
 
-    print(file)
+    if not os.path.isfile(file):
+        return render_template("respiratory/no-report.html"), 404
 
     return send_file(file)
-
-    decrypt_key = os.path.join(
-        current_app.config["DATADIR"],
-        "processed",
-        data_version,
-        "respiratory",
-        "encrypt_key.bin",
-    )
-
-    try:
-        file = decrypt(file, decrypt_key)
-        return file
-    except FileNotFoundError as e:
-        return render_template("respiratory/no-report.html")
 
 
 @bp.route("/opioid-hcv-hiv/<disease>", methods=["GET"])
@@ -192,6 +221,9 @@ def get_opioid_hcv_hiv(disease="opioid"):
 def get_state_disease_hospitalizations(
     region_size="region", column="all_hospitalizations"
 ):
+    if region_size not in SPATIAL_UNITS:
+        abort(404)
+
     data_version = get_data_version_from_request(request, current_user)
     file = os.path.join(
         current_app.config["DATADIR"],
@@ -256,12 +288,11 @@ def get_mobile_health_clinic_events():
 
 @bp.route("/icon-pack/<type>", methods=["GET"])
 def icon_data(type):
-    # Validate allowed types
     if type not in ["png", "json", "svg"]:
         return "Unsupported file type", 400
 
-    file_path = os.path.join(main_dir, "static", "assets", "Icons", f"icon-pack.{type}")
-    if not os.path.exists(file_path):
+    file_path = Path(main_dir) / "static" / "assets" / "Icons" / f"icon-pack.{type}"
+    if not file_path.exists():
         return f"File not found: {file_path}", 404
 
     return send_file(file_path)
@@ -269,8 +300,9 @@ def icon_data(type):
 
 @bp.route("/icon/<type>", methods=["GET"])
 def icon(type):
-    file_path = os.path.join(main_dir, "static", "assets", "Icons", f"{type}.svg")
-    if not os.path.exists(file_path):
+    icons_dir = Path(main_dir) / "static" / "assets" / "Icons"
+    file_path = (icons_dir / f"{type}.svg").resolve()
+    if icons_dir.resolve() not in file_path.parents or not file_path.exists():
         return f"Icon not found: {file_path}", 404
 
     return send_file(file_path)
@@ -280,9 +312,9 @@ def icon(type):
 def data_approver_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
-        if not current_user.data_approver:
+        if not getattr(current_user, "data_approver", False):
             current_app.logger.info(
-                f"{current_user.email} attempted to view admin page"
+                f"{getattr(current_user, 'email', 'anonymous')} attempted to view admin page"
             )
             flash("Access Denied: Data approval access required")
             return redirect(url_for("index"))
@@ -340,56 +372,72 @@ def get_date_respiratory_forecasting_report():
     forecasting_report_folder = (
         Path(current_app.config["DATADIR"]) / "processed" / "new" / "model_reports"
     )
+    if not forecasting_report_folder.exists():
+        return None
 
     # get latest file by creation time
     latest_file = max(
         (f for f in forecasting_report_folder.iterdir() if f.is_file()),
-        key=lambda f: f.stat().st_mtime,  
+        key=lambda f: f.stat().st_mtime,
         default=None,
     )
 
     if latest_file is None:
         return None
-    # print(latest_file.stat().st_mtime)
-    # print(datetime.fromtimestamp(latest_file.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S"))
-    
-    return  datetime.fromtimestamp(latest_file.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+
+    return datetime.fromtimestamp(latest_file.stat().st_mtime).strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
 
 
 def get_update_data_date_by_version_dashboard(version, dashboard):
+    if version not in ALLOWED_DATA_VERSIONS:
+        return None
+
     forecasting_report_folder = (
-        Path(current_app.config["DATADIR"]) / "processed" / f"{version}" / f"{dashboard}"
+        Path(current_app.config["DATADIR"]) / "processed" / version / dashboard
     )
+    if not forecasting_report_folder.exists():
+        return None
 
     # get latest file by creation time
     latest_file = max(
         (f for f in forecasting_report_folder.iterdir() if f.is_file()),
-        key=lambda f: f.stat().st_mtime,  
+        key=lambda f: f.stat().st_mtime,
         default=None,
     )
 
     if latest_file is None:
         return None
-    # print(latest_file.stat().st_mtime)
-    # print(datetime.fromtimestamp(latest_file.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S"))
-    
-    return  datetime.fromtimestamp(latest_file.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+
+    return datetime.fromtimestamp(latest_file.stat().st_mtime).strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
 
 
 @bp.route("/change-version", methods=["PUT"])
+@login_required
+@data_approver_required
 def change_version():
-    if not current_user.data_approver:
-        current_app.logger.info(f"{current_user.email} attempted to retrieve data date")
-        return "Need data approval access", 401
+    payload = request.get_json(silent=True) or {}
+    change = payload.get("change")
+    dashboard = payload.get("dashboard")
 
-    change = request.json["change"]
-    dashboard = request.json["dashboard"]
+    if change not in {"new", "previous"}:
+        return "Unsupported version change", 400
+
+    dashboard_folder = _dashboard_folder(dashboard)
+    if dashboard_folder is None:
+        current_app.logger.info(
+            f"{current_user.email} attempted data change with invalid dashboard"
+        )
+        return "", 409
 
     dash_path = os.path.join(
         current_app.config["DATADIR"],
         "processed",
         "current",
-        dashboard_translation[dashboard],
+        dashboard_folder,
     )
 
     if os.path.isdir(dash_path):
@@ -397,7 +445,7 @@ def change_version():
             current_app.config["DATADIR"],
             "processed",
             "previous",
-            dashboard_translation[dashboard],
+            dashboard_folder,
         )
 
         if change == "new":
@@ -405,8 +453,10 @@ def change_version():
                 current_app.config["DATADIR"],
                 "processed",
                 "new",
-                dashboard_translation[dashboard],
+                dashboard_folder,
             )
+            if not os.path.isdir(new_path):
+                return "", 409
 
             shutil.copytree(dash_path, previous_path, dirs_exist_ok=True)
             shutil.copytree(new_path, dash_path, dirs_exist_ok=True)
@@ -415,13 +465,16 @@ def change_version():
                 f"{current_user.email} approved new data for {dashboard}"
             )
 
-            if dashboard == "respiratory":
+            if dashboard_folder == "respiratory":
                 update_respiratory_forecasting_report()
 
         if change == "previous":
+            if not os.path.isdir(previous_path):
+                return "", 409
+
             shutil.copytree(previous_path, dash_path, dirs_exist_ok=True)
 
-            if dashboard == "respiratory":
+            if dashboard_folder == "respiratory":
                 revert_respiratory_forecasting_report()
 
             current_app.logger.info(
@@ -437,14 +490,9 @@ def change_version():
 
 
 @bp.route("/get-date/<data_version>/<dashboard>", methods=["GET"])
+@login_required
+@data_approver_required
 def send_data_date(data_version, dashboard):
-
-    print("data update necessecity check")
-    # print(dashboard)
-    if not current_user.data_approver:
-        current_app.logger.info(f"{current_user.email} attempted to retrieve data date")
-        return "Need data approval access", 401
-
     date_s = get_data_date(data_version, dashboard)
 
     if date_s is None:
@@ -457,16 +505,19 @@ def send_data_date(data_version, dashboard):
 
 
 @bp.route("/respiratory/changed_files", methods=["GET"])
+@login_required
+@data_approver_required
 def send_respiratory_file_changes():
     def find_path(line):
-        parts = line.split("and")
-        path = parts[0]
+        path = line.split(" and ")[0].strip()
+        path = path.removeprefix("Only in ").removeprefix("Files ")
 
         parts = path.split("/")
-        index = parts.index("respiratory")
-        path = "/".join(parts[index + 1 :])
+        if "respiratory" not in parts:
+            return path
 
-        return path
+        index = parts.index("respiratory")
+        return "/".join(parts[index + 1 :])
 
     file = os.path.join(
         current_app.config["DATADIR"],
@@ -476,7 +527,10 @@ def send_respiratory_file_changes():
         "respiratory_changes.txt",
     )
 
-    with open(file, "r") as f:
+    if not os.path.exists(file):
+        return {"Changed Files": [], "New Files": [], "Deleted Files": []}
+
+    with open(file, "r", encoding="utf-8") as f:
         changes = f.readlines()
         additions = []
         deletions = []
@@ -497,56 +551,39 @@ def send_respiratory_file_changes():
 
 
 def get_data_date(data_version, dashboard):
+    """Return update timestamps for one or more dashboard data folders."""
     all_data_versions = ["new", "current", "previous"]
-    all_dashboards = [
-        "respiratory",
-        "waste_water",
-        "other_infectious_diseases",
-        "opioid_hcv_hiv",
-        "mhc",
-    ]
+
+    if data_version != "all" and data_version not in ALLOWED_DATA_VERSIONS:
+        return None
+    if dashboard != "all" and _dashboard_folder(dashboard) is None:
+        return None
+
+    versions = all_data_versions if data_version == "all" else [data_version]
+    dashboards = (
+        DATA_DASHBOARDS if dashboard == "all" else [_dashboard_folder(dashboard)]
+    )
 
     output = {}
+    for dash in dashboards:
+        ui_code = _dashboard_ui_code(dash)
+        output[ui_code] = {
+            ver: get_update_data_date_by_version_dashboard(ver, dash)
+            for ver in versions
+        }
 
-    try:
-        if data_version == "all":
-            if dashboard == "all":
-                # print("data version - all")
-                # print("dashboard version - not all")
-                for dash in all_dashboards:
-                    output[dashboard_translation[dash]] = {}
-                    for ver in all_data_versions:
-                        
-                        output[dashboard_translation[dash]][ver] = get_update_data_date_by_version_dashboard(ver, dash)
-            else:
-                # print("data version - all")
-                # print("dashboard version - not all")
-                output[dashboard] = {}
-                for ver in all_data_versions:
-                    output[dashboard][ver] = get_update_data_date_by_version_dashboard(ver, dashboard_translation[dashboard])
-                    
-        elif dashboard == "all":
-            # print("data version - not all")
-            # print("dashboard version - all")
-            for dash in all_dashboards:
-                output[dash] = {[data_version]: get_update_data_date_by_version_dashboard(data_version, dashboard_translation[dash])}
-                
-        else:
-            # print("data version - not all")
-            # print("dashboard version - not all")
-            output[dashboard] = {[data_version]: get_update_data_date_by_version_dashboard(data_version, dashboard_translation[dashboard])}
-            
-    except:  # something broke so send none and error will get passed along
-        output = None
-
-    if dashboard == "respiratory":
-        # print(output["respiratory"]["new"])
+    respiratory_dates = output.get("respiratory")
+    if respiratory_dates and "new" in respiratory_dates:
         respiratory_forcasting_update_date = get_date_respiratory_forecasting_report()
         new_date = get_later_date(
-            respiratory_forcasting_update_date, output["respiratory"]["new"]
+            respiratory_forcasting_update_date, respiratory_dates["new"]
         )
 
-        if output["respiratory"]["new"].strip() != new_date:
+        if (
+            new_date
+            and respiratory_dates["new"]
+            and respiratory_dates["new"].strip() != new_date
+        ):
             replace_date_in_file(
                 os.path.join(
                     current_app.config["DATADIR"],
@@ -555,10 +592,11 @@ def get_data_date(data_version, dashboard):
                     "respiratory",
                     "date.txt",
                 ),
-                output["respiratory"]["new"],
+                respiratory_dates["new"],
                 new_date,
             )
-            output["respiratory"]["new"] = new_date            
-    # print(output)
+            respiratory_dates["new"] = new_date
+        else:
+            respiratory_dates["new"] = new_date
 
     return output

@@ -1,15 +1,15 @@
-# This is where the main flask code should lie
+"""Flask application factory and page routes for the DMA-PRIME dashboard."""
+
 import os
 import datetime
-import pandas as pd
 
-from flask import Flask, render_template, session, request, current_app
-from flask_login import login_required
+from flask import Flask, render_template, request, current_app
+from flask_login import current_user, login_required
 from flask_bcrypt import Bcrypt
 
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from .utility import *
+from .utility import decrypt, get_data_version_from_request, load_pickle
 from .authenticate import login_manager
 from .admin import admin_required
 from .database import User
@@ -19,11 +19,33 @@ from .data_handling import get_data_date, data_approver_required
 from . import authenticate
 
 
+def _load_metadata(data_version, dashboard_folder):
+    """Load encrypted dashboard metadata for the selected data version."""
+    file = os.path.join(
+        current_app.config["DATADIR"],
+        "processed",
+        data_version,
+        dashboard_folder,
+        "metadata.json",
+    )
+    decrypt_key = os.path.join(
+        current_app.config["DATADIR"],
+        "processed",
+        data_version,
+        dashboard_folder,
+        "encrypt_key.bin",
+    )
+    metadata = dict(decrypt(file, decrypt_key))
+    metadata["data_version"] = data_version
+    return metadata
+
+
 def create_app(development=False, dataDir=None):
     if dataDir is None:
-        exit("No data directory")
+        raise ValueError("No data directory")
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
+    bcrypt = Bcrypt()
 
     app.config.from_mapping(
         # SECRET_KEY='***REMOVED***',
@@ -58,7 +80,7 @@ def create_app(development=False, dataDir=None):
             test_user = User(
                 "admintest",
                 "admintest",
-                Bcrypt().generate_password_hash("adminpassword"),
+                bcrypt.generate_password_hash("adminpassword"),
                 access_level=1,
                 data_approver=True,
                 verified_user=True,
@@ -67,7 +89,7 @@ def create_app(development=False, dataDir=None):
             test_user = User(
                 "usertest",
                 "usertest",
-                Bcrypt().generate_password_hash("userpassword"),
+                bcrypt.generate_password_hash("userpassword"),
                 access_level=0,
                 data_approver=True,
                 verified_user=True,
@@ -76,7 +98,7 @@ def create_app(development=False, dataDir=None):
             test_user = User(
                 "admin",
                 "admin",
-                Bcrypt().generate_password_hash("password"),
+                bcrypt.generate_password_hash("password"),
                 access_level=1,
                 verified_user=True,
             )
@@ -84,7 +106,7 @@ def create_app(development=False, dataDir=None):
             test_user = User(
                 "user",
                 "user",
-                Bcrypt().generate_password_hash("password"),
+                bcrypt.generate_password_hash("password"),
                 access_level=0,
                 verified_user=True,
             )
@@ -92,7 +114,7 @@ def create_app(development=False, dataDir=None):
             test_user = User(
                 "user2",
                 "user2",
-                Bcrypt().generate_password_hash("password"),
+                bcrypt.generate_password_hash("password"),
                 access_level=-1,
                 verified_user=True,
             )
@@ -106,18 +128,21 @@ def create_app(development=False, dataDir=None):
     app.register_blueprint(authenticate.bp)
 
     from . import data_handling
+
     app.register_blueprint(data_handling.bp)
 
     from . import ai_prompt
+
     app.register_blueprint(ai_prompt.bp)
-    
+
     from . import KG_recommendation
-    
+
     app.register_blueprint(KG_recommendation.bp)
     kg_path = os.path.join(app.static_folder, "assets", "kg_test_covid.pkl")
     app.predefined_kg = load_pickle(kg_path)
 
     from . import admin
+
     app.register_blueprint(admin.bp)
 
     # landing page, though now respiratory
@@ -162,27 +187,8 @@ def create_app(development=False, dataDir=None):
     @login_required
     def respiratory():
         data_version = get_data_version_from_request(request, current_user)
+        metadata = _load_metadata(data_version, "respiratory")
 
-        file = os.path.join(
-            current_app.config["DATADIR"],
-            "processed",
-            data_version,
-            "respiratory",
-            "metadata.json",
-        )
-        decrypt_key = os.path.join(
-            current_app.config["DATADIR"],
-            "processed",
-            data_version,
-            "respiratory",
-            "encrypt_key.bin",
-        )
-
-        metadata = dict(decrypt(file, decrypt_key))
-        metadata["data_version"] = data_version
-
-        print(metadata["available_models"])
-        print(metadata)
         panels = [
             {
                 "name": "main",
@@ -207,7 +213,6 @@ def create_app(development=False, dataDir=None):
                 "html": "respiratory/respiratory-model-exploration-panel-container.html",
             },
         ]
-        print(panels)
 
         return render_template(
             "respiratory/respiratory-base.html", panels=panels, metadata=metadata
@@ -238,23 +243,7 @@ def create_app(development=False, dataDir=None):
         if location is None:
             location = ""
 
-        file = os.path.join(
-            current_app.config["DATADIR"],
-            "processed",
-            data_version,
-            "respiratory",
-            "metadata.json",
-        )
-        decrypt_key = os.path.join(
-            current_app.config["DATADIR"],
-            "processed",
-            data_version,
-            "respiratory",
-            "encrypt_key.bin",
-        )
-
-        metadata = dict(decrypt(file, decrypt_key))
-        metadata["data_version"] = data_version
+        metadata = _load_metadata(data_version, "respiratory")
 
         panels = [
             {
@@ -270,7 +259,6 @@ def create_app(development=False, dataDir=None):
         ]
 
         if location == "":
-            print("ff1")
             return render_template(
                 "respiratory/respiratory-model-base.html",
                 panels=panels,
@@ -282,9 +270,6 @@ def create_app(development=False, dataDir=None):
                 location=location,
             )
         else:
-            # print(data_version)
-            # print(outcome_variable)
-
             if outcome_variable == "%_influenza-attributable_ed_visits":
                 outcome_variable = "attributable_ed_visits"
             src = f"/data/respiratory/model/{disease}/{geographic_unit}/{population}/{outcome_variable}/{location}/{data_version}"
@@ -330,24 +315,7 @@ def create_app(development=False, dataDir=None):
     def opioid_hcv_hiv():
 
         data_version = get_data_version_from_request(request, current_user)
-
-        file = os.path.join(
-            current_app.config["DATADIR"],
-            "processed",
-            data_version,
-            "opioid_hcv_hiv",
-            "metadata.json",
-        )
-        decrypt_key = os.path.join(
-            current_app.config["DATADIR"],
-            "processed",
-            data_version,
-            "opioid_hcv_hiv",
-            "encrypt_key.bin",
-        )
-
-        metadata = dict(decrypt(file, decrypt_key))
-        metadata["data_version"] = data_version
+        metadata = _load_metadata(data_version, "opioid_hcv_hiv")
 
         panels = [
             {
@@ -388,8 +356,6 @@ def create_app(development=False, dataDir=None):
         metadata = {"diseases": list(decrypt(file, decrypt_key))}
         metadata["data_version"] = data_version
 
-        # print(metadata)
-
         panels = [
             {"name": "main", "displayName": "DMA-PRIME"},
             {
@@ -427,25 +393,7 @@ def create_app(development=False, dataDir=None):
     @login_required
     def waste_water():
         data_version = get_data_version_from_request(request, current_user)
-
-        file = os.path.join(
-            current_app.config["DATADIR"],
-            "processed",
-            data_version,
-            "waste_water",
-            "metadata.json",
-        )
-        decrypt_key = os.path.join(
-            current_app.config["DATADIR"],
-            "processed",
-            data_version,
-            "waste_water",
-            "encrypt_key.bin",
-        )
-
-        metadata = dict(decrypt(file, decrypt_key))
-        metadata["data_version"] = data_version
-        print(metadata)
+        metadata = _load_metadata(data_version, "waste_water")
 
         panels = [
             {"name": "main", "displayName": "DMA-PRIME"},
