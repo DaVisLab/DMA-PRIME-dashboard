@@ -109,9 +109,13 @@ div.tooltip-div p {
   pointer-events: none;
 }
 
+.data-point-ttp,
+.data-point-ttp * {
+  pointer-events: none;
+}
+
 .data-point-ttp text {
   text-anchor: middle;
-  pointer-events: none;
 }
 
 /* for state bar chart */

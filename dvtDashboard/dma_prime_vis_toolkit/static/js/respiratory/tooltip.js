@@ -419,7 +419,10 @@ export function drawTooltip(
   // Reset svg and get it ready for new viz
   ttpSVG.node().innerHTML = "";
 
-  var dataPointTTP = ttpSVG.append("g").attr("class", "data-point-ttp");
+  var dataPointTTP = ttpSVG
+    .append("g")
+    .attr("class", "data-point-ttp")
+    .style("pointer-events", "none");
   var graphSVG = ttpSVG
     .append("svg")
     .attr("class", "tooltip-graph-svg")
@@ -1130,6 +1133,53 @@ export function drawTooltip(
       .attr("stroke", "var(--sl-color-neutral-1000)");
   }
 
+  const tooltipPoints = buildTooltipPoints({
+    historicalDatesArray,
+    historicalValues:
+      panelType == "percentDifference"
+        ? percentDifferenceHistoricalValues
+        : data.historical.values,
+    projectedStartDate: data.projected.start_date,
+    projectedValues:
+      panelType == "percentDifference"
+        ? percentDifferenceProjectedValues
+        : data.projected.values,
+    xScale,
+  });
+  const showNearestChartTooltip = function (event) {
+    const [mouseX] = d3.pointer(event, graphSVG.node());
+    const nearestPoint = getNearestTooltipPoint(tooltipPoints, mouseX);
+
+    if (nearestPoint) {
+      createDataPointTooltipAt(
+        nearestPoint,
+        dataPointTTP,
+        panelType,
+        ttpHeight,
+        ttpMargins,
+      );
+    }
+  };
+
+  graphSVG.on("mouseleave", function () {
+    dataPointTTP.html("");
+  });
+
+  graphSVG
+    .append("rect")
+    .attr("class", "tooltip-chart-hit-area")
+    .attr("x", ttpMargins.left)
+    .attr("y", ttpMargins.top)
+    .attr("width", ttpWidth - ttpMargins.right - ttpMargins.left)
+    .attr("height", ttpHeight - ttpMargins.bottom - ttpMargins.top)
+    .attr("fill", "transparent")
+    .attr("pointer-events", "all")
+    .on("mouseover", showNearestChartTooltip)
+    .on("mousemove", showNearestChartTooltip)
+    .on("pointerenter", showNearestChartTooltip)
+    .on("pointermove", showNearestChartTooltip)
+    .on("click", showNearestChartTooltip);
+
   temp.remove();
 }
 
@@ -1142,6 +1192,52 @@ function validateFeatureDataLength(featureData, targetLength, offset = 0) {
   return featureData;
 }
 
+function buildTooltipPoints({
+  historicalDatesArray,
+  historicalValues,
+  projectedStartDate,
+  projectedValues,
+  xScale,
+}) {
+  const tooltipPoints = [];
+
+  historicalValues.forEach((value, index) => {
+    const numericValue = Number(value);
+
+    if (!Number.isFinite(numericValue)) return;
+
+    const date = historicalDatesArray[index];
+
+    tooltipPoints.push({
+      date,
+      value: numericValue,
+      x: xScale(date),
+    });
+  });
+
+  projectedValues.forEach((value, index) => {
+    const numericValue = Number(value);
+
+    if (!Number.isFinite(numericValue)) return;
+
+    const date = d3.timeDay.offset(projectedStartDate, 7 * (index - 1));
+
+    tooltipPoints.push({
+      date,
+      value: numericValue,
+      x: xScale(date),
+    });
+  });
+
+  return tooltipPoints;
+}
+
+function getNearestTooltipPoint(tooltipPoints, mouseX) {
+  if (!tooltipPoints.length) return null;
+
+  return d3.least(tooltipPoints, (point) => Math.abs(point.x - mouseX));
+}
+
 function createDataPointTooltip(
   event,
   dataPointTTP,
@@ -1150,10 +1246,6 @@ function createDataPointTooltip(
   ttpMargins,
   groupStartDate,
 ) {
-  dataPointTTP.html("");
-
-  let tooltipDateFormat = d3.timeFormat("%b %d");
-
   let thisDataPointShape = event.target;
   let dataShapeBBox = thisDataPointShape.getBBox();
 
@@ -1167,10 +1259,38 @@ function createDataPointTooltip(
         .indexOf(thisDataPointShape),
   );
 
-  let dateStr = `${tooltipDateFormat(
-    d3.timeDay.offset(date, -6),
-  )} - ${tooltipDateFormat(date)}`;
   let value = d3.select(thisDataPointShape).datum();
+
+  createDataPointTooltipAt(
+    {
+      date,
+      value,
+      x: dataShapeBBox.x + dataShapeBBox.width / 2 + thisDataPointShape.getCTM().e,
+    },
+    dataPointTTP,
+    panelType,
+    ttpHeight,
+    ttpMargins,
+  );
+}
+
+function createDataPointTooltipAt(
+  point,
+  dataPointTTP,
+  panelType,
+  ttpHeight,
+  ttpMargins,
+) {
+  const value = Number(point.value);
+  if (!Number.isFinite(value) || !point.date) return;
+
+  dataPointTTP.html("");
+  dataPointTTP.raise();
+
+  let tooltipDateFormat = d3.timeFormat("%b %d");
+  let dateStr = `${tooltipDateFormat(
+    d3.timeDay.offset(point.date, -6),
+  )} - ${tooltipDateFormat(point.date)}`;
 
   let valueStr =
     panelType == "rate"
@@ -1193,8 +1313,7 @@ function createDataPointTooltip(
       break;
   }
 
-  var dx =
-    dataShapeBBox.x + dataShapeBBox.width / 2 + thisDataPointShape.getCTM().e;
+  var dx = point.x;
   var dy = 1 * em;
 
   dataPointTTP.append("text").text(dateStr).attr("x", dx).attr("y", dy);
@@ -1355,6 +1474,15 @@ function initTooltip(
     .attr("class", "tooltip-legend-group");
 }
 
+const getActiveTooltipDate = () =>
+  window.respiratoryAnimationDate || window.currentDate;
+
+function formatSimpleTooltipValue(value, panelType) {
+  const displayValue = panelType === "percentDifference" ? value?.[2] : value;
+
+  return Number.isFinite(displayValue) ? displayValue.toFixed(3) : "N/A";
+}
+
 export function showSimpleGeoTooltip(info) {
   const tooltip = document.getElementById("geo-tooltip");
 
@@ -1367,18 +1495,22 @@ export function showSimpleGeoTooltip(info) {
     const gap = 10; // mouse - tooltip gap
 
     const properties = info.object.properties;
+    const tooltipDate = getActiveTooltipDate();
 
-    let val = getCurDateValueFromFeature(
+    const val = getCurDateValueFromFeature(
       info.object,
       mapPopulationSelector.value,
       mapOutcomeVariableSelector.value,
       mapTypeSwitch.value,
       mapIncludeImputations.checked,
+      undefined,
+      tooltipDate,
     );
 
-    val = mapTypeSwitch.value === "percentDifference" ? val[2] : val;
-
-    tooltip.innerText = `${properties.id}: ${val.toFixed(3)} \n ${currentDate.toLocaleDateString()}`;
+    tooltip.innerText = `${properties.id}: ${formatSimpleTooltipValue(
+      val,
+      mapTypeSwitch.value,
+    )} \n ${tooltipDate.toLocaleDateString()}`;
     const rect = tooltip.getBoundingClientRect();
 
     tooltip.style.left = info.x - rect.width / 2 + paddingLeft + "px";

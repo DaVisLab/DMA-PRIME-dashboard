@@ -3,8 +3,6 @@ import {
   drawStateHospitalizations,
 } from "/static/js/respiratory/script.js";
 
-import { getCurDateValueFromFeature } from "/static/js/respiratory/utils/dataProcessing_utils.js";
-
 import {
   unknownColor,
   populationColorMap,
@@ -18,7 +16,20 @@ import {
 import {
   facility_dataProcessing,
   call_data,
+  getCurDateValueFromFeature,
 } from "/static/js/respiratory/utils/dataProcessing_utils.js";
+
+import {
+  applyRespiratoryOptionRestrictions,
+  getCurrentControlState,
+  resolveRespiratoryControlState,
+} from "/static/js/respiratory/utils/controlState_utils.js";
+
+import {
+  updateGeographicOptions as renderGeographicOptions,
+  updateOutcomeOptions as renderOutcomeOptions,
+  updatePopulationOptions as renderPopulationOptions,
+} from "/static/js/respiratory/utils/interfaceOption_utils.js";
 
 const { GeoJsonLayer, IconLayer, TextLayer, MapboxOverlay } = deck;
 
@@ -37,6 +48,12 @@ export {
 
 const MAP_CENTER = [-81, 33.65];
 const MAP_ZOOM = 7;
+const MAP_MIN_ZOOM = 4;
+const MAP_MAX_ZOOM = 11;
+const MAP_BOUNDS = [
+  [-86.0, 29.5],
+  [-76.5, 40.0],
+];
 const FACILITY_ICON_MAPPING = {
   marker: { x: 0, y: 0, width: 1128, height: 992, mask: true },
 };
@@ -71,6 +88,13 @@ const map = new maplibregl.Map({
     "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json",
   center: MAP_CENTER,
   zoom: MAP_ZOOM,
+  minZoom: MAP_MIN_ZOOM,
+  maxZoom: MAP_MAX_ZOOM,
+  maxBounds: MAP_BOUNDS,
+  bearing: 0,
+  pitch: 0,
+  dragRotate: false,
+  pitchWithRotate: false,
 });
 
 await Promise.allSettled([
@@ -116,6 +140,66 @@ const getFontFamily = () =>
 const getSelectedOptionHtml = (selectEl, value) =>
   d3.select(selectEl).select(`*[value="${value}"]`).html();
 
+const getActiveMapDate = () =>
+  window.respiratoryAnimationDate || window.currentDate;
+
+const getActiveMapDateKey = () =>
+  dayjs(getActiveMapDate()).format("YYYY-MM-DD");
+
+const getMapDataTriggers = () => [
+  mapGeographicUnitSelector.value,
+  dataVersion,
+  getActiveMapDateKey(),
+];
+
+const getMapValueTriggers = () => [
+  mapGeographicUnitSelector.value,
+  mapOutcomeVariableSelector.value,
+  mapTypeSwitch.value,
+  mapPopulationSelector.value,
+  mapIncludeImputations.checked,
+  getActiveMapDateKey(),
+  dataVersion,
+];
+
+const getMapControlState = () =>
+  resolveRespiratoryControlState(
+    metadata,
+    getCurrentControlState({
+      diseaseEl: mapDiseaseSelector,
+      geographicUnitEl: mapGeographicUnitSelector,
+      populationEl: mapPopulationSelector,
+      outcomeEl: mapOutcomeVariableSelector,
+    }),
+  );
+
+const applyMapControlState = (state) => {
+  mapGeographicUnitSelector.value = state.geographicUnit;
+  mapPopulationSelector.value = state.population;
+  mapOutcomeVariableSelector.value = state.outcomeVariable;
+
+  mapGeographicUnit = state.geographicUnit;
+  mapPopulation = state.population;
+  mapOutcomeVariable = state.outcomeVariable;
+
+  applyRespiratoryOptionRestrictions({
+    diseaseEl: mapDiseaseSelector,
+    geographicUnitEl: mapGeographicUnitSelector,
+    populationEl: mapPopulationSelector,
+    outcomeEl: mapOutcomeVariableSelector,
+  });
+};
+
+const lockMapNavigation = () => {
+  map.setMinZoom(MAP_MIN_ZOOM);
+  map.setMaxZoom(MAP_MAX_ZOOM);
+  map.setMaxBounds(MAP_BOUNDS);
+  map.setMaxPitch(0);
+  map.dragRotate.disable();
+  map.touchZoomRotate.disableRotation();
+  map.keyboard.disableRotation?.();
+};
+
 const setLoadingVisible = (visible) => {
   d3.select("#map-loading-div").style(
     "visibility",
@@ -154,12 +238,8 @@ const getChoroplethLayer = (regionData) =>
     // getLineColor: [64, 64, 64],
     getLineColor: [255, 255, 255],
     updateTriggers: {
-      data: [mapGeographicUnitSelector.value, dataVersion],
-      getFillColor: [
-        mapGeographicUnitSelector.value,
-        mapOutcomeVariableSelector.value,
-        dataVersion,
-      ],
+      data: getMapDataTriggers(),
+      getFillColor: getMapValueTriggers(),
     },
     onHover: (info) => {
       showSimpleGeoTooltip(info);
@@ -180,7 +260,7 @@ const getFacilityBackgroundLayer = (regionData) =>
     getIconColor: () => [0, 0, 0, 255],
     iconSizeMinPixels: 20,
     updateTriggers: {
-      data: [mapGeographicUnitSelector.value, dataVersion],
+      data: getMapDataTriggers(),
     },
   });
 
@@ -198,12 +278,8 @@ const getFacilityLayer = (regionData) =>
     getIconColor: (d) => getColor(d),
     iconSizeMinPixels: 10,
     updateTriggers: {
-      data: [mapGeographicUnitSelector.value, dataVersion],
-      getIconColor: [
-        mapGeographicUnitSelector.value,
-        mapOutcomeVariableSelector.value,
-        dataVersion,
-      ],
+      data: getMapDataTriggers(),
+      getIconColor: getMapValueTriggers(),
     },
   });
 
@@ -239,8 +315,10 @@ if (el) {
 // d3.select(popup.getElement()).style("color", "var(--sl-color-neutral-0)");
 
 map.addControl(deckOverlay);
-map.addControl(new maplibregl.NavigationControl());
-map.setMaxPitch(0);
+map.addControl(new maplibregl.NavigationControl({ showCompass: false }));
+lockMapNavigation();
+
+applyMapControlState(getMapControlState());
 
 regionData = await call_data(
   mapGeographicUnitSelector.value,
@@ -274,6 +352,7 @@ async function redraw(
   fetchData = false,
   center = false,
 ) {
+  applyMapControlState(getMapControlState());
   updateMapTitle();
 
   if (fetchData) {
@@ -472,6 +551,8 @@ function getColor(feature) {
       outcomeVariable,
       mapTypeSwitch.value,
       imputations,
+      undefined,
+      getActiveMapDate(),
     );
 
     const color =
@@ -760,7 +841,7 @@ function drawLegend() {
     .attr("x", legendWidth / 2 + LEGEND_MARGINS.left)
     .attr("y", 3 * em + LEGEND_MARGINS.top)
     .text(
-      `Current Week's ${dataVarString} by ${metadata.region_sizes[mapGeographicUnitSelector.value]}`,
+      `Week of ${d3.timeFormat("%b %d, %Y")(getActiveMapDate())} ${dataVarString} by ${metadata.region_sizes[mapGeographicUnitSelector.value]}`,
     );
 }
 
@@ -879,98 +960,41 @@ function updateMapWarnings() {
 }
 
 async function updateMapGeographicUnitOptions() {
-  d3.selectAll(".map-geographic-unit-option").remove();
-
-  const availableGeographicUnits = Object.keys(
-    metadata.available_models[mapDiseaseSelector.value],
+  renderGeographicOptions(
+    "map",
+    mapOutcomeVariableSelector,
+    mapDiseaseSelector,
+    mapGeographicUnitSelector,
+    mapPopulationSelector,
+    { dispatchSelectionChange: false },
   );
-
-  d3.select(mapGeographicUnitSelector)
-    .selectAll(".map-geographic-unit-option")
-    .data(availableGeographicUnits)
-    .enter()
-    .append("sl-option")
-    .attr("class", "map-geographic-unit-option")
-    .attr("value", (d) => d)
-    .html((d) => metadata.region_sizes[d]);
-
-  if (!availableGeographicUnits.includes(mapGeographicUnit)) {
-    mapGeographicUnit = availableGeographicUnits[0];
-    mapGeographicUnitSelector.value = mapGeographicUnit;
-  }
-
-  await updateMapPopulationOptions();
+  applyMapControlState(getMapControlState());
+  updateMapPopulationOptions();
 }
 
 async function updateMapPopulationOptions() {
-  // todo
-  // updatePopulationOptions
-
-  d3.selectAll(".map-population-tooltip").remove();
-
-  let availablePopulations;
-  const availableForUnit =
-    metadata.available_models[mapDiseaseSelector.value][
-      mapGeographicUnitSelector.value
-    ];
-
-  if (availableForUnit) {
-    availablePopulations = Object.keys(availableForUnit);
-  } else {
-    const firstGeographicUnit = Object.entries(
-      metadata.available_models[mapDiseaseSelector.value],
-    )[0];
-    availablePopulations = firstGeographicUnit
-      ? Object.keys(firstGeographicUnit[1])
-      : [];
-  }
-
-  d3.select(mapPopulationSelector)
-    .selectAll(".map-population-tooltip")
-    .data(availablePopulations)
-    .enter()
-    .append("sl-tooltip")
-    .attr("class", "map-population-tooltip")
-    .attr("content", (d) => metadata.populations_tooltips[d])
-    .attr("trigger", "hover")
-    .attr("hoist", "")
-    .append("sl-option")
-    .attr("class", "map-population-option")
-    .attr("value", (d) => d)
-    .html((d) => metadata.populations[d]);
-
-  if (!availablePopulations.includes(mapPopulation)) {
-    mapPopulation = availablePopulations[0];
-    mapPopulationSelector.value = mapPopulation;
-  }
-
-  await updateMapOutcomeVariableOptions();
+  applyMapControlState(getMapControlState());
+  renderPopulationOptions(
+    "map",
+    mapOutcomeVariableSelector,
+    mapDiseaseSelector,
+    mapGeographicUnitSelector,
+    mapPopulationSelector,
+    { dispatchSelectionChange: false },
+  );
+  applyMapControlState(getMapControlState());
+  updateMapOutcomeVariableOptions();
 }
 
 async function updateMapOutcomeVariableOptions() {
-  d3.selectAll(".map-outcome-tooltip").remove();
-
-  const availableOutcomeVariables =
-    metadata.available_models[mapDiseaseSelector.value][
-      mapGeographicUnitSelector.value
-    ][mapPopulationSelector.value] ?? [];
-
-  d3.select(mapOutcomeVariableSelector)
-    .selectAll(".map-outcome-tooltip")
-    .data(availableOutcomeVariables)
-    .enter()
-    .append("sl-tooltip")
-    .attr("class", "map-outcome-tooltip")
-    .attr("content", (d) => metadata.outcome_variables_tooltips[d])
-    .attr("trigger", "hover")
-    .attr("hoist", "")
-    .append("sl-option")
-    .attr("class", "map-outcome-option")
-    .attr("value", (d) => d)
-    .html((d) => metadata.outcome_variables[d]);
-
-  if (!availableOutcomeVariables.includes(mapOutcomeVariable)) {
-    mapOutcomeVariable = availableOutcomeVariables[0];
-    mapOutcomeVariableSelector.value = mapOutcomeVariable;
-  }
+  applyMapControlState(getMapControlState());
+  renderOutcomeOptions(
+    "map",
+    mapOutcomeVariableSelector,
+    mapDiseaseSelector,
+    mapGeographicUnitSelector,
+    mapPopulationSelector,
+    { dispatchSelectionChange: false },
+  );
+  applyMapControlState(getMapControlState());
 }

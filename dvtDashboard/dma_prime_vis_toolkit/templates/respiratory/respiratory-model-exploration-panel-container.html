@@ -4,6 +4,9 @@
 {% set default_population = metadata['available_models'][default_disease][default_geographic_unit] | list | first %}
 {% set default_outcomes = metadata['available_models'][default_disease][default_geographic_unit][default_population] %}
 {% set default_outcome = "inpatient_hospitalizations" if "inpatient_hospitalizations" in default_outcomes else default_outcomes | first %}
+{% set default_model_outcome = "attributable_ed_visits" if default_outcome == "%_influenza-attributable_ed_visits" else default_outcome %}
+{% set default_location = "SC" %}
+{% set default_model_src = "/data/respiratory/model/" ~ default_disease ~ "/" ~ default_geographic_unit ~ "/" ~ default_population ~ "/" ~ default_model_outcome ~ "/" ~ default_location ~ "/" ~ metadata.data_version %}
 {% extends "subtemplates/panel.html" %} {% block
 options %}
 <div id="exploration-options" class="sidebar-container">
@@ -112,7 +115,9 @@ options %}
 <iframe
   id="model-exploration"
   title="Selected Model Information"
-  src=""
+  src="{{ default_model_src }}"
+  loading="eager"
+  fetchpriority="high"
   style="border: none; width: 100%; height: 100%"
 ></iframe>
 
@@ -163,14 +168,27 @@ options %}
     updatePopulationOptions,
     updateGeographicOptions,
   } from "/static/js/respiratory/utils/interfaceOption_utils.js";
+  import {
+    applyRespiratoryOptionRestrictions,
+    getControlStateKey,
+    getCurrentControlState,
+    getLocationsForGeographicUnit,
+    getRespiratoryModelDataSrc,
+    resolveRespiratoryControlState,
+  } from "/static/js/respiratory/utils/controlState_utils.js";
 
-  await Promise.allSettled([
-    // wait for following to be defined/load in
+  const selectDefinitionsReady = Promise.allSettled([
     customElements.whenDefined("sl-select"),
     customElements.whenDefined("sl-option"),
   ]);
+  const controlUpdateOptions = { dispatchSelectionChange: false };
 
-  const iframeContent = document.querySelector("iframe");
+  const iframeContent = document.getElementById("model-exploration");
+  let currentModelSrc = iframeContent.getAttribute("src") || "";
+  let pendingModelFrame = null;
+  let isSyncingControls = false;
+  let hasPendingControlSync = false;
+  let scheduledControlSync = null;
 
   const popEl = document.getElementById("exploration-population-selector");
   const geoEl = document.getElementById("exploration-geographic-unit-selector");
@@ -183,117 +201,183 @@ options %}
   const input = document.getElementById("location-id-search");
 
   //   window.removeEventListener("keydown", swapTheme);
+
+  function getExplorationControlState() {
+    return resolveRespiratoryControlState(
+      metadata,
+      getCurrentControlState({
+        diseaseEl: disEl,
+        geographicUnitEl: geoEl,
+        populationEl: popEl,
+        outcomeEl: outEl,
+      }),
+    );
+  }
+
+  function getExplorationControlKey() {
+    return getControlStateKey(
+      getCurrentControlState({
+        diseaseEl: disEl,
+        geographicUnitEl: geoEl,
+        populationEl: popEl,
+        outcomeEl: outEl,
+      }),
+    );
+  }
+
+  function applyExplorationControlState(state) {
+    geoEl.value = state.geographicUnit;
+    popEl.value = state.population;
+    outEl.value = state.outcomeVariable;
+
+    applyRespiratoryOptionRestrictions({
+      diseaseEl: disEl,
+      geographicUnitEl: geoEl,
+      populationEl: popEl,
+      outcomeEl: outEl,
+    });
+  }
+
+  function syncLocationMenu() {
+    const state = getExplorationControlState();
+    const geoVal = state.geographicUnit;
+    const locations = getLocationsForGeographicUnit(metadata, geoVal);
+    const currentLocation = input.value;
+    const nextLocation = locations.includes(currentLocation)
+      ? currentLocation
+      : locations[0] || "";
+    const fragment = document.createDocumentFragment();
+
+    locations.forEach((location) => {
+      const item = document.createElement("sl-menu-item");
+
+      item.value = location;
+      item.classList.add(`${geoVal}-id`, "location-id");
+      item.textContent = location;
+      fragment.appendChild(item);
+    });
+
+    menu.replaceChildren(fragment);
+    input.value = nextLocation;
+
+    return nextLocation;
+  }
+
+  [popEl, geoEl, outEl, disEl].forEach((el) => {
+    el.addEventListener("sl-change", scheduleModelControlSync);
+  });
+
   menu.addEventListener("sl-select", (e) => {
     const item = e.detail.item;
     if (!item) return;
 
     input.value = item.value;
+    callModelExplorationReportFromControls();
   });
 
-  function toIdFriendly(str) {
-    return str.replace(/\s+/g, "-");
-  }
+  selectDefinitionsReady.then(scheduleModelControlSync);
 
-  function titleCase(str) {
-    str = String(str);
-    // Convert the string to lowercase to ensure consistent capitalization, then split into words
-    str = str.toLowerCase().split(" ");
+  function scheduleModelControlSync() {
+    hasPendingControlSync = true;
 
-    // Iterate over each word and capitalize the first letter
-    for (var i = 0; i < str.length; i++) {
-      str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
+    if (isSyncingControls || scheduledControlSync !== null) {
+      return;
     }
 
-    // Join the words back into a single string with spaces
-    return str.join(" ");
+    scheduledControlSync = requestAnimationFrame(async () => {
+      scheduledControlSync = null;
+      await syncModelControlsAndReport();
+    });
   }
 
-  geoEl.addEventListener("sl-change", (event) => {
-    const locations = Array.from(metadata[event.target.value] ?? []).sort();
-    const menu = document.getElementById("location-menu");
+  async function syncModelControlsAndReport() {
+    if (isSyncingControls) return;
 
-    menu.innerHTML = "";
+    isSyncingControls = true;
 
-    if (event.target.value == "state") {
-      const item = document.createElement("sl-menu-item");
+    try {
+      await selectDefinitionsReady;
 
-      // item.value = toIdFriendly(location);
-      item.value = "SC";
-      item.classList.add(`SC-id`, "location-id");
-      item.textContent = "SC";
+      for (let i = 0; i < 6; i++) {
+        hasPendingControlSync = false;
+        const beforeKey = getExplorationControlKey();
 
-      document.getElementById("location-id-search").value = "SC";
+        updateGeographicOptions(
+          "exploration",
+          outEl,
+          disEl,
+          geoEl,
+          popEl,
+          controlUpdateOptions,
+        );
+        applyExplorationControlState(getExplorationControlState());
+        updatePopulationOptions(
+          "exploration",
+          outEl,
+          disEl,
+          geoEl,
+          popEl,
+          controlUpdateOptions,
+        );
+        applyExplorationControlState(getExplorationControlState());
+        updateOutcomeOptions(
+          "exploration",
+          outEl,
+          disEl,
+          geoEl,
+          popEl,
+          controlUpdateOptions,
+        );
+        applyExplorationControlState(getExplorationControlState());
+        window._controlDependecyTest(popEl, geoEl, outEl, disEl);
 
-      menu.appendChild(item);
-    } else {
-      locations.forEach((location, i) => {
-        const item = document.createElement("sl-menu-item");
-
-        item.value = titleCase(location);
-        item.classList.add(`${event.target.value}-id`, "location-id");
-        item.textContent = titleCase(location);
-
-        if (i == 0) {
-          document.getElementById("location-id-search").value = titleCase(location);
-          // toIdFriendly(location);
+        if (!hasPendingControlSync && getExplorationControlKey() === beforeKey) {
+          break;
         }
-        menu.appendChild(item);
-      });
-    }
-    input.dispatchEvent(new CustomEvent("sl-select"));
-  });
+      }
 
-  controlDependencyTestOnModelView();
-  testDiseaseOutcomeDipendency();
-
-  callModelExplorationReport(
-    explorationDiseaseSelector.value,
-    explorationGeographicUnitSelector.value,
-    explorationPopulationSelector.value,
-    explorationOutcomeVariableSelector.value,
-    "SC",
-    metadata.data_version,
-  );
-
-  [popEl, geoEl, outEl, disEl].forEach((el) => {
-    el.addEventListener("sl-change", (event) => {
-      controlDependencyTestOnModelView();
+      syncLocationMenu();
       testDiseaseOutcomeDipendency();
+      callModelExplorationReportFromControls();
+    } finally {
+      isSyncingControls = false;
 
-      callModelExplorationReport(
-        explorationDiseaseSelector.value,
-        explorationGeographicUnitSelector.value,
-        explorationPopulationSelector.value,
-        explorationOutcomeVariableSelector.value,
-        locationIdSearch.value,
-        metadata.data_version,
-      );
-    });
-  });
-
-  [menu, input].forEach((el) => {
-    el.addEventListener("sl-select", (event) => {
-      callModelExplorationReport(
-        explorationDiseaseSelector.value,
-        explorationGeographicUnitSelector.value,
-        explorationPopulationSelector.value,
-        explorationOutcomeVariableSelector.value,
-        locationIdSearch.value,
-        metadata.data_version,
-      );
-    });
-  });
+      if (hasPendingControlSync) {
+        scheduleModelControlSync();
+      }
+    }
+  }
 
   async function controlDependencyTestOnModelView() {
-    await Promise.allSettled([
-      // wait for following to be defined/load in
-      customElements.whenDefined("sl-select"),
-      customElements.whenDefined("sl-option"),
-    ]);
+    await selectDefinitionsReady;
 
-    updateGeographicOptions("exploration", outEl, disEl, geoEl, popEl);
-    updatePopulationOptions("exploration", outEl, disEl, geoEl, popEl);
-    updateOutcomeOptions("exploration", outEl, disEl, geoEl, popEl);
+    updateGeographicOptions(
+      "exploration",
+      outEl,
+      disEl,
+      geoEl,
+      popEl,
+      controlUpdateOptions,
+    );
+    applyExplorationControlState(getExplorationControlState());
+    updatePopulationOptions(
+      "exploration",
+      outEl,
+      disEl,
+      geoEl,
+      popEl,
+      controlUpdateOptions,
+    );
+    applyExplorationControlState(getExplorationControlState());
+    updateOutcomeOptions(
+      "exploration",
+      outEl,
+      disEl,
+      geoEl,
+      popEl,
+      controlUpdateOptions,
+    );
+    applyExplorationControlState(getExplorationControlState());
 
     window._controlDependecyTest(popEl, geoEl, outEl, disEl);
   }
@@ -314,6 +398,20 @@ options %}
     );
   }
 
+  function callModelExplorationReportFromControls() {
+    const state = getExplorationControlState();
+    applyExplorationControlState(state);
+
+    callModelExplorationReport(
+      state.disease,
+      state.geographicUnit,
+      state.population,
+      state.outcomeVariable,
+      input.value,
+      metadata.data_version,
+    );
+  }
+
   function callModelExplorationReport(
     diseaseVal,
     geoVal,
@@ -322,16 +420,31 @@ options %}
     locVal,
     dataVersionVal,
   ) {
-    const params = new URLSearchParams({
+    const nextSrc = getRespiratoryModelDataSrc({
+      metadata,
       disease: diseaseVal,
-      "geographic-unit": geoVal,
+      geographicUnit: geoVal,
       population: popVal,
-      "outcome-variable": outcomeVal,
+      outcomeVariable: outcomeVal,
       location: locVal,
-      data_version: dataVersionVal,
+      dataVersion: dataVersionVal,
     });
 
-    iframeContent.src = `/respiratory-model-exploration?${params.toString()}`;
+    if (nextSrc === currentModelSrc) return;
+    currentModelSrc = nextSrc;
+
+    if (pendingModelFrame) {
+      cancelAnimationFrame(pendingModelFrame);
+    }
+
+    pendingModelFrame = requestAnimationFrame(() => {
+      if (nextSrc) {
+        iframeContent.src = nextSrc;
+      } else {
+        iframeContent.removeAttribute("src");
+      }
+      pendingModelFrame = null;
+    });
   }
 </script>
 

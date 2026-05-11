@@ -1,4 +1,6 @@
 {% set min_width = "350px" %}
+{% set available_outcomes = metadata['available_models'][disease][geographic_unit][population] %}
+{% set selected_outcome_variable = "%_influenza-attributable_ed_visits" if outcome_variable == "attributable_ed_visits" and "%_influenza-attributable_ed_visits" in available_outcomes else outcome_variable %}
 
  {% extends "subtemplates/panel_model_exploration.html" %}
  {% block options %}
@@ -60,14 +62,13 @@
 
   <!-- outcome variable -->
   <sl-select
-    value="{{ outcome_variable }}"
+    value="{{ selected_outcome_variable }}"
     id="exploration-outcome-variable-selector"
     class="fill-width"
     size="small"
   >
     <p slot="label">Select outcome variable</p>
-    {% for outcome in
-    metadata['available_models'][disease][geographic_unit][population] %}
+    {% for outcome in available_outcomes %}
     <sl-tooltip
       class="exploration-outcome-tooltip"
       content="{{ metadata['outcome_variables_tooltips'][outcome] }}"
@@ -103,12 +104,20 @@
     </sl-input>
 
     <sl-menu id="location-menu">
+      {% if location %}
+      <sl-menu-item
+        value="{{ location }}"
+        class="{{ geographic_unit }}-id location-id"
+        >{{ location }}</sl-menu-item
+      >
+      {% else %}
       {% for region in metadata['region_sizes'].keys() %} {% for location in
       metadata.get(region, [])|sort() %}
       <sl-menu-item value="{{ location }}" class="{{ region }}-id location-id"
         >{{ location }}</sl-menu-item
       >
       {% endfor %} {% endfor %}
+      {% endif %}
     </sl-menu>
   </sl-dropdown>
 </div>
@@ -118,6 +127,8 @@
 <iframe
   id="model-exploration"
   title="Selected Model Information"
+  loading="eager"
+  fetchpriority="high"
   {%
   if
   src
@@ -132,7 +143,7 @@
 {% endblock %} {% block scripts %}
 
 <script>
-  var modelLocation = null;
+  var modelLocation = {{ location | tojson }} || null;
 
   // Controls
   var explorationDiseaseSelector = document.getElementById(
@@ -160,7 +171,8 @@
   // Options selected
   var explorationGeographicUnit = "{{ geographic_unit }}";
   var explorationPopulation = "{{ population }}";
-  var explorationOutcomeVariable = "{{ outcome_variable }}";
+  var explorationOutcomeVariable = "{{ selected_outcome_variable }}";
+  explorationOutcomeVariableSelector.value = "{{ selected_outcome_variable }}";
 
   // window.removeEventListener("keydown", swapTheme);
 </script>
@@ -170,33 +182,24 @@
   type="module"
 ></script>
 <script type="module">
-  await Promise.allSettled([
-    // wait for following to be defined/load in
-    customElements.whenDefined("sl-select"),
-    customElements.whenDefined("sl-option"),
-    customElements.whenDefined("sl-tooltip"),
-    customElements.whenDefined("sl-menu"),
-    customElements.whenDefined("sl-menu-item"),
-  ]);
-
-  d3.selectAll("sl-menu-item.location-id").each(function (a, b, c, d) {
-    let menuItem = d3.select(this);
-    menuItem.classed(
+  document.querySelectorAll("sl-menu-item.location-id").forEach((menuItem) => {
+    menuItem.classList.toggle(
       "hide",
-      !menuItem.classed(`${explorationGeographicUnitSelector.value}-id`),
+      !menuItem.classList.contains(
+        `${explorationGeographicUnitSelector.value}-id`,
+      ),
     );
   });
 
-  // document.addEventListener("DOMContentLoaded", async () => {
-  await customElements.whenDefined("sl-icon-button");
+  customElements.whenDefined("sl-icon-button").then(async () => {
+    const btn = document.getElementById("hide-exploration-sidebar-button");
 
-  const btn = document.getElementById("hide-exploration-sidebar-button");
-
-  if (btn) {
-    await btn.updateComplete; // wait for render
-    btn.click(); // trigger click
-    btn.style.display = "none";
-  }
+    if (btn) {
+      await btn.updateComplete;
+      btn.click();
+      btn.style.display = "none";
+    }
+  });
 </script>
 
 

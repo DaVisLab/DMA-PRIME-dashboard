@@ -28,9 +28,12 @@ import {
   setGridFacilityUnitSelectorValue,
   setGridTypeSwitchValue,
 } from "/static/js/respiratory/grid-interactions.js";
+import { getRespiratoryModelDataSrc } from "/static/js/respiratory/utils/controlState_utils.js";
 
 const MAP_CENTER = [-81, 33.65];
 const MAP_ZOOM = 7;
+const MODEL_EXPLORATION_PREFETCH_ID = "model-exploration-prefetch";
+let prefetchedModelDataUrl = null;
 
 function resetMapView() {
   map.flyTo({
@@ -77,8 +80,79 @@ function syncIconSelection(toggle, iconName) {
   }
 }
 
+function getModelExplorationParams(dataObject) {
+  return {
+    disease: mapDiseaseSelector.value,
+    "geographic-unit": mapGeographicUnitSelector.value,
+    population: mapPopulationSelector.value,
+    "outcome-variable": mapOutcomeVariableSelector.value,
+    location: dataObject.properties.id,
+    data_version: metadata.data_version,
+  };
+}
+
+function getModelExplorationUrl(dataObject) {
+  return `/respiratory-model-exploration?${new URLSearchParams(
+    getModelExplorationParams(dataObject),
+  ).toString()}`;
+}
+
+function getModelDataUrl(dataObject) {
+  const params = getModelExplorationParams(dataObject);
+
+  return getRespiratoryModelDataSrc({
+    metadata,
+    disease: params.disease,
+    geographicUnit: params["geographic-unit"],
+    population: params.population,
+    outcomeVariable: params["outcome-variable"],
+    location: params.location,
+    dataVersion: params.data_version,
+  });
+}
+
+function prefetchModelExploration(dataObject) {
+  const explorationUrl = getModelExplorationUrl(dataObject);
+  const dataUrl = getModelDataUrl(dataObject);
+
+  let prefetchLink = document.getElementById(MODEL_EXPLORATION_PREFETCH_ID);
+  if (!prefetchLink) {
+    prefetchLink = document.createElement("link");
+    prefetchLink.id = MODEL_EXPLORATION_PREFETCH_ID;
+    prefetchLink.rel = "prefetch";
+    prefetchLink.as = "document";
+    document.head.appendChild(prefetchLink);
+  }
+  prefetchLink.href = explorationUrl;
+
+  if (!dataUrl) return;
+  if (prefetchedModelDataUrl === dataUrl) return;
+  prefetchedModelDataUrl = dataUrl;
+
+  const runPrefetch = () => {
+    fetch(dataUrl, { credentials: "same-origin", cache: "force-cache" }).catch(
+      () => {},
+    );
+  };
+
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(runPrefetch, { timeout: 1500 });
+  } else {
+    window.setTimeout(runPrefetch, 0);
+  }
+}
+
+function openModelExploration(dataObject) {
+  window.open(
+    getModelExplorationUrl(dataObject),
+    "_blank",
+    "noopener,noreferrer",
+  );
+}
+
 function ensurePopupButtons(dataObject) {
   const popupContent = d3.select("div.maplibregl-popup-content");
+  prefetchModelExploration(dataObject);
 
   if (popupContent.select(".expand-icon-button").empty()) {
     popupContent
@@ -112,10 +186,11 @@ function ensurePopupButtons(dataObject) {
       .style("top", "0px")
       .style("color", "black")
       .style("cursor", "pointer")
+      .on("pointerenter focus", () => {
+        prefetchModelExploration(dataObject);
+      })
       .on("click", () => {
-        window.open(
-          `/respiratory-model-exploration?disease=${mapDiseaseSelector.value}&geographic-unit=${mapGeographicUnitSelector.value}&population=${mapPopulationSelector.value}&outcome-variable=${mapOutcomeVariableSelector.value}&location=${dataObject.properties.id}&data_version=${metadata.data_version}`,
-        );
+        openModelExploration(dataObject);
       });
   }
 }
@@ -264,9 +339,7 @@ mapTypeSwitch.addEventListener("sl-change", () => {
     mapStateHospitalizationsSubtitle,
   );
 
-  if (selectedItems.feature) {
-    updateMapTooltip(selectedItems.feature.properties);
-  }
+  closePopupAndClearSelection();
 
   dataVersion++;
   redraw();

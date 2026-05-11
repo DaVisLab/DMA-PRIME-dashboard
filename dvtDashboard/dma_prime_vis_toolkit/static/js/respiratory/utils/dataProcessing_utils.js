@@ -1,3 +1,5 @@
+import { getTimeFrameStartDate } from "./time_utils.js";
+
 function finiteNumber(value, fallback = NaN) {
   const parsedValue = parseFloat(value);
   return Number.isFinite(parsedValue) ? parsedValue : fallback;
@@ -34,12 +36,81 @@ function safePercentDifference(currentValue, previousValue) {
   return ((currentNumber - previousNumber) / Math.abs(previousNumber)) * 100;
 }
 
-export async function call_data(geoSelected, diseaseSelected, data_version) {
-  return await d3.json(
-    `/data/respiratory/${geoSelected}/${
-      diseaseSelected
-    }?data_version=${data_version}&${parseInt(Math.random() * 9999999999)}`,
+function emptyFeatureCollection() {
+  return {
+    type: "FeatureCollection",
+    features: [],
+  };
+}
+
+function getVariableData(feature, population, outcomeVariable) {
+  return feature.properties.data[population][outcomeVariable];
+}
+
+function getMissingCurrentValue(panelType) {
+  return panelType === "percentDifference" ? [NaN, NaN, NaN] : NaN;
+}
+
+function getDateIndexedData(feature, population, outcomeVariable, date) {
+  const variableData = getVariableData(feature, population, outcomeVariable);
+  const targetDate = dayjs(date);
+  const projectedStart = variableData.projected?.start_date;
+  const timeFrames =
+    projectedStart && !targetDate.isBefore(dayjs(projectedStart))
+      ? ["projected", "historical"]
+      : ["historical", "projected"];
+
+  for (const timeFrame of timeFrames) {
+    const timeFrameData = variableData[timeFrame];
+    if (!timeFrameData?.values?.length) {
+      continue;
+    }
+
+    const startDate = getTimeFrameStartDate(timeFrame, variableData);
+    if (!startDate?.isValid()) {
+      continue;
+    }
+
+    const dateIndex = targetDate.diff(startDate, "week");
+
+    if (dateIndex >= 0 && dateIndex < timeFrameData.values.length) {
+      return {
+        timeFrame,
+        data: timeFrameData,
+        index: dateIndex,
+      };
+    }
+  }
+
+  return null;
+}
+
+function getRawDateValue(feature, population, outcomeVariable, date) {
+  const dateIndexedData = getDateIndexedData(
+    feature,
+    population,
+    outcomeVariable,
+    date,
   );
+
+  if (!dateIndexedData) {
+    return NaN;
+  }
+
+  return finiteNumber(dateIndexedData.data.values.at(dateIndexedData.index));
+}
+
+export async function call_data(geoSelected, diseaseSelected, data_version) {
+  const url = `/data/respiratory/${geoSelected}/${
+    diseaseSelected
+  }?data_version=${data_version}&${parseInt(Math.random() * 9999999999)}`;
+
+  try {
+    const data = await d3.json(url);
+    return Array.isArray(data?.features) ? data : emptyFeatureCollection();
+  } catch (error) {
+    return emptyFeatureCollection();
+  }
 }
 
 export function facility_dataProcessing(features, facility_unit) {
@@ -47,14 +118,14 @@ export function facility_dataProcessing(features, facility_unit) {
     case "individual-unit":
       features = features.filter(
         (item) =>
-          item.properties.id != "MUSC" && item.properties.id != "PRISMA",
+          item.properties.id !== "MUSC" && item.properties.id !== "PRISMA",
       );
       break;
     case "prisma":
-      features = features.filter((item) => item.properties.id == "PRISMA");
+      features = features.filter((item) => item.properties.id === "PRISMA");
       break;
     case "musc":
-      features = features.filter((item) => item.properties.id == "MUSC");
+      features = features.filter((item) => item.properties.id === "MUSC");
       break;
   }
   return features;
@@ -67,17 +138,15 @@ export function getAllCurDateValuesFromFeatures(
   panelType,
   imputations,
 ) {
-  var arr = features.map((feature) => {
-    return getCurDateValueFromFeature(
+  return features.map((feature) =>
+    getCurDateValueFromFeature(
       feature,
       population,
       outcomeVariable,
       panelType,
       imputations,
-    );
-  });
-
-  return arr;
+    ),
+  );
 }
 
 export function getCurDateValueFromFeature(
@@ -86,37 +155,58 @@ export function getCurDateValueFromFeature(
   outcomeVariable,
   panelType,
   imputations,
-  projectionType = "projected",
+  projectionType = undefined,
+  targetDate = window.currentDate,
 ) {
-  const thisData =
-    feature.properties.data[population][outcomeVariable][projectionType];
+  let dateIndexedData;
 
-  if (!imputations && thisData.imputed) {
-    if (panelType === "percentDifference") {
-      return [NaN, NaN, NaN];
-    }
-    return NaN;
+  if (projectionType) {
+    const thisData = getVariableData(
+      feature,
+      population,
+      outcomeVariable,
+    )[projectionType];
+    dateIndexedData = {
+      data: thisData,
+      index: dayjs(targetDate).diff(dayjs(thisData.start_date), "week"),
+    };
+  } else {
+    dateIndexedData = getDateIndexedData(
+      feature,
+      population,
+      outcomeVariable,
+      targetDate,
+    );
   }
 
-  const dateIndex = dayjs(currentDate).diff(thisData.start_date, "week");
-  let thisWeekDatum = finiteNumber(thisData.values.at(dateIndex));
+  if (
+    !dateIndexedData ||
+    dateIndexedData.index < 0 ||
+    dateIndexedData.index >= dateIndexedData.data.values.length
+  ) {
+    return getMissingCurrentValue(panelType);
+  }
+
+  const thisData = dateIndexedData.data;
+
+  if (!imputations && thisData.imputed) {
+    return getMissingCurrentValue(panelType);
+  }
+
+  let thisWeekDatum = finiteNumber(thisData.values.at(dateIndexedData.index));
 
   if (panelType === "rate") {
     thisWeekDatum = safeRate(thisWeekDatum, feature.properties.population);
   }
 
   if (panelType === "percentDifference") {
-    let lastWeekDatum;
-
-    if (dateIndex === 0) {
-      const histData =
-        feature.properties.data[population][outcomeVariable]["historical"]
-          .values;
-
-      lastWeekDatum = finiteNumber(histData.at(histData.length - 1));
-    } else {
-      lastWeekDatum = finiteNumber(thisData.values.at(dateIndex - 1));
-    }
+    const previousDate = dayjs(targetDate).subtract(1, "week").toDate();
+    const lastWeekDatum = getRawDateValue(
+      feature,
+      population,
+      outcomeVariable,
+      previousDate,
+    );
 
     const percentDifference = safePercentDifference(
       thisWeekDatum,

@@ -1,6 +1,7 @@
 import { drawStateHospitalizations } from "/static/js/respiratory/script.js";
 
 import {
+  call_data,
   getCurDateValueFromFeature,
   getAllValuesFromFeature,
   getAllCurDateValuesFromFeatures,
@@ -13,6 +14,16 @@ import {
 
 import { drawTooltip } from "/static/js/respiratory/tooltip.js";
 import { controlDependencyTestOnGridView } from "./utils/controls.js";
+import {
+  applyRespiratoryOptionRestrictions,
+  getCurrentControlState,
+  resolveRespiratoryControlState,
+} from "./utils/controlState_utils.js";
+import {
+  updateGeographicOptions as renderGeographicOptions,
+  updateOutcomeOptions as renderOutcomeOptions,
+  updatePopulationOptions as renderPopulationOptions,
+} from "./utils/interfaceOption_utils.js";
 export {
   updateGrid,
   sortGridItems,
@@ -43,15 +54,52 @@ gridGeographicUnit = gridGeographicUnitSelector.value;
 gridPopulation = gridPopulationSelector.value;
 gridOutcomeVariable = gridOutcomeVariableSelector.value;
 
-var regionData = await d3.json(
-  `/data/respiratory/${gridGeographicUnitSelector.value}/${gridDiseaseSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random() * 9999999999)}`,
+function getGridControlState() {
+  return resolveRespiratoryControlState(
+    metadata,
+    getCurrentControlState({
+      diseaseEl: gridDiseaseSelector,
+      geographicUnitEl: gridGeographicUnitSelector,
+      populationEl: gridPopulationSelector,
+      outcomeEl: gridOutcomeVariableSelector,
+    }),
+  );
+}
+
+function applyGridControlState(state) {
+  gridGeographicUnitSelector.value = state.geographicUnit;
+  gridPopulationSelector.value = state.population;
+  gridOutcomeVariableSelector.value = state.outcomeVariable;
+
+  gridGeographicUnit = state.geographicUnit;
+  gridPopulation = state.population;
+  gridOutcomeVariable = state.outcomeVariable;
+
+  applyRespiratoryOptionRestrictions({
+    diseaseEl: gridDiseaseSelector,
+    geographicUnitEl: gridGeographicUnitSelector,
+    populationEl: gridPopulationSelector,
+    outcomeEl: gridOutcomeVariableSelector,
+  });
+}
+
+applyGridControlState(getGridControlState());
+
+var regionData = await call_data(
+  gridGeographicUnitSelector.value,
+  gridDiseaseSelector.value,
+  metadata.data_version,
 );
 
 await updateGrid(true);
 
 async function updateData() {
-  regionData = await d3.json(
-    `/data/respiratory/${gridGeographicUnitSelector.value}/${gridDiseaseSelector.value}?data_version=${metadata.data_version}&${parseInt(Math.random() * 9999999999)}`,
+  applyGridControlState(getGridControlState());
+
+  regionData = await call_data(
+    gridGeographicUnitSelector.value,
+    gridDiseaseSelector.value,
+    metadata.data_version,
   );
 
   if (gridGeographicUnitSelector.value == "facility") {
@@ -685,84 +733,41 @@ function filterGridItems() {
 }
 
 async function updateGridGeographicUnitOptions() {
-  d3.selectAll(".grid-geographic-unit-option").remove();
-  var availableGeographicUnits = Object.keys(
-    metadata.available_models[gridDiseaseSelector.value],
+  renderGeographicOptions(
+    "grid",
+    gridOutcomeVariableSelector,
+    gridDiseaseSelector,
+    gridGeographicUnitSelector,
+    gridPopulationSelector,
+    { dispatchSelectionChange: false },
   );
-  d3.select(gridGeographicUnitSelector)
-    .selectAll(".grid-geographic-unit-option")
-    .data(availableGeographicUnits)
-    .enter()
-    .append("sl-option")
-    .attr("class", "grid-geographic-unit-option")
-    .attr("value", (d) => d)
-    .html((d) => metadata.region_sizes[d]);
-
-  if (availableGeographicUnits.includes(gridGeographicUnit)) {
-    // do nothing
-  } else {
-    gridGeographicUnit = availableGeographicUnits[0];
-    gridGeographicUnitSelector.value = gridGeographicUnit;
-  }
-
+  applyGridControlState(getGridControlState());
   updateGridPopulationOptions();
 }
 
 async function updateGridPopulationOptions() {
-  d3.selectAll(".grid-population-tooltip").remove();
-  var availablePopulations = Object.keys(
-    metadata.available_models[gridDiseaseSelector.value][
-      gridGeographicUnitSelector.value
-    ],
+  applyGridControlState(getGridControlState());
+  renderPopulationOptions(
+    "grid",
+    gridOutcomeVariableSelector,
+    gridDiseaseSelector,
+    gridGeographicUnitSelector,
+    gridPopulationSelector,
+    { dispatchSelectionChange: false },
   );
-  d3.select(gridPopulationSelector)
-    .selectAll(".grid-population-tooltip")
-    .data(availablePopulations)
-    .enter()
-    .append("sl-tooltip")
-    .attr("class", "grid-population-tooltip")
-    .attr("content", (d) => metadata.populations_tooltips[d])
-    .attr("trigger", "hover")
-    .attr("hoist", "")
-    .append("sl-option")
-    .attr("class", "grid-population-option")
-    .attr("value", (d) => d)
-    .html((d) => metadata.populations[d]);
-
-  if (availablePopulations.includes(gridPopulation)) {
-    // do nothing
-  } else {
-    gridPopulation = availablePopulations[0];
-    gridPopulationSelector.value = gridPopulation;
-  }
-
+  applyGridControlState(getGridControlState());
   updateGridOutcomeVariableOptions();
 }
 
 async function updateGridOutcomeVariableOptions() {
-  d3.selectAll(".grid-outcome-tooltip").remove();
-
-  const availableOutcomeVariables =
-    metadata.available_models[gridDiseaseSelector.value][
-      gridGeographicUnitSelector.value
-    ][gridPopulationSelector.value] ?? [];
-
-  d3.select(gridOutcomeVariableSelector)
-    .selectAll(".grid-outcome-tooltip")
-    .data(availableOutcomeVariables)
-    .enter()
-    .append("sl-tooltip")
-    .attr("class", "grid-outcome-tooltip")
-    .attr("content", (d) => metadata.outcome_variables_tooltips[d])
-    .attr("trigger", "hover")
-    .attr("hoist", "")
-    .append("sl-option")
-    .attr("class", "grid-outcome-option")
-    .attr("value", (d) => d)
-    .html((d) => metadata.outcome_variables[d]);
-
-  if (!availableOutcomeVariables.includes(gridOutcomeVariable)) {
-    gridOutcomeVariable = availableOutcomeVariables[0];
-    gridOutcomeVariableSelector.value = gridOutcomeVariable;
-  }
+  applyGridControlState(getGridControlState());
+  renderOutcomeOptions(
+    "grid",
+    gridOutcomeVariableSelector,
+    gridDiseaseSelector,
+    gridGeographicUnitSelector,
+    gridPopulationSelector,
+    { dispatchSelectionChange: false },
+  );
+  applyGridControlState(getGridControlState());
 }

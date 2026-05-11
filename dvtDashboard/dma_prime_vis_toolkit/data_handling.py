@@ -34,7 +34,7 @@ GEOJSON_FILES = {
     "county": "tl_2024_sc_county_simplified.json",
     "zcta": "tl_2024_sc_zcta_simplified.json",
 }
-SPATIAL_UNITS = {"state", "region", "county", "zcta"}
+SPATIAL_UNITS = {"state", "region", "county", "zcta", "facility"}
 DATA_DASHBOARDS = [
     "respiratory",
     "waste_water",
@@ -98,6 +98,7 @@ def health_care_facility():
 @login_required
 def get_respiratory_hospitalizations(region_size="zcta", disease="covid-19"):
     # hospitalization data based on disease
+    
     if region_size not in SPATIAL_UNITS:
         abort(404)
 
@@ -126,7 +127,7 @@ def get_all_respiratory_hospitalizations(region_size="zcta", disease="covid-19")
     # hospitalization data based on disease
     if region_size not in SPATIAL_UNITS:
         abort(404)
-
+    
     data_version = get_data_version_from_request(request, current_user)
     file = os.path.join(
         current_app.config["DATADIR"],
@@ -494,7 +495,7 @@ def change_version():
 @data_approver_required
 def send_data_date(data_version, dashboard):
     date_s = get_data_date(data_version, dashboard)
-
+        
     if date_s is None:
         return (
             f"Date(s) not found for {dashboard} dashboard and {data_version} data version",
@@ -553,7 +554,7 @@ def send_respiratory_file_changes():
 def get_data_date(data_version, dashboard):
     """Return update timestamps for one or more dashboard data folders."""
     all_data_versions = ["new", "current", "previous"]
-
+    
     if data_version != "all" and data_version not in ALLOWED_DATA_VERSIONS:
         return None
     if dashboard != "all" and _dashboard_folder(dashboard) is None:

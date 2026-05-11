@@ -1,10 +1,67 @@
 
+import {
+    applyRespiratoryOptionRestrictions,
+    getCurrentControlState,
+    getRespiratoryModelDataSrc,
+    resolveRespiratoryControlState,
+} from "./utils/controlState_utils.js"
+import {
+    updateGeographicOptions as renderGeographicOptions,
+    updateOutcomeOptions as renderOutcomeOptions,
+    updatePopulationOptions as renderPopulationOptions,
+} from "./utils/interfaceOption_utils.js"
+
+let currentModelSrc = modelExploration.getAttribute("src") || "";
+
+function getExplorationControlState() {
+    return resolveRespiratoryControlState(
+        metadata,
+        getCurrentControlState({
+            diseaseEl: explorationDiseaseSelector,
+            geographicUnitEl: explorationGeographicUnitSelector,
+            populationEl: explorationPopulationSelector,
+            outcomeEl: explorationOutcomeVariableSelector,
+        }),
+    )
+}
+
+function applyExplorationControlState(state) {
+    explorationGeographicUnitSelector.value = state.geographicUnit
+    explorationPopulationSelector.value = state.population
+    explorationOutcomeVariableSelector.value = state.outcomeVariable
+
+    explorationGeographicUnit = state.geographicUnit
+    explorationPopulation = state.population
+    explorationOutcomeVariable = state.outcomeVariable
+
+    applyRespiratoryOptionRestrictions({
+        diseaseEl: explorationDiseaseSelector,
+        geographicUnitEl: explorationGeographicUnitSelector,
+        populationEl: explorationPopulationSelector,
+        outcomeEl: explorationOutcomeVariableSelector,
+    })
+}
+
+applyExplorationControlState(getExplorationControlState())
+
+function getModelSrc() {
+    const state = getExplorationControlState()
+    applyExplorationControlState(state)
+
+    return getRespiratoryModelDataSrc({
+        metadata,
+        ...state,
+        location: modelLocation,
+        dataVersion: metadata.data_version,
+    })
+}
+
 function changeModel() {
-    if (modelLocation) {
-        modelExploration.src = `/data/respiratory/model/${explorationDiseaseSelector.value}/${explorationGeographicUnitSelector.value}/${explorationPopulationSelector.value}/${explorationOutcomeVariableSelector.value}/${modelLocation}/${metadata.data_version}`
-    } else {
-        modelExploration.src = ''
-    }
+    const nextSrc = getModelSrc()
+    if (nextSrc === currentModelSrc) return
+
+    currentModelSrc = nextSrc
+    modelExploration.src = nextSrc
 }
 
 locationMenu.addEventListener("sl-select", event => {
@@ -76,75 +133,43 @@ explorationOutcomeVariableSelector.addEventListener("sl-change", event => {
 })
 
 async function updateExplorationGeographicUnitOptions() {
-    d3.selectAll(".exploration-geographic-unit-option").remove()
-    var availableGeographicUnits = Object.keys(metadata.available_models[explorationDiseaseSelector.value])
-    d3.select(explorationGeographicUnitSelector)
-        .selectAll(".exploration-geographic-unit-option")
-        .data(availableGeographicUnits)
-        .enter()
-        .append("sl-option")
-        .attr("class", "exploration-geographic-unit-option")
-        .attr("value", d => d)
-        .html(d => metadata.region_sizes[d])
-
-    if (availableGeographicUnits.includes(explorationGeographicUnit)) {
-        // do nothing
-    } else {
-        explorationGeographicUnit = availableGeographicUnits[0]
-        explorationGeographicUnitSelector.value = explorationGeographicUnit
-    }
+    renderGeographicOptions(
+        "exploration",
+        explorationOutcomeVariableSelector,
+        explorationDiseaseSelector,
+        explorationGeographicUnitSelector,
+        explorationPopulationSelector,
+        { dispatchSelectionChange: false },
+    )
+    applyExplorationControlState(getExplorationControlState())
 
     updateExplorationPopulationOptions()
 }
 
 async function updateExplorationPopulationOptions() {
-    d3.selectAll(".exploration-population-tooltip").remove()
-    var availablePopulations = Object.keys(metadata.available_models[explorationDiseaseSelector.value][explorationGeographicUnitSelector.value])
-    d3.select(explorationPopulationSelector)
-        .selectAll(".exploration-population-tooltip")
-        .data(availablePopulations)
-        .enter()
-        .append("sl-tooltip")
-        .attr("class", "exploration-population-tooltip")
-        .attr("content", d => metadata.populations_tooltips[d])
-        .attr("trigger", "hover")
-        .attr("hoist", "")
-        .append("sl-option")
-        .attr("class", "exploration-population-option")
-        .attr("value", d => d)
-        .html(d => metadata.populations[d])
-
-    if (availablePopulations.includes(explorationPopulation)) {
-        // do nothing
-    } else {
-        explorationPopulation = availablePopulations[0]
-        explorationPopulationSelector.value = explorationPopulation
-    }
+    applyExplorationControlState(getExplorationControlState())
+    renderPopulationOptions(
+        "exploration",
+        explorationOutcomeVariableSelector,
+        explorationDiseaseSelector,
+        explorationGeographicUnitSelector,
+        explorationPopulationSelector,
+        { dispatchSelectionChange: false },
+    )
+    applyExplorationControlState(getExplorationControlState())
 
     updateExplorationOutcomeVariableOptions()
 }
 
 async function updateExplorationOutcomeVariableOptions() {
-    d3.selectAll(".exploration-outcome-tooltip").remove()
-    var availableOutcomeVariables = metadata.available_models[explorationDiseaseSelector.value][explorationGeographicUnitSelector.value][explorationPopulationSelector.value]
-    d3.select(explorationOutcomeVariableSelector)
-        .selectAll(".exploration-outcome-tooltip")
-        .data(availableOutcomeVariables)
-        .enter()
-        .append("sl-tooltip")
-        .attr("class", "exploration-outcome-tooltip")
-        .attr("content", d => metadata.outcome_variables_tooltips[d])
-        .attr("trigger", "hover")
-        .attr("hoist", "")
-        .append("sl-option")
-        .attr("class", "exploration-outcome-option")
-        .attr("value", d => d)
-        .html(d => metadata.outcome_variables[d])
-
-    if (availableOutcomeVariables.includes(explorationOutcomeVariable)) {
-        // do nothing
-    } else {
-        explorationOutcomeVariable = availableOutcomeVariables[0]
-        explorationOutcomeVariableSelector.value = explorationOutcomeVariable
-    }
+    applyExplorationControlState(getExplorationControlState())
+    renderOutcomeOptions(
+        "exploration",
+        explorationOutcomeVariableSelector,
+        explorationDiseaseSelector,
+        explorationGeographicUnitSelector,
+        explorationPopulationSelector,
+        { dispatchSelectionChange: false },
+    )
+    applyExplorationControlState(getExplorationControlState())
 }

@@ -208,11 +208,14 @@ options %}
 
 <!-- <div class="fill-width fill-height container"> -->
 <div class="row" style="height: 100%; position: relative">
-  <div class="col-md-2" style="border-left: 1px solid lightgray; height: 100%">
+  <div class="col-md-3" style="border-left: 1px solid lightgray; height: 100%">
     <div
       style="
-        height: 15%;
-        border-bottom: 1px double lightgray;
+        /* height: 22%; */
+        height: fit-content;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        /* border-bottom: 1px double lightgray; */
         font-size: 0.8rem;
         display: flex;
         flex-direction: column;
@@ -223,8 +226,10 @@ options %}
         style="
           display: flex;
           font-size: 0.7rem;
-          height: 50%;
-          flex-direction: column;
+          height: fit-content;
+          /* height: 29%; */
+          justify-content: space-around;
+          /* flex-direction: column; */
           align-items: self-end;
         "
       >
@@ -236,13 +241,13 @@ options %}
             margin: 0px;
             padding: 0px;
           "
-          >Sort By</label
-        >
+          >Sort By:
+        </label>
         <select
           class="form-select form-select-sm input-sm"
           id="sortSelecter"
           aria-label="Floating label select example"
-          style="line-height: 14px; font-size: 0.7rem"
+          style="line-height: 14px; font-size: 0.7rem; width: 60%"
         >
           <option value="value-high">Value High-Low</option>
           <option value="value-low">Value Low-High</option>
@@ -257,8 +262,10 @@ options %}
         style="
           display: flex;
           font-size: 0.7rem;
-          height: 50%;
-          flex-direction: column;
+          /* height: 29%; */
+          height: fit-content;
+          justify-content: space-around;
+          /* flex-direction: column; */
           align-items: self-end;
         "
       >
@@ -270,14 +277,152 @@ options %}
             padding: 0px;
             margin: 0px;
           "
-          >Filter By</label
-        >
+          >Filter By:
+        </label>
         <input
           class="form-control form-control-sm"
           id="filterInput"
           placeholder="ZCTA or County"
-          style="line-height: 14px; font-size: 0.7rem"
+          style="line-height: 14px; font-size: 0.7rem; width: 60%"
         />
+      </div>
+
+      <!-- <div
+        style="
+          display: flex;
+          font-size: 0.7rem;
+          height: fit-content;
+          justify-content: space-around;
+          align-items: center;
+        "
+      >
+        <label
+          style="
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 0px;
+            margin: 0px;
+          "
+          >Y Scale Config:
+        </label>
+        <div
+          id="small-multiple-y-scale-switch"
+          class="btn-group btn-group-sm"
+          role="group"
+          aria-label="Small multiple y scale"
+          style="line-height: 14px; font-size: 0.62rem; width: 60%"
+        >
+          <input
+            type="radio"
+            class="btn-check"
+            name="smallMultipleYScale"
+            id="small-multiple-y-scale-normalized"
+            value="normalized"
+            autocomplete="off"
+            checked
+          />
+          <label
+            class="btn btn-outline-secondary"
+            for="small-multiple-y-scale-normalized"
+            style="font-size: 0.62rem; padding: 0.12rem 0.3rem"
+            >Unit</label
+          >
+          <input
+            type="radio"
+            class="btn-check"
+            name="smallMultipleYScale"
+            id="small-multiple-y-scale-shared"
+            value="shared"
+            autocomplete="off"
+          />
+          <label
+            class="btn btn-outline-secondary"
+            for="small-multiple-y-scale-shared"
+            style="font-size: 0.62rem; padding: 0.12rem 0.3rem"
+            >Shared</label
+          >
+        </div>
+      </div> -->
+
+      <div
+        id="time-animation-control"
+        style="
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+          height: 39%;
+          padding: 0.05rem 0.35rem 0.2rem;
+          width: 100%;
+        "
+      >
+        <div
+          id="time-animation-slider-frame"
+          style="
+            position: relative;
+            flex: 1;
+            min-width: 0;
+            padding-top: 1.2rem;
+            margin-top: 1rem;
+          "
+        >
+          <span
+            id="time-animation-current-date"
+            style="
+              position: absolute;
+              top: 0;
+              left: 50%;
+              transform: translateX(-50%);
+              border: 1px solid lightgray;
+              border-radius: 0.2rem;
+              background: white;
+              color: black;
+              font-size: 0.58rem;
+              line-height: 1;
+              padding: 0.12rem 0.2rem;
+              white-space: nowrap;
+              pointer-events: none;
+            "
+            >{{ metadata.current_date }}</span
+          >
+          <input
+            id="time-animation-slider"
+            type="range"
+            min="0"
+            max="0"
+            step="1"
+            value="0"
+            aria-label="Animation date"
+            style="width: 100%; display: block"
+          />
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              font-size: 0.55rem;
+              line-height: 1;
+              color: #555;
+            "
+          >
+            <span id="time-animation-start-date"
+              >{{ metadata.first_date }}</span
+            >
+            <span id="time-animation-end-date">{{ metadata.last_date }}</span>
+          </div>
+        </div>
+        <sl-icon-button
+          id="time-animation-play-button"
+          name="play-fill"
+          label="Play animation"
+          style="
+            font-size: 0.95rem;
+            flex: 0 0 auto;
+            border: 1px solid lightgray;
+            border-radius: 0.2rem;
+            background: lightgray;
+            border-radius: 0.5rem;
+          "
+        ></sl-icon-button>
       </div>
 
       <hr style="margin: 0px" />
@@ -298,12 +443,31 @@ options %}
         "
       ></div> -->
     <div
-      id="respiratory-smallMultiples-container"
-      style="height: 85%; width: 100%; overflow-y: auto; overflow-x: hidden"
-    ></div>
+      id="respiratory-smallMultiples-scrollport"
+      style="
+        --small-multiple-scrollbar-gutter: 10px;
+        height: 78%;
+        width: calc(100% + var(--small-multiple-scrollbar-gutter));
+        margin-right: calc(-1 * var(--small-multiple-scrollbar-gutter));
+        overflow-y: auto;
+        overflow-x: hidden;
+        box-sizing: border-box;
+      "
+    >
+      <div
+        id="respiratory-smallMultiples-container"
+        style="
+          min-height: 100%;
+          width: calc(100% - var(--small-multiple-scrollbar-gutter));
+          padding: 0.5rem;
+          box-sizing: border-box;
+          gap: 0.25rem;
+        "
+      ></div>
+    </div>
   </div>
   <div
-    class="col-md-10"
+    class="col-md-9"
     style="border-left: 1px solid lightgray; height: 100%; position: relative"
   >
     <div class="fill-width fill-height" id="map-div"></div>
@@ -424,11 +588,15 @@ options %}
   var mapFacilityUnitSelector = document.getElementById(
     "map-facility-option-container",
   );
-  var mapPopulationSelector = document.getElementById("map-population-selector");
+  var mapPopulationSelector = document.getElementById(
+    "map-population-selector",
+  );
   var mapOutcomeVariableSelector = document.getElementById(
     "map-outcome-variable-selector",
   );
-  var mapIncludeImputations = document.getElementById("map-include-imputations");
+  var mapIncludeImputations = document.getElementById(
+    "map-include-imputations",
+  );
 
   // Optional toggles
   var mapOptionsGeographicLabelsToggle = document.getElementById(
@@ -544,6 +712,10 @@ options %}
 ></script>
 <script
   src="{{ url_for('static', filename='js/respiratory/smallMultiples-hospitalization.js') }}"
+  type="module"
+></script>
+<script
+  src="{{ url_for('static', filename='js/respiratory/time-animation-controls.js') }}"
   type="module"
 ></script>
 {% endblock %}

@@ -1,4 +1,9 @@
 import { getAllFacilityOptionContainers } from "./controlSelector.js";
+import {
+  applyRespiratoryOptionRestrictions,
+  getCurrentControlState,
+  resolveRespiratoryControlState,
+} from "./controlState_utils.js";
 
 await Promise.allSettled([
   customElements.whenDefined("sl-select"),
@@ -26,6 +31,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 function _controlReset(popEl, geoEl, outEl, disEl) {
+  if (!popEl || !geoEl || !outEl || !disEl) return;
+
   disEl.querySelectorAll("sl-option").forEach((opt) => {
     // if (opt.value == "respiratory_diseases") {
     //   opt.style.display = "none";
@@ -54,8 +61,19 @@ function _controlReset(popEl, geoEl, outEl, disEl) {
 }
 
 function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
+  if (!popEl || !geoEl || !outEl || !disEl) return;
+
   _controlReset(popEl, geoEl, outEl, disEl);
   const facilityOptionContainers = getAllFacilityOptionContainers();
+  const resolvedState = resolveRespiratoryControlState(
+    metadata,
+    getCurrentControlState({
+      diseaseEl: disEl,
+      geographicUnitEl: geoEl,
+      populationEl: popEl,
+      outcomeEl: outEl,
+    }),
+  );
 
   if (geoEl.value == "facility") {
     Array.from(facilityOptionContainers).forEach(
@@ -68,8 +86,8 @@ function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
   }
 
   if (disEl.value == "respiratory_diseases") {
-    if (geoEl.value != "facility") {
-      geoEl.value = "facility";
+    if (geoEl.value !== resolvedState.geographicUnit) {
+      geoEl.value = resolvedState.geographicUnit;
 
       geoEl.dispatchEvent(
         new CustomEvent("sl-change", {
@@ -79,9 +97,15 @@ function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
       return;
     }
 
-    if (popEl.value !== "health_system") {
-      popEl.value = "health_system";
+    if (popEl.value !== resolvedState.population) {
+      popEl.value = resolvedState.population;
       popEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+      return;
+    }
+
+    if (outEl.value !== resolvedState.outcomeVariable) {
+      outEl.value = resolvedState.outcomeVariable;
+      outEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
       return;
     }
 
@@ -111,8 +135,8 @@ function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
       }
     });
 
-    if (popEl.value !== "general_population") {
-      popEl.value = "general_population";
+    if (popEl.value !== resolvedState.population) {
+      popEl.value = resolvedState.population;
       popEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
       return
     }
@@ -140,8 +164,8 @@ function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
       if (opt.value === "all_hospitalizations" && opt.style.display != "none") {
         // opt.style.display = "";
         opt.style.display = "none";
-      } else if (outEl.value === "all_hospitalizations") {
-        outEl.value = "inpatient_hospitalizations";
+      } else if (outEl.value !== resolvedState.outcomeVariable) {
+        outEl.value = resolvedState.outcomeVariable;
         outEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
         return
       } else {
@@ -150,16 +174,20 @@ function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
     });
 
     geoEl.querySelectorAll("sl-option").forEach((option) => {
-      if (
-        geoEl.value != "state" &&
-        outEl.value != "inpatient_hospitalizations"
-      ) {
-        geoEl.value = "state";
+      if (geoEl.value !== resolvedState.geographicUnit) {
+        geoEl.value = resolvedState.geographicUnit;
         geoEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
         return;
       }
     });
   }
+
+  applyRespiratoryOptionRestrictions({
+    diseaseEl: disEl,
+    geographicUnitEl: geoEl,
+    populationEl: popEl,
+    outcomeEl: outEl,
+  });
 }
 
 function _testDiseaseOutcomeDipendency(
@@ -168,6 +196,8 @@ function _testDiseaseOutcomeDipendency(
   tooltips,
   populationTooltips,
 ) {
+  if (!disEl) return;
+
   const diseases = metadata.diseases;
 
   if (disEl.value == "respiratory_diseases") {

@@ -1,14 +1,22 @@
+import {
+  getAvailableGeographicUnits,
+  getAvailableOutcomeVariables,
+  getAvailablePopulations,
+} from "./controlState_utils.js";
+
 function dispatchSelectionChange(element) {
   element.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
 }
 
-function ensureSelectedValue(element, availableValues) {
+function ensureSelectedValue(element, availableValues, shouldDispatch = true) {
   if (!availableValues.length || availableValues.includes(element.value)) {
     return;
   }
 
   element.value = availableValues[0];
-  dispatchSelectionChange(element);
+  if (shouldDispatch) {
+    dispatchSelectionChange(element);
+  }
 }
 
 function labelFrom(dictionary, value) {
@@ -56,20 +64,20 @@ function appendPlainOptions(selector, optionClass, values, labels) {
     .html((d) => labelFrom(labels, d));
 }
 
-function getAvailableOutcomes(disEl, geoEl, popEl) {
-  return metadata.available_models?.[disEl.value]?.[geoEl.value]?.[popEl.value] ?? [];
-}
-
-function getAvailablePopulations(disEl, geoEl) {
-  return Object.keys(metadata.available_models?.[disEl.value]?.[geoEl.value] ?? {});
-}
-
-function getAvailableGeographicUnits(disEl) {
-  return Object.keys(metadata.available_models?.[disEl.value] ?? {});
-}
-
-export async function updateOutcomeOptions(view, outEl, disEl, geoEl, popEl) {
-  const availableOutcomeVariables = getAvailableOutcomes(disEl, geoEl, popEl);
+export function updateOutcomeOptions(
+  view,
+  outEl,
+  disEl,
+  geoEl,
+  popEl,
+  options = {},
+) {
+  const availableOutcomeVariables = getAvailableOutcomeVariables(
+    metadata,
+    disEl.value,
+    geoEl.value,
+    popEl.value,
+  );
 
   appendTooltipOptions(
     `#${view}-outcome-variable-selector`,
@@ -80,20 +88,29 @@ export async function updateOutcomeOptions(view, outEl, disEl, geoEl, popEl) {
     metadata.outcome_variables_tooltips,
   );
 
-  ensureSelectedValue(outEl, availableOutcomeVariables);
+  ensureSelectedValue(
+    outEl,
+    availableOutcomeVariables,
+    options.dispatchSelectionChange ?? true,
+  );
 }
 
-export async function updatePopulationOptions(
+export function updatePopulationOptions(
   view,
   outEl,
   disEl,
   geoEl,
   popEl,
+  options = {},
 ) {
-  const availablePopulations = getAvailablePopulations(disEl, geoEl);
+  const availablePopulations = getAvailablePopulations(
+    metadata,
+    disEl.value,
+    geoEl.value,
+  );
 
   appendTooltipOptions(
-    `#${view}-population-variable-selector`,
+    `#${view}-population-selector`,
     `${view}-population-tooltip`,
     `${view}-population-option`,
     availablePopulations,
@@ -101,17 +118,25 @@ export async function updatePopulationOptions(
     metadata.populations_tooltips,
   );
 
-  ensureSelectedValue(popEl, availablePopulations);
+  ensureSelectedValue(
+    popEl,
+    availablePopulations,
+    options.dispatchSelectionChange ?? true,
+  );
 }
 
-export async function updateGeographicOptions(
+export function updateGeographicOptions(
   view,
   outEl,
   disEl,
   geoEl,
   popEl,
+  options = {},
 ) {
-  const availableGeographicUnits = getAvailableGeographicUnits(disEl);
+  const availableGeographicUnits = getAvailableGeographicUnits(
+    metadata,
+    disEl.value,
+  );
 
   appendPlainOptions(
     `#${view}-geographic-unit-selector`,
@@ -120,5 +145,9 @@ export async function updateGeographicOptions(
     metadata.region_sizes,
   );
 
-  ensureSelectedValue(geoEl, availableGeographicUnits);
+  ensureSelectedValue(
+    geoEl,
+    availableGeographicUnits,
+    options.dispatchSelectionChange ?? true,
+  );
 }
