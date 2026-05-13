@@ -15,10 +15,16 @@ import {
   buildWeeklyTimeline,
   getCombinedWeeklyDates,
   getNearestDateIndex,
+  getNearestTimelineIndexFromVisualRatio,
+  getTimeFrameStartDate,
+  getTimelineVisualPositionFromIndex,
+  toValidDate,
 } from "./utils/time_utils.js";
+import { getTimelineLayoutMetrics } from "./utils/timelineLayout_utils.js";
 
 const MONTH_CHANGE_WEEKS = 4;
 const SVG_MARGIN = { top: 10, right: 20, bottom: 0, left: 0 };
+const VALUE_COMPONENT_MIN_WIDTH = 28;
 const TREND_COLORS = {
   increasing: "red",
   decreasing: "green",
@@ -31,6 +37,27 @@ let resizeHandlerAttached = false;
 let pendingSmallMultipleRender = false;
 let lastSmallMultipleDrawWidth = 0;
 let latestSmallMultipleRequestId = 0;
+let mapHighlightedSmallMultipleId = null;
+
+function ensureSmallMultipleHoverStyles() {
+  if (document.getElementById("small-multiple-hover-styles")) return;
+
+  const style = document.createElement("style");
+  style.id = "small-multiple-hover-styles";
+  style.textContent = `
+    .small-multiple-unit-frame:hover {
+      transform: scale(1.1) !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16) !important;
+      z-index: 10 !important;
+    }
+
+    .small-multiple-unit-frame:hover .small-multiple-title {
+      font-weight: 700;
+    }
+  `;
+
+  document.head.appendChild(style);
+}
 
 function getValueOfInterest(
   valueType,
@@ -246,8 +273,170 @@ function getSmallMultipleContainerWidth() {
   return Math.max(container.clientWidth - horizontalPadding, 0);
 }
 
+function getDataItemVariableData(dataItem) {
+  return dataItem?.dataObject?.properties?.data?.[mapPopulationSelector.value]?.[
+    mapOutcomeVariableSelector.value
+  ];
+}
+
+function getFiniteDateAtIndex(dataItem, index) {
+  const date = toValidDate(dataItem?.dates?.[index]);
+  const value = dataItem?.data?.[index];
+
+  return date && Number.isFinite(value) ? date : null;
+}
+
+function getFirstFiniteDate(dataItem) {
+  const length = Math.min(
+    dataItem?.dates?.length || 0,
+    dataItem?.data?.length || 0,
+  );
+
+  for (let index = 0; index < length; index += 1) {
+    const date = getFiniteDateAtIndex(dataItem, index);
+
+    if (date) return date;
+  }
+
+  return null;
+}
+
+function getLastFiniteDate(dataItem) {
+  const length = Math.min(
+    dataItem?.dates?.length || 0,
+    dataItem?.data?.length || 0,
+  );
+
+  for (let index = length - 1; index >= 0; index -= 1) {
+    const date = getFiniteDateAtIndex(dataItem, index);
+
+    if (date) return date;
+  }
+
+  return null;
+}
+
+function getHistoricalEndDate(dataItem) {
+  const variableData = getDataItemVariableData(dataItem);
+  const historicalValues = variableData?.historical?.values;
+  const historicalStart = getTimeFrameStartDate("historical", variableData);
+
+  if (
+    !historicalStart?.isValid?.() ||
+    !Array.isArray(historicalValues) ||
+    !historicalValues.length
+  ) {
+    return null;
+  }
+
+  return historicalStart.add(historicalValues.length - 1, "week").toDate();
+}
+
+function getTimelineBaseDataItem(dataBySpace) {
+  return (Array.isArray(dataBySpace) ? dataBySpace : [])
+    .filter((dataItem) => dataItem?.dates?.length && dataItem?.data?.length)
+    .sort((a, b) => b.dates.length - a.dates.length)[0];
+}
+
+function getDataDrivenTimelineDates(dataBySpace) {
+  const validData = (Array.isArray(dataBySpace) ? dataBySpace : []).filter(
+    (dataItem) => getFirstFiniteDate(dataItem) && getLastFiniteDate(dataItem),
+  );
+  const baseDataItem = getTimelineBaseDataItem(validData);
+
+  if (!baseDataItem) return [];
+
+  const firstDates = validData.map(getFirstFiniteDate).filter(Boolean);
+  const lastDates = validData.map(getLastFiniteDate).filter(Boolean);
+  const dataStart = firstDates.length
+    ? new Date(Math.max(...firstDates.map(Number)))
+    : null;
+  const requestedStart = toValidDate(
+    window.startShortHistory || window.firstDate,
+  );
+  const timelineStart = new Date(
+    Math.max(
+      ...(requestedStart ? [requestedStart] : []).concat(dataStart || []),
+    ),
+  );
+  const timelineEnd = lastDates.length
+    ? new Date(Math.min(...lastDates.map(Number)))
+    : null;
+
+  if (!timelineStart || !timelineEnd || timelineStart > timelineEnd) {
+    return [];
+  }
+
+  return baseDataItem.dates
+    .map(toValidDate)
+    .filter((date) => date && date >= timelineStart && date <= timelineEnd);
+}
+
+function getDataDrivenTimelineSplitDate(dataBySpace) {
+  const splitDates = (Array.isArray(dataBySpace) ? dataBySpace : [])
+    .map(getHistoricalEndDate)
+    .filter(Boolean);
+
+  if (!splitDates.length) return window.currentDate;
+
+  return new Date(Math.min(...splitDates.map(Number)));
+}
+
+function getDefaultTimelineResetDate(dates) {
+  if (!Array.isArray(dates) || !dates.length) return null;
+
+  return dates[Math.max(0, dates.length - 4)];
+}
+
+function syncRespiratoryTimelineWithSmallMultiples(
+  dataBySpace,
+  { resetToCurrentDate = true } = {},
+) {
+  const dates = getDataDrivenTimelineDates(dataBySpace);
+
+  if (!dates.length) return;
+
+  const splitDate = getDataDrivenTimelineSplitDate(dataBySpace);
+  const timelineConfig = {
+    dates,
+    splitDate,
+    preferredDate: resetToCurrentDate
+      ? getDefaultTimelineResetDate(dates)
+      : window.respiratoryAnimationDate || splitDate,
+  };
+
+  window.respiratoryTimelineConfig = timelineConfig;
+  window.respiratoryTimelineDates = dates;
+  window.respiratoryTimelineCurrentDate = splitDate;
+
+  if (window.updateRespiratoryTimelineDates?.(timelineConfig)) return;
+
+  window.respiratoryAnimationDate =
+    dates[getNearestDateIndex(dates, timelineConfig.preferredDate)];
+}
+
 function redrawLatestSmallMultiples() {
   drawingSmallMultiples(latestSmallMultipleData);
+}
+
+function getSmallMultipleChartLayout(width) {
+  const { leftOffset, valueGap, valueWidth } = getTimelineLayoutMetrics();
+  const timelineSliderWidth = getTimelineSliderWidth();
+  const maxChartWidth = Math.max(
+    width - leftOffset - valueGap - valueWidth,
+    0,
+  );
+  const chartWidth = timelineSliderWidth
+    ? Math.min(timelineSliderWidth, maxChartWidth)
+    : maxChartWidth;
+  const chartX = Math.min(
+    leftOffset,
+    Math.max(width - chartWidth - valueGap - valueWidth, 0),
+  );
+  const valueComponentX = chartX + chartWidth + valueGap;
+  const valueComponentWidth = Math.max(width - valueComponentX, 0);
+
+  return { chartWidth, chartX, valueComponentWidth, valueComponentX };
 }
 
 function getYDomain(values) {
@@ -276,11 +465,17 @@ function getSliderDate() {
   const slider = document.getElementById("time-animation-slider");
   if (!slider) return null;
 
-  const timelineStartDate = window.startShortHistory || window.firstDate;
-  const timelineDates = buildWeeklyTimeline(timelineStartDate, window.lastDate);
-  const sliderIndex = Math.min(
-    Math.max(Number(slider.value) || 0, 0),
-    timelineDates.length - 1,
+  const timelineDates = window.respiratoryTimelineDates?.length
+    ? window.respiratoryTimelineDates
+    : buildWeeklyTimeline(
+        window.startShortHistory || window.firstDate,
+        window.lastDate,
+      );
+
+  const sliderIndex = getNearestTimelineIndexFromVisualRatio(
+    timelineDates,
+    (Number(slider.value) || 0) / (Number(slider.max) || 1),
+    window.respiratoryTimelineCurrentDate || window.currentDate,
   );
 
   return timelineDates[sliderIndex] || null;
@@ -289,7 +484,10 @@ function getSliderDate() {
 function getCurrentDataIndex(
   dates,
   dataLength,
-  targetDate = window.respiratoryAnimationDate || window.currentDate,
+  targetDate =
+    window.respiratoryAnimationDate ||
+    window.respiratoryTimelineCurrentDate ||
+    window.currentDate,
 ) {
   const timelineDates = Array.isArray(dates) ? dates : [];
 
@@ -376,7 +574,10 @@ function buildIndicatorData(processed, dates, line, x, y) {
 }
 
 function updateSmallMultipleDateDots(
-  targetDate = window.respiratoryAnimationDate || window.currentDate,
+  targetDate =
+    window.respiratoryAnimationDate ||
+    window.respiratoryTimelineCurrentDate ||
+    window.currentDate,
 ) {
   d3.selectAll(".small-multiple-current-date-dot").each(function (dotData) {
     if (!dotData?.points?.length) return;
@@ -418,8 +619,80 @@ function updateSmallMultipleDateDots(
 
 window.updateRespiratorySmallMultipleDots = updateSmallMultipleDateDots;
 document.addEventListener("respiratory-time-change", (event) => {
-  updateSmallMultipleDateDots(event.detail?.date || window.currentDate);
+  updateSmallMultipleDateDots(
+    event.detail?.date ||
+      window.respiratoryTimelineCurrentDate ||
+      window.currentDate,
+  );
 });
+
+function setSmallMultipleHoverVisual(svgElement, isHovered) {
+  const frame = d3.select(svgElement.parentNode);
+
+  frame
+    .style("transform", isHovered ? "scale(1.1)" : "scale(1)")
+    .style(
+      "box-shadow",
+      isHovered ? "0 2px 8px rgba(0, 0, 0, 0.16)" : "none",
+    )
+    .style("z-index", isHovered ? "10" : "1");
+
+  d3.select(svgElement)
+    .select(".small-multiple-title")
+    .attr("font-weight", isHovered ? 700 : 400);
+}
+
+function getSmallMultipleIdCandidates(feature) {
+  const properties = feature?.properties || {};
+  const candidates = [
+    properties.id,
+    properties.Region,
+    properties.NAME,
+    properties.ZCTA,
+    properties.display_name,
+  ];
+
+  return [...new Set(candidates.filter(Boolean).map(normalizeFeatureId))];
+}
+
+function getSmallMultipleSvgForFeature(feature) {
+  for (const id of getSmallMultipleIdCandidates(feature)) {
+    const svg = document.getElementById(`small-multiple-${id}`);
+
+    if (svg) return svg;
+  }
+
+  return null;
+}
+
+function clearMapHighlightedSmallMultiple() {
+  if (!mapHighlightedSmallMultipleId) return;
+
+  const svg = document.getElementById(mapHighlightedSmallMultipleId);
+
+  if (svg) {
+    setSmallMultipleHoverVisual(svg, false);
+  }
+
+  mapHighlightedSmallMultipleId = null;
+}
+
+window.highlightRespiratorySmallMultipleForFeature = (feature) => {
+  const svg = getSmallMultipleSvgForFeature(feature);
+
+  if (!svg) {
+    clearMapHighlightedSmallMultiple();
+    return;
+  }
+
+  if (mapHighlightedSmallMultipleId === svg.id) return;
+
+  clearMapHighlightedSmallMultiple();
+  setSmallMultipleHoverVisual(svg, true);
+  mapHighlightedSmallMultipleId = svg.id;
+};
+
+window.clearRespiratorySmallMultipleMapHover = clearMapHighlightedSmallMultiple;
 
 const timeAnimationSlider = document.getElementById("time-animation-slider");
 if (timeAnimationSlider) {
@@ -439,13 +712,26 @@ function drawingSmallMultipleUnit(svg, data, sharedYDomain = null) {
     .attr("id", `small-multiple-${data.id}`)
     .attr("class", `small-multiple-unit small-multiple-item-${data.id}`)
     .attr("isROI", "false")
-    .on("mouseover", function () {
+    .style("pointer-events", "auto");
+
+  const svgNode = svg.node();
+
+  d3.select(svgNode.parentNode)
+    .on("mouseover", function (event) {
+      if (this.contains(event.relatedTarget)) return;
+
+      setSmallMultipleHoverVisual(svgNode, true);
+
       if (isSmallMultipleClicked) return;
       selectedItems.feature = data.dataObject;
       dataVersion++;
       redraw();
     })
-    .on("mouseout", function () {
+    .on("mouseout", function (event) {
+      if (this.contains(event.relatedTarget)) return;
+
+      setSmallMultipleHoverVisual(svgNode, false);
+
       if (isSmallMultipleClicked) return;
 
       selectedItems.feature = undefined;
@@ -463,10 +749,12 @@ function drawingSmallMultipleUnit(svg, data, sharedYDomain = null) {
 
   svg
     .append("text")
+    .attr("class", "small-multiple-title")
     .text(data.name)
     .attr("x", 12)
     .attr("y", 12)
     .attr("font-size", 10)
+    .attr("font-weight", 400)
     .attr("fill", "black")
     .style("font-style", "italic");
 
@@ -487,16 +775,25 @@ function drawingSmallMultipleUnit(svg, data, sharedYDomain = null) {
 
   const width = svg.node().clientWidth;
   const height = svg.node().clientHeight;
-  const timelineSliderWidth = getTimelineSliderWidth();
-
-  const chartWidth = timelineSliderWidth
-    ? Math.min(timelineSliderWidth, width - SVG_MARGIN.left)
-    : width - SVG_MARGIN.left - SVG_MARGIN.right;
+  const { chartWidth, chartX, valueComponentWidth, valueComponentX } =
+    getSmallMultipleChartLayout(width);
 
   const x = d3
     .scaleLinear()
     .domain([0, processed.length - 1])
-    .range([0, chartWidth]);
+    .range([chartX, chartX + chartWidth]);
+  const xPosition = (index) => {
+    if (!data.dates?.length || data.dates.length !== processed.length) {
+      return x(index);
+    }
+
+    return getTimelineVisualPositionFromIndex(
+      data.dates,
+      index,
+      window.respiratoryTimelineCurrentDate || window.currentDate,
+      chartWidth,
+    ) + chartX;
+  };
 
   const yDomain = sharedYDomain || getYDomain(finiteValues);
 
@@ -509,7 +806,7 @@ function drawingSmallMultipleUnit(svg, data, sharedYDomain = null) {
   const line = d3
     .line()
     .defined((d) => d.y !== null && !isNaN(d.y))
-    .x((d) => x(d.x))
+    .x((d) => xPosition(d.x))
     .y((d) => y(d.y));
 
   svg
@@ -520,11 +817,19 @@ function drawingSmallMultipleUnit(svg, data, sharedYDomain = null) {
     .attr("stroke-width", 1)
     .attr("d", line);
 
-  const indicatorData = buildIndicatorData(processed, data.dates, line, x, y);
+  const indicatorData = buildIndicatorData(
+    processed,
+    data.dates,
+    line,
+    xPosition,
+    y,
+  );
   const currentDataIndex = getCurrentDataIndex(
     data.dates,
     processed.length,
-    window.respiratoryAnimationDate || window.currentDate,
+    window.respiratoryAnimationDate ||
+      window.respiratoryTimelineCurrentDate ||
+      window.currentDate,
   );
   const currentPoint = indicatorData.points[currentDataIndex];
   const currentColor =
@@ -560,13 +865,14 @@ function drawingSmallMultipleUnit(svg, data, sharedYDomain = null) {
     .attr("fill", currentColor)
     .attr("display", Number.isFinite(currentPoint.y) ? "initial" : "none");
 
-  const valueComponentX = chartWidth;
-  const valueComponentWidth = Math.max(width - valueComponentX, 0);
   const valueComponent = svg
     .append("g")
     .attr("class", "small-multiple-month-change")
     .attr("transform", `translate(${valueComponentX}, 0)`)
-    .attr("display", valueComponentWidth >= 28 ? "initial" : "none");
+    .attr(
+      "display",
+      valueComponentWidth >= VALUE_COMPONENT_MIN_WIDTH ? "initial" : "none",
+    );
 
   valueComponent
     .append("text")
@@ -574,7 +880,7 @@ function drawingSmallMultipleUnit(svg, data, sharedYDomain = null) {
     .attr("x", valueComponentWidth / 2)
     .attr("y", 15)
     .attr("text-anchor", "middle")
-    .attr("font-size", "0.7rem")
+    .attr("font-size", "0.76rem")
     .attr("font-weight", "700")
     .attr("fill", "#222")
     .text(currentValueLabel);
@@ -585,7 +891,7 @@ function drawingSmallMultipleUnit(svg, data, sharedYDomain = null) {
     .attr("x", valueComponentWidth / 2)
     .attr("y", 28)
     .attr("text-anchor", "middle")
-    .attr("font-size", "0.6rem")
+    .attr("font-size", "0.56rem")
     .attr("font-weight", "700")
     .attr("fill", currentColor)
     .text(currentMonthChangeLabel);
@@ -596,6 +902,8 @@ function drawingSmallMultipleUnit(svg, data, sharedYDomain = null) {
 function drawingSmallMultiples(dataBySpace) {
   const svgContainer = getSmallMultipleContainer();
   const unitWidth = getSmallMultipleContainerWidth();
+
+  ensureSmallMultipleHoverStyles();
 
   if (!svgContainer || unitWidth <= 0) {
     pendingSmallMultipleRender = true;
@@ -615,10 +923,19 @@ function drawingSmallMultiples(dataBySpace) {
     const svgUnitContainer = d3
       .select("#respiratory-smallMultiples-container")
       .append("div")
+      .attr("class", "small-multiple-unit-frame")
       .style("border-bottom", "2px solid lightgray")
       .style("height", unitHeight + "px")
       .style("width", unitWidth + "px")
-      .style("margin-bottom", "0.2rem");
+      .style("margin-bottom", "0.2rem")
+      .style("position", "relative")
+      .style("z-index", "1")
+      .style("background", "white")
+      .style("transform", "scale(1)")
+      .style("transform-origin", "center center")
+      .style("transition", "transform 160ms ease, box-shadow 160ms ease")
+      .style("will-change", "transform")
+      .style("pointer-events", "auto");
 
     const svg = svgUnitContainer
       .append("svg")
@@ -636,10 +953,14 @@ if (document.readyState === "loading") {
   callInitSmallMultipleView();
 }
 
-async function initSmallMultipleView() {
+async function initSmallMultipleView({ resetToCurrentDate = true } = {}) {
   const requestId = ++latestSmallMultipleRequestId;
   const diseaseDataBySpace = await getSpatialData();
   if (requestId !== latestSmallMultipleRequestId) return;
+
+  syncRespiratoryTimelineWithSmallMultiples(diseaseDataBySpace, {
+    resetToCurrentDate,
+  });
 
   const filteredDataByName = returnFilteredDataByName(diseaseDataBySpace);
   const sortedData = returnSortedData(filteredDataByName);
@@ -706,11 +1027,11 @@ function callInitSmallMultipleView() {
   document
     .getElementById("sortSelecter")
     .addEventListener("change", (event) => {
-      initSmallMultipleView();
+      initSmallMultipleView({ resetToCurrentDate: false });
     });
 
   document.getElementById("filterInput").addEventListener("input", (event) => {
-    initSmallMultipleView();
+    initSmallMultipleView({ resetToCurrentDate: false });
   });
 
   document

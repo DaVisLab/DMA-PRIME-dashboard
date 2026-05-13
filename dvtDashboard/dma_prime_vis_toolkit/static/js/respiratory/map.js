@@ -48,11 +48,11 @@ export {
 
 const MAP_CENTER = [-81, 33.65];
 const MAP_ZOOM = 7;
-const MAP_MIN_ZOOM = 4;
+const MAP_MIN_ZOOM = 2;
 const MAP_MAX_ZOOM = 11;
 const MAP_BOUNDS = [
-  [-86.0, 29.5],
-  [-76.5, 40.0],
+  [-90.0, 26.0], 
+  [-72.0, 40.0], 
 ];
 const FACILITY_ICON_MAPPING = {
   marker: { x: 0, y: 0, width: 1128, height: 992, mask: true },
@@ -213,6 +213,20 @@ const isGeographicChoroplethUnit = (unit) =>
 
 const getSelectedFeatureId = () => selectedItems.feature?.properties?.id;
 
+const syncSmallMultipleHoverFromMap = (info) => {
+  if (info?.object) {
+    window.highlightRespiratorySmallMultipleForFeature?.(info.object);
+    return;
+  }
+
+  window.clearRespiratorySmallMultipleMapHover?.();
+};
+
+const handleMapUnitHover = (info) => {
+  showSimpleGeoTooltip(info);
+  syncSmallMultipleHoverFromMap(info);
+};
+
 const toRateValue = (value, population) => {
   if (value === null || value === undefined || !population) return null;
 
@@ -241,9 +255,7 @@ const getChoroplethLayer = (regionData) =>
       data: getMapDataTriggers(),
       getFillColor: getMapValueTriggers(),
     },
-    onHover: (info) => {
-      showSimpleGeoTooltip(info);
-    },
+    onHover: handleMapUnitHover,
   });
 
 const getFacilityBackgroundLayer = (regionData) =>
@@ -281,6 +293,7 @@ const getFacilityLayer = (regionData) =>
       data: getMapDataTriggers(),
       getIconColor: getMapValueTriggers(),
     },
+    onHover: syncSmallMultipleHoverFromMap,
   });
 
 const getFacilityIconOverlayLayer = () =>

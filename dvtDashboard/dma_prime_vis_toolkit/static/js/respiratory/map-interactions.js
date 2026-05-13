@@ -33,7 +33,17 @@ import { getRespiratoryModelDataSrc } from "/static/js/respiratory/utils/control
 const MAP_CENTER = [-81, 33.65];
 const MAP_ZOOM = 7;
 const MODEL_EXPLORATION_PREFETCH_ID = "model-exploration-prefetch";
+const POPUP_BOUNDARY_PADDING_PX = 8;
+const POPUP_TIP_SIZE_PX = 10;
 let prefetchedModelDataUrl = null;
+let popupMapMoveListenerAttached = false;
+const popupDragState = {
+  dragStart: null,
+  isDragging: false,
+  offset: [0, 0],
+  originLngLat: null,
+  wasDragPanEnabled: true,
+};
 
 function resetMapView() {
   map.flyTo({
@@ -195,6 +205,251 @@ function ensurePopupButtons(dataObject) {
   }
 }
 
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function getPopupContentElement() {
+  return popup.getElement()?.querySelector(".maplibregl-popup-content") || null;
+}
+
+function getPopupTipElement() {
+  return popup.getElement()?.querySelector(".maplibregl-popup-tip") || null;
+}
+
+function getSourceClientPoint() {
+  if (!popupDragState.originLngLat) return null;
+
+  const mapRect = mapDiv.getBoundingClientRect();
+  const projectedPoint = map.project(popupDragState.originLngLat);
+
+  return {
+    x: mapRect.left + projectedPoint.x,
+    y: mapRect.top + projectedPoint.y,
+  };
+}
+
+function getPopupTipSide(sourcePoint, contentRect) {
+  const outsideLeft = sourcePoint.x < contentRect.left;
+  const outsideRight = sourcePoint.x > contentRect.right;
+  const outsideTop = sourcePoint.y < contentRect.top;
+  const outsideBottom = sourcePoint.y > contentRect.bottom;
+  const horizontalDistance = outsideLeft
+    ? contentRect.left - sourcePoint.x
+    : outsideRight
+      ? sourcePoint.x - contentRect.right
+      : 0;
+  const verticalDistance = outsideTop
+    ? contentRect.top - sourcePoint.y
+    : outsideBottom
+      ? sourcePoint.y - contentRect.bottom
+      : 0;
+
+  if (verticalDistance || horizontalDistance) {
+    if (verticalDistance >= horizontalDistance) {
+      return outsideTop ? "top" : "bottom";
+    }
+
+    return outsideLeft ? "left" : "right";
+  }
+
+  const distances = [
+    { side: "top", value: Math.abs(sourcePoint.y - contentRect.top) },
+    { side: "bottom", value: Math.abs(contentRect.bottom - sourcePoint.y) },
+    { side: "left", value: Math.abs(sourcePoint.x - contentRect.left) },
+    { side: "right", value: Math.abs(contentRect.right - sourcePoint.x) },
+  ];
+
+  return distances.sort((a, b) => a.value - b.value)[0].side;
+}
+
+function resetPopupTipStyle(tip) {
+  Object.assign(tip.style, {
+    position: "absolute",
+    width: "0",
+    height: "0",
+    margin: "0",
+    border: "0",
+    pointerEvents: "none",
+  });
+}
+
+function updatePopupTipPosition() {
+  const popupElement = popup.getElement();
+  const content = getPopupContentElement();
+  const tip = getPopupTipElement();
+  const sourcePoint = getSourceClientPoint();
+
+  if (!popupElement || !content || !tip || !sourcePoint) return;
+
+  const popupRect = popupElement.getBoundingClientRect();
+  const contentRect = content.getBoundingClientRect();
+  const tipSize = POPUP_TIP_SIZE_PX;
+  const side = getPopupTipSide(sourcePoint, contentRect);
+  const minX = contentRect.left - popupRect.left + tipSize;
+  const maxX = contentRect.right - popupRect.left - tipSize;
+  const minY = contentRect.top - popupRect.top + tipSize;
+  const maxY = contentRect.bottom - popupRect.top - tipSize;
+
+  resetPopupTipStyle(tip);
+
+  if (side === "top" || side === "bottom") {
+    tip.style.left = `${clamp(sourcePoint.x - popupRect.left, minX, maxX)}px`;
+    tip.style.top =
+      side === "top"
+        ? `${contentRect.top - popupRect.top}px`
+        : `${contentRect.bottom - popupRect.top}px`;
+    tip.style.transform =
+      side === "top" ? "translate(-50%, -100%)" : "translate(-50%, 0)";
+    tip.style.borderLeft = `${tipSize}px solid transparent`;
+    tip.style.borderRight = `${tipSize}px solid transparent`;
+    tip.style[side === "top" ? "borderBottom" : "borderTop"] =
+      `${tipSize}px solid white`;
+    return;
+  }
+
+  tip.style.left =
+    side === "left"
+      ? `${contentRect.left - popupRect.left}px`
+      : `${contentRect.right - popupRect.left}px`;
+  tip.style.top = `${clamp(sourcePoint.y - popupRect.top, minY, maxY)}px`;
+  tip.style.transform =
+    side === "left" ? "translate(-100%, -50%)" : "translate(0, -50%)";
+  tip.style.borderTop = `${tipSize}px solid transparent`;
+  tip.style.borderBottom = `${tipSize}px solid transparent`;
+  tip.style[side === "left" ? "borderRight" : "borderLeft"] =
+    `${tipSize}px solid white`;
+}
+
+function schedulePopupTipUpdate() {
+  requestAnimationFrame(updatePopupTipPosition);
+}
+
+function constrainPopupOffset(nextOffset) {
+  const content = getPopupContentElement();
+
+  if (!content) return nextOffset;
+
+  const mapRect = mapDiv.getBoundingClientRect();
+  const contentRect = content.getBoundingClientRect();
+  let deltaX = nextOffset[0] - popupDragState.offset[0];
+  let deltaY = nextOffset[1] - popupDragState.offset[1];
+  const minLeft = mapRect.left + POPUP_BOUNDARY_PADDING_PX;
+  const maxRight = mapRect.right - POPUP_BOUNDARY_PADDING_PX;
+  const minTop = mapRect.top + POPUP_BOUNDARY_PADDING_PX;
+  const maxBottom = mapRect.bottom - POPUP_BOUNDARY_PADDING_PX;
+
+  if (contentRect.left + deltaX < minLeft) {
+    deltaX += minLeft - (contentRect.left + deltaX);
+  }
+
+  if (contentRect.right + deltaX > maxRight) {
+    deltaX -= contentRect.right + deltaX - maxRight;
+  }
+
+  if (contentRect.top + deltaY < minTop) {
+    deltaY += minTop - (contentRect.top + deltaY);
+  }
+
+  if (contentRect.bottom + deltaY > maxBottom) {
+    deltaY -= contentRect.bottom + deltaY - maxBottom;
+  }
+
+  return [popupDragState.offset[0] + deltaX, popupDragState.offset[1] + deltaY];
+}
+
+function setPopupDragOffset(nextOffset) {
+  popupDragState.offset = constrainPopupOffset(nextOffset);
+  popup.setOffset(popupDragState.offset);
+  schedulePopupTipUpdate();
+}
+
+function stopPopupDrag() {
+  const header = popup.getElement()?.querySelector(".tooltip-header");
+  const wasDragging = popupDragState.isDragging;
+
+  popupDragState.isDragging = false;
+  popupDragState.dragStart = null;
+  header?.classList.remove("map-tooltip-dragging");
+
+  if (wasDragging && popupDragState.wasDragPanEnabled) {
+    map.dragPan.enable();
+  }
+
+  document.removeEventListener("pointermove", handlePopupDragMove);
+  document.removeEventListener("pointerup", stopPopupDrag);
+  document.removeEventListener("pointercancel", stopPopupDrag);
+}
+
+function handlePopupDragMove(event) {
+  if (!popupDragState.isDragging || !popupDragState.dragStart) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  const dragStart = popupDragState.dragStart;
+  const nextOffset = [
+    dragStart.offset[0] + event.clientX - dragStart.x,
+    dragStart.offset[1] + event.clientY - dragStart.y,
+  ];
+
+  setPopupDragOffset(nextOffset);
+}
+
+function startPopupDrag(event) {
+  if (event.button !== 0 && event.pointerType !== "touch") return;
+  if (
+    event.target.closest("button, sl-icon-button, a, input, select, textarea")
+  ) {
+    return;
+  }
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  popupDragState.isDragging = true;
+  popupDragState.wasDragPanEnabled = map.dragPan.isEnabled?.() ?? true;
+  popupDragState.dragStart = {
+    x: event.clientX,
+    y: event.clientY,
+    offset: [...popupDragState.offset],
+  };
+
+  map.dragPan.disable();
+  event.currentTarget.classList.add("map-tooltip-dragging");
+
+  document.addEventListener("pointermove", handlePopupDragMove, {
+    passive: false,
+  });
+  document.addEventListener("pointerup", stopPopupDrag);
+  document.addEventListener("pointercancel", stopPopupDrag);
+}
+
+function attachPopupDragBehavior(originLngLat) {
+  popupDragState.originLngLat = originLngLat;
+  popupDragState.offset = [0, 0];
+  popup.setOffset(popupDragState.offset);
+
+  const popupElement = popup.getElement();
+  const header = popupElement?.querySelector(".tooltip-header");
+
+  popupElement?.classList.add("map-tooltip-draggable");
+  header?.classList.add("map-tooltip-drag-handle");
+
+  if (header && !header.dataset.dragHandleReady) {
+    header.dataset.dragHandleReady = "true";
+    header.addEventListener("pointerdown", startPopupDrag);
+  }
+
+  if (!popupMapMoveListenerAttached) {
+    map.on("move", schedulePopupTipUpdate);
+    map.on("resize", schedulePopupTipUpdate);
+    popupMapMoveListenerAttached = true;
+  }
+
+  schedulePopupTipUpdate();
+}
+
 function closePopupAndClearSelection() {
   selectedItems.feature = undefined;
   if (popup.isOpen()) popup.remove();
@@ -239,7 +494,7 @@ export function showMapTooltip(dataObject) {
     coordinates = bounds.getCenter();
   }
 
-  popup.setLngLat(coordinates).setHTML(`
+  popup.setLngLat(coordinates).setOffset([0, 0]).setHTML(`
       <div id="map-tooltip-div" class="tooltip-div">
         <div class="tooltip-header">
           <div class="tooltip-region-info"></div>
@@ -293,12 +548,16 @@ export function showMapTooltip(dataObject) {
   });
 
   ensurePopupButtons(dataObject);
+  attachPopupDragBehavior(coordinates);
 
   dataVersion++;
   redraw();
 }
 
 popup.on("close", () => {
+  stopPopupDrag();
+  popupDragState.originLngLat = null;
+  popupDragState.offset = [0, 0];
   selectedItems.feature = undefined;
   dataVersion++;
   redraw(false, false, true);

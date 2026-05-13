@@ -138,6 +138,20 @@ path.map-zcta {
   /* background-color: red !important; */
 }
 
+.map-tooltip-draggable .tooltip-header {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.map-tooltip-draggable .tooltip-header.map-tooltip-dragging {
+  cursor: grabbing;
+}
+
+.map-tooltip-draggable .maplibregl-popup-tip {
+  pointer-events: none;
+}
+
 
 #map-loading-div {
   position: absolute;
