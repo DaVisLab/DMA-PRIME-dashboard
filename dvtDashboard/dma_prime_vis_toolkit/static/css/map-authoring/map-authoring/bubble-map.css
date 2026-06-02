@@ -1,0 +1,520 @@
+/* Interaction styling for draggable map bubbles, clones, and context-menu states. */
+.state {
+  fill: #e8e8e8;
+  stroke: #333;
+  stroke-width: 0.8;
+  cursor: grab;
+}
+.state:active {
+  cursor: grabbing;
+}
+
+/* clones get a slightly different style so you can tell */
+.clone {
+  fill: #dfefff;
+  stroke: #1f3a93;
+  stroke-width: 1;
+  opacity: 0.95;
+}
+
+/* optional: highlight while dragging */
+.dragging {
+  opacity: 0.8;
+}
+
+.is-drag-source {
+  stroke: #084298;
+  stroke-width: 4;
+  filter: drop-shadow(0 0 6px rgba(13, 110, 253, 0.75));
+  vector-effect: non-scaling-stroke;
+}
+
+.is-child-selected {
+  stroke: #0d6efd;
+  stroke-width: 3;
+  filter: drop-shadow(0 0 3px rgba(13, 110, 253, 0.35));
+}
+
+.feature-selection-ghost {
+  filter: drop-shadow(0 3px 8px rgba(13, 110, 253, 0.45));
+  opacity: 0.92;
+}
+
+.feature-selection-ghost path {
+  fill: rgba(13, 110, 253, 0.28);
+  stroke: #084298;
+  stroke-width: 3.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.selection-layer {
+  pointer-events: none;
+}
+
+.selection-marquee {
+  fill: rgba(13, 110, 253, 0.1);
+  stroke: #0d6efd;
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+  vector-effect: non-scaling-stroke;
+}
+
+.is-marquee-selecting {
+  cursor: crosshair;
+}
+
+.outer-circle {
+  fill: none;
+  stroke: #1f3a93;
+  stroke-width: 2.5;
+  stroke-dasharray: 8 6;
+  cursor: move;
+}
+
+.map-instance.is-selected .outer-circle {
+  stroke: #0d6efd;
+  stroke-width: 4;
+  stroke-dasharray: none;
+}
+
+.outer-circle.dragging {
+  stroke: crimson;
+}
+
+.outer-circle.colliding {
+  stroke: crimson;
+}
+
+.map-instance.is-resizing .outer-circle {
+  stroke: #0d6efd;
+  stroke-dasharray: none;
+}
+
+.map-instance.has-child-selection .outer-circle {
+  stroke-dasharray: 4 5;
+}
+
+.annotation-pin {
+  cursor: pointer;
+}
+
+.annotation-pin-icon {
+  fill: #0d6efd;
+  stroke: #ffffff;
+  stroke-width: 1.4;
+  filter: drop-shadow(0 2px 3px rgba(33, 37, 41, 0.26));
+}
+
+.annotation-pin-dot {
+  fill: #ffffff;
+  pointer-events: none;
+}
+
+.annotation-pin-count {
+  fill: #084298;
+  font-family: sans-serif;
+  font-size: 5.8px;
+  font-weight: 800;
+  letter-spacing: 0;
+  pointer-events: none;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.annotation-pin.is-active .annotation-pin-icon {
+  fill: #084298;
+  stroke: #f8f9fa;
+  stroke-width: 1.8;
+}
+
+.annotation-pin.is-previewed .annotation-pin-icon {
+  fill: #ffc107;
+  stroke: #212529;
+  stroke-width: 1.8;
+}
+
+.annotation-pin-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 100%;
+  height: 100%;
+  padding: 0.55rem;
+  border: 1px solid rgba(13, 110, 253, 0.28);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 8px 22px rgba(33, 37, 41, 0.18);
+  color: #212529;
+  font-family: sans-serif;
+  font-size: 12px;
+}
+
+.annotation-pin-panel strong {
+  overflow: hidden;
+  color: #084298;
+  font-size: 12px;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.annotation-pin-textarea {
+  flex: 1;
+  min-height: 0;
+  resize: none;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  padding: 0.35rem;
+  font: inherit;
+}
+
+.annotation-pin-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.annotation-pin-actions button {
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #212529;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 0.22rem 0.42rem;
+  text-transform: lowercase;
+}
+
+.annotation-pin-actions button:first-child {
+  border-color: #0d6efd;
+  background: #0d6efd;
+  color: #ffffff;
+}
+
+.map-instance.is-grouped .outer-circle {
+  stroke-dasharray: 3 5;
+}
+
+.map-node-group {
+  pointer-events: all;
+}
+
+.map-node-group-hull {
+  fill: rgba(13, 110, 253, 0.055);
+  stroke: #0d6efd;
+  stroke-width: 1.6;
+  stroke-dasharray: 8 6;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-node-group.is-selected .map-node-group-hull,
+.map-node-group.is-dragging .map-node-group-hull {
+  fill: rgba(13, 110, 253, 0.1);
+  stroke-width: 2.2;
+  stroke-dasharray: none;
+}
+
+.map-node-group-label {
+  fill: #084298;
+  font-family: sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  pointer-events: none;
+}
+
+.map-node-group-select-wrap {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 3px 4px;
+  border: 1px solid rgba(13, 110, 253, 0.22);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.map-node-group-select-wrap select {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: #212529;
+  font-family: sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  outline: none;
+  text-overflow: ellipsis;
+}
+
+.map-node-group-legend {
+  pointer-events: none;
+}
+
+.map-node-group-legend text {
+  font-size: 8px;
+}
+
+.map-node-header rect {
+  fill: rgba(255, 255, 255, 0.94);
+  stroke: #d0d7de;
+  stroke-width: 1;
+  filter: drop-shadow(0 2px 5px rgba(33, 37, 41, 0.14));
+}
+
+.map-instance.is-selected .map-node-header rect {
+  stroke: #0d6efd;
+  stroke-width: 1.7;
+}
+
+.map-node-header-title {
+  fill: #212529;
+  font-family: sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  dominant-baseline: hanging;
+}
+
+.map-node-header-control-object {
+  overflow: visible;
+}
+
+.map-node-header-control {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  gap: 0.45rem;
+  padding: 5px 7px;
+  font-family: sans-serif;
+}
+
+.map-node-area-label {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: #212529;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-node-display-level-select {
+  width: 96px;
+  height: 24px;
+  flex: 0 0 96px;
+  border: 1px solid #b6c2cf;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #212529;
+  cursor: pointer;
+  font-family: sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  outline: none;
+}
+
+.map-node-display-level-select:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.map-node-header-meta {
+  fill: #667085;
+  font-family: sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.drill-down-affordance circle {
+  fill: #0d6efd;
+  stroke: #ffffff;
+  stroke-width: 2;
+  filter: drop-shadow(0 2px 4px rgba(33, 37, 41, 0.22));
+}
+
+.drill-down-affordance text {
+  fill: #ffffff;
+  font-family: sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.map-resize-handle {
+  cursor: nwse-resize;
+}
+
+.map-resize-handle-target {
+  fill: #ffffff;
+  stroke: #0d6efd;
+  stroke-width: 2;
+  filter: drop-shadow(0 2px 4px rgba(33, 37, 41, 0.18));
+}
+
+.map-resize-handle-grip {
+  fill: none;
+  stroke: #0d6efd;
+  stroke-width: 2;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.map-node-loading {
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+
+.map-instance.is-loading .map-node-loading {
+  opacity: 1;
+}
+
+.map-node-loading-backdrop {
+  fill: rgba(255, 255, 255, 0.88);
+  stroke: rgba(13, 110, 253, 0.18);
+  stroke-width: 1;
+  filter: drop-shadow(0 5px 14px rgba(33, 37, 41, 0.18));
+}
+
+.map-node-loading-spinner {
+  fill: none;
+  stroke: #0d6efd;
+  stroke-width: 4;
+  stroke-dasharray: 42 88;
+  stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: map-node-loading-spin 0.9s linear infinite;
+}
+
+.map-node-loading-text {
+  fill: #084298;
+  font-family: sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+@keyframes map-node-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.link {
+  transition:
+    stroke 120ms ease,
+    stroke-width 120ms ease,
+    opacity 120ms ease;
+}
+
+.link.is-highlighted {
+  filter: drop-shadow(0 0 4px rgba(13, 110, 253, 0.36));
+}
+
+.is-hierarchy-area-highlight {
+  filter: drop-shadow(0 0 3px rgba(13, 110, 253, 0.42));
+}
+
+.link-hierarchical {
+  opacity: 0.82;
+}
+
+.context-menu-item.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.map-overview {
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.map-overview.is-dragging {
+  cursor: grabbing;
+}
+
+.map-overview-frame {
+  fill: rgba(255, 255, 255, 0.94);
+  stroke: #d0d7de;
+  stroke-width: 1;
+  filter: drop-shadow(0 3px 8px rgba(33, 37, 41, 0.16));
+}
+
+.map-overview-title {
+  fill: #667085;
+  font-family: sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  pointer-events: none;
+  text-transform: lowercase;
+}
+
+.map-overview-viewport {
+  fill: rgba(13, 110, 253, 0.08);
+  stroke: #0d6efd;
+  stroke-width: 1;
+}
+
+.map-overview-link {
+  stroke: #344054;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.map-overview-link.is-highlighted {
+  stroke: #0d6efd;
+  stroke-width: 2.6;
+  opacity: 1;
+}
+
+.map-overview-node-item {
+  cursor: grab;
+  pointer-events: auto;
+}
+
+.map-overview-node {
+  fill: #ffffff;
+  stroke: #0d6efd;
+  stroke-width: 1.4;
+  pointer-events: auto;
+}
+
+.map-overview-node-label {
+  fill: #344054;
+  font-family: sans-serif;
+  font-weight: 700;
+  letter-spacing: 0;
+  pointer-events: none;
+  text-anchor: middle;
+  dominant-baseline: central;
+  user-select: none;
+}
+
+.map-overview-node-item.is-hierarchy-highlight .map-overview-node {
+  fill: #dceaff;
+  stroke: #0d6efd;
+  stroke-width: 2.4;
+}
+
+.map-overview-node-item.is-selected .map-overview-node {
+  fill: #0d6efd;
+  stroke: #ffffff;
+  stroke-width: 1.6;
+}
+
+.map-overview-node-item.is-selected .map-overview-node-label {
+  fill: #ffffff;
+}

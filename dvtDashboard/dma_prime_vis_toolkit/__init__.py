@@ -35,7 +35,11 @@ def _load_metadata(data_version, dashboard_folder):
         dashboard_folder,
         "encrypt_key.bin",
     )
-    metadata = dict(decrypt(file, decrypt_key))
+    metadata = decrypt(file, decrypt_key)
+    if isinstance(metadata, list):
+        metadata = {"diseases": metadata}
+    else:
+        metadata = dict(metadata)
     metadata["data_version"] = data_version
     return metadata
 
@@ -182,6 +186,14 @@ def create_app(development=False, dataDir=None):
             dashboards=dashboards,
             dates=get_data_date("all", "all"),
         )
+
+    @app.route("/map-authoring", methods=["GET"])
+    @login_required
+    def map_authoring():
+        data_version = get_data_version_from_request(request, current_user)
+        metadata = _load_metadata(data_version, "other_infectious_diseases")
+
+        return render_template("map-authoring/index.html", metadata=metadata)
 
     @app.route("/respiratory", methods=["GET"])
     @login_required
@@ -337,24 +349,7 @@ def create_app(development=False, dataDir=None):
     @login_required
     def outbreak_detection():
         data_version = get_data_version_from_request(request, current_user)
-
-        file = os.path.join(
-            current_app.config["DATADIR"],
-            "processed",
-            data_version,
-            "other_infectious_diseases",
-            "metadata.json",
-        )
-        decrypt_key = os.path.join(
-            current_app.config["DATADIR"],
-            "processed",
-            data_version,
-            "other_infectious_diseases",
-            "encrypt_key.bin",
-        )
-
-        metadata = {"diseases": list(decrypt(file, decrypt_key))}
-        metadata["data_version"] = data_version
+        metadata = _load_metadata(data_version, "other_infectious_diseases")
 
         panels = [
             {"name": "main", "displayName": "DMA-PRIME"},
