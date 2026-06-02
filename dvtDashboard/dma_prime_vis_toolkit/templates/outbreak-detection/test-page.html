@@ -229,7 +229,7 @@ options %}
       </div>
     </div>
   </div>
-  <div
+  <!-- <div
     class="row"
     style="width: 100%; height: 50%; position: relative; padding: 0.5rem"
   >
@@ -263,65 +263,70 @@ options %}
     >
       recommendation view
     </div>
-    {% endblock %} {% block scripts %}
-
-    <link
-      href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css"
-      rel="stylesheet"
-    />
-    <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
-
-    <!-- 1) Vega-Lite UMD bundle (pin to 6.4.1) -->
-    <script src="https://cdn.jsdelivr.net/npm/vega@6.2.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-lite@6.4.1"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-embed@7.0.2"></script>
-
-    <script
-      type="text/javascript"
-      src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
-    ></script>
-
-    <!-- DataTables Table -->
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.bootstrap5.min.css"
-    />
-
-    <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-      crossorigin="anonymous"
-    />
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-      integrity=""
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="{{ url_for('static', filename='js/outbreak-detection/dyhan/recommendation-test/mouse-interaction-logger/mouse_interaction_logger.js') }}"
-      type="module"
-    ></script>
-    <script
-      src="{{ url_for('static', filename='js/outbreak-detection/dyhan/recommendation-test/drawKGNetwork.js') }}"
-      type="module"
-    ></script>
-    <script
-      src="{{ url_for('static', filename='js/outbreak-detection/dyhan/ai-test/DOMInit.js') }}"
-      type="module"
-    ></script>
-    <script
-      src="{{ url_for('static', filename='js/outbreak-detection/dyhan/ai-test/infoManager.js') }}"
-      type="module"
-    ></script>
-    <script
-      src="{{ url_for('static', filename='js/outbreak-detection/dyhan/ai-test/aiPromptManager.js') }}"
-      type="module"
-    ></script>
-
-    {% endblock %}
-  </div>
+  </div> -->
 </div>
+
+{% endblock %} {% block scripts %}
+
+<link
+  href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css"
+  rel="stylesheet"
+/>
+<script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+
+<!-- 1) Vega-Lite UMD bundle (pin to 6.4.1) -->
+<script src="https://cdn.jsdelivr.net/npm/vega@6.2.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@6.4.1"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@7.0.2"></script>
+
+<script
+  type="text/javascript"
+  src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+></script>
+
+<!-- DataTables Table -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.bootstrap5.min.css"
+/>
+
+<script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
+<link
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+  rel="stylesheet"
+  integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+  crossorigin="anonymous"
+/>
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+  integrity=""
+  crossorigin="anonymous"
+></script>
+<!-- <script
+  src="{{ url_for('static', filename='js/outbreak-detection/dyhan/recommendation-test/mouse-interaction-logger/mouse_interaction_logger.js') }}"
+  type="module"
+></script> -->
+<!-- <script
+  src="{{ url_for('static', filename='js/outbreak-detection/dyhan/recommendation-test/drawKGNetwork.js') }}"
+  type="module"
+></script> -->
+<script
+  src="{{ url_for('static', filename='js/outbreak-detection/dyhan/ai-test/DOMInit.js') }}"
+  type="module"
+></script>
+<!-- <script
+  src="{{ url_for('static', filename='js/outbreak-detection/dyhan/ai-test/infoManager.js') }}"
+  type="module"
+></script> -->
+<!-- <script
+  src="{{ url_for('static', filename='js/outbreak-detection/dyhan/ai-test/aiPromptManager.js') }}"
+  type="module"
+></script> -->
+
+<script
+  src="{{ url_for('static', filename='js/outbreak-detection/dyhan/recommendation-test/testPageBridge.js') }}"
+  type="module"
+></script>
+{% endblock %}

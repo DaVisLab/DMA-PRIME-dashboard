@@ -1,14 +1,25 @@
 import { getPredefinedKG } from "../dataManager.js";
 import { removeVisitedInfoFromRecommendations } from "./showRecommendataionResults.js";
-drawKGNetwork();
+
+window.addEventListener("load", () => {
+  const selectedDiv = document.getElementById("kg-graph-container");
+  if (!selectedDiv) return;
+
+  void selectedDiv.offsetHeight;
+
+  drawKGNetwork();
+  console.log("KG Network drawn!");
+});
 
 function drawKGNetwork() {
   //   const container = document.getElementById(containerId);
   getPredefinedKG().then((data) => {
     const selectedDiv = document.getElementById("kg-graph-container");
+    if (!selectedDiv) return;
 
     selectedDiv.innerHTML = ""; // clear previous content
 
+    console.log(selectedDiv.clientWidth, selectedDiv.clientHeight);
     const width = selectedDiv.clientWidth;
     const height = selectedDiv.clientHeight;
 
@@ -139,6 +150,8 @@ function drawKGNetwork() {
       d.fx = null;
       d.fy = null;
     }
+
+    window.dispatchEvent(new CustomEvent("kg-network-ready"));
   });
 }
 
@@ -146,6 +159,8 @@ export function highlightNodeInKG(nodeId, highlightCategory = "visited") {
   //   console.log(nodeId.toLowerCase());
   //   console.log(d3.select(`#${nodeId.toLowerCase()}`));
   const selectedNode = d3.select(`#${nodeId.toLowerCase()}`);
+  if (selectedNode.empty()) return false;
+
   selectedNode.attr("opacity", 1);
   switch (highlightCategory) {
     case "visited":
@@ -163,6 +178,8 @@ export function highlightNodeInKG(nodeId, highlightCategory = "visited") {
       // .attr("fill", "red");
       break;
   }
+
+  return true;
 }
 
 function centerAndZoom(svg, g, zoom, width, height, scale = 1) {

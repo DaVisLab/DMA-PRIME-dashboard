@@ -2,7 +2,6 @@ import { redraw } from "./map.js";
 import {
   buildWeeklyTimeline,
   formatDisplayDate,
-  formatDisplayDateParts,
   getDateKey,
   getNearestDateIndex,
   getNearestTimelineIndexFromVisualRatio,
@@ -16,8 +15,13 @@ const sliderFrame = document.getElementById("time-animation-slider-frame");
 const currentDateLabel = document.getElementById(
   "time-animation-current-date",
 );
+const currentDateText = document.getElementById(
+  "time-animation-current-date-text",
+);
 const sliderTicks = document.getElementById("time-animation-slider-ticks");
 const dateRangeLabel = document.getElementById("time-animation-date-range");
+const startDateLabel = document.getElementById("time-animation-start-date");
+const endDateLabel = document.getElementById("time-animation-end-date");
 const playButton = document.getElementById("time-animation-play-button");
 const getPlayWindow = () =>
   document.getElementById("time-animation-play-window") ||
@@ -29,8 +33,8 @@ const animationIntervalMs = 700;
 const sliderMax = 1000;
 const sliderThumbSizePx = 16;
 const playWindowPaddingPx = 7;
-const playButtonMinSizePx = 18;
-const playButtonMaxSizePx = 20;
+const playButtonMinSizePx = 25;
+const playButtonMaxSizePx = 30;
 const playWindowArrowInsetPx = 5;
 const terminalDotCount = TIMELINE_TERMINAL_DATE_COUNT;
 const dotHoverRadiusPx = 8;
@@ -113,13 +117,6 @@ function getTimelineIndexFromSliderValue() {
 
 function getTerminalStartIndex() {
   return Math.max(0, timelineDates.length - terminalDotCount);
-}
-
-function getPlayButtonAnchorIndex() {
-  return Math.min(
-    Math.max(currentTimelineIndex, getTerminalStartIndex()),
-    timelineDates.length - 1,
-  );
 }
 
 function getSliderTrackMetrics() {
@@ -303,11 +300,15 @@ function showTimelineChromeAfterLayout() {
 function updateDateRangeLabel() {
   if (!dateRangeLabel || !timelineDates.length) return;
 
-  dateRangeLabel.replaceChildren(
-    document.createTextNode(formatDisplayDate(timelineDates[0])),
-    document.createElement("br"),
-    document.createTextNode(`~ ${formatDisplayDate(timelineDates.at(-1))}`),
-  );
+  if (startDateLabel && endDateLabel) {
+    startDateLabel.textContent = formatDisplayDate(timelineDates[0]);
+    endDateLabel.textContent = formatDisplayDate(timelineDates.at(-1));
+    return;
+  }
+
+  dateRangeLabel.textContent = `${formatDisplayDate(
+    timelineDates[0],
+  )} - ${formatDisplayDate(timelineDates.at(-1))}`;
 }
 
 function setPlaying(isPlaying) {
@@ -354,14 +355,12 @@ function prepareTerminalAnimationStart() {
 function updateCurrentDateLabel(date) {
   if (!currentDateLabel) return;
 
-  const { date: datePart, year } = formatDisplayDateParts(date);
-  const dateLine = document.createElement("span");
-  const yearLine = document.createElement("span");
+  if (currentDateText) {
+    currentDateText.textContent = formatDisplayDate(date);
+    return;
+  }
 
-  dateLine.textContent = datePart;
-  yearLine.textContent = year;
-
-  currentDateLabel.replaceChildren(dateLine, yearLine);
+  currentDateLabel.textContent = formatDisplayDate(date);
 }
 
 function createPlayWindowArrow(relativeLeftPx) {
@@ -405,8 +404,25 @@ function renderPlayWindowArrows(playWindow, playWindowLeftPx, playWindowWidthPx)
   playWindow.appendChild(fragment);
 }
 
+function updateCurrentDateLabelPosition() {
+  if (!currentDateLabel || !sliderFrame || !slider || !timelineDates.length) {
+    return;
+  }
+
+  const frameWidth = sliderFrame.clientWidth;
+  const labelHalfWidth = currentDateLabel.offsetWidth / 2;
+  const preferredLeftPx =
+    getSliderLeftOffset() + getVisualTrackPosition(currentTimelineIndex);
+  const leftPx =
+    frameWidth <= currentDateLabel.offsetWidth
+      ? frameWidth / 2
+      : clampValue(preferredLeftPx, labelHalfWidth, frameWidth - labelHalfWidth);
+
+  currentDateLabel.style.left = `${leftPx}px`;
+}
+
 function updatePlayButtonPosition() {
-  if (!playButton || !slider || !timelineDates.length) return;
+  if (!slider || !timelineDates.length) return;
 
   const terminalRange = getTerminalTrackRange();
   const { usableTrackWidth } = getSliderTrackMetrics();
@@ -430,12 +446,6 @@ function updatePlayButtonPosition() {
     sliderWidth,
   );
   const playWindowWidthPx = playWindowRightPx - playWindowLeftPx;
-  const playButtonAnchorPx = getVisualTrackPosition(getPlayButtonAnchorIndex());
-  const playButtonLeftPx = clampValue(
-    playButtonAnchorPx - buttonSizePx / 2,
-    0,
-    sliderWidth - buttonSizePx,
-  );
   const playWindow = getPlayWindow();
 
   if (playWindow) {
@@ -444,9 +454,12 @@ function updatePlayButtonPosition() {
     renderPlayWindowArrows(playWindow, playWindowLeftPx, playWindowWidthPx);
   }
 
-  playButton.style.left = `${sliderLeftOffset + playButtonLeftPx}px`;
-  playButton.style.width = `${buttonSizePx}px`;
-  playButton.style.height = `${buttonSizePx}px`;
+  if (playButton) {
+    playButton.style.width = `${buttonSizePx}px`;
+    playButton.style.height = `${buttonSizePx}px`;
+  }
+
+  updateCurrentDateLabelPosition();
 }
 
 function getTerminalHighlightIndex() {
@@ -494,12 +507,8 @@ function createPredictionDot(date, index, currentIndex, highlightIndex) {
 }
 
 function getMarkedTimelineIndexes() {
-  const currentIndex = getNearestDateIndex(
-    timelineDates,
-    getTimelineSplitDate(),
-  );
   const firstTerminalIndex = getTerminalStartIndex();
-  const indexes = new Set([currentIndex]);
+  const indexes = new Set();
 
   for (let index = firstTerminalIndex; index < timelineDates.length; index += 1) {
     indexes.add(index);
@@ -653,7 +662,10 @@ function initTimeAnimationControl() {
       return;
     }
 
-    prepareTerminalAnimationStart();
+    if (currentTimelineIndex >= timelineDates.length - 1) {
+      setTimelineIndex(0);
+    }
+
     setPlaying(true);
   });
 

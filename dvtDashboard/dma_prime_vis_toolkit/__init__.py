@@ -358,30 +358,39 @@ def create_app(development=False, dataDir=None):
 
         panels = [
             {"name": "main", "displayName": "DMA-PRIME"},
-            # {
-            #     "name": "outbreak-detection",
-            #     "displayName": "Outbreak Detection",
-            #     # 'active': True,
-            #     "html": "outbreak-detection/outbreak-detection-panel_dy.html",
-            # },
-            # {
-            #     "name": "riskindex-assessment",
-            #     "displayName": "Risk Index Assessment",
-            #     # 'active': True,
-            #     "html": "outbreak-detection/riskindex-analysis.html",
-            # },
-            # {
-            #     "name": "outbreak-exploration2",
-            #     "displayName": "Test Interface2",
-            #     "active": True,
-            #     "html": "outbreak-detection/test-page.html",
-            # },
             {
-                "name": "map",
-                "displayName": "Map View",
-                "active": True,
-                "html": "outbreak-detection/outbreak-detection-map-panel.html",
+                "name": "outbreak-detection",
+                "displayName": "Outbreak Detection",
+                # 'active': True,
+                "html": "outbreak-detection/outbreak-detection-panel_dy.html",
             },
+            {
+                "name": "riskindex-assessment",
+                "displayName": "Risk Index Assessment",
+                # 'active': True,
+                "html": "outbreak-detection/riskindex-analysis.html",
+            },
+           
+           {
+                "name": "outbreak-exploration2",
+                "displayName": "Test Interface2",
+                "active": True,
+                "html": "outbreak-detection/test-page.html",
+            },
+             {
+                "name": "outbreak-kg",
+                "displayName": "KG Interface",
+                # "active": True,
+                # "html": "outbreak-detection/riskindex-analysis.html",
+                "html": "outbreak-detection/kg-test-page.html",
+            }, 
+            
+            # {
+            #     "name": "map",
+            #     "displayName": "Map View",
+            #     "active": True,
+            #     "html": "outbreak-detection/outbreak-detection-map-panel.html",
+            # },
         ]
         return render_template(
             "outbreak-detection/outbreak-detection-base.html",

@@ -51,8 +51,8 @@ const MAP_ZOOM = 7;
 const MAP_MIN_ZOOM = 2;
 const MAP_MAX_ZOOM = 11;
 const MAP_BOUNDS = [
-  [-90.0, 26.0], 
-  [-72.0, 40.0], 
+  [-90.0, 26.0],
+  [-72.0, 40.0],
 ];
 const FACILITY_ICON_MAPPING = {
   marker: { x: 0, y: 0, width: 1128, height: 992, mask: true },
@@ -115,7 +115,6 @@ const popup = new maplibregl.Popup({
   focusAfterOpen: false,
   closeOnClick: false,
 });
-
 
 const deckOverlay = new MapboxOverlay({
   interleaved: true,
@@ -885,8 +884,21 @@ function updateMapTitle() {
       break;
   }
 
-  const observation = `${mapDiseaseSelector.value}-${mapGeographicUnitSelector.value}-${mapPopulationSelector.value}-${mapOutcomeVariableSelector.value}`;
-  const observationCreatedDate = metadata["observation_created_date"][observation];
+  let mapPopulationKey = mapPopulationSelector.value;
+
+  if (
+    mapGeographicUnitSelector.value === "facility" &&
+    document.querySelector('input[name="map-facilityOptionGroup"]:checked')
+      ?.value !== "individual-unit"
+  ) {
+    mapPopulationKey = document
+      .querySelector('input[name="map-facilityOptionGroup"]:checked')
+      ?.value.toUpperCase();
+  }
+  const observationKey = `${mapDiseaseSelector.value}-${mapGeographicUnitSelector.value}-${mapPopulationKey}-${mapOutcomeVariableSelector.value}`;
+
+  const observationCreatedDate =
+    metadata["observation_created_date"][observationKey];
 
   if (observationCreatedDate) {
     newTitle += `<br /> (Last Update: ${observationCreatedDate})`;

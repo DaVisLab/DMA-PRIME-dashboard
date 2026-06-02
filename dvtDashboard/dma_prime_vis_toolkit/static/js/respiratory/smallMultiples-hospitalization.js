@@ -14,6 +14,8 @@ import {
 import {
   buildWeeklyTimeline,
   getCombinedWeeklyDates,
+  getFirstFiniteDateFromSeries,
+  getLastFiniteDateFromSeries,
   getNearestDateIndex,
   getNearestTimelineIndexFromVisualRatio,
   getTimeFrameStartDate,
@@ -279,41 +281,12 @@ function getDataItemVariableData(dataItem) {
   ];
 }
 
-function getFiniteDateAtIndex(dataItem, index) {
-  const date = toValidDate(dataItem?.dates?.[index]);
-  const value = dataItem?.data?.[index];
-
-  return date && Number.isFinite(value) ? date : null;
-}
-
 function getFirstFiniteDate(dataItem) {
-  const length = Math.min(
-    dataItem?.dates?.length || 0,
-    dataItem?.data?.length || 0,
-  );
-
-  for (let index = 0; index < length; index += 1) {
-    const date = getFiniteDateAtIndex(dataItem, index);
-
-    if (date) return date;
-  }
-
-  return null;
+  return getFirstFiniteDateFromSeries(dataItem?.dates, dataItem?.data);
 }
 
 function getLastFiniteDate(dataItem) {
-  const length = Math.min(
-    dataItem?.dates?.length || 0,
-    dataItem?.data?.length || 0,
-  );
-
-  for (let index = length - 1; index >= 0; index -= 1) {
-    const date = getFiniteDateAtIndex(dataItem, index);
-
-    if (date) return date;
-  }
-
-  return null;
+  return getLastFiniteDateFromSeries(dataItem?.dates, dataItem?.data);
 }
 
 function getHistoricalEndDate(dataItem) {

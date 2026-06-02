@@ -1,6 +1,6 @@
 const DATE_KEY_FORMAT = "YYYY-MM-DD";
 export const TIMELINE_CURRENT_DATE_RATIO = 0.7;
-export const TIMELINE_TERMINAL_DATE_COUNT = 5;
+export const TIMELINE_TERMINAL_DATE_COUNT = 4;
 export const TIMELINE_TERMINAL_WIDTH_RATIO = 0.25;
 
 export function toValidDate(date) {
@@ -52,6 +52,58 @@ export function buildWeeklyDates(startDate, count) {
   return Array.from({ length: count }, (_, index) =>
     start.add(index, "week").toDate(),
   );
+}
+
+export function hasFiniteTimelineValue(value) {
+  if (value === null || value === undefined || value === "") return false;
+
+  return Number.isFinite(Number(value));
+}
+
+export function getFiniteDateAtIndex(dates, values, index) {
+  const date = toValidDate(dates?.[index]);
+  const value = values?.[index];
+
+  return date && hasFiniteTimelineValue(value) ? date : null;
+}
+
+export function getFirstFiniteDateFromSeries(dates, values) {
+  const length = Math.min(dates?.length || 0, values?.length || 0);
+
+  for (let index = 0; index < length; index += 1) {
+    const date = getFiniteDateAtIndex(dates, values, index);
+
+    if (date) return date;
+  }
+
+  return null;
+}
+
+export function getLastFiniteDateFromSeries(dates, values) {
+  const length = Math.min(dates?.length || 0, values?.length || 0);
+
+  for (let index = length - 1; index >= 0; index -= 1) {
+    const date = getFiniteDateAtIndex(dates, values, index);
+
+    if (date) return date;
+  }
+
+  return null;
+}
+
+export function getLastFiniteWeeklyDate(startDate, values) {
+  const start = dayjs(startDate);
+  const timeSeries = Array.isArray(values) ? values : [];
+
+  if (!start.isValid()) return null;
+
+  for (let index = timeSeries.length - 1; index >= 0; index -= 1) {
+    if (hasFiniteTimelineValue(timeSeries[index])) {
+      return start.add(index, "week").toDate();
+    }
+  }
+
+  return null;
 }
 
 export function getTimeFrameStartDate(timeFrame, variableData) {

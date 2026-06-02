@@ -294,6 +294,7 @@ options %}
           height: 39%;
           padding: 0.05rem 0.35rem 0.2rem;
           width: 100%;
+          margin-bottom: .5rem;
         "
       >
         <div
@@ -306,59 +307,80 @@ options %}
             --time-animation-date-gap: 5px;
             --small-multiple-value-width: 34px;
             padding-top: 1.2rem;
-            margin-top: 1rem;
+            margin-top: 0.5rem;
           "
         >
           <span
             id="time-animation-date-range"
             style="
               position: absolute;
-              top: -0.2rem;
+              top: calc(1.2rem + 0.96rem);
               left: var(--time-animation-left-offset);
+              right: calc(
+                var(--small-multiple-value-width) +
+                  var(--time-animation-date-gap)
+              );
+              display: flex;
+              justify-content: space-between;
               color: #555;
-              font-size: 0.7rem;
+              font-size: 0.58rem;
               line-height: 0.7rem;
               white-space: nowrap;
               pointer-events: none;
             "
           >
-            {{ metadata.first_date }}<br />~ {{ metadata.last_date }}
+            <span id="time-animation-start-date"
+              >{{ metadata.first_date }}</span
+            >
+            <span id="time-animation-end-date">{{ metadata.last_date }}</span>
           </span>
           <div
-            id="time-animation-play-window"
-            aria-hidden="true"
+            id="time-animation-current-date"
             style="
               position: absolute;
-              top: 0.3rem;
-              left: 75%;
-              width: 25%;
-              height: 0.5rem;
-              border: 1px solid rgba(55, 76, 92, 0.74);
-              border-radius: 0.32rem;
-              box-shadow:
-                inset 0 0 0 1px rgba(255, 255, 255, 0.82),
-                0 1px 2px rgba(0, 0, 0, 0.08);
-              pointer-events: none;
-              z-index: 3;
+              top: -0.08rem;
+              left: var(--time-animation-left-offset);
+              transform: translateX(-50%);
+              width: max-content;
+              display: flex;
+              flex-direction: row;
+              align-items: center;
+              justify-content: center;
+              box-sizing: border-box;
+              border: 1px solid lightgray;
+              border-radius: 0.3rem;
+              background: white;
+              color: black;
+              font-size: 0.7rem;
+              line-height: 1;
+              padding: 0.12rem 0.34rem 0.12rem 0.22rem;
+              text-align: center;
+              white-space: nowrap;
+              pointer-events: auto;
+              z-index: 5;
               visibility: hidden;
             "
-          ></div>
+          >
+            <span id="time-animation-current-date-text"
+              >{{ metadata.current_date }}</span
+            >
+          </div>
           <button
             id="time-animation-play-button"
             type="button"
             aria-label="Play animation"
             style="
               position: absolute;
-              top: -0.1rem;
-              left: 65%;
-              width: 1rem;
-              height: 1rem;
+              top: calc(1.2rem - 0.18rem);
+              right: 0.1rem;
+              width: 2rem;
+              height: 2rem;
               display: flex;
               align-items: center;
               justify-content: center;
               padding: 0;
               border: 1px solid lightgray;
-              border-radius: 0.3rem;
+              border-radius: 0.26rem;
               background: #f1f1f1;
               color: #333;
               cursor: pointer;
@@ -370,32 +392,6 @@ options %}
           >
             <sl-icon name="play-fill"></sl-icon>
           </button>
-          <div
-            id="time-animation-current-date"
-            style="
-              position: absolute;
-              top: 0.0rem;
-              right: 0;
-              width: fit-content;
-              /* height: calc(1.2rem + 0.5rem ); */
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              /* justify-content: center; */
-              box-sizing: border-box;
-              border: 1px solid lightgray;
-              border-radius: 0.2rem;
-              background: white;
-              color: black;
-              font-size: 0.7rem;
-              /* line-height: 0.68rem; */
-              padding: 0.08rem 0;
-              text-align: center;
-              white-space: normal;
-              pointer-events: none;
-              visibility: hidden;
-            "
-            >{{ metadata.current_date }}</div>
           <input
             id="time-animation-slider"
             type="range"
@@ -730,7 +726,7 @@ options %}
   type="module"
 ></script>
 <script
-  src="{{ url_for('static', filename='js/respiratory/time-animation-controls.js') }}?v={{ metadata.data_version }}&timeline=terminal-reset"
+  src="{{ url_for('static', filename='js/respiratory/time-animation-controls.js') }}?v={{ metadata.data_version }}&timeline=play-right"
   type="module"
 ></script>
 {% endblock %}

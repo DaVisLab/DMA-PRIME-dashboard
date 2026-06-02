@@ -476,6 +476,8 @@ export function showMapTooltip(dataObject) {
 
   selectedItems.feature = dataObject;
 
+  console.log(dataObject)
+
   const bounds = getBoundsOfCoords(dataObject.geometry.coordinates);
 
   map.fitBounds(bounds, {

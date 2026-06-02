@@ -15,6 +15,8 @@ function drawingSmallMultipleUnit(svg, data) {
     .on("mouseenter", (event, d) => {
       const targetMapID = `map-path-${data.nameID}`; // Coupling rule: small-multiple unit <-> map path share the same nameID-based id convention.
       d3.select(`#${targetMapID}`).dispatch("mouseover"); // Programmatically forwards hover to the corresponding map path so both views highlight in sync.
+
+      window.testHighlightExploredInfoInKG(data.nameID); // Custom function to trigger KG highlighting based on the explored info's nameID (assumes a global function is set up for this purpose).
     })
     .on("mouseleave", (event, d) => {
       const targetMapID = `map-path-${data.nameID}`; // Must match the id convention used by the map layer (e.g., <path id="map-path-...">).

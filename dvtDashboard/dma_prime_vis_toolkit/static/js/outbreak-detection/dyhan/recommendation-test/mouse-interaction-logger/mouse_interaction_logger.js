@@ -1,6 +1,6 @@
 import { getNodeID, returnKGVerifiedId } from "../KGUtils.js";
-import { highlightNodeInKG } from "../drawKGNetwork.js";
 import { showRecommendationResults } from "../showRecommendataionResults.js";
+import { sendExploredInfoToKG } from "../testPageBridge.js";
 
 let logs_queue = [];
 
@@ -11,12 +11,13 @@ async function keepUserInteractionLog(type, data) {
     return;
   }
 
-  highlightNodeInKG(getNodeID(data.id));
-  // console.log(getNodeID(data.id));
+  const nodeId = getNodeID(data.id);
+  sendExploredInfoToKG(data, { nodeId });
+  // console.log(nodeId);
 
   logs_queue.push({
     type,
-    kgId: returnKGVerifiedId(getNodeID(data.id)),
+    kgId: returnKGVerifiedId(nodeId),
     elementInfo: { tag: data.tag, id: data.id },
     time: Date.now(),
   });

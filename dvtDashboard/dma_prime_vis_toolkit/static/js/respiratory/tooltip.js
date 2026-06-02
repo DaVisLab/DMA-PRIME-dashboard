@@ -9,6 +9,11 @@ import {
   getAllValuesFromFeature,
 } from "/static/js/respiratory/utils/dataProcessing_utils.js";
 
+import {
+  getLastFiniteWeeklyDate,
+  hasFiniteTimelineValue,
+} from "/static/js/respiratory/utils/time_utils.js";
+
 // visualization variables
 var formatInt = d3.format(".0f");
 var formatDate = d3.timeFormat("%b %d, %Y");
@@ -46,10 +51,11 @@ export function drawTooltip(
     -7 * data.historical.values.length,
   );
 
-  data.historical.values = validateFeatureDataLength(
-    data.historical.values,
-    historicalDatesArray.length,
-  );
+
+  // data.historical.values = validateFeatureDataLength(
+  //   data.historical.values,
+  //   historicalDatesArray.length,
+  // );
 
   if (data.extra.health_system != undefined && allDates) {
     data.extra.health_system = validateFeatureDataLength(
@@ -70,6 +76,21 @@ export function drawTooltip(
 
   data.projected.start_date = parseDate(data.projected.start_date);
 
+  const projectedLastFiniteDate = getLastFiniteWeeklyDate(
+    data.projected.start_date,
+    data.projected.values,
+  );
+
+  const projectedLastFiniteIndex = projectedLastFiniteDate
+    ? Math.max(
+        0,
+        dayjs(projectedLastFiniteDate).diff(
+          dayjs(data.projected.start_date),
+          "week",
+        ),
+      )
+    : -1;
+      console.log(projectedLastFiniteIndex)
   // get dimensions
   var ttpHeight = ttpSVG.node().clientHeight;
   var ttpWidth = ttpSVG.node().clientWidth;
@@ -147,14 +168,10 @@ export function drawTooltip(
     dataInfo.append("p").html(tooltipString);
   }
 
-  if (data.projected.values.length) {
-    let thisProjectedEndDate = d3.timeDay.offset(
-      data.projected.start_date,
-      7 * (data.projected.values.length - 1),
-    );
+  if (projectedLastFiniteDate) {
     var tooltipString = `Projected ${outcomeVariableString} from ${formatDate(
       d3.timeDay.offset(data.projected.start_date, -6),
-    )} to ${formatDate(thisProjectedEndDate)}`;
+    )} to ${formatDate(projectedLastFiniteDate)}`;
     dataInfo.append("p").html(tooltipString);
   }
 
@@ -165,18 +182,6 @@ export function drawTooltip(
   var ttpLegendGroup = ttpLegend
     .append("div")
     .attr("class", "tooltip-legend-group");
-
-  // initTooltip(
-  //   header,
-  //   footer,
-  //   geographicUnit,
-  //   identifier,
-  //   panelType,
-  //   outcomeVariableString,
-  //   diseaseVariableString,
-  //   data,
-  //   historicalDatesArray,
-  // );
 
   // to use later
   ttpSVG.datum({ extraSources: extraSources });
@@ -440,7 +445,7 @@ export function drawTooltip(
   Array("historical", "projected").forEach((e_p) => {
     if (panelType == "rate") {
       data[e_p]["values"] = data[e_p]["values"].map((d) =>
-        isNaN(d) ? NaN : (d / featureData.population) * 1000,
+        !hasFiniteTimelineValue(d) ? NaN : (d / featureData.population) * 1000,
       );
     }
     countMax = d3.max([...data[e_p]["values"], countMax]);
@@ -449,7 +454,7 @@ export function drawTooltip(
   extraSources.forEach((ds) => {
     if (panelType == "rate") {
       data["extra"][ds] = data["extra"][ds].map((d) =>
-        isNaN(d) ? NaN : (d / featureData.population) * 1000,
+        !hasFiniteTimelineValue(d) ? NaN : (d / featureData.population) * 1000,
       );
     }
     countMax = d3.max([...data["extra"][ds], countMax]);
@@ -564,21 +569,34 @@ export function drawTooltip(
       ]);
   }
 
+  const currentWeekStartDate = data.projected.values.length
+    ? d3.timeDay.offset(data.projected.start_date, -6)
+    : d3.timeDay.offset(currentDate, -6);
+  const projectedEndDate = projectedLastFiniteDate || lastDate;
+
   var xScaleForwardProjection = d3
     .scaleTime()
-    .domain([d3.timeDay.offset(currentDate, -6), lastDate])
+    .domain([currentWeekStartDate, projectedEndDate])
     .range([
       ttpMargins.left + ttpGraphWidth * ttpHistoryWidthPercentage,
       ttpWidth - ttpMargins.right,
     ]);
 
   var xScale = function (date) {
-    if (dayjs(date).isBefore(d3.timeDay.offset(currentDate, -6))) {
+    if (dayjs(date).isBefore(currentWeekStartDate)) {
       return xScaleHistorical(date);
     } else {
       return xScaleForwardProjection(date);
     }
   };
+  const visibleProjectedDates = projectedLastFiniteDate
+    ? d3
+        .range(projectedLastFiniteIndex + 1)
+        .map((index) => d3.timeDay.offset(data.projected.start_date, 7 * index))
+    : [];
+  const predictionAxisDates = visibleProjectedDates.filter((date) =>
+    dayjs(date).isSameOrBefore(projectedEndDate, "day"),
+  );
 
   // visualize historical
   var historicalGroup = graphSVG.append("g").attr("class", "historical-group");
@@ -596,7 +614,7 @@ export function drawTooltip(
             return panelType == "percentDifference" ? yScale2(d) : yScale(d);
           })
           // .defined((d) => d || d == 0)(
-          .defined((d) => d != null && !Number.isNaN(d))(
+          .defined(hasFiniteTimelineValue)(
           panelType == "percentDifference"
             ? percentDifferenceHistoricalValues
             : data.historical.values,
@@ -636,9 +654,9 @@ export function drawTooltip(
       )
       .attr("width", historicalBarWidth)
       .attr("fill", populationColorMap[population]["historical"])
-      .attr("transform", `translate(-${historicalBarWidth}, 0)`)
+      .attr("transform", `translate(-${historicalBarWidth / 2}, 0)`)
       .on("mouseover", function (event, d) {
-        if (!isNaN(d)) {
+        if (hasFiniteTimelineValue(d)) {
           createDataPointTooltip(
             event,
             dataPointTTP,
@@ -655,26 +673,39 @@ export function drawTooltip(
   }
 
   // draw box to highlight future projections
-  graphSVG
-    .append("rect")
-    .attr("class", "tooltip-prediction-highlighter")
-    .attr("x", xScaleForwardProjection.range()[0])
-    .attr("y", ttpMargins.top)
-    .attr(
-      "width",
-      xScaleForwardProjection.range()[1] - xScaleForwardProjection.range()[0],
-    )
-    .attr("height", ttpHeight - ttpMargins.bottom - ttpMargins.top);
+  if (projectedLastFiniteDate) {
+    const projectionBridgeX = getForecastPointX(
+      data.projected.start_date,
+      -1,
+      xScale,
+    );
+    const firstProjectionX = getForecastPointX(
+      data.projected.start_date,
+      0,
+      xScale,
+    );
+    const projectionStartX = (projectionBridgeX + firstProjectionX) / 2;
+    const projectionEndX = xScale(projectedLastFiniteDate);
+
+    graphSVG
+      .append("rect")
+      .attr("class", "tooltip-prediction-highlighter")
+      .attr("x", projectionStartX)
+      .attr("y", ttpMargins.top)
+      .attr("width", Math.max(projectionEndX - projectionStartX, 0))
+      .attr("height", ttpHeight - ttpMargins.bottom - ttpMargins.top);
+  }
 
   var predictiveGroup = graphSVG.append("g").attr("class", "predictive-group");
+  let projectedTooltipValues = [];
 
   let lastHistoricalValueIndex = data.historical.values.findLastIndex(
-    (d) => !isNaN(parseFloat(d)),
+    hasFiniteTimelineValue,
   );
 
-  let projectedValues = data.projected.values;
+  let projectedValues = [...data.projected.values];
 
-  if (projectedValues.length) {
+  if (projectedValues.length && projectedLastFiniteDate) {
     if (
       dayjs(historicalDatesArray.at(lastHistoricalValueIndex)).isSame(
         d3.timeDay.offset(data.projected.start_date, -7),
@@ -710,10 +741,16 @@ export function drawTooltip(
       panelType == "percentDifference"
         ? percentDifferenceProjectedValues
         : projectedValues;
+    const projectedSegmentCount = Math.min(
+      projectedLastFiniteIndex + 1,
+      Math.max(values.length - 1, 0),
+    );
+    const projectedSegmentIndexes = d3.range(projectedSegmentCount);
+    projectedTooltipValues = values.slice(1, projectedSegmentCount + 1);
 
     let areaPathForPrediction = predictiveGroup
       .selectAll("path")
-      .data(d3.range(values.length - 1))
+      .data(projectedSegmentIndexes)
       .enter()
       .append("path")
       .attr("class", "ttp-data-point")
@@ -722,21 +759,23 @@ export function drawTooltip(
         d3
           .area()
           .x((_, i2) => {
-            return xScale(
-              d3.timeDay.offset(data.projected.start_date, 7 * (i1 + i2 - 1)),
+            return getForecastPointX(
+              data.projected.start_date,
+              i1 + i2 - 1,
+              xScale,
             );
           })
           .y0(panelType == "percentDifference" ? yScale2(0) : yScale(0))
           .y1((d) =>
             panelType == "percentDifference" ? yScale2(d) : yScale(d),
           )
-          .defined((d) => d != null && !Number.isNaN(d))(
+          .defined(hasFiniteTimelineValue)(
           values.slice(i1, i1 + 2),
         ),
       )
       .attr("fill", populationColorMap[population]["projected"])
       .on("mouseover", function (event, d) {
-        if (!isNaN(d)) {
+        if (hasFiniteTimelineValue(d)) {
           createDataPointTooltip(
             event,
             dataPointTTP,
@@ -760,7 +799,7 @@ export function drawTooltip(
 
       predictiveGroup
         .selectAll("path")
-        .data(d3.range(values.length - 1))
+        .data(projectedSegmentIndexes)
         // .data(projectedValues.slice(1)) // one segment per consecutive pair
         .enter()
         .append("path")
@@ -770,14 +809,16 @@ export function drawTooltip(
           d3
             .line()
             .x((_, i2) =>
-              xScale(
-                d3.timeDay.offset(data.projected.start_date, 7 * (i1 + i2 - 1)),
+              getForecastPointX(
+                data.projected.start_date,
+                i1 + i2 - 1,
+                xScale,
               ),
             )
             .y((d) =>
               panelType == "percentDifference" ? yScale2(d) : yScale(d),
             )
-            .defined((d) => d != null && !Number.isNaN(d))(
+            .defined(hasFiniteTimelineValue)(
             values.slice(i1, i1 + 2),
           ),
         )
@@ -785,7 +826,7 @@ export function drawTooltip(
         .attr("stroke", populationColorMap[population]["projected"])
         .attr("stroke-width", 2)
         .on("mouseover", function (event, d) {
-          if (!isNaN(d)) {
+          if (hasFiniteTimelineValue(d)) {
             createDataPointTooltip(
               event,
               dataPointTTP,
@@ -833,12 +874,12 @@ export function drawTooltip(
       uncertainty2_5.unshift(firstProjectedValue);
       uncertainty97_5.unshift(firstProjectedValue);
 
-      const n = uncertainty2_5.length; // time length
+      const n = Math.min(uncertainty2_5.length, projectedSegmentCount + 1);
 
       const band95 = d3
         .area()
         .x((_, i) =>
-          xScale(d3.timeDay.offset(data.projected.start_date, 7 * (i - 1))),
+          getForecastPointX(data.projected.start_date, i - 1, xScale),
         )
         .y0((_, i) => {
           return panelType === "percentDifference"
@@ -857,7 +898,7 @@ export function drawTooltip(
       const band50 = d3
         .area()
         .x((_, i) =>
-          xScale(d3.timeDay.offset(data.projected.start_date, 7 * (i - 1))),
+          getForecastPointX(data.projected.start_date, i - 1, xScale),
         )
         .y0((_, i) => {
           return panelType === "percentDifference"
@@ -896,33 +937,29 @@ export function drawTooltip(
     predictiveGroup
       .append("g")
       .selectAll("circle")
-      .data(
-        panelType == "percentDifference"
-          ? percentDifferenceProjectedValues
-          : data.projected.values,
-      )
+      .data(projectedTooltipValues)
       .enter()
       .append("circle")
       .attr("class", "ttp-data-point")
       .attr("clip-path", `url(#${clipPathId})`)
       .attr("r", 3)
       .attr("cx", (_, i) =>
-        xScale(d3.timeDay.offset(data.projected.start_date, 7 * (i - 1))),
+        getForecastPointX(data.projected.start_date, i, xScale),
       )
       .attr("cy", (d) =>
         panelType == "percentDifference" ? yScale2(d) : yScale(d),
       )
-      .style("opacity", (d) => (isNaN(d) ? 0 : 1))
+      .style("opacity", (d) => (hasFiniteTimelineValue(d) ? 1 : 0))
       .attr("stroke", populationColorMap[population]["projected"])
       .on("mouseover", function (event, d) {
-        if (!isNaN(d)) {
+        if (hasFiniteTimelineValue(d)) {
           createDataPointTooltip(
             event,
             dataPointTTP,
             panelType,
             ttpHeight,
             ttpMargins,
-            d3.timeDay.offset(data.projected.start_date, -7),
+            data.projected.start_date,
           );
         }
       })
@@ -932,13 +969,18 @@ export function drawTooltip(
   }
 
   if (panelType == "percentDifference") {
+    const visibleProjectedValues = data.projected.values.slice(
+      0,
+      visibleProjectedDates.length,
+    );
+
     graphSVG
       .append("path")
       .attr(
         "d",
         d3
           .line()
-          .defined((d) => d || d == 0)
+          .defined(hasFiniteTimelineValue)
           .x((_, i) => xScale(historicalDatesArray[i]))
           .y((d, i) => yScale(d))
           .curve(d3.curveMonotoneX)(data.historical.values),
@@ -954,21 +996,16 @@ export function drawTooltip(
         "d",
         d3
           .line()
-          .defined((d) => d || d == 0)
+          .defined(hasFiniteTimelineValue)
           .x((_, i) =>
-            xScale(
-              d3.timeDay.offset(
-                [
-                  historicalDatesArray[historicalDatesArray.length - 1],
-                  ...predictionDates,
-                ][i],
-              ),
-            ),
+            i === 0
+              ? xScale(historicalDatesArray[historicalDatesArray.length - 1])
+              : getForecastPointX(data.projected.start_date, i - 1, xScale),
           )
           .y((d, i) => yScale(d))
           .curve(d3.curveMonotoneX)([
           data.historical.values[data.historical.values.length - 1],
-          ...data.projected.values,
+          ...visibleProjectedValues,
         ]),
       )
       .attr("class", "projected-path-percent-diff-type")
@@ -1020,7 +1057,10 @@ export function drawTooltip(
     .call(
       d3
         .axisBottom(xScaleForwardProjection)
-        .tickValues([xScaleForwardProjection.domain()[0], ...predictionDates])
+        .tickValues([
+          xScaleForwardProjection.domain()[0],
+          ...predictionAxisDates,
+        ])
         .tickSize(4)
         .tickFormat(d3.timeFormat("%d %b")),
     )
@@ -1140,11 +1180,10 @@ export function drawTooltip(
         ? percentDifferenceHistoricalValues
         : data.historical.values,
     projectedStartDate: data.projected.start_date,
-    projectedValues:
-      panelType == "percentDifference"
-        ? percentDifferenceProjectedValues
-        : data.projected.values,
+    projectedValues: projectedTooltipValues,
     xScale,
+    getProjectedPointX: (index) =>
+      getForecastPointX(data.projected.start_date, index, xScale),
   });
   const showNearestChartTooltip = function (event) {
     const [mouseX] = d3.pointer(event, graphSVG.node());
@@ -1192,21 +1231,42 @@ function validateFeatureDataLength(featureData, targetLength, offset = 0) {
   return featureData;
 }
 
+function getWeekCenterX(weekEndDate, xScale) {
+  const weekStartDate = d3.timeDay.offset(weekEndDate, -6);
+
+  return (xScale(weekStartDate) + xScale(weekEndDate)) / 2;
+}
+
+function getForecastPointX(projectedStartDate, projectedIndex, xScale) {
+  const weekEndDate = d3.timeDay.offset(projectedStartDate, 7 * projectedIndex);
+
+  if (projectedIndex <= 0) {
+    return getWeekCenterX(weekEndDate, xScale);
+  }
+
+  const previousLabelDate = d3.timeDay.offset(
+    projectedStartDate,
+    7 * (projectedIndex - 1),
+  );
+
+  return (xScale(previousLabelDate) + xScale(weekEndDate)) / 2;
+}
+
 function buildTooltipPoints({
   historicalDatesArray,
   historicalValues,
   projectedStartDate,
   projectedValues,
   xScale,
+  getProjectedPointX,
 }) {
   const tooltipPoints = [];
 
   historicalValues.forEach((value, index) => {
-    const numericValue = Number(value);
-
-    if (!Number.isFinite(numericValue)) return;
+    if (!hasFiniteTimelineValue(value)) return;
 
     const date = historicalDatesArray[index];
+    const numericValue = Number(value);
 
     tooltipPoints.push({
       date,
@@ -1216,16 +1276,15 @@ function buildTooltipPoints({
   });
 
   projectedValues.forEach((value, index) => {
+    if (!hasFiniteTimelineValue(value)) return;
+
+    const date = d3.timeDay.offset(projectedStartDate, 7 * index);
     const numericValue = Number(value);
-
-    if (!Number.isFinite(numericValue)) return;
-
-    const date = d3.timeDay.offset(projectedStartDate, 7 * (index - 1));
 
     tooltipPoints.push({
       date,
       value: numericValue,
-      x: xScale(date),
+      x: getProjectedPointX ? getProjectedPointX(index) : xScale(date),
     });
   });
 
@@ -1281,8 +1340,8 @@ function createDataPointTooltipAt(
   ttpHeight,
   ttpMargins,
 ) {
+  if (!hasFiniteTimelineValue(point.value) || !point.date) return;
   const value = Number(point.value);
-  if (!Number.isFinite(value) || !point.date) return;
 
   dataPointTTP.html("");
   dataPointTTP.raise();
@@ -1454,11 +1513,12 @@ function initTooltip(
     dataInfo.append("p").html(tooltipString);
   }
 
-  if (data.projected.values.length) {
-    let thisProjectedEndDate = d3.timeDay.offset(
-      data.projected.start_date,
-      7 * (data.projected.values.length - 1),
-    );
+  const thisProjectedEndDate = getLastFiniteWeeklyDate(
+    data.projected.start_date,
+    data.projected.values,
+  );
+
+  if (thisProjectedEndDate) {
     var tooltipString = `Projected ${outcomeVariableString} from ${formatDate(
       d3.timeDay.offset(data.projected.start_date, -6),
     )} to ${formatDate(thisProjectedEndDate)}`;

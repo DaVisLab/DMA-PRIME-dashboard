@@ -80,21 +80,7 @@ function drawingSmallMultipleUnit(svg, data, dateInfo) {
         .getElementById("popupMonthRange")
         .addEventListener("change", () => {
           showPopupLineChart(data, dateInfo);
-
-          // const newStartMonth =
-          //   +document.getElementById("popupMonthRange").value;
-          // const popupSvg = d3.select("#popupChartSVG");
-          // drawLineChartByYearSplited(
-          //   popupSvg,
-          //   data,
-          //   dateInfo,
-          //   newStartMonth,
-          //   margin,
-          //   true,
-          // );
         });
-
-      // console.log("expansion icon mouseover");
     });
 
   // 2) Append paths inside groups
