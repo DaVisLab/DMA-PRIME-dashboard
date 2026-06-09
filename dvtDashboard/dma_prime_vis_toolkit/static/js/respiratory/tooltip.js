@@ -10,6 +10,7 @@ import {
 } from "/static/js/respiratory/utils/dataProcessing_utils.js";
 
 import {
+  getDateKey,
   getLastFiniteWeeklyDate,
   hasFiniteTimelineValue,
 } from "/static/js/respiratory/utils/time_utils.js";
@@ -46,16 +47,17 @@ export function drawTooltip(
   var identifier = featureData.id;
   var data = featureData.data[population][outcomeVariable];
 
+  data.projected.start_date = parseDate(data.projected.start_date);
   data.historical.start_date = d3.timeDay.offset(
-    parseDate(data.projected.start_date),
+    data.projected.start_date,
     -7 * data.historical.values.length,
   );
 
-
-  // data.historical.values = validateFeatureDataLength(
-  //   data.historical.values,
-  //   historicalDatesArray.length,
-  // );
+  data.historical.values = alignWeeklyValuesToDates(
+    data.historical.values,
+    data.historical.start_date,
+    historicalDatesArray,
+  );
 
   if (data.extra.health_system != undefined && allDates) {
     data.extra.health_system = validateFeatureDataLength(
@@ -74,8 +76,6 @@ export function drawTooltip(
     );
   }
 
-  data.projected.start_date = parseDate(data.projected.start_date);
-
   const projectedLastFiniteDate = getLastFiniteWeeklyDate(
     data.projected.start_date,
     data.projected.values,
@@ -90,7 +90,6 @@ export function drawTooltip(
         ),
       )
     : -1;
-      console.log(projectedLastFiniteIndex)
   // get dimensions
   var ttpHeight = ttpSVG.node().clientHeight;
   var ttpWidth = ttpSVG.node().clientWidth;
@@ -504,6 +503,11 @@ export function drawTooltip(
       outcomeVariable,
       panelType,
       "historical",
+    );
+    percentDifferenceHistoricalValues = alignWeeklyValuesToDates(
+      percentDifferenceHistoricalValues,
+      data.historical.start_date,
+      historicalDatesArray,
     );
 
     var percentDifferenceProjectedValues = getAllValuesFromFeature(
@@ -1229,6 +1233,26 @@ function validateFeatureDataLength(featureData, targetLength, offset = 0) {
   }
 
   return featureData;
+}
+
+function alignWeeklyValuesToDates(values, startDate, targetDates) {
+  const valueByDate = new Map();
+  const start = dayjs(startDate);
+
+  if (!start.isValid() || !Array.isArray(values)) {
+    return (targetDates || []).map(() => null);
+  }
+
+  values.forEach((value, index) => {
+    const date = start.add(index, "week").toDate();
+    valueByDate.set(getDateKey(date), value);
+  });
+
+  return (targetDates || []).map((date) => {
+    const dateKey = getDateKey(date);
+
+    return valueByDate.has(dateKey) ? valueByDate.get(dateKey) : null;
+  });
 }
 
 function getWeekCenterX(weekEndDate, xScale) {
