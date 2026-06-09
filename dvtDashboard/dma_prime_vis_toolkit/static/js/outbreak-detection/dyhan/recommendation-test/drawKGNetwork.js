@@ -259,12 +259,16 @@ function initKGNetwork() {
     resizeObserver.disconnect();
   }
 
-  resizeObserver = new ResizeObserver(() => {
-    if (canRender(selectedDiv)) {
-      scheduleDrawKGNetwork();
-    }
-  });
-  resizeObserver.observe(selectedDiv);
+  if ("ResizeObserver" in window) {
+    resizeObserver = new ResizeObserver(() => {
+      if (canRender(selectedDiv)) {
+        scheduleDrawKGNetwork();
+      }
+    });
+    resizeObserver.observe(selectedDiv);
+  } else {
+    window.addEventListener("resize", scheduleDrawKGNetwork);
+  }
 
   document.addEventListener("sl-tab-show", (event) => {
     if (event.detail?.name === "outbreak-kg") {
