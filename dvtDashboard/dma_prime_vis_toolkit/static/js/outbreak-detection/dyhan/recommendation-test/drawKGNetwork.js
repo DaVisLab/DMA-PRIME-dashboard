@@ -29,7 +29,10 @@ async function getPredefinedKG() {
 
 function getKGData() {
   if (!kgDataPromise) {
-    kgDataPromise = getPredefinedKG();
+    kgDataPromise = getPredefinedKG().catch((error) => {
+      kgDataPromise = null;
+      throw error;
+    });
   }
 
   return kgDataPromise;

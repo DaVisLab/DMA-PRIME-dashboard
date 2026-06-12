@@ -90,7 +90,7 @@
     .subpage sl-icon,img,embed {
       font-size: calc(min(30vw, 20vh));
       height: calc(min(30vw, 20vh));
-      width: calc(min(30vw, 20vh));
+      width: auto;
     }
 
     .beta-warning {
@@ -246,12 +246,19 @@
     <div style="display:flex; height: 40%; width: 90%; align-items: center; justify-content: space-around;">
       
     <div class="subpage">
-      <a href="{{ url_for('waste_water') }}">
-        <sl-icon name="droplet-half"></sl-icon>
-        <p>Wastewater Monitoring</p>
+      <a href="{{ url_for('maternal_child') }}">
+        <img src="{{ url_for('static', filename='assets/Icons/maternal_child.png') }}"></img>
+        <p>Maternal and Child Health</p>
       </a>
     </div>
 
+    <div class="subpage">
+      <a href="{{ url_for('waste_water') }}">
+        <sl-icon name="droplet-half"></sl-icon>
+        
+        <p>Wastewater Monitoring</p>
+      </a>
+    </div>
    
 
     {% if current_user["access_level"] >= 0 %}

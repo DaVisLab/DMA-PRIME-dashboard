@@ -1,0 +1,69 @@
+{% extends "subtemplates/panel.html" %} {% block options %}
+<div
+  id="map-options"
+  class="sidebar-container"
+  style="
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; 
+    
+  "
+>
+  <div>
+    <sl-select id="maternal-child-condition">
+      <p slot="label">Condition</p>
+    </sl-select>
+
+    <sl-select id="maternal-child-measure">
+      <p slot="label">Measure</p>
+    </sl-select>
+
+    <sl-select id="maternal-child-year">
+      <p slot="label">Year</p>
+    </sl-select>
+  </div>
+
+  <div style="border: 1px solid gray; border-radius: .3rem; padding: .5rem">
+    <div>
+      <b>Measure information</b><br />
+      Uses the ZCTA total population denominator for rate-based measures; counts
+      are observed person-condition-year cases.
+    </div>
+    <br/>
+    <div>
+      <b>Suppression and categorization</b><br />
+      For count maps, ZCTAs with 0–4 observed cases are grouped as low
+      count/suppressed. Counts ≥5 are categorized into quartiles.
+    </div>
+  </div>
+</div>
+{% endblock %} {% block contents %}
+<sl-split-panel
+  position="100"
+  disabled
+  id="map-and-minor-sidebar"
+  class="fill-height main-content-split-panel"
+>
+  <sl-resize-observer slot="start" id="map-resizer" class="fill-height">
+    <div id="map-div" class="scroll fill-height fill-width"></div>
+  </sl-resize-observer>
+</sl-split-panel>
+{% endblock %} {% block scripts %}
+<script>
+  conditionSelector = document.getElementById("maternal-child-condition");
+  measureSelector = document.getElementById("maternal-child-measure");
+  yearSelector = document.getElementById("maternal-child-year");
+</script>
+
+<!-- <script type="module">
+    await Promise.allSettled([ // wait for following to be defined/load in
+        customElements.whenDefined('sl-textarea'),
+    ])
+    mobileClinicAddress.shadowRoot.querySelector("textarea").removeAttribute("rows")
+</script> -->
+
+<script src="{{ url_for('static', filename='js/maternal-child/options.js') }}?v=metadata-options-4"></script>
+<script src="{{ url_for('static', filename='js/maternal-child/call_data.js') }}?v=metadata-call-data-4"></script>
+<script src="{{ url_for('static', filename='js/maternal-child/map.js') }}?v=metadata-map-6"></script>
+{% endblock %}

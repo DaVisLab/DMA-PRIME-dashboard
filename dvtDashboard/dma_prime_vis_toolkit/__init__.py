@@ -14,6 +14,8 @@ from .authenticate import login_manager
 from .admin import admin_required
 from .database import User
 from .data_handling import get_data_date, data_approver_required
+from .maternal_child_dataHander import bp as maternal_child_data_bp
+from .maternal_child_dataHander import get_maternal_child_data_conditions, get_years_for_condition, get_metrics_for_condition
 
 # ensure the authenticate module itself is available for blueprint registration
 from . import authenticate
@@ -134,6 +136,7 @@ def create_app(development=False, dataDir=None):
     from . import data_handling
 
     app.register_blueprint(data_handling.bp)
+    app.register_blueprint(maternal_child_data_bp)
 
     from . import ai_prompt
 
@@ -410,6 +413,54 @@ def create_app(development=False, dataDir=None):
         ]
         return render_template(
             "waste-water/waste-water-base.html", panels=panels, metadata=metadata
+        )
+    
+    @app.route("/maternal-child", methods=["GET"])
+    @login_required
+    def maternal_child():
+        data_conditions = get_maternal_child_data_conditions()
+        default_condition = data_conditions[0] if data_conditions else None
+        data_years_by_condition = {
+            condition: get_years_for_condition(condition)
+            for condition in data_conditions
+        }
+        data_metrics_by_condition = {
+            condition: get_metrics_for_condition(condition)
+            for condition in data_conditions
+        }
+        data_years = (
+            data_years_by_condition.get(default_condition, [])
+            if default_condition
+            else []
+        )
+        
+        data_years = data_years.sort(reverse=True)  # Sort years in descending order
+        data_metrics = (
+            data_metrics_by_condition.get(default_condition, [])
+            if default_condition
+            else []
+        )
+        # data_version = get_data_version_from_request(request, current_user)
+        # metadata = _load_metadata(data_version, "waste_water")
+
+        panels = [
+            {"name": "main", "displayName": "DMA-PRIME"},
+            {
+                "name": "map",
+                "displayName": "Maternal and Child Health ZCTA",
+                "active": True,
+                "html": "maternal-child-health/map-panel.html",
+            },
+        ]
+        metadata = {
+            "data_conditions": data_conditions,
+            "data_years": data_years,
+            "data_metrics": data_metrics,
+            "data_years_by_condition": data_years_by_condition,
+            "data_metrics_by_condition": data_metrics_by_condition,
+        }
+        return render_template(
+            "maternal-child-health/base.html", metadata=metadata, panels=panels
         )
 
     if development:
