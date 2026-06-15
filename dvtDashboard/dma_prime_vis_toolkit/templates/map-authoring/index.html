@@ -40,29 +40,95 @@
       </nav>
 
       <main class="app-page">
-        <div class="page-content-row">
-          <section class="app-map-panel" aria-label="map authoring canvas">
-            <div class="map-view-area">
-              <div id="contextMenu" class="context-menu"></div>
-              <svg
-                id="vis-container"
-                aria-label="Interactive bubble map canvas"
-              ></svg>
-              <div
-                id="map-loading-status"
-                class="map-loading-status"
-                role="status"
-                hidden
-              ></div>
+        <section
+          id="authoring-tab-workspace"
+          class="authoring-tab-workspace"
+          aria-label="map authoring workspace"
+        >
+          <header class="authoring-tab-bar">
+            <div
+              id="authoring-tab-list"
+              class="authoring-tab-list"
+              role="tablist"
+              aria-label="workspace views"
+            ></div>
+            <div class="authoring-tab-actions">
+              <!-- <button
+                id="rename-authoring-tab"
+                class="authoring-tab-action"
+                type="button"
+                aria-label="Rename selected tab"
+              >
+                rename
+              </button> -->
+              <!-- <button
+                id="save-authoring-tab-json"
+                class="authoring-tab-action"
+                type="button"
+                aria-label="Save current tab JSON"
+              >
+                save
+              </button>
+              <button
+                id="load-authoring-tab-json"
+                class="authoring-tab-action"
+                type="button"
+                aria-label="Load tab JSON"
+              >
+                load
+              </button> -->
+              <input
+                id="load-authoring-tab-file"
+                class="visually-hidden"
+                type="file"
+                accept="application/json,.json"
+              />
+              <button
+                id="add-authoring-tab"
+                class="authoring-tab-action authoring-tab-add"
+                type="button"
+                aria-label="Add tab"
+              >
+                +
+              </button>
             </div>
-          </section>
+          </header>
 
-          <aside
-            id="annotation-panel"
-            class="option-panel app-side-panel"
-            aria-label="annotation panel"
-          ></aside>
-        </div>
+          <div id="authoring-tab-panels" class="authoring-tab-panels">
+            <section
+              id="authoring-workspace-1"
+              class="app-tab-pane authoring-workspace-pane"
+              data-authoring-workspace-panel
+              data-tab-title="Workspace 1"
+              aria-label="map authoring workspace"
+            >
+              <div class="page-content-row">
+                <section class="app-map-panel" aria-label="map authoring canvas">
+                  <div class="map-view-area">
+                    <div class="context-menu" data-context-menu></div>
+                    <svg
+                      class="vis-container"
+                      data-map-svg
+                      aria-label="Interactive bubble map canvas"
+                    ></svg>
+                    <div
+                      class="map-loading-status"
+                      data-map-loading-status
+                      role="status"
+                      hidden
+                    ></div>
+                  </div>
+                </section>
+
+                <aside
+                  class="option-panel app-side-panel"
+                  data-annotation-panel
+                  aria-label="annotation panel"
+                ></aside>
+              </div>
+            </section>
+          </div>
+        </section>
       </main>
     </div>
 

@@ -13,7 +13,10 @@ const d3 = window.d3;
 
 // Vanilla replacement for the former React BubbleMapInit wrapper.
 export async function initializeBubbleMap({
+  authoringState,
+  contextMenuEl,
   hierarchyModeId = DEFAULT_HIERARCHY_MODE_ID,
+  managerId,
   onAnnotationsChange,
   onAnnotationHover,
   onNetworkChange,
@@ -26,6 +29,26 @@ export async function initializeBubbleMap({
   d3.select(svgEl).selectAll("*").remove();
 
   const hierarchyMode = getHierarchyModeById(hierarchyModeId);
+  const manager = new MapManager(svgEl, {
+    contextMenuEl,
+    hierarchyMode,
+    managerId,
+    onAnnotationsChange,
+    onAnnotationHover,
+    onNetworkChange,
+    onSelectionChange,
+  });
+
+  if (authoringState?.maps?.length) {
+    await manager.restoreAuthoringState(authoringState);
+    return {
+      manager,
+      destroy() {
+        manager.destroy();
+      },
+    };
+  }
+
   const geo = await loadGeojsonWithDataset({
     level: hierarchyMode.root.dataLevel,
     variableId: DEFAULT_DATA_VARIABLE_ID,
@@ -34,14 +57,6 @@ export async function initializeBubbleMap({
     geo,
     hierarchyMode.root.preprocessResolution,
   );
-
-  const manager = new MapManager(svgEl, {
-    hierarchyMode,
-    onAnnotationsChange,
-    onAnnotationHover,
-    onNetworkChange,
-    onSelectionChange,
-  });
 
   const rootMap = manager.spawn({
     geojson: processedGeo,
@@ -61,19 +76,7 @@ export async function initializeBubbleMap({
   return {
     manager,
     destroy() {
-      [...(manager.instances ?? [])].forEach((instance) => {
-        instance.destroy?.();
-      });
-      manager.instances = [];
-      d3.select(window).on("keydown.mapManagerDelete", null);
-      d3.select(document)
-        .on("click.mapManagerSelection", null)
-        .on("mousedown.annotationEditor", null);
-      d3.select(svgEl)
-        .on("contextmenu", null)
-        .on(".zoom", null)
-        .selectAll("*")
-        .remove();
+      manager.destroy();
     },
   };
 }

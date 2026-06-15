@@ -31,15 +31,21 @@ const map = new maplibregl.Map({
   pitchWithRotate: false,
 });
 
-const zctaTooltip = new maplibregl.Popup({
-  closeButton: false,
-  closeOnClick: false,
-  offset: 10,
-});
+const ZCTA_SOURCE_ID = "zcta";
+const ZCTA_FILL_LAYER_ID = "zcta-fill";
+const ZCTA_OUTLINE_LAYER_ID = "zcta-outline";
+const ZCTA_HOVER_OUTLINE_LAYER_ID = "zcta-hover-outline";
+const CONDITION_SELECTOR_ID = "maternal-child-condition";
+const YEAR_SELECTOR_ID = "maternal-child-year";
 const NO_DATA_COLOR = "#d1d5db";
 let zctaGeoJson = null;
 let latestMaternalChildData = null;
 let maternalChildLegend = null;
+let zctaTooltip = null;
+let hoveredZCTA = null;
+let tooltipContentKey = null;
+let pendingTooltipPoint = null;
+let tooltipAnimationFrame = null;
 
 function buildZCTAGeoDataUrl(geographic_resolution) {
   return `/data/map/${geographic_resolution}`;
@@ -55,20 +61,20 @@ async function drawDataOnMap() {
   zctaGeoJson = await response.json();
   const displayGeoJson = getMaternalChildDisplayGeoJson();
 
-  if (map.getSource("zcta")) {
-    map.getSource("zcta").setData(displayGeoJson);
+  if (map.getSource(ZCTA_SOURCE_ID)) {
+    map.getSource(ZCTA_SOURCE_ID).setData(displayGeoJson);
     return;
   }
 
-  map.addSource("zcta", {
+  map.addSource(ZCTA_SOURCE_ID, {
     type: "geojson",
     data: displayGeoJson,
   });
 
   map.addLayer({
-    id: "zcta-fill",
+    id: ZCTA_FILL_LAYER_ID,
     type: "fill",
-    source: "zcta",
+    source: ZCTA_SOURCE_ID,
     paint: {
       "fill-color": ["get", "color"],
       "fill-opacity": 0.7,
@@ -76,16 +82,42 @@ async function drawDataOnMap() {
   });
 
   map.addLayer({
-    id: "zcta-outline",
+    id: ZCTA_OUTLINE_LAYER_ID,
     type: "line",
-    source: "zcta",
+    source: ZCTA_SOURCE_ID,
     paint: {
       "line-color": "#1e293b",
       "line-width": 1,
     },
   });
 
-  setupZCTATooltip();
+  map.addLayer({
+    id: ZCTA_HOVER_OUTLINE_LAYER_ID,
+    type: "line",
+    source: ZCTA_SOURCE_ID,
+    paint: {
+      "line-color": [
+        "case",
+        ["boolean", ["feature-state", "hover"], false],
+        "#111827",
+        "rgba(17, 24, 39, 0)",
+      ],
+      "line-opacity": [
+        "case",
+        ["boolean", ["feature-state", "hover"], false],
+        0.95,
+        0,
+      ],
+      "line-width": [
+        "case",
+        ["boolean", ["feature-state", "hover"], false],
+        3,
+        0,
+      ],
+    },
+  });
+
+  setupZCTAInteractions();
 
   if (window.latestMaternalChildData?.data) {
     latestMaternalChildData = window.latestMaternalChildData.data;
@@ -105,11 +137,17 @@ window.addEventListener("maternal-child-data-loaded", (event) => {
 });
 
 function updateMaternalChildChoropleth() {
-  if (!zctaGeoJson || !map.getSource("zcta")) {
+  if (!zctaGeoJson || !map.getSource(ZCTA_SOURCE_ID)) {
     return;
   }
 
-  map.getSource("zcta").setData(getMaternalChildDisplayGeoJson());
+  map.getSource(ZCTA_SOURCE_ID).setData(getMaternalChildDisplayGeoJson());
+  tooltipContentKey = null;
+
+  if (hoveredZCTA) {
+    setZCTAFeatureHover(hoveredZCTA, true);
+  }
+
   drawDiscreteColorLegend(latestMaternalChildData);
 }
 
@@ -166,6 +204,7 @@ function applyMaternalChildDataToGeoJson(geojson, data) {
 
       return {
         ...feature,
+        id: zcta || feature.id,
         properties: {
           ...feature.properties,
           color:
@@ -181,35 +220,226 @@ function applyMaternalChildDataToGeoJson(geojson, data) {
   };
 }
 
-function setupZCTATooltip() {
-  map.on("mousemove", "zcta-fill", (event) => {
+function setupZCTAInteractions() {
+  map.on("mousemove", ZCTA_FILL_LAYER_ID, (event) => {
     const feature = event.features?.[0];
 
     if (!feature) {
-      zctaTooltip.remove();
+      hideZCTATooltip();
+      setHoveredZCTA(null);
       return;
     }
 
+    const zcta = getFeatureZCTA(feature);
+
+    if (!zcta) {
+      hideZCTATooltip();
+      setHoveredZCTA(null);
+      return;
+    }
+
+    setHoveredZCTA(zcta);
     map.getCanvas().style.cursor = "pointer";
-    zctaTooltip
-      .setLngLat(event.lngLat)
-      .setHTML(getZCTATooltipHTML(feature.properties ?? {}))
-      .addTo(map);
+    updateZCTATooltip(feature, event);
   });
 
-  map.on("mouseleave", "zcta-fill", () => {
+  map.on("mouseleave", ZCTA_FILL_LAYER_ID, () => {
     map.getCanvas().style.cursor = "";
-    zctaTooltip.remove();
+    hideZCTATooltip();
+    setHoveredZCTA(null);
   });
 }
 
-function getZCTATooltipHTML(properties) {
+function setHoveredZCTA(zcta) {
+  const nextZCTA = zcta || null;
+
+  if (hoveredZCTA === nextZCTA) {
+    return;
+  }
+
+  if (hoveredZCTA) {
+    setZCTAFeatureHover(hoveredZCTA, false);
+  }
+
+  hoveredZCTA = nextZCTA;
+
+  if (hoveredZCTA) {
+    setZCTAFeatureHover(hoveredZCTA, true);
+  }
+}
+
+function setZCTAFeatureHover(zcta, hover) {
+  if (
+    !zcta ||
+    !map.getSource(ZCTA_SOURCE_ID) ||
+    !map.getLayer(ZCTA_HOVER_OUTLINE_LAYER_ID)
+  ) {
+    return;
+  }
+
+  map.setFeatureState({ source: ZCTA_SOURCE_ID, id: zcta }, { hover });
+}
+
+function updateZCTATooltip(feature, event) {
+  const tooltip = ensureZCTATooltip();
+  const zcta = getFeatureZCTA(feature);
+  const controlState = getMaternalChildControlState();
+  const contentKey = JSON.stringify([zcta, controlState.condition, controlState.year]);
+
+  if (tooltipContentKey !== contentKey) {
+    tooltip.innerHTML = getZCTATooltipHTML(
+      feature.properties ?? {},
+      controlState,
+    );
+    tooltipContentKey = contentKey;
+  }
+
+  tooltip.style.display = "block";
+  tooltip.style.opacity = "1";
+  scheduleZCTATooltipPosition(getTooltipPoint(event));
+}
+
+function ensureZCTATooltip() {
+  if (zctaTooltip) {
+    return zctaTooltip;
+  }
+
+  const mapContainer = ensureMapContainerPosition();
+  zctaTooltip = document.createElement("div");
+  zctaTooltip.id = "maternal-child-zcta-tooltip";
+  zctaTooltip.style.position = "absolute";
+  zctaTooltip.style.left = "0";
+  zctaTooltip.style.top = "0";
+  zctaTooltip.style.zIndex = "3";
+  zctaTooltip.style.display = "none";
+  zctaTooltip.style.padding = "8px 10px";
+  zctaTooltip.style.border = "1px solid rgba(15, 23, 42, 0.16)";
+  zctaTooltip.style.borderRadius = "6px";
+  zctaTooltip.style.background = "rgba(255, 255, 255, 0.96)";
+  zctaTooltip.style.boxShadow = "0 8px 20px rgba(15, 23, 42, 0.16)";
+  zctaTooltip.style.color = "#0f172a";
+  zctaTooltip.style.fontFamily = "var(--sl-font-sans, sans-serif)";
+  zctaTooltip.style.fontSize = "12px";
+  zctaTooltip.style.lineHeight = "1.35";
+  zctaTooltip.style.pointerEvents = "none";
+  zctaTooltip.style.willChange = "transform";
+
+  mapContainer.appendChild(zctaTooltip);
+  return zctaTooltip;
+}
+
+function hideZCTATooltip() {
+  if (!zctaTooltip) {
+    return;
+  }
+
+  zctaTooltip.style.display = "none";
+  zctaTooltip.style.opacity = "0";
+  tooltipContentKey = null;
+  pendingTooltipPoint = null;
+
+  if (tooltipAnimationFrame !== null && window.cancelAnimationFrame) {
+    window.cancelAnimationFrame(tooltipAnimationFrame);
+  }
+
+  tooltipAnimationFrame = null;
+}
+
+function scheduleZCTATooltipPosition(point) {
+  if (!point) {
+    return;
+  }
+
+  pendingTooltipPoint = point;
+
+  if (tooltipAnimationFrame !== null) {
+    return;
+  }
+
+  if (window.requestAnimationFrame) {
+    tooltipAnimationFrame = window.requestAnimationFrame(
+      applyZCTATooltipPosition,
+    );
+    return;
+  }
+
+  applyZCTATooltipPosition();
+}
+
+function applyZCTATooltipPosition() {
+  tooltipAnimationFrame = null;
+
+  if (!zctaTooltip || !pendingTooltipPoint) {
+    return;
+  }
+
+  const x = Math.round(pendingTooltipPoint.x + 12);
+  const y = Math.round(pendingTooltipPoint.y + 12);
+  zctaTooltip.style.transform = `translate(${x}px, ${y}px)`;
+}
+
+function getTooltipPoint(event) {
+  if (event.point) {
+    return event.point;
+  }
+
+  if (event.lngLat && typeof map.project === "function") {
+    return map.project(event.lngLat);
+  }
+
+  return null;
+}
+
+function getZCTATooltipHTML(properties, controlState) {
   const zcta = escapeHTML(getFeatureZCTA({ properties }) || "Unknown ZCTA");
   const value = formatTooltipValue(properties.value);
   const group = escapeHTML(properties.map_group || "No map group");
+  const condition = escapeHTML(controlState.condition || "No condition selected");
+  const year = escapeHTML(controlState.year || "No year selected");
 
-  return `<div> <b>ZCTA:</b> ${zcta}<br/>
-         <b>Value:</b> ${value} (${group})</div>`;
+  return `<b>ZCTA:</b> ${zcta}<br/>
+         <div><b>Condition:</b> ${condition}<br/>
+         <b>Year:</b> ${year}<br/>
+         <b>Observed Cases:</b> ${value} (${group})</div>`;
+}
+
+function getMaternalChildControlState() {
+  const controlState = window.maternalChildOptionValue?.getControlState?.();
+
+  if (controlState) {
+    return {
+      condition: controlState.condition ?? "",
+      year: controlState.year ?? "",
+    };
+  }
+
+  return {
+    condition: getSelectedControlRawValue(CONDITION_SELECTOR_ID),
+    year: getSelectedControlRawValue(YEAR_SELECTOR_ID),
+  };
+}
+
+function getSelectedControlRawValue(selectorId) {
+  const selector = document.getElementById(selectorId);
+
+  if (!selector) {
+    return "";
+  }
+
+  const helper = window.maternalChildOptionValue;
+
+  if (helper?.getSelectedRawValue) {
+    return helper.getSelectedRawValue(selector);
+  }
+
+  const selectedValue = selector.value || selector.getAttribute("value") || "";
+  const selectedOption = Array.from(selector.querySelectorAll("sl-option")).find(
+    (option) => option.getAttribute("value") === selectedValue,
+  );
+
+  return selectedOption?.dataset.rawValue
+    ?? selector.dataset.rawValue
+    ?? selectedValue;
 }
 
 function formatTooltipValue(value) {
@@ -259,6 +489,16 @@ function getMapGroup(datum) {
   return datum.map_group ?? null;
 }
 
+function ensureMapContainerPosition() {
+  const mapContainer = map.getContainer();
+
+  if (getComputedStyle(mapContainer).position === "static") {
+    mapContainer.style.position = "relative";
+  }
+
+  return mapContainer;
+}
+
 function getLegendEntries(data) {
   const colorOrder = {
     "#BDBDBD": 0, // 회색
@@ -291,11 +531,7 @@ function ensureDiscreteLegend() {
     return maternalChildLegend;
   }
 
-  const mapContainer = map.getContainer();
-
-  if (getComputedStyle(mapContainer).position === "static") {
-    mapContainer.style.position = "relative";
-  }
+  const mapContainer = ensureMapContainerPosition();
 
   maternalChildLegend = document.createElement("div");
   maternalChildLegend.id = "maternal-child-map-legend";

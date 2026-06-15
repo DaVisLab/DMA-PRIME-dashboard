@@ -3,7 +3,9 @@ import { DraggableMap } from "./DraggableMap.js";
 import { drawColorLegend, preprocessingGeoJSON } from "./helper.js";
 import { getFeatureDisplayName } from "./FeatureTooltip.js";
 import {
+  DATA_LEVELS,
   DEFAULT_DATA_VARIABLE_ID,
+  getDatasetLevelForGeoResolution,
   loadGeojsonWithDataset,
 } from "./DataRepository.js";
 import {
@@ -12,6 +14,7 @@ import {
 } from "./HierarchyConfig.js";
 
 const d3 = window.d3;
+let mapManagerSeq = 0;
 
 export const mapResolutions = {
   WORLD: 0,
@@ -44,7 +47,7 @@ const GROUP_HEADER_MIN_WIDTH =
   14 + 72 + GROUP_CONTROL_GAP + GROUP_VARIABLE_WIDTH + GROUP_CONTROL_GAP +
   GROUP_LEGEND_WIDTH + 14;
 const INTERACTION_SURFACE_SELECTOR =
-  ".map-instance, .map-overview, .context-menu";
+  ".map-instance, .map-overview, .context-menu, .authoring-tab-bar";
 const TEXT_ENTRY_SELECTOR =
   "input, textarea, select, [contenteditable='true'], [contenteditable='']";
 const CONTEXT_MENU_VIEWPORT_MARGIN = 8;
@@ -55,22 +58,41 @@ const CONTEXT_MENU_OPTIONS = [
   { label: "Group Selected", value: "groupSelected" },
   { label: "Ungroup Selected", value: "ungroupSelected" },
 ];
+const DISPLAY_LEVEL_TO_PREPROCESS_RESOLUTION = Object.freeze({
+  [DATA_LEVELS.REGION]: "REGION",
+  [DATA_LEVELS.COUNTY]: "STATE",
+  [DATA_LEVELS.ZCTA]: "COUNTY",
+});
 
 export class MapManager {
   constructor(
     svgEl,
     {
+      contextMenuEl,
       onNetworkChange,
       onSelectionChange,
       onAnnotationsChange,
       onAnnotationHover,
       hierarchyMode = DEFAULT_HIERARCHY_MODE_ID,
+      managerId,
     } = {},
   ) {
+    this.managerSeq = ++mapManagerSeq;
+    this.managerId = normalizeDomIdSegment(
+      managerId,
+      `workspace-${this.managerSeq}`,
+    );
+    this.eventNamespace = `mapManager${this.managerSeq}`;
+    this.instanceIdPrefix = `map-manager-${this.managerSeq}-${this.managerId}-`;
+    this.linkLayerId = `${this.instanceIdPrefix}g-layer-links`;
+    this.isActive = true;
     this.svg = d3.select(svgEl);
     this.width = svgEl.clientWidth || 960;
     this.height = svgEl.clientHeight || 600;
-    this.menu = document.getElementById("contextMenu");
+    this.menu =
+      contextMenuEl ??
+      svgEl.closest?.(".map-view-area")?.querySelector(".context-menu") ??
+      document.getElementById("contextMenu");
     this.onNetworkChange = onNetworkChange;
     this.onSelectionChange = onSelectionChange;
     this.onAnnotationsChange = onAnnotationsChange;
@@ -108,11 +130,13 @@ export class MapManager {
 
   bindWorkspaceEvents() {
     this.svg.on("contextmenu", (e) => {
+      if (!this.isActive) return;
       e.preventDefault();
       e.stopPropagation();
       this.showMenu(e);
     });
     this.svg.on("click.selection", (event) => {
+      if (!this.isActive) return;
       if (this.didMarqueeSelect) {
         this.didMarqueeSelect = false;
         return;
@@ -124,7 +148,8 @@ export class MapManager {
       this.clearAllChildFeatureSelections();
       this.clearInstanceSelection();
     });
-    d3.select(document).on("click.mapManagerSelection", (event) => {
+    d3.select(document).on(`click.${this.eventNamespace}`, (event) => {
+      if (!this.isActive) return;
       if (event.defaultPrevented) return;
       if (event.target?.closest?.(INTERACTION_SURFACE_SELECTOR)) return;
 
@@ -132,7 +157,8 @@ export class MapManager {
       this.clearAllChildFeatureSelections();
       this.clearInstanceSelection();
     });
-    d3.select(window).on("keydown.mapManagerDelete", (event) => {
+    d3.select(window).on(`keydown.${this.eventNamespace}`, (event) => {
+      if (!this.isActive) return;
       if (this.isTextEntryTarget(event.target)) return;
 
       if (event.key !== "Delete" && event.key !== "Backspace") return;
@@ -145,6 +171,28 @@ export class MapManager {
     });
   }
 
+  setActive(isActive) {
+    this.isActive = Boolean(isActive);
+    if (!this.isActive) this.hideMenu();
+  }
+
+  destroy() {
+    [...(this.instances ?? [])].forEach((instance) => {
+      instance.destroy?.();
+    });
+    this.instances = [];
+    this.hideMenu();
+    d3.select(document).on(`click.${this.eventNamespace}`, null);
+    d3.select(window).on(`keydown.${this.eventNamespace}`, null);
+    this.svg
+      .on("contextmenu", null)
+      .on("click.selection", null)
+      .on(".drag", null)
+      .on(".zoom", null)
+      .selectAll("*")
+      .remove();
+  }
+
   initLayers() {
     this.viewport = this.svg.append("g").attr("class", "viewport");
 
@@ -152,11 +200,11 @@ export class MapManager {
       this,
       this.svg,
       this.viewport,
-      "g-layer-links",
+      this.linkLayerId,
     );
-    this.graphLayer = d3.select(`#g-layer-links`);
+    this.graphLayer = this.graph.gLinks;
     this.groupLayer = this.viewport
-      .insert("g", "#g-layer-links")
+      .insert("g", `#${this.linkLayerId}`)
       .attr("class", "map-group-layer");
     this.selectionLayer = this.svg
       .append("g")
@@ -367,6 +415,238 @@ export class MapManager {
     this.emitNetworkChange();
     this.updateOverview();
     return map;
+  }
+
+  async restoreAuthoringState(authoringState = {}) {
+    const mapIdMap = new Map();
+    const maps = Array.isArray(authoringState.maps) ? authoringState.maps : [];
+
+    for (const mapState of maps) {
+      const restoredMap = await this.restoreMapState(mapState);
+      if (restoredMap && mapState.id) {
+        mapIdMap.set(mapState.id, restoredMap.instanceId);
+      }
+    }
+
+    this.restoreConnectionState(authoringState.connections, mapIdMap);
+    this.restoreGroupState(authoringState.groups, mapIdMap);
+    this.restoreSelectionState(authoringState.selection, mapIdMap);
+    this.restoreViewportState(authoringState.canvas?.viewport);
+    this.refreshColorScalesForInstances(
+      this.instances.map((instance) => instance.instanceId),
+    );
+    this.syncInstanceSelection();
+    this.emitAnnotationsChange();
+    this.emitNetworkChange();
+    this.updateOverview();
+    this.flushGraphUpdate();
+
+    return mapIdMap;
+  }
+
+  async restoreMapState(mapState = {}) {
+    const data = mapState.data ?? {};
+    const geometry = mapState.geometry ?? {};
+    const variableId = mapState.variable?.id ?? DEFAULT_DATA_VARIABLE_ID;
+    const displayLevel =
+      data.displayLevel ?? getDatasetLevelForGeoResolution(data.geoResolution);
+    const geoResolution = data.geoResolution ?? "REGION";
+    const geojson = await this.loadSavedMapGeojson({
+      data,
+      displayLevel,
+      variableId,
+    });
+    const backgroundGeojson = await this.loadSavedBackgroundGeojson({
+      data,
+      displayLevel,
+      variableId,
+    });
+
+    const restoredMap = this.spawn({
+      geojson,
+      backgroundGeojson,
+      x: Number.isFinite(Number(geometry.x)) ? Number(geometry.x) : this.width / 2,
+      y: Number.isFinite(Number(geometry.y)) ? Number(geometry.y) : this.height / 2,
+      radius: Number.isFinite(Number(geometry.radius))
+        ? Number(geometry.radius)
+        : this.getDefaultRadius(),
+      displayLevel,
+      geoResolution,
+      geoID: data.geoID,
+      geoLabel: data.geoLabel,
+      scopeId: data.scopeId,
+      scopeLabel: data.scopeLabel,
+      scopeLevel: data.scopeLevel,
+      variableOfInterest: variableId,
+    });
+
+    restoredMap.restoreAnnotationPinState?.(mapState.annotations, {
+      annotationSeq: mapState.annotationSeq,
+    });
+
+    return restoredMap;
+  }
+
+  async loadSavedMapGeojson({ data, displayLevel, variableId }) {
+    const load = (featureFilter = null) =>
+      loadGeojsonWithDataset({
+        level: displayLevel,
+        variableId,
+        featureFilter,
+      });
+    let geojson = await load((feature) =>
+      this.isFeatureInSavedScope(feature.properties, data, displayLevel),
+    );
+
+    if (!geojson.features?.length) geojson = await load();
+
+    return preprocessingGeoJSON(
+      geojson,
+      DISPLAY_LEVEL_TO_PREPROCESS_RESOLUTION[displayLevel] ??
+        data.geoResolution ??
+        "REGION",
+    );
+  }
+
+  async loadSavedBackgroundGeojson({ data, displayLevel, variableId }) {
+    if (data.scopeLevel !== "county" || displayLevel !== DATA_LEVELS.ZCTA) {
+      return null;
+    }
+
+    const backgroundGeojson = await loadGeojsonWithDataset({
+      level: DATA_LEVELS.COUNTY,
+      variableId,
+      featureFilter: (feature) =>
+        this.isFeatureInSavedScope(feature.properties, data, DATA_LEVELS.COUNTY),
+    });
+
+    if (!backgroundGeojson.features?.length) return null;
+
+    return preprocessingGeoJSON(backgroundGeojson, "STATE");
+  }
+
+  isFeatureInSavedScope(properties = {}, data = {}, displayLevel = null) {
+    if (!data.scopeLevel || data.scopeLevel === "state") return true;
+
+    if (data.scopeLevel === "region") {
+      if (displayLevel === DATA_LEVELS.REGION) {
+        return hasMatchingComparableId(
+          [
+            properties.regionName,
+            properties.Region,
+            properties.regionId,
+            properties.id,
+          ],
+          [data.scopeLabel, data.scopeId],
+        );
+      }
+
+      return hasMatchingComparableId(
+        [
+          properties.parentRegion,
+          properties.parentRegionId,
+          properties.regionName,
+          properties.Region,
+        ],
+        [data.scopeLabel, data.scopeId],
+      );
+    }
+
+    if (data.scopeLevel === "county") {
+      if (displayLevel === DATA_LEVELS.COUNTY) {
+        return hasMatchingComparableId(
+          [
+            properties.countyName,
+            properties.NAME,
+            properties.countyId,
+            properties.id,
+          ],
+          [data.scopeLabel, data.scopeId],
+        );
+      }
+
+      return hasMatchingComparableId(
+        [
+          properties.parentCountyName,
+          properties.parentCountyId,
+          properties.countyName,
+          properties.county,
+        ],
+        [data.scopeLabel, data.scopeId],
+      );
+    }
+
+    return true;
+  }
+
+  restoreConnectionState(connections = [], mapIdMap = new Map()) {
+    const savedConnections = Array.isArray(connections) ? connections : [];
+
+    savedConnections.forEach((connection) => {
+      const parentMapId = mapIdMap.get(connection.parentMapId);
+      const childMapId = mapIdMap.get(connection.childMapId);
+      const parentAreaId =
+        connection.parentAreaId ??
+        getSavedInnerAreaId(connection.parentFeatureId, connection.parentMapId);
+
+      if (!parentMapId || !childMapId || !parentAreaId) return;
+
+      const parentFeatureId = `${parentMapId}-innerarea-${parentAreaId}`;
+      this.graph.addEdge(
+        `edge-from_${parentFeatureId}-to_${childMapId}`,
+        parentFeatureId,
+        childMapId,
+        graphRelationship.hierarchical,
+      );
+    });
+  }
+
+  restoreGroupState(groups = [], mapIdMap = new Map()) {
+    this.groups.clear();
+    let nextGroupSeq = 0;
+
+    (Array.isArray(groups) ? groups : []).forEach((group) => {
+      const memberIds = (group.memberMapIds ?? group.memberIds ?? [])
+        .map((id) => mapIdMap.get(id))
+        .filter(Boolean);
+      if (memberIds.length < 2) return;
+
+      const groupId = group.id ?? `map-group-${nextGroupSeq}`;
+      const groupSeqMatch = /^map-group-(\d+)$/.exec(groupId);
+      if (groupSeqMatch) {
+        nextGroupSeq = Math.max(nextGroupSeq, Number(groupSeqMatch[1]) + 1);
+      }
+
+      this.groups.set(groupId, {
+        id: groupId,
+        memberIds,
+        parentInstanceId: mapIdMap.get(group.parentMapId) ?? null,
+      });
+    });
+
+    this.groupSeq = Math.max(this.groupSeq, nextGroupSeq, this.groups.size);
+  }
+
+  restoreSelectionState(selection = {}, mapIdMap = new Map()) {
+    this.selectedInstanceId = mapIdMap.get(selection.selectedMapId) ?? null;
+    const selectedSourceIds = selection.selectedMapIds?.length
+      ? selection.selectedMapIds
+      : [selection.selectedMapId].filter(Boolean);
+    this.selectedInstanceIds = new Set(
+      selectedSourceIds
+        .map((id) => mapIdMap.get(id))
+        .filter(Boolean),
+    );
+    this.activeGroupSelectionId = selection.activeGroupId ?? null;
+  }
+
+  restoreViewportState(viewport = null) {
+    if (!viewport) return;
+
+    const transform = d3.zoomIdentity
+      .translate(Number(viewport.x) || 0, Number(viewport.y) || 0)
+      .scale(Number(viewport.scale) || 1);
+    this.svg.call(this.zoom.transform, transform);
   }
 
   getDefaultRadius() {
@@ -633,6 +913,80 @@ export class MapManager {
       selectedNodeId: this.selectedInstanceId,
       selectedNodeIds: Array.from(this.selectedInstanceIds),
     };
+  }
+
+  getAuthoringState() {
+    const transform = d3.zoomTransform(this.svg.node());
+
+    return {
+      stateVersion: 1,
+      canvas: {
+        width: this.width,
+        height: this.height,
+        viewport: {
+          x: transform.x,
+          y: transform.y,
+          scale: transform.k,
+        },
+      },
+      maps: this.instances.map((instance) =>
+        instance.getAuthoringState(this.getParentAreaLabel(instance.instanceId)),
+      ),
+      connections: this.getConnectionAuthoringState(),
+      annotations: this.getAnnotationSnapshot(),
+      groups: this.getGroupAuthoringState(),
+      selection: {
+        selectedMapId: this.selectedInstanceId,
+        selectedMapIds: Array.from(this.selectedInstanceIds),
+        activeGroupId: this.activeGroupSelectionId,
+      },
+      network: this.getNetworkSnapshot(),
+    };
+  }
+
+  getConnectionAuthoringState() {
+    return this.graph.edges
+      .filter((edge) => edge.edgeType === graphRelationship.hierarchical)
+      .map((edge) => {
+        const parentInstance = this.getParentInstanceForFeature(edge.parentId);
+        const featureProperties = this.getFeatureProperties(edge.parentId);
+
+        return {
+          id: edge.id,
+          type: "hierarchical",
+          parentMapId: parentInstance?.instanceId ?? null,
+          parentAreaId: getSavedInnerAreaId(
+            edge.parentId,
+            parentInstance?.instanceId,
+          ),
+          parentFeatureId: edge.parentId,
+          parentFeatureLabel: featureProperties
+            ? getFeatureDisplayName(featureProperties)
+            : this.getParentAreaLabel(edge.childId),
+          childMapId: edge.childId,
+          childMapTitle: this.getInstanceTitle(edge.childId),
+        };
+      });
+  }
+
+  getGroupAuthoringState() {
+    return Array.from(this.groups.values()).map((group) => ({
+      id: group.id,
+      memberMapIds: [...group.memberIds],
+      parentMapId: group.parentInstanceId,
+    }));
+  }
+
+  getFeatureProperties(featureId) {
+    const featureEl = document.getElementById(featureId);
+    const rawProperties = featureEl?.getAttribute("geo-properties");
+    if (!rawProperties) return null;
+
+    try {
+      return JSON.parse(rawProperties);
+    } catch (error) {
+      return null;
+    }
   }
 
   getInstanceTitle(instanceId) {
@@ -2404,7 +2758,7 @@ export class MapManager {
     CONTEXT_MENU_OPTIONS.forEach((opt) => {
       const item = document.createElement("div");
       item.className = "context-menu-item";
-      item.id = `context-menu-item-${opt.value}`;
+      item.dataset.contextMenuAction = opt.value;
       item.textContent = opt.label;
 
       this.menu.appendChild(item);
@@ -2436,7 +2790,11 @@ export class MapManager {
   }
 
   getContextMenuItem(value) {
-    return document.getElementById(`context-menu-item-${value}`);
+    return (
+      Array.from(this.menu?.children ?? []).find(
+        (item) => item.dataset.contextMenuAction === value,
+      ) ?? null
+    );
   }
 
   setContextMenuItemState(value, { disabled, text } = {}) {
@@ -2593,6 +2951,51 @@ export class MapManager {
 function clamp(value, min, max) {
   if (max < min) return (min + max) / 2;
   return Math.min(Math.max(value, min), max);
+}
+
+function normalizeDomIdSegment(value, fallback) {
+  const normalized = String(value ?? "")
+    .replace(/[^a-zA-Z0-9_-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  return normalized || fallback;
+}
+
+function normalizeComparableId(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function hasMatchingComparableId(candidateValues, selectedValues) {
+  const selectedSet = new Set(
+    selectedValues.map(normalizeComparableId).filter(Boolean),
+  );
+
+  return candidateValues.some((value) =>
+    selectedSet.has(normalizeComparableId(value)),
+  );
+}
+
+function getSavedInnerAreaId(featureId, mapId) {
+  const normalizedFeatureId = String(featureId ?? "");
+  if (!normalizedFeatureId) return "";
+
+  if (mapId) {
+    const scopedPrefix = `${mapId}-innerarea-`;
+    if (normalizedFeatureId.startsWith(scopedPrefix)) {
+      return normalizedFeatureId.slice(scopedPrefix.length);
+    }
+  }
+
+  const marker = "-innerarea-";
+  const markerIndex = normalizedFeatureId.lastIndexOf(marker);
+  return markerIndex >= 0
+    ? normalizedFeatureId.slice(markerIndex + marker.length)
+    : normalizedFeatureId;
 }
 
 function abbreviateOverviewLabel(label) {

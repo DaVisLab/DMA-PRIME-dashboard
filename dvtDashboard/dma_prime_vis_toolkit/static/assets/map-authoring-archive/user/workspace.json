@@ -1,0 +1,486 @@
+{
+  "schemaVersion": "map-authoring-tabs/v1",
+  "savedAt": "2026-06-15T17:54:46.418Z",
+  "userId": "user",
+  "activeTabId": "authoring-workspace-1781546078684-2",
+  "tabs": [
+    {
+      "schemaVersion": "map-authoring-tabs/v1",
+      "savedAt": "2026-06-15T17:54:46.418Z",
+      "userId": "user",
+      "tab": {
+        "id": "authoring-workspace-1781546076497-1",
+        "title": "Workspace 1"
+      },
+      "workspace": {
+        "id": "authoring-workspace-1781546076497-1",
+        "hierarchyModeId": "sc-region-county-zcta",
+        "filters": {
+          "level": "all",
+          "node": "all",
+          "parent": "all"
+        },
+        "activeAnnotationId": null,
+        "editingAnnotationId": null,
+        "isInitialized": true
+      },
+      "mapAuthoring": {
+        "stateVersion": 1,
+        "canvas": {
+          "width": 960,
+          "height": 600,
+          "viewport": {
+            "x": 200.1380959584477,
+            "y": 40.43742114742497,
+            "scale": 0.5075924231399178
+          }
+        },
+        "maps": [
+          {
+            "id": "map-manager-1-authoring-workspace-1781546076497-1-map-REGION-SC_REGIONS-0",
+            "title": "South Carolina regions",
+            "parentLabel": "workspace root",
+            "geometry": {
+              "x": 596.5,
+              "y": 334.5,
+              "radius": 220
+            },
+            "data": {
+              "displayLevel": "region",
+              "geoResolution": "REGION",
+              "geoID": "SC_REGIONS",
+              "geoLabel": "South Carolina regions",
+              "scopeId": "sc",
+              "scopeLabel": "South Carolina",
+              "scopeLevel": "state"
+            },
+            "variable": {
+              "id": "all_diseases",
+              "label": "All Disease"
+            },
+            "annotations": [],
+            "annotationSeq": 0,
+            "featureCount": 4
+          },
+          {
+            "id": "map-manager-1-authoring-workspace-1781546076497-1-map-STATE-pee-dee-0",
+            "title": "Pee Dee counties",
+            "parentLabel": "Pee Dee",
+            "geometry": {
+              "x": 1037.306640625,
+              "y": 234.59677124023438,
+              "radius": 165
+            },
+            "data": {
+              "displayLevel": "county",
+              "geoResolution": "STATE",
+              "geoID": "pee-dee",
+              "geoLabel": "Pee Dee",
+              "scopeId": "pee-dee",
+              "scopeLabel": "Pee Dee",
+              "scopeLevel": "region"
+            },
+            "variable": {
+              "id": "all_diseases",
+              "label": "All Disease"
+            },
+            "annotations": [],
+            "annotationSeq": 0,
+            "featureCount": 12
+          },
+          {
+            "id": "map-manager-1-authoring-workspace-1781546076497-1-map-STATE-lowcountry-0",
+            "title": "Lowcountry counties",
+            "parentLabel": "Lowcountry",
+            "geometry": {
+              "x": 1001.9082972028032,
+              "y": 614.2470242453,
+              "radius": 165
+            },
+            "data": {
+              "displayLevel": "county",
+              "geoResolution": "STATE",
+              "geoID": "lowcountry",
+              "geoLabel": "Lowcountry",
+              "scopeId": "lowcountry",
+              "scopeLabel": "Lowcountry",
+              "scopeLevel": "region"
+            },
+            "variable": {
+              "id": "all_diseases",
+              "label": "All Disease"
+            },
+            "annotations": [],
+            "annotationSeq": 0,
+            "featureCount": 10
+          },
+          {
+            "id": "map-manager-1-authoring-workspace-1781546076497-1-map-STATE-midlands-0",
+            "title": "Midlands counties",
+            "parentLabel": "Midlands",
+            "geometry": {
+              "x": 115.86883073585497,
+              "y": 818.8911697901588,
+              "radius": 165
+            },
+            "data": {
+              "displayLevel": "county",
+              "geoResolution": "STATE",
+              "geoID": "midlands",
+              "geoLabel": "Midlands",
+              "scopeId": "midlands",
+              "scopeLabel": "Midlands",
+              "scopeLevel": "region"
+            },
+            "variable": {
+              "id": "all_diseases",
+              "label": "All Disease"
+            },
+            "annotations": [],
+            "annotationSeq": 0,
+            "featureCount": 13
+          }
+        ],
+        "connections": [
+          {
+            "id": "edge-from_map-manager-1-authoring-workspace-1781546076497-1-map-REGION-SC_REGIONS-0-innerarea-pee-dee-to_map-manager-1-authoring-workspace-1781546076497-1-map-STATE-pee-dee-0",
+            "type": "hierarchical",
+            "parentMapId": "map-manager-1-authoring-workspace-1781546076497-1-map-REGION-SC_REGIONS-0",
+            "parentAreaId": "pee-dee",
+            "parentFeatureId": "map-manager-1-authoring-workspace-1781546076497-1-map-REGION-SC_REGIONS-0-innerarea-pee-dee",
+            "parentFeatureLabel": "Pee Dee",
+            "childMapId": "map-manager-1-authoring-workspace-1781546076497-1-map-STATE-pee-dee-0",
+            "childMapTitle": "Pee Dee counties"
+          },
+          {
+            "id": "edge-from_map-manager-1-authoring-workspace-1781546076497-1-map-REGION-SC_REGIONS-0-innerarea-lowcountry-to_map-manager-1-authoring-workspace-1781546076497-1-map-STATE-lowcountry-0",
+            "type": "hierarchical",
+            "parentMapId": "map-manager-1-authoring-workspace-1781546076497-1-map-REGION-SC_REGIONS-0",
+            "parentAreaId": "lowcountry",
+            "parentFeatureId": "map-manager-1-authoring-workspace-1781546076497-1-map-REGION-SC_REGIONS-0-innerarea-lowcountry",
+            "parentFeatureLabel": "Lowcountry",
+            "childMapId": "map-manager-1-authoring-workspace-1781546076497-1-map-STATE-lowcountry-0",
+            "childMapTitle": "Lowcountry counties"
+          },
+          {
+            "id": "edge-from_map-manager-1-authoring-workspace-1781546076497-1-map-REGION-SC_REGIONS-0-innerarea-midlands-to_map-manager-1-authoring-workspace-1781546076497-1-map-STATE-midlands-0",
+            "type": "hierarchical",
+            "parentMapId": "map-manager-1-authoring-workspace-1781546076497-1-map-REGION-SC_REGIONS-0",
+            "parentAreaId": "midlands",
+            "parentFeatureId": "map-manager-1-authoring-workspace-1781546076497-1-map-REGION-SC_REGIONS-0-innerarea-midlands",
+            "parentFeatureLabel": "Midlands",
+            "childMapId": "map-manager-1-authoring-workspace-1781546076497-1-map-STATE-midlands-0",
+            "childMapTitle": "Midlands counties"
+          }
+        ],
+        "annotations": [],
+        "groups": [],
+        "selection": {
+          "selectedMapId": null,
+          "selectedMapIds": [],
+          "activeGroupId": null
+        },
+        "network": {
+          "nodes": [
+            {
+              "id": "map-manager-1-authoring-workspace-1781546076497-1-map-REGION-SC_REGIONS-0",
+              "title": "South Carolina regions",
+              "scale": "region scale",
+              "variable": "all_diseases",
+              "featureCount": 4,
+              "parentLabel": "workspace root",
+              "x": 597,
+              "y": 335,
+              "radius": 220
+            },
+            {
+              "id": "map-manager-1-authoring-workspace-1781546076497-1-map-STATE-pee-dee-0",
+              "title": "Pee Dee counties",
+              "scale": "county scale",
+              "variable": "all_diseases",
+              "featureCount": 12,
+              "parentLabel": "Pee Dee",
+              "x": 1037,
+              "y": 235,
+              "radius": 165
+            },
+            {
+              "id": "map-manager-1-authoring-workspace-1781546076497-1-map-STATE-lowcountry-0",
+              "title": "Lowcountry counties",
+              "scale": "county scale",
+              "variable": "all_diseases",
+              "featureCount": 10,
+              "parentLabel": "Lowcountry",
+              "x": 1002,
+              "y": 614,
+              "radius": 165
+            },
+            {
+              "id": "map-manager-1-authoring-workspace-1781546076497-1-map-STATE-midlands-0",
+              "title": "Midlands counties",
+              "scale": "county scale",
+              "variable": "all_diseases",
+              "featureCount": 13,
+              "parentLabel": "Midlands",
+              "x": 116,
+              "y": 819,
+              "radius": 165
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge-from_map-manager-1-authoring-workspace-1781546076497-1-map-REGION-SC_REGIONS-0-innerarea-pee-dee-to_map-manager-1-authoring-workspace-1781546076497-1-map-STATE-pee-dee-0",
+              "type": "hierarchical",
+              "parentId": "map-manager-1-authoring-workspace-1781546076497-1-map-REGION-SC_REGIONS-0-innerarea-pee-dee",
+              "childId": "map-manager-1-authoring-workspace-1781546076497-1-map-STATE-pee-dee-0",
+              "parentLabel": "Pee Dee",
+              "childLabel": "Pee Dee counties"
+            },
+            {
+              "id": "edge-from_map-manager-1-authoring-workspace-1781546076497-1-map-REGION-SC_REGIONS-0-innerarea-lowcountry-to_map-manager-1-authoring-workspace-1781546076497-1-map-STATE-lowcountry-0",
+              "type": "hierarchical",
+              "parentId": "map-manager-1-authoring-workspace-1781546076497-1-map-REGION-SC_REGIONS-0-innerarea-lowcountry",
+              "childId": "map-manager-1-authoring-workspace-1781546076497-1-map-STATE-lowcountry-0",
+              "parentLabel": "Lowcountry",
+              "childLabel": "Lowcountry counties"
+            },
+            {
+              "id": "edge-from_map-manager-1-authoring-workspace-1781546076497-1-map-REGION-SC_REGIONS-0-innerarea-midlands-to_map-manager-1-authoring-workspace-1781546076497-1-map-STATE-midlands-0",
+              "type": "hierarchical",
+              "parentId": "map-manager-1-authoring-workspace-1781546076497-1-map-REGION-SC_REGIONS-0-innerarea-midlands",
+              "childId": "map-manager-1-authoring-workspace-1781546076497-1-map-STATE-midlands-0",
+              "parentLabel": "Midlands",
+              "childLabel": "Midlands counties"
+            }
+          ],
+          "selectedNodeId": null,
+          "selectedNodeIds": []
+        }
+      }
+    },
+    {
+      "schemaVersion": "map-authoring-tabs/v1",
+      "savedAt": "2026-06-15T17:54:46.418Z",
+      "userId": "user",
+      "tab": {
+        "id": "authoring-workspace-1781546078684-2",
+        "title": "Workspace 2"
+      },
+      "workspace": {
+        "id": "authoring-workspace-1781546078684-2",
+        "hierarchyModeId": "sc-region-county-zcta",
+        "filters": {
+          "level": "all",
+          "node": "all",
+          "parent": "all"
+        },
+        "activeAnnotationId": null,
+        "editingAnnotationId": null,
+        "isInitialized": true
+      },
+      "mapAuthoring": {
+        "stateVersion": 1,
+        "canvas": {
+          "width": 960,
+          "height": 600,
+          "viewport": {
+            "x": 194.74525029425052,
+            "y": 145.75894291307964,
+            "scale": 0.757858283255199
+          }
+        },
+        "maps": [
+          {
+            "id": "map-manager-2-authoring-workspace-1781546078684-2-map-REGION-SC_REGIONS-0",
+            "title": "South Carolina regions",
+            "parentLabel": "workspace root",
+            "geometry": {
+              "x": 583.9576985344406,
+              "y": 144.7626311615503,
+              "radius": 220
+            },
+            "data": {
+              "displayLevel": "region",
+              "geoResolution": "REGION",
+              "geoID": "SC_REGIONS",
+              "geoLabel": "South Carolina regions",
+              "scopeId": "sc",
+              "scopeLabel": "South Carolina",
+              "scopeLevel": "state"
+            },
+            "variable": {
+              "id": "all_diseases",
+              "label": "All Disease"
+            },
+            "annotations": [
+              {
+                "id": "map-manager-2-authoring-workspace-1781546078684-2-map-REGION-SC_REGIONS-0-pin-0",
+                "featureId": "pee-dee",
+                "featureLabel": "Pee Dee",
+                "note": "drtd",
+                "isSaved": true,
+                "rx": 0.5632729526878599,
+                "ry": -0.1634567847007371
+              }
+            ],
+            "annotationSeq": 1,
+            "featureCount": 4
+          },
+          {
+            "id": "map-manager-2-authoring-workspace-1781546078684-2-map-STATE-upstate-0",
+            "title": "Upstate counties",
+            "parentLabel": "Upstate",
+            "geometry": {
+              "x": -43.02618088246777,
+              "y": 219.81473400302093,
+              "radius": 165
+            },
+            "data": {
+              "displayLevel": "county",
+              "geoResolution": "STATE",
+              "geoID": "upstate",
+              "geoLabel": "Upstate",
+              "scopeId": "upstate",
+              "scopeLabel": "Upstate",
+              "scopeLevel": "region"
+            },
+            "variable": {
+              "id": "all_diseases",
+              "label": "All Disease"
+            },
+            "annotations": [],
+            "annotationSeq": 0,
+            "featureCount": 11
+          },
+          {
+            "id": "map-manager-2-authoring-workspace-1781546078684-2-map-STATE-lowcountry-0",
+            "title": "Lowcountry counties",
+            "parentLabel": "Lowcountry",
+            "geometry": {
+              "x": 438.2116517183536,
+              "y": 587.6641496146552,
+              "radius": 165
+            },
+            "data": {
+              "displayLevel": "county",
+              "geoResolution": "STATE",
+              "geoID": "lowcountry",
+              "geoLabel": "Lowcountry",
+              "scopeId": "lowcountry",
+              "scopeLabel": "Lowcountry",
+              "scopeLevel": "region"
+            },
+            "variable": {
+              "id": "all_diseases",
+              "label": "All Disease"
+            },
+            "annotations": [],
+            "annotationSeq": 0,
+            "featureCount": 10
+          }
+        ],
+        "connections": [
+          {
+            "id": "edge-from_map-manager-2-authoring-workspace-1781546078684-2-map-REGION-SC_REGIONS-0-innerarea-upstate-to_map-manager-2-authoring-workspace-1781546078684-2-map-STATE-upstate-0",
+            "type": "hierarchical",
+            "parentMapId": "map-manager-2-authoring-workspace-1781546078684-2-map-REGION-SC_REGIONS-0",
+            "parentAreaId": "upstate",
+            "parentFeatureId": "map-manager-2-authoring-workspace-1781546078684-2-map-REGION-SC_REGIONS-0-innerarea-upstate",
+            "parentFeatureLabel": "Upstate",
+            "childMapId": "map-manager-2-authoring-workspace-1781546078684-2-map-STATE-upstate-0",
+            "childMapTitle": "Upstate counties"
+          },
+          {
+            "id": "edge-from_map-manager-2-authoring-workspace-1781546078684-2-map-REGION-SC_REGIONS-0-innerarea-lowcountry-to_map-manager-2-authoring-workspace-1781546078684-2-map-STATE-lowcountry-0",
+            "type": "hierarchical",
+            "parentMapId": "map-manager-2-authoring-workspace-1781546078684-2-map-REGION-SC_REGIONS-0",
+            "parentAreaId": "lowcountry",
+            "parentFeatureId": "map-manager-2-authoring-workspace-1781546078684-2-map-REGION-SC_REGIONS-0-innerarea-lowcountry",
+            "parentFeatureLabel": "Lowcountry",
+            "childMapId": "map-manager-2-authoring-workspace-1781546078684-2-map-STATE-lowcountry-0",
+            "childMapTitle": "Lowcountry counties"
+          }
+        ],
+        "annotations": [
+          {
+            "id": "map-manager-2-authoring-workspace-1781546078684-2-map-REGION-SC_REGIONS-0-pin-0",
+            "source": "map-authoring",
+            "nodeId": "map-manager-2-authoring-workspace-1781546078684-2-map-REGION-SC_REGIONS-0",
+            "nodeTitle": "South Carolina regions",
+            "scaleLabel": "region scale",
+            "level": "region",
+            "parentLabel": "workspace root",
+            "areaId": "pee-dee",
+            "areaLabel": "Pee Dee",
+            "note": "drtd"
+          }
+        ],
+        "groups": [],
+        "selection": {
+          "selectedMapId": null,
+          "selectedMapIds": [],
+          "activeGroupId": null
+        },
+        "network": {
+          "nodes": [
+            {
+              "id": "map-manager-2-authoring-workspace-1781546078684-2-map-REGION-SC_REGIONS-0",
+              "title": "South Carolina regions",
+              "scale": "region scale",
+              "variable": "all_diseases",
+              "featureCount": 4,
+              "parentLabel": "workspace root",
+              "x": 584,
+              "y": 145,
+              "radius": 220
+            },
+            {
+              "id": "map-manager-2-authoring-workspace-1781546078684-2-map-STATE-upstate-0",
+              "title": "Upstate counties",
+              "scale": "county scale",
+              "variable": "all_diseases",
+              "featureCount": 11,
+              "parentLabel": "Upstate",
+              "x": -43,
+              "y": 220,
+              "radius": 165
+            },
+            {
+              "id": "map-manager-2-authoring-workspace-1781546078684-2-map-STATE-lowcountry-0",
+              "title": "Lowcountry counties",
+              "scale": "county scale",
+              "variable": "all_diseases",
+              "featureCount": 10,
+              "parentLabel": "Lowcountry",
+              "x": 438,
+              "y": 588,
+              "radius": 165
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge-from_map-manager-2-authoring-workspace-1781546078684-2-map-REGION-SC_REGIONS-0-innerarea-upstate-to_map-manager-2-authoring-workspace-1781546078684-2-map-STATE-upstate-0",
+              "type": "hierarchical",
+              "parentId": "map-manager-2-authoring-workspace-1781546078684-2-map-REGION-SC_REGIONS-0-innerarea-upstate",
+              "childId": "map-manager-2-authoring-workspace-1781546078684-2-map-STATE-upstate-0",
+              "parentLabel": "Upstate",
+              "childLabel": "Upstate counties"
+            },
+            {
+              "id": "edge-from_map-manager-2-authoring-workspace-1781546078684-2-map-REGION-SC_REGIONS-0-innerarea-lowcountry-to_map-manager-2-authoring-workspace-1781546078684-2-map-STATE-lowcountry-0",
+              "type": "hierarchical",
+              "parentId": "map-manager-2-authoring-workspace-1781546078684-2-map-REGION-SC_REGIONS-0-innerarea-lowcountry",
+              "childId": "map-manager-2-authoring-workspace-1781546078684-2-map-STATE-lowcountry-0",
+              "parentLabel": "Lowcountry",
+              "childLabel": "Lowcountry counties"
+            }
+          ],
+          "selectedNodeId": null,
+          "selectedNodeIds": []
+        }
+      }
+    }
+  ],
+  "serverSavedAt": "2026-06-15T17:54:46Z",
+  "archiveUserKey": "user"
+}

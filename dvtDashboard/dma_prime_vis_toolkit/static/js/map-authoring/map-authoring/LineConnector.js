@@ -103,7 +103,10 @@ export class GraphManager {
         const [x2, y2] = c.getCenter();
 
         const dist = getMagnitude([x2 - x1, y2 - y1]);
-        const circleRadius = +d3.select(`#${d.childId}`).attr("r") || 0;
+        const childNode = document.getElementById(d.childId);
+        const circleRadius = childNode
+          ? +d3.select(childNode).attr("r") || 0
+          : 0;
         const [ux, uy] = getUnitVector([x1, y1], [x2, y2]);
 
         const x2_ = x1 + ux * (dist - circleRadius);

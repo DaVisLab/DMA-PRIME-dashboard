@@ -1,9 +1,12 @@
 """Flask application factory and page routes for the DMA-PRIME dashboard."""
 
+import json
 import os
+from pathlib import Path
+import re
 import datetime
 
-from flask import Flask, render_template, request, current_app
+from flask import Flask, render_template, request, current_app, jsonify, url_for
 from flask_login import current_user, login_required
 from flask_bcrypt import Bcrypt
 
@@ -19,6 +22,63 @@ from .maternal_child_dataHander import get_maternal_child_data_conditions, get_y
 
 # ensure the authenticate module itself is available for blueprint registration
 from . import authenticate
+
+
+MAP_AUTHORING_ARCHIVE_FOLDER = "map-authoring-archive"
+MAP_AUTHORING_ARCHIVE_FILENAME = "workspace.json"
+
+
+def _get_map_authoring_archive_identity(user):
+    """Return the stable login identity used for map-authoring archives."""
+    for attr in ("email", "username"):
+        value = getattr(user, attr, None)
+        if value:
+            return str(value)
+
+    get_id = getattr(user, "get_id", None)
+    if callable(get_id):
+        value = get_id()
+        if value:
+            return str(value)
+
+    return "unknown-user"
+
+
+def _normalize_map_authoring_archive_key(identity):
+    key = re.sub(r"[^A-Za-z0-9_.-]+", "-", str(identity).strip())
+    key = key.strip(".-")
+    return key or "unknown-user"
+
+
+def _get_map_authoring_archive_paths(user):
+    identity = _get_map_authoring_archive_identity(user)
+    user_key = _normalize_map_authoring_archive_key(identity)
+    archive_root = (
+        Path(current_app.static_folder) / "assets" / MAP_AUTHORING_ARCHIVE_FOLDER
+    )
+    user_dir = archive_root / user_key
+
+    return {
+        "identity": identity,
+        "user_key": user_key,
+        "user_dir": user_dir,
+        "workspace_file": user_dir / MAP_AUTHORING_ARCHIVE_FILENAME,
+    }
+
+
+def _ensure_map_authoring_archive_dir(user):
+    paths = _get_map_authoring_archive_paths(user)
+    paths["user_dir"].mkdir(parents=True, exist_ok=True)
+    return paths
+
+
+def _get_utc_timestamp():
+    return (
+        datetime.datetime.now(datetime.timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
 
 
 def _load_metadata(data_version, dashboard_folder):
@@ -195,8 +255,65 @@ def create_app(development=False, dataDir=None):
     def map_authoring():
         data_version = get_data_version_from_request(request, current_user)
         metadata = _load_metadata(data_version, "other_infectious_diseases")
+        archive_paths = _ensure_map_authoring_archive_dir(current_user)
+        metadata["archive"] = {
+            "url": url_for("map_authoring_archive"),
+            "exists": archive_paths["workspace_file"].exists(),
+            "userKey": archive_paths["user_key"],
+        }
 
         return render_template("map-authoring/index.html", metadata=metadata)
+
+    @app.route("/map-authoring/archive", methods=["GET", "POST", "PUT"])
+    @login_required
+    def map_authoring_archive():
+        archive_paths = _ensure_map_authoring_archive_dir(current_user)
+        workspace_file = archive_paths["workspace_file"]
+
+        if request.method == "GET":
+            if not workspace_file.exists():
+                return jsonify({"exists": False, "tabs": []})
+
+            try:
+                payload = json.loads(workspace_file.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                current_app.logger.exception(
+                    "Failed to read map-authoring archive for %s",
+                    archive_paths["identity"],
+                )
+                return jsonify({"exists": False, "tabs": []}), 500
+
+            return jsonify(payload)
+
+        payload = request.get_json(silent=True)
+        if not isinstance(payload, dict):
+            return jsonify({"error": "Expected a JSON object."}), 400
+
+        archived_payload = dict(payload)
+        archived_payload["serverSavedAt"] = _get_utc_timestamp()
+        archived_payload["archiveUserKey"] = archive_paths["user_key"]
+
+        try:
+            temp_file = workspace_file.with_suffix(".tmp")
+            temp_file.write_text(
+                json.dumps(archived_payload, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            temp_file.replace(workspace_file)
+        except OSError:
+            current_app.logger.exception(
+                "Failed to save map-authoring archive for %s",
+                archive_paths["identity"],
+            )
+            return jsonify({"error": "Unable to save map-authoring archive."}), 500
+
+        return jsonify(
+            {
+                "ok": True,
+                "savedAt": archived_payload["serverSavedAt"],
+                "userKey": archive_paths["user_key"],
+            }
+        )
 
     @app.route("/respiratory", methods=["GET"])
     @login_required
@@ -369,26 +486,26 @@ def create_app(development=False, dataDir=None):
             #     "html": "outbreak-detection/riskindex-analysis.html",
             # },
            
-           {
-                "name": "outbreak-exploration2",
-                "displayName": "Test Interface2",
+        #    {
+        #         "name": "outbreak-exploration2",
+        #         "displayName": "Test Interface2",
+        #         "active": True,
+        #         "html": "outbreak-detection/test-page.html",
+        #     },
+        #      {
+        #         "name": "outbreak-kg",
+        #         "displayName": "KG Interface",
+        #         # "active": True,
+        #         # "html": "outbreak-detection/riskindex-analysis.html",
+        #         "html": "outbreak-detection/kg-test-page.html",
+        #     },
+
+            {
+                "name": "map",
+                "displayName": "Map View",
                 "active": True,
-                "html": "outbreak-detection/test-page.html",
+                "html": "outbreak-detection/outbreak-detection-map-panel.html",
             },
-             {
-                "name": "outbreak-kg",
-                "displayName": "KG Interface",
-                # "active": True,
-                # "html": "outbreak-detection/riskindex-analysis.html",
-                "html": "outbreak-detection/kg-test-page.html",
-            }, 
-            
-            # {
-            #     "name": "map",
-            #     "displayName": "Map View",
-            #     "active": True,
-            #     "html": "outbreak-detection/outbreak-detection-map-panel.html",
-            # },
         ]
         return render_template(
             "outbreak-detection/outbreak-detection-base.html",

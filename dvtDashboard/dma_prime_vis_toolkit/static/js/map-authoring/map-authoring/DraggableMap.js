@@ -247,7 +247,8 @@ export class DraggableMap {
       d.instanceId.includes(`map-${geoResolution}-${geoID}`),
     ).length;
 
-    this.instanceId = `map-${geoResolution}-${geoID}-${uniqueIdx}`;
+    this.instanceId =
+      `${manager.instanceIdPrefix ?? ""}map-${geoResolution}-${geoID}-${uniqueIdx}`;
     this.clipId = `${this.instanceId}-clip`;
 
     this.x = x;
@@ -567,6 +568,65 @@ export class DraggableMap {
         areaLabel: pin.featureLabel,
         note: pin.note,
       }));
+  }
+
+  getAuthoringState(parentLabel = "workspace root") {
+    return {
+      id: this.instanceId,
+      title: this.getNodeTitle(),
+      parentLabel,
+      geometry: {
+        x: this.x,
+        y: this.y,
+        radius: this.r,
+      },
+      data: {
+        displayLevel: this.displayLevel,
+        geoResolution: this.geoResolution,
+        geoID: this.geoID,
+        geoLabel: this.geoLabel,
+        scopeId: this.scopeId,
+        scopeLabel: this.scopeLabel,
+        scopeLevel: this.scopeLevel,
+      },
+      variable: {
+        id: this.curVar,
+        label: this.getVariableLabel(this.curVar),
+      },
+      annotations: this.getAnnotationPinState(),
+      annotationSeq: this.annotationPinSeq,
+      featureCount: this.geojson?.features?.length ?? 0,
+    };
+  }
+
+  getAnnotationPinState() {
+    return this.annotationPins.map((pin) => ({
+      id: pin.id,
+      featureId: pin.featureId,
+      featureLabel: pin.featureLabel,
+      note: pin.note,
+      isSaved: pin.isSaved,
+      rx: pin.rx,
+      ry: pin.ry,
+    }));
+  }
+
+  restoreAnnotationPinState(pins = [], { annotationSeq = null } = {}) {
+    this.annotationPins = pins.map((pin, index) => ({
+      id: `${this.instanceId}-pin-${index}`,
+      featureId: pin.featureId,
+      featureLabel: pin.featureLabel,
+      note: pin.note ?? "",
+      isSaved: Boolean(pin.isSaved ?? pin.note),
+      rx: Number.isFinite(Number(pin.rx)) ? Number(pin.rx) : 0,
+      ry: Number.isFinite(Number(pin.ry)) ? Number(pin.ry) : 0,
+    }));
+    this.annotationPinSeq = Number.isFinite(Number(annotationSeq))
+      ? Math.max(Number(annotationSeq), this.annotationPins.length)
+      : this.annotationPins.length;
+    this.activeAnnotationPinId = null;
+    this.previewedAnnotationPinId = null;
+    this._renderAnnotationPins();
   }
 
   updateAnnotationPinNote(pinId, note, { emit = false } = {}) {
