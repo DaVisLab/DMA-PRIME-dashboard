@@ -582,7 +582,7 @@ def create_app(development=False, dataDir=None):
             "waste-water/waste-water-base.html", panels=panels, metadata=metadata
         )
     
-    @app.route("/maternal-child", methods=["GET"])
+    @app.route("/maternal-child", methods=["GET"]) 
     @login_required
     def maternal_child():
         data_conditions = get_maternal_child_data_conditions()
