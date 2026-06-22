@@ -1,15 +1,32 @@
 """Knowledge-graph recommendation endpoints and scoring helpers."""
+import functools
+import os
+import shutil
+from datetime import datetime
+from pathlib import Path
 
 from typing import Dict, List, Set
 
 import networkx as nx
 from networkx.readwrite import json_graph
 from flask import (
-    Blueprint,
+    Blueprint, abort,
     current_app,
     request,
 )
 from flask_login import current_user, login_required
+
+from .utility import (
+    decrypt,
+    get_data_version_from_request,
+)
+
+from .config import (
+    DATA_DASHBOARDS,
+    GEOJSON_FILES,
+    SPATIAL_UNITS,
+    UI_TO_DATA_DASHBOARD,
+)
 
 bp = Blueprint("recommendation", __name__, url_prefix="/recommendation")
 
@@ -211,3 +228,85 @@ def recommend_regions(
     final_list = [item["node"] for item in ranked]
 
     return ranked, final_list
+
+
+@bp.route("/respiratory/<region_size>/<disease>", methods=["GET"])
+@login_required
+def get_respiratory_hospitalizations(region_size="zcta", disease="covid-19"):
+    # hospitalization data based on disease
+    
+    if region_size not in SPATIAL_UNITS:
+        abort(404)
+
+    data_version = get_data_version_from_request(request, current_user)
+    file = os.path.join(
+        current_app.config["DATADIR"],
+        "processed",
+        data_version,
+        "llm-test-data/respiratory",
+        region_size,
+        f"{disease}.json",
+    )
+    decrypt_key = os.path.join(
+        current_app.config["DATADIR"],
+        "processed",
+        data_version,
+        "llm-test-data/respiratory",
+        "encrypt_key.bin",
+    )
+    return decrypt(file, decrypt_key)
+
+
+@bp.route("/respiratory/<region_size>/<disease>/extended", methods=["GET"])
+@login_required
+def get_all_respiratory_hospitalizations(region_size="zcta", disease="covid-19"):
+    # hospitalization data based on disease
+    if region_size not in SPATIAL_UNITS:
+        abort(404)
+    
+    data_version = get_data_version_from_request(request, current_user)
+    file = os.path.join(
+        current_app.config["DATADIR"],
+        "processed",
+        data_version,
+        "llm-test-data/respiratory",
+        region_size,
+        f"{disease}.extended.json",
+    )
+    decrypt_key = os.path.join(
+        current_app.config["DATADIR"],
+        "processed",
+        data_version,
+        "llm-test-data/respiratory",
+        "encrypt_key.bin",
+    )
+    return decrypt(file, decrypt_key)
+
+
+
+@bp.route("/outbreak-detection/<region_size>/<column>", methods=["GET"])
+@login_required
+# def get_state_disease_hospitalizations(region_size='region', column='encounters'):
+def get_state_disease_hospitalizations(
+    region_size="region", column="all_hospitalizations"
+):
+    if region_size not in SPATIAL_UNITS:
+        abort(404)
+
+    data_version = get_data_version_from_request(request, current_user)
+    file = os.path.join(
+        current_app.config["DATADIR"],
+        "processed",
+        data_version,
+        "llm-test-data/outbreak",
+        region_size,
+        f"{column}_data.json",
+    )
+    decrypt_key = os.path.join(
+        current_app.config["DATADIR"],
+        "processed",
+        data_version,
+        "llm-test-data/outbreak",
+        "encrypt_key.bin",
+    )
+    return decrypt(file, decrypt_key)

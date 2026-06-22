@@ -1,0 +1,264 @@
+import {
+  styleSheet,
+  selectedItems,
+  map,
+  deckOverlay,
+  popup,
+  redraw,
+  drawTooltip,
+  drawAggregation,
+  drawLargeAggregation,
+  changeDataColumn,
+  update,
+} from "/static/js/llm-test/outbreak-view/map.js";
+
+const {
+  root: outbreakMapRoot,
+  mapResetButton,
+  mapTimeSwitch,
+  mapRateSwitch,
+  mapRegionSelector,
+  mapOutcomeVariableSelector,
+  mapWeeklyTooltip,
+  mapMonthlyTooltip,
+  mapYearlyTooltip,
+  mapAllDiseaseSelector,
+  mapOptionsGeographicLabelsToggle,
+  aggregatedDiseaseHistoryResizer,
+  aggregatedDiseaseHistory,
+  aggregatedDiseaseHistoryLarge,
+  aggregatedDiseaseHistoryResizerLarge,
+  mapDiv,
+  hospitalIconsToggle,
+  mobileClinicIconsToggle,
+  communityPartnerIconsToggle,
+} = window.outbreakMapDom;
+
+const selectOutbreakAll = (selector) =>
+  d3.select(outbreakMapRoot).selectAll(selector);
+
+mapResetButton.addEventListener("click", () => {
+  // reset map zoom and center
+  map.flyTo({
+    center: [-81, 33.65],
+    zoom: 7,
+    essential: true, // this animation is considered essential with respect to prefers-reduced-motion
+  });
+
+  selectedItems.region = undefined;
+  // selectedItems.diseases = []
+
+  // d3.selectAll(".disease-checkbox").attr("checked", null)
+  // mapAllDiseaseSelector.removeAttribute("checked")
+
+  update();
+});
+
+mapRateSwitch.addEventListener("sl-change", () => {
+  update();
+  const rateLabel = d3
+    .select(mapRateSwitch)
+    .select(`sl-radio-button[value="${mapRateSwitch.value}"]`)
+    .html();
+  mapWeeklyTooltip.content = `${rateLabel} for the week`;
+  mapMonthlyTooltip.content = `${rateLabel} for the past 4 weeks`;
+  mapYearlyTooltip.content = `${rateLabel} for the past 52 weeks`;
+});
+
+mapTimeSwitch.addEventListener("sl-change", () => {
+  const timeLabel = d3
+    .select(mapTimeSwitch)
+    .select(`sl-radio-button[value="${mapTimeSwitch.value}"]`)
+    .html();
+  selectOutbreakAll(".disease-option-count").html(timeLabel);
+  update();
+});
+
+mapRegionSelector.addEventListener("sl-change", changeDataColumn);
+
+mapOutcomeVariableSelector.addEventListener("sl-change", changeDataColumn);
+
+// adding/removing labels
+mapOptionsGeographicLabelsToggle.addEventListener("sl-change", () => {
+  // toggle geographic unit labels
+  selectedItems.dataVersion++;
+  redraw();
+});
+
+// adding/removing icons
+hospitalIconsToggle.addEventListener("sl-change", () => {
+  // toggle hospital icons
+  selectedItems.icons = selectedItems.icons.filter(
+    (check) => check !== "hospital",
+  );
+  if (hospitalIconsToggle.checked) {
+    selectedItems.icons.push("hospital");
+  }
+  selectedItems.dataVersion++;
+  redraw();
+});
+mobileClinicIconsToggle.addEventListener("sl-change", () => {
+  // toggle mhc icons
+  selectedItems.icons = selectedItems.icons.filter(
+    (check) => check !== "mobile_health_clinic",
+  );
+  if (mobileClinicIconsToggle.checked) {
+    selectedItems.icons.push("mobile_health_clinic");
+  }
+  selectedItems.dataVersion++;
+  redraw();
+});
+communityPartnerIconsToggle.addEventListener("sl-change", () => {
+  // toggle community partner icons
+  selectedItems.icons = selectedItems.icons.filter(
+    (check) => check !== "community_partner",
+  );
+  if (communityPartnerIconsToggle.checked) {
+    selectedItems.icons.push("community_partner");
+  }
+  selectedItems.dataVersion++;
+  redraw();
+});
+
+mapAllDiseaseSelector.addEventListener("sl-change", function (e) {
+  if (e.target.checked) {
+    selectOutbreakAll(".disease-checkbox").attr("checked", "");
+    selectedItems.diseases = selectOutbreakAll(".disease-checkbox")
+      .nodes()
+      .map((d) => d.getAttribute("disease"));
+  } else {
+    if (
+      selectedItems.diseases.length ==
+      selectOutbreakAll(".disease-checkbox[checked]").nodes().length
+    ) {
+      selectOutbreakAll(".disease-checkbox").attr("checked", null);
+      selectedItems.diseases = [];
+    }
+  }
+
+  update();
+});
+
+selectOutbreakAll(".disease-checkbox").on("sl-change", function (e) {
+  var disease = this.getAttribute("disease");
+  var index = selectedItems.diseases.indexOf(disease);
+  if (e.target.checked) {
+    // add disease if not on list
+    if (index == -1) {
+      selectedItems.diseases.push(disease);
+    }
+  } else {
+    // remove disease if on list
+    if (index > -1) {
+      selectedItems.diseases.splice(index, 1);
+    }
+    mapAllDiseaseSelector.removeAttribute("checked");
+  }
+
+  update();
+});
+
+popup.on("close", (e) => {
+  selectedItems.region = undefined;
+  redraw();
+});
+
+map.on("click", (e) => {
+  var temp = { x: e.point.x, y: e.point.y };
+  var thisObject = deckOverlay.pickObject(temp);
+
+  if (thisObject == null) {
+    popup.remove();
+    selectedItems.region = undefined;
+    redraw();
+    return;
+  }
+
+  // add popup to map
+  var feature = thisObject.object;
+
+  // --- ADDED LOGIC: close tooltip and zoom out if same region is clicked ---
+  if (
+    selectedItems.region &&
+    selectedItems.region.properties.identifier === feature.properties.identifier
+  ) {
+    selectedItems.region = undefined;
+    popup.remove();
+    map.flyTo({
+      center: [-81, 33.65],
+      zoom: 7,
+      essential: true,
+    });
+    redraw();
+    return;
+  }
+  // --- END ADDED LOGIC ---
+
+  selectedItems.region = feature;
+
+  var width = mapDiv.clientWidth;
+  var mapTooltipWidth = Math.max(500, width * 0.3);
+  var mapTooltipHeight = mapTooltipWidth * 0.65;
+
+  const fullCoords = feature.geometry.coordinates;
+  const bounds = new maplibregl.LngLatBounds();
+  function addCoordToBounds(bounds, arr) {
+    if (Array.isArray(arr[0])) {
+      arr.forEach((a) => {
+        addCoordToBounds(bounds, a);
+      });
+    } else {
+      bounds.extend(arr);
+      return;
+    }
+  }
+  addCoordToBounds(bounds, fullCoords);
+
+  map.fitBounds(bounds, {
+    padding: Math.min(mapDiv.clientWidth / 3, mapDiv.clientHeight / 3),
+    maxZoom: 12,
+    screenSpeed: 0.7,
+    offset: [0, -mapTooltipHeight / 3],
+  });
+
+  var coordinates = [feature.properties.INTPTLON, feature.properties.INTPTLAT];
+  if (!(coordinates[0] && coordinates[1])) {
+    coordinates = bounds.getCenter();
+  }
+
+  popup.setLngLat(coordinates)
+    .setHTML(`<div id='map-tooltip-div' class='tooltip-div'>
+            </div>`);
+
+  if (!popup.isOpen()) {
+    popup.addTo(map);
+  }
+
+  popup.setMaxWidth(`${mapDiv.clientWidth}px`);
+
+  var ttpDiv = d3
+    .select("#map-tooltip-div")
+    .style("display", "initial")
+    .style("border-style", "none");
+
+  var ttpSVG = ttpDiv
+    .select(".tooltip-outer-svg")
+    .attr("width", mapTooltipWidth)
+    .attr("height", mapTooltipHeight);
+
+  drawTooltip(feature);
+  redraw();
+});
+
+aggregatedDiseaseHistoryResizer.addEventListener("sl-resize", function () {
+  drawTooltip(selectedItems.region);
+  drawAggregation();
+});
+
+aggregatedDiseaseHistory.addEventListener("click", () => {
+  aggregatedDiseaseHistoryLarge.show();
+});
+
+aggregatedDiseaseHistoryResizerLarge.addEventListener("sl-resize", () => {
+  drawLargeAggregation();
+});

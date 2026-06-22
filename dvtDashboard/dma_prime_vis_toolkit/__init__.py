@@ -512,6 +512,56 @@ def create_app(development=False, dataDir=None):
             panels=panels,
             metadata=metadata,
         )
+        
+    @app.route("/llm-test", methods=["GET"])
+    @login_required
+    def llm_test():
+        data_version = get_data_version_from_request(request, current_user)
+        outbreak_panel_metadata = _load_metadata(data_version, "llm-test-data/outbreak")
+        respiratory_panel_metadata = _load_metadata(data_version, "llm-test-data/respiratory")
+        
+        # print(metadata2)
+        # print(respiratory_panel_metadata)
+        panels = [
+            {"name": "main", "displayName": "DMA-PRIME"},
+             {
+                "name": "respiratory-map",
+                "displayName": "Respiratory View",
+                "active": True,
+                "html": "llm-test/respiratory-map-panel.html",
+            },
+            # {
+            #     "name": "riskindex-assessment",
+            #     "displayName": "Risk Index Assessment",
+            #     # 'active': True,
+            #     "html": "outbreak-detection/riskindex-analysis.html",
+            # },
+        #    {
+        #         "name": "outbreak-exploration2",
+        #         "displayName": "Test Interface2",
+        #         "active": True,
+        #         "html": "outbreak-detection/test-page.html",
+        #     }, 
+            {
+                "name": "outbreak-map",
+                "displayName": "Outbreak View",
+                # "active": True,
+                "html": "llm-test/outbreak-detection-map-panel.html",
+            },
+             {
+                "name": "outbreak-kg",
+                "displayName": "KG View",
+                # "active": True,
+                # "html": "outbreak-detection/riskindex-analysis.html",
+                "html": "llm-test/kg-test-page.html",
+            },
+        ]
+        return render_template(
+            "llm-test/base.html",
+            panels=panels,
+            outbreak_panel_metadata=outbreak_panel_metadata,
+            respiratory_panel_metadata=respiratory_panel_metadata,
+        )
 
     @app.route("/wastewater", methods=["GET"])
     @login_required

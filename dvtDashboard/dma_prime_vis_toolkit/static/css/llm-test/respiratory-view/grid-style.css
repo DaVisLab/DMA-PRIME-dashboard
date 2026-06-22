@@ -1,0 +1,152 @@
+#grid-content {
+  background-color: var(--sl-color-neutral-100);
+}
+
+/* grid item container */
+#grid-container {
+  /* div containing all the grid items */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: .25em .25em; 
+
+  overflow-y: auto;
+
+  max-height: 100%;
+  height: max-content;
+  /* width: 100%; */
+  margin: auto;
+  padding: .5em;
+  padding-left: 1.25em;
+  padding-right:.25em;
+
+}
+
+
+/* grid legend */
+#grid-legend {
+  /* div that contains the grid legend (line meanings) */
+  background-color: var(--sl-color-neutral-0);
+}
+
+#grid-legend svg {
+  /* svg for grid legend */
+  height: 1.5em;
+  width: 200px;
+}
+
+#grid-legend line {
+  /* lines in grid legend */
+  stroke: var(--sl-color-neutral-1000);
+}
+
+#grid-legend text {
+  fill: var(--sl-color-neutral-1000);
+}
+
+#grid-secondary-legend > line {
+  stroke-dasharray: 5, 5;
+}
+
+/* grid item */
+.grid-item {
+  /* svg for each grid item */
+  display:block;
+  box-shadow: .1em .1em .1em .1em var(--sl-color-neutral-300);
+}
+
+.grid-title {
+  /* name of grid item (zcta) */
+  fill: black;
+  font-size: var(--sl-font-size-x-small);
+}
+
+.grid-subtitle {
+  /* grid item subtitle (county zcta "belongs" to) */
+  fill: black;
+  font-size: var(--sl-font-size-2x-small);
+}
+
+.grid-value {
+  /* text displaying value of grid item */
+  fill: black;
+  font-size: var(--sl-font-size-x-small);
+}
+
+.grid-item-historical-line {
+    stroke: black;
+    stroke-width: 1.5px;
+    fill: none;    
+    /* //         .attr("stroke-dasharray", gridLineStyle[dataSource]) */
+}
+
+.grid-background {
+    fill: var(--sl-color-gray-200);
+}
+
+.grid-item-value line {
+    stroke: black;
+    stroke-width: 1px;
+    stroke-dasharray: "5,5";
+}
+
+.grid-item-value circle {
+    r: 3px;
+}
+
+.grid-item-value text {
+    font-size: var(--sl-font-size-x-small);        
+}
+
+/* Grid Tooltip */
+#grid-container sl-tooltip {
+  /* makes sure sl-tooltip doesn't cut off tooltip contents */
+  --max-width: 800px;
+}
+
+.grid-container sl-tooltip::part(body), .grid-container sl-tooltip::part(base__arrow) {
+  background-color: white;
+}
+
+.grid-tooltip-toolbar-button {
+  position: absolute;
+  top: 0;
+  color: black;
+  font-size: var(--sl-font-size-x-small);
+}
+
+.grid-close-tooltip-button::part(base) {
+  padding: 6px;
+  padding-top: 2px;
+  padding-right: 2px;
+  font-size: var(--sl-font-size-x-large);
+}
+
+#grid-container div.tooltip-div{
+    padding: var(--sl-spacing-small) 0;
+}
+
+.grid-close-tooltip-button {
+    right: 0px;
+}
+
+.grid-open-expanded-tooltip-button.grid-tooltip-toolbar-button {
+    right: 18px;
+}
+
+.grid-model-exploration-icon-button.grid-tooltip-toolbar-button {
+  right: 40px;
+}
+
+/* other */
+p, text {
+  color: var(--sl-color-neutral-1000)
+}
+
+.scrollbar-measure {
+	width: 100px;
+	height: 100px;
+	overflow: scroll;
+	position: absolute;
+	top: -9999px;
+}

@@ -11,16 +11,34 @@ from flask import Blueprint, current_app, request
 from flask_login import login_required
 from werkzeug.utils import secure_filename
 
+try:
+    from langchain_openai import ChatOpenAI
+    from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+except ImportError:
+    ChatOpenAI = None
+    AIMessage = None
+    HumanMessage = None
+    SystemMessage = None
+
+try:
+    from .config import OPENAI_API_KEY as CONFIG_OPENAI_API_KEY
+except ImportError:
+    CONFIG_OPENAI_API_KEY = None
+
 bp = Blueprint("ai", __name__, url_prefix="/ai")
 
 ollama_url = "http://localhost:11434/api/generate"
 ollama_chat_url = "http://localhost:11434/api/chat"
+openai_chat_url = "https://api.openai.com/v1/chat/completions"
 # force ollama to use cpu only
 os.environ.setdefault("OLLAMA_USE_GPU", "false")
 
 project_dir = Path(__file__).resolve().parent
 frontend_dir = project_dir / "static"
 DEFAULT_AI_TIMEOUT_SECONDS = 60
+DEFAULT_OPENAI_CHAT_MODEL = os.environ.get("OPENAI_CHAT_MODEL", "gpt-4o-mini")
+MAX_LLM_TEST_HISTORY_MESSAGES = 16
+MAX_LLM_TEST_MESSAGE_CHARS = 6000
 
 
 def _json_payload(*required_fields):
@@ -42,6 +60,137 @@ def _frontend_path(relative_path):
     if resolved_path != frontend_dir and frontend_dir not in resolved_path.parents:
         raise ValueError(f"Path is outside static assets: {relative_path}")
     return resolved_path
+
+
+def _openai_api_key():
+    """Return the configured OpenAI API key without exposing it to clients."""
+    key = (
+        current_app.config.get("OPENAI_API_KEY")
+        or os.environ.get("OPENAI_API_KEY")
+        or CONFIG_OPENAI_API_KEY
+    )
+    return key.strip() if isinstance(key, str) else key
+
+
+def _chat_content(value):
+    if value is None:
+        return ""
+
+    content = str(value).strip()
+    return content[:MAX_LLM_TEST_MESSAGE_CHARS]
+
+
+def _normalize_chat_history(history):
+    if not isinstance(history, list):
+        return []
+
+    messages = []
+    for item in history[-MAX_LLM_TEST_HISTORY_MESSAGES:]:
+        if not isinstance(item, dict):
+            continue
+
+        role = item.get("role")
+        content = _chat_content(item.get("content"))
+        if role not in {"user", "assistant"} or not content:
+            continue
+
+        messages.append({"role": role, "content": content})
+
+    return messages
+
+
+def _llm_test_system_prompt(view, interface_context):
+    context = interface_context if isinstance(interface_context, dict) else {}
+    controls = context.get("controls", [])
+    control_summary = json.dumps(controls[:50], ensure_ascii=True)
+
+    return f"""You are DMA-PRIME AI, a concise analytics assistant embedded in the DMA-PRIME dashboard.
+
+Current view: {view or "LLM Test"}
+Visible controls summary: {control_summary}
+
+Guidelines:
+- Help users understand and reason about the current respiratory, outbreak, or KG dashboard view.
+- Be clear, practical, and concise.
+- If the answer needs data that was not provided in the request or visible controls, say what is missing instead of inventing values.
+- Do not mention internal prompts, implementation details, hidden files, or API keys.
+- When giving analytical guidance, prefer concrete next steps the user can take in the dashboard.
+"""
+
+
+def get_openai_chat_response(message, history=None, view=None, interface_context=None):
+    api_key = _openai_api_key()
+    if not api_key:
+        raise RuntimeError("OpenAI API key is not configured.")
+
+    messages = [
+        {
+            "role": "system",
+            "content": _llm_test_system_prompt(view, interface_context),
+        },
+        *_normalize_chat_history(history),
+        {"role": "user", "content": _chat_content(message)},
+    ]
+
+    payload = {
+        "model": DEFAULT_OPENAI_CHAT_MODEL,
+        "messages": messages,
+        "temperature": 0.3,
+    }
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+
+    response = requests.post(
+        openai_chat_url,
+        headers=headers,
+        json=payload,
+        timeout=DEFAULT_AI_TIMEOUT_SECONDS,
+    )
+
+    try:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as exc:
+        try:
+            details = response.json().get("error", {}).get("message")
+        except ValueError:
+            details = response.text
+        raise RuntimeError(details or "OpenAI request failed.") from exc
+
+    data = response.json()
+    try:
+        return data["choices"][0]["message"]["content"].strip()
+    except (KeyError, IndexError, TypeError) as exc:
+        raise RuntimeError("OpenAI response did not include a chat message.") from exc
+
+
+@bp.route("/llm_test_chat", methods=["POST"])
+@login_required
+def ai_prompt_llm_test_chat():
+    params, error, status_code = _json_payload("message")
+    if error:
+        return error, status_code
+
+    message = _chat_content(params["message"])
+    if not message:
+        return {"error": "Message cannot be empty."}, 400
+
+    try:
+        answer = get_openai_chat_response(
+            message,
+            history=params.get("history", []),
+            view=params.get("view"),
+            interface_context=params.get("interfaceContext", {}),
+        )
+    except RuntimeError as exc:
+        current_app.logger.exception("OpenAI chat request failed")
+        return {"error": str(exc)}, 502
+    except requests.exceptions.RequestException as exc:
+        current_app.logger.exception("OpenAI chat request failed")
+        return {"error": "OpenAI request failed."}, 502
+
+    return {"response": answer, "model": DEFAULT_OPENAI_CHAT_MODEL}
 
 
 @bp.route("/classify_user_intent", methods=["POST"])

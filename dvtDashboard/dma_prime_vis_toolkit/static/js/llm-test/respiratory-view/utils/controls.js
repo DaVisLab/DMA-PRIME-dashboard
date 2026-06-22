@@ -1,0 +1,299 @@
+import { getAllFacilityOptionContainers } from "./controlSelector.js";
+import {
+  applyRespiratoryOptionRestrictions,
+  getCurrentControlState,
+  resolveRespiratoryControlState,
+} from "./controlState_utils.js";
+
+await Promise.allSettled([
+  customElements.whenDefined("sl-select"),
+  customElements.whenDefined("sl-option"),
+]);
+
+controlDependencyTest();
+controlDependencyTestOnGridView();
+
+document.addEventListener("DOMContentLoaded", async () => {
+  // Wait until the Shoelace component is defined
+  await Promise.allSettled([
+    customElements.whenDefined("sl-select"),
+    customElements.whenDefined("sl-option"),
+  ]);
+
+  const select = document.querySelector("sl-select");
+
+  if (select) {
+    controlDependencyTest();
+    controlDependencyTestOnGridView();
+    testDiseaseOutcomeDipendency();
+    testDiseaseOutcomeDipendencyOnGridView();
+  }
+});
+
+function _controlReset(popEl, geoEl, outEl, disEl) {
+  if (!popEl || !geoEl || !outEl || !disEl) return;
+
+  disEl.querySelectorAll("sl-option").forEach((opt) => {
+    // if (opt.value == "respiratory_diseases") {
+    //   opt.style.display = "none";
+    // } else {
+    //   opt.style.display = "";
+    // }
+    opt.style.display = "";
+  });
+
+  popEl.querySelectorAll("sl-option").forEach((opt) => {
+    opt.style.display = "";
+    // console.log(opt.value);
+    // if (opt.value == "heath_system") {
+    //   opt.style.display = "none";
+    // } else {
+    //   opt.style.display = "";
+    // }
+  });
+
+  geoEl.querySelectorAll("sl-option").forEach((opt) => {
+    opt.style.display = "";
+  });
+  outEl.querySelectorAll("sl-option").forEach((opt) => {
+    opt.style.display = "";
+  });
+}
+
+function _controlDependecyTest(popEl, geoEl, outEl, disEl) {
+  if (!popEl || !geoEl || !outEl || !disEl) return;
+
+  _controlReset(popEl, geoEl, outEl, disEl);
+  const facilityOptionContainers = getAllFacilityOptionContainers();
+  const resolvedState = resolveRespiratoryControlState(
+    metadata,
+    getCurrentControlState({
+      diseaseEl: disEl,
+      geographicUnitEl: geoEl,
+      populationEl: popEl,
+      outcomeEl: outEl,
+    }),
+  );
+
+  if (geoEl.value == "facility") {
+    Array.from(facilityOptionContainers).forEach(
+      (el) => (el.style.display = ""),
+    );
+  } else {
+    Array.from(facilityOptionContainers).forEach(
+      (el) => (el.style.display = "none"),
+    );
+  }
+
+  if (disEl.value == "respiratory_diseases") {
+    if (geoEl.value !== resolvedState.geographicUnit) {
+      geoEl.value = resolvedState.geographicUnit;
+
+      geoEl.dispatchEvent(
+        new CustomEvent("sl-change", {
+          bubbles: true,
+        }),
+      );
+      return;
+    }
+
+    if (popEl.value !== resolvedState.population) {
+      popEl.value = resolvedState.population;
+      popEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+      return;
+    }
+
+    if (outEl.value !== resolvedState.outcomeVariable) {
+      outEl.value = resolvedState.outcomeVariable;
+      outEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+      return;
+    }
+
+    // 2) geographic unit: only SC
+    geoEl.querySelectorAll("sl-option").forEach((opt) => {
+      if (opt.value === "facility") {
+        opt.style.display = "";
+      } else {
+        opt.style.display = "none";
+      }
+    });
+
+    popEl.querySelectorAll("sl-option").forEach((opt) => {
+      if (opt.value === "health_system") {
+        opt.style.display = "";
+      } else {
+        opt.style.display = "none";
+      }
+    });
+  } else {
+    // 1) population:
+    popEl.querySelectorAll("sl-option").forEach((opt) => {
+      if (opt.value === "general_population") {
+        opt.style.display = "";
+      } else {
+        opt.style.display = "none";
+      }
+    });
+
+    if (popEl.value !== resolvedState.population) {
+      popEl.value = resolvedState.population;
+      popEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+      return
+    }
+
+    // console.log(geoEl.value)
+    // 2) geographic unit: only SC
+    geoEl.querySelectorAll("sl-option").forEach((opt) => {
+      if (opt.value === "state") {
+        opt.style.display = "";
+      } else if (
+        opt.value == "region" &&
+        popEl.value == "general_population" &&
+        outEl.value == "inpatient_hospitalizations"
+      ) {
+        // exception
+        // -1 influenza -> turn region on
+        opt.style.display = "";
+      } else {
+        opt.style.display = "none";
+      }
+    });
+
+    outEl.querySelectorAll("sl-option").forEach((opt) => {
+      // console.log(opt.value);
+      if (opt.value === "all_hospitalizations" && opt.style.display != "none") {
+        // opt.style.display = "";
+        opt.style.display = "none";
+      } else if (outEl.value !== resolvedState.outcomeVariable) {
+        outEl.value = resolvedState.outcomeVariable;
+        outEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+        return
+      } else {
+        // opt.style.display = "none";
+      }
+    });
+
+    geoEl.querySelectorAll("sl-option").forEach((option) => {
+      if (geoEl.value !== resolvedState.geographicUnit) {
+        geoEl.value = resolvedState.geographicUnit;
+        geoEl.dispatchEvent(new CustomEvent("sl-change", { bubbles: true }));
+        return;
+      }
+    });
+  }
+
+  applyRespiratoryOptionRestrictions({
+    diseaseEl: disEl,
+    geographicUnitEl: geoEl,
+    populationEl: popEl,
+    outcomeEl: outEl,
+  });
+}
+
+function _testDiseaseOutcomeDipendency(
+  disEl,
+  outcomeOptions,
+  tooltips,
+  populationTooltips,
+) {
+  if (!disEl) return;
+
+  const diseases = metadata.diseases;
+
+  if (disEl.value == "respiratory_diseases") {
+    return;
+  }
+
+  function updateOutcomeTooltips() {
+    const selectedKey = disEl.value;
+    const selectedLabel = diseases[selectedKey] ?? selectedKey;
+
+    tooltips.forEach((t) => {
+      if (!t.dataset.baseContent) t.dataset.baseContent = t.content || "";
+
+      const base = t.dataset.baseContent;
+
+      // Always derive from baseline
+      t.content = base.replaceAll("{DISEASE}", selectedLabel);
+      t.distance = "6";
+      t.placement = "right";
+      t.trigger = "hover";
+    });
+
+    populationTooltips.forEach((t) => {
+      t.distance = "6";
+      t.placement = "right";
+      t.trigger = "hover";
+    });
+  }
+
+  function updateOutcomeOptions() {
+    const selectedKey = disEl.value;
+    const selectedLabel = diseases[selectedKey] ?? selectedKey;
+    outcomeOptions.forEach((t) => {
+      if (t.innerHTML.includes("Attributable ED Visits")) {
+        t.innerHTML = `% ${selectedLabel}-Attributable ED Visits`;
+      }
+    });
+  }
+
+  updateOutcomeTooltips();
+  updateOutcomeOptions();
+}
+
+window._controlDependecyTest = _controlDependecyTest;
+window._testDiseaseOutcomeDipendency = _testDiseaseOutcomeDipendency;
+
+export function controlDependencyTest() {
+  testDiseaseOutcomeDipendency();
+
+  const popEl = document.getElementById("map-population-selector");
+  const geoEl = document.getElementById("map-geographic-unit-selector");
+  const outEl = document.getElementById("map-outcome-variable-selector");
+  const disEl = document.getElementById("map-disease-selector");
+
+  _controlDependecyTest(popEl, geoEl, outEl, disEl);
+}
+
+export function controlDependencyTestOnGridView() {
+  testDiseaseOutcomeDipendencyOnGridView();
+
+  const popEl = document.getElementById("grid-population-selector");
+  const geoEl = document.getElementById("grid-geographic-unit-selector");
+  const outEl = document.getElementById("grid-outcome-variable-selector");
+  const disEl = document.getElementById("grid-disease-selector");
+
+  _controlDependecyTest(popEl, geoEl, outEl, disEl);
+}
+
+function testDiseaseOutcomeDipendency() {
+  const diseaseSelect = document.getElementById("map-disease-selector");
+  const outcomeOptions = document.querySelectorAll(".map-outcome-option");
+  const tooltips = document.querySelectorAll(".map-outcome-tooltip");
+  const populationTooltips = document.querySelectorAll(
+    ".map-population-tooltip",
+  );
+
+  _testDiseaseOutcomeDipendency(
+    diseaseSelect,
+    outcomeOptions,
+    tooltips,
+    populationTooltips,
+  );
+}
+
+function testDiseaseOutcomeDipendencyOnGridView() {
+  const diseaseSelect = document.getElementById("grid-disease-selector");
+  const outcomeOptions = document.querySelectorAll(".grid-outcome-option");
+  const tooltips = document.querySelectorAll(".grid-outcome-tooltip");
+  const populationTooltips = document.querySelectorAll(
+    ".grid-population-tooltip",
+  );
+
+  _testDiseaseOutcomeDipendency(
+    diseaseSelect,
+    outcomeOptions,
+    tooltips,
+    populationTooltips,
+  );
+}

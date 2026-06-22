@@ -1,0 +1,180 @@
+{% set min_width = "350px" %}
+{% extends "subtemplates/panel.html" %}
+
+{% block options %}
+<div id="map-options" class="sidebar-container">
+  <!-- reset map button (zoom & zcta selection) -->
+  <sl-button pill id="map-reset-button" class="center-self map-option" size="small" disabled>Reset Map</sl-button>
+  <sl-divider class="options-divider"></sl-divider>
+
+  <!-- count vs rate switch -->
+  <sl-radio-group value="count" id="map-rate-switch" class="center-self" size="small" >
+    <sl-tooltip content="Count of hospitalizations">
+      <sl-radio-button class="map-option" value="count" pill disabled>Count</sl-radio-button>
+    </sl-tooltip>
+    <sl-tooltip content="Hospitalizations per 1000 people">
+      <sl-radio-button class="map-option" value="rate" pill disabled>Rate</sl-radio-button>
+    </sl-tooltip>
+    <sl-tooltip content="Percent change from last period">
+      <sl-radio-button class="map-option" value="percent" pill disabled>Percent Change</sl-radio-button>
+    </sl-tooltip>
+  </sl-radio-group>
+
+  <sl-radio-group value="weekly" id="map-time-switch" class="center-self" size="small">
+    <sl-tooltip id="map-weekly-tooltip" content="Count for the week">
+      <sl-radio-button class="map-option" value="weekly" pill disabled>Week</sl-radio-button>
+    </sl-tooltip>
+    <sl-tooltip id="map-monthly-tooltip" content="Count for the past 4 weeks">
+      <sl-radio-button class="map-option" value="monthly" pill disabled>Month</sl-radio-button>
+    </sl-tooltip>
+    <sl-tooltip id="map-yearly-tooltip" content="Count for the past 52 weeks">
+      <sl-radio-button class="map-option" value="yearly" pill disabled>Year</sl-radio-button>
+    </sl-tooltip>
+  </sl-radio-group>
+
+  <sl-select value="zcta" id="map-region-selector" class="fill-width map-option" size="small" disabled>
+    <p slot="label">Geographic Unit</p>
+    <sl-option value="state">State</sl-option>
+    <sl-option value="region">Region</sl-option>
+    <sl-option value="county">County</sl-option>
+    <sl-option value="zcta">Zip-Code Tabulation Area (ZCTA)</sl-option>
+  </sl-select>
+
+  <sl-select value="encounters" id="map-outcome-variable-selector" class="fill-width map-option" size="small" disabled>
+    <p slot="label">Outcome Variable</p>
+    <sl-tooltip content="Unique recorded diagnoses or positive tests">
+      <sl-option value="encounters">Encounters</sl-option>
+    </sl-tooltip>
+    <sl-tooltip content="Unique diagnosis">
+      <sl-option value="diagnoses">Diagnoses</sl-option>
+    </sl-tooltip>
+    <sl-option value="positive_tests">Positive Tests</sl-option>
+    <sl-option value="emergency_department_visits">Emergency Department Visits</sl-option>
+    <sl-option value="inpatient_hospitalizations">Inpatient Hospitalizations</sl-option>
+  </sl-select>
+
+  <!-- disease selector -->
+  <sl-details id="map-disease-selector-container" open>
+    <p slot="summary">Select a disease or group of diseases</p>
+    <p id="disease-explanation">Disease (<sl-tooltip content="Please be advised, the numbers shown here reflect the current state of the data. They may differ from the previous week due to reporting delay."><tspan class="disease-last-week-value">Last <span class="disease-option-count">Week</span>*</tspan></sl-tooltip>, <tspan class="disease-current-week-value">Current <span class="disease-option-count">Week</span></tspan>, <tspan class="disease-current-week-value">Percent Change</tspan>)</p>
+    <!-- <sl-checkbox id="map-all-disease-selector" class="map-option" size="small" checked>All Diseases <span id="map-all-count"></span></sl-checkbox> -->
+     <sl-checkbox id="map-all-disease-selector" class="map-option" checked>All Diseases <span id="map-all-count"></span></sl-checkbox>
+    {% for disease in outbreak_panel_metadata['diseases'] %}
+    <!-- <sl-checkbox id="map-{{ disease['disease-name'] }}-selector" class="disease-checkbox map-option" disease="{{ disease['disease-name'] }}" size="small" checked>{{ disease['display-name'] }} <span id="map-{{ disease['disease-name'] }}-count"></span></sl-checkbox> -->
+     <sl-checkbox id="map-{{ disease['disease-name'] }}-selector" class="disease-checkbox map-option" disease="{{ disease['disease-name'] }}" checked>{{ disease['display-name'] }} <span id="map-{{ disease['disease-name'] }}-count"></span></sl-checkbox>
+    {% endfor %}
+  </sl-details>  
+  
+  <sl-divider class="options-divider"></sl-divider>
+
+  <!-- map icon inclusion checkboxes (hospital, mobile health clinic, community partners) -->
+  <p style="margin-top: 1em; margin-bottom: 0.5em; font-weight: bold;">Map Resources</p>
+  <sl-checkbox id="map-options-hospital-icons-toggle" class="map-icons-toggle map-option" size="small" disabled>Hospitals</sl-checkbox>
+  <sl-checkbox id="map-options-mobile-clinic-icons-toggle" class="map-icons-toggle map-option" size="small" disabled>Mobile Health Clinics</sl-checkbox>
+  <sl-checkbox id="map-options-community-partner-icons-toggle" class="map-icons-toggle map-option" size="small" disabled>Community Partners</sl-checkbox>
+
+  <sl-divider class="options-divider"></sl-divider>
+  <sl-checkbox id="map-options-geographic-labels-toggle" class="map-toggle map-option" size="small" disabled>Geography Labels</sl-checkbox>
+  
+
+</div>
+
+<sl-resize-observer id="aggregated-disease-history-resizer">
+  <div id="aggregated-disease-history-container" class="fill-width">
+    <p id="aggregated-disease-history-title">State Wide Disease Encounters</p>
+    <p id="aggregated-disease-history-subtitle" >N/A</p>
+    <svg id="aggregated-disease-history"></svg>
+  </div>
+</sl-resize-observer>
+
+<sl-dialog id="aggregated-disease-history-large" class="dialog-width" >
+  <div slot="label">
+    <p id="aggregated-disease-history-large-title">State Wide Disease Encounters</p>
+    <p id="aggregated-disease-history-large-subtitle" >N/A</p>
+  </div>
+  <sl-resize-observer id="aggregated-disease-history-resizer-large">
+    <svg id="aggregated-disease-history-large-svg"></svg>
+  </sl-resize-observer>
+</sl-dialog>
+{% endblock %}
+
+{% block contents %}
+<div class="fill-width fill-height" id="map-div">
+</div>
+<div id="choropleth-legend" style="position:absolute; bottom: 0; left:0;">
+  <svg id="choropleth-legend-svg"></svg>
+</div>
+<div id="map-title-container" class="fill-width">
+  <p id="map-title">Count of Weekly Positive Tests in Prisma and MUSC Health Systems</p>
+</div>
+<div id="map-loading-div">
+  <p id="loading-text">Loading</p>
+  <svg id="loading-dots-svg">
+    <circle class="loading-dot animate"></circle>
+    <circle class="loading-dot animate"></circle>
+    <circle class="loading-dot animate"></circle>
+  </svg>
+</div>
+<sl-dialog id="map-tooltip-large" class="dialog-width map-tooltip-large-dialog">
+  <div id="map-tooltip-large-div" class="tooltip-div map-tooltip-large-content"></div>
+</sl-dialog>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const outbreakMapRoot = document.getElementById("outbreak-map-panel");
+  const outbreakMapElement = (selector) => outbreakMapRoot.querySelector(selector);
+
+  window.outbreakMapDom = {
+    root: outbreakMapRoot,
+    mapResetButton: outbreakMapElement("#map-reset-button"),
+    mapTimeSwitch: outbreakMapElement("#map-time-switch"),
+    mapRateSwitch: outbreakMapElement("#map-rate-switch"),
+    mapRegionSelector: outbreakMapElement("#map-region-selector"),
+    mapOutcomeVariableSelector: outbreakMapElement("#map-outcome-variable-selector"),
+    mapWeeklyTooltip: outbreakMapElement("#map-weekly-tooltip"),
+    mapMonthlyTooltip: outbreakMapElement("#map-monthly-tooltip"),
+    mapYearlyTooltip: outbreakMapElement("#map-yearly-tooltip"),
+    mapAllDiseaseSelector: outbreakMapElement("#map-all-disease-selector"),
+    mapOptionsGeographicLabelsToggle: outbreakMapElement("#map-options-geographic-labels-toggle"),
+    aggregatedDiseaseHistoryResizer: outbreakMapElement("#aggregated-disease-history-resizer"),
+    aggregatedDiseaseHistoryContainer: outbreakMapElement("#aggregated-disease-history-container"),
+    aggregatedDiseaseHistoryTitle: outbreakMapElement("#aggregated-disease-history-title"),
+    aggregatedDiseaseHistorySubtitle: outbreakMapElement("#aggregated-disease-history-subtitle"),
+    aggregatedDiseaseHistory: outbreakMapElement("#aggregated-disease-history"),
+    aggregatedDiseaseHistoryLarge: outbreakMapElement("#aggregated-disease-history-large"),
+    aggregatedDiseaseHistoryLargeTitle: outbreakMapElement("#aggregated-disease-history-large-title"),
+    aggregatedDiseaseHistoryLargeSubtitle: outbreakMapElement("#aggregated-disease-history-large-subtitle"),
+    aggregatedDiseaseHistoryLargeSvg: outbreakMapElement("#aggregated-disease-history-large-svg"),
+    aggregatedDiseaseHistoryResizerLarge: outbreakMapElement("#aggregated-disease-history-resizer-large"),
+    mapTitle: outbreakMapElement("#map-title"),
+    mapDiv: outbreakMapElement("#map-div"),
+    mapLoadingDiv: outbreakMapElement("#map-loading-div"),
+    choroplethLegendSVG: outbreakMapElement("#choropleth-legend-svg"),
+    mapTooltipLarge: outbreakMapElement("#map-tooltip-large"),
+    mapTooltipLargeDiv: outbreakMapElement("#map-tooltip-large-div"),
+    hospitalIconsToggle: outbreakMapElement("#map-options-hospital-icons-toggle"),
+    mobileClinicIconsToggle: outbreakMapElement("#map-options-mobile-clinic-icons-toggle"),
+    communityPartnerIconsToggle: outbreakMapElement("#map-options-community-partner-icons-toggle"),
+  };
+</script>
+
+<script type="module">
+  await Promise.allSettled([ // wait for following to be defined/load in
+        customElements.whenDefined('sl-tab-group'),
+        customElements.whenDefined('sl-button'),
+        customElements.whenDefined('sl-select'),
+        customElements.whenDefined('sl-option'),
+        customElements.whenDefined('sl-resize-observer'),
+        customElements.whenDefined('sl-split-panel'),
+        customElements.whenDefined('sl-tab'),
+    ])
+
+  set{{panel.name}}Panel()
+
+</script>
+
+<script src="{{ url_for('static', filename='js/llm-test/outbreak-view/map.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/llm-test/outbreak-view/map-interactions.js') }}" type="module"></script>
+
+{% endblock %}

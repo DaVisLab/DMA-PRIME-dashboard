@@ -1,0 +1,41 @@
+ /* .month-slider {
+    width: 180px;  
+
+  } */
+
+  .month-value {
+    font-size: 0.8rem;
+    margin-left: 8px;
+    color: #555;
+  }
+
+  /* Custom Slider Style */
+/* .form-range.custom-slider {
+    height: 1rem; 
+} */
+
+/* Track Height - Narrower */
+.form-range.custom-slider::-webkit-slider-runnable-track {
+    height: 0.2rem; /* Set to desired thinness */
+    background-color: #ddd;
+    border-radius: 0.125rem;
+}
+
+.form-range.custom-slider::-moz-range-track {
+    height: 0.2rem;
+    background-color: #ddd;
+    border-radius: 0.125rem;
+}
+
+/* Thumb/Pointer - Smaller */
+.form-range.custom-slider::-webkit-slider-thumb {
+    width: 0.75rem; /* Smaller width */
+    height: 0.75rem; /* Smaller height */
+    margin-top: -0.25rem; /* Center pointer on track */
+}
+
+.form-range.custom-slider::-moz-range-thumb {
+    width: 0.75rem;
+    height: 0.75rem;
+    border: none; /* Remove default border */
+}

@@ -1,0 +1,719 @@
+{% set min_width = "350px" %} {% extends "subtemplates/panel.html" %} {% block
+options %}
+
+<div id="map-options" class="sidebar-container">
+  <!-- reset map button (zoom & zcta selection) -->
+  <sl-button
+    pill
+    id="map-reset-button"
+    class="center-self map-option"
+    size="small"
+    disabled
+    >Reset Map</sl-button
+  >
+  <sl-divider class="options-divider"></sl-divider>
+
+  <!-- count vs rate switch -->
+  <sl-radio-group
+    value="count"
+    id="map-type-switch"
+    class="center-self map-option"
+    size="small"
+    disabled
+  >
+    <sl-tooltip content="Count of hospitalizations">
+      <sl-radio-button pill value="count">Count</sl-radio-button>
+    </sl-tooltip>
+    <sl-tooltip content="Hospitalizations per 1000 people">
+      <sl-radio-button pill value="rate">Rate</sl-radio-button>
+    </sl-tooltip>
+    <sl-tooltip content="Percent change from last week">
+      <sl-radio-button pill value="percentDifference"
+        >Percent Change</sl-radio-button
+      >
+    </sl-tooltip>
+  </sl-radio-group>
+
+  <!-- disease selector -->
+  <sl-select
+    value="influenza"
+    id="map-disease-selector"
+    class="fill-width map-option"
+    size="small"
+    disabled
+  >
+    <p slot="label">Select a disease or group of diseases</p>
+    {% for disease, name in respiratory_panel_metadata['diseases'].items() %}
+    <sl-option value="{{ disease }}" class="map-disease-option"
+      >{{ name }}</sl-option
+    >
+    {% endfor %}
+  </sl-select>
+
+  <!-- region selector -->
+  <sl-select
+    value="region"
+    id="map-geographic-unit-selector"
+    class="fill-width map-option"
+    size="small"
+    disabled
+  >
+    <p slot="label">Geographic unit</p>
+    {% for region in respiratory_panel_metadata['available_models']['influenza'].keys() %}
+    <sl-option class="map-geographic-unit-option" value="{{ region }}"
+      >{{ respiratory_panel_metadata['region_sizes'][region] }}</sl-option
+    >
+    {% endfor %}
+  </sl-select>
+
+  {% with prefix='map' %} {% include
+  'subtemplates/controlOptions/facilityOptionComponent.html' %} {% endwith %}
+
+  <!-- population -->
+  <sl-select
+    value="{{ respiratory_panel_metadata['available_models']['influenza']['region'] | list | first }}"
+    id="map-population-selector"
+    class="fill-width map-option"
+    size="small"
+    disabled
+  >
+    <p slot="label">Select population</p>
+    {% for population in
+    respiratory_panel_metadata['available_models']['influenza']['region'].keys() %}
+    <sl-tooltip
+      class="map-population-tooltip"
+      content="{{ respiratory_panel_metadata['populations_tooltips'][population] }}"
+      trigger="hover"
+      hoist
+      placement="right"
+      distance="6"
+    >
+      <sl-option class="map-population-option" value="{{ population }}"
+        >{{ respiratory_panel_metadata['populations'][population] }}</sl-option
+      >
+    </sl-tooltip>
+    {% endfor %}
+  </sl-select>
+
+  <!-- outcome variable -->
+  <sl-select
+    value="inpatient_hospitalizations"
+    id="map-outcome-variable-selector"
+    class="fill-width map-option"
+    size="small"
+    disabled
+  >
+    <p slot="label">Select outcome variable</p>
+    {% for outcome in
+    respiratory_panel_metadata['available_models']['influenza']['region'].values() | first %}
+    <sl-tooltip
+      class="map-outcome-tooltip"
+      content="{{ respiratory_panel_metadata['outcome_variables_tooltips'][outcome] }}"
+      trigger="hover"
+      placement="right"
+      distance="6"
+      flip="false"
+      hoist
+    >
+      <sl-option class="map-outcome-option" value="{{ outcome }}"
+        >{{ respiratory_panel_metadata['outcome_variables'][outcome] }}</sl-option
+      >
+    </sl-tooltip>
+    {% endfor %}
+  </sl-select>
+
+  <!-- imputation inclusion checkbox -->
+  <sl-checkbox id="map-include-imputations" class="map-option" checked disabled
+    >Include imputed data</sl-checkbox
+  >
+
+  <!-- Map Resources section -->
+  <p style="margin-top: 1em; margin-bottom: 0.5em; font-weight: bold">
+    Map Resources
+  </p>
+  <sl-tooltip content="All hospitals in SC">
+    <sl-checkbox
+      id="map-options-hospital-icons-toggle"
+      class="map-icons-toggle map-option"
+      disabled
+      >Hospitals</sl-checkbox
+    >
+  </sl-tooltip>
+  <sl-checkbox
+    id="map-options-mobile-clinic-icons-toggle"
+    class="map-icons-toggle map-option"
+    disabled
+    >Mobile Health Clinics</sl-checkbox
+  >
+  <sl-checkbox
+    id="map-options-community-partner-icons-toggle"
+    class="map-icons-toggle map-option"
+    disabled
+    >Community Partners</sl-checkbox
+  >
+  <sl-divider class="options-divider"></sl-divider>
+  <!-- map options -->
+  <sl-checkbox
+    id="map-options-geographic-labels-toggle"
+    class="map-toggle map-option"
+    disabled
+    >Geographic Labels</sl-checkbox
+  >
+</div>
+
+<div id="map-state-hospitalizations" class="state-hospitalizations">
+  <p id="map-state-hospitalizations-title" class="state-hospitalizations-title">
+    CDC-Reported State Hospitalizations
+  </p>
+  <p
+    id="map-state-hospitalizations-subtitle"
+    class="state-hospitalizations-subtitle"
+  >
+    N/A
+  </p>
+  <sl-resize-observer id="map-state-hospitalizations-resizer">
+    <svg
+      id="map-state-hospitalizations-svg"
+      class="state-hospitalizations-svg"
+    ></svg>
+  </sl-resize-observer>
+</div>
+<sl-dialog
+  id="map-state-hospitalizations-large"
+  class="dialog-width state-hospitalizations"
+>
+  <div slot="label">
+    <p
+      id="map-state-hospitalizations-large-title"
+      class="state-hospitalizations-title"
+    >
+      CDC-Reported State Hospitalizations
+    </p>
+    <p
+      id="map-state-hospitalizations-large-subtitle"
+      class="state-hospitalizations-subtitle"
+    >
+      N/A
+    </p>
+  </div>
+  <sl-resize-observer id="map-state-hospitalizations-large-resizer">
+    <svg
+      id="map-state-hospitalizations-large-svg"
+      class="state-hospitalizations-large-svg"
+    ></svg>
+  </sl-resize-observer>
+</sl-dialog>
+
+{% endblock %} {% block contents %}
+
+<!-- <div class="fill-width fill-height container"> -->
+<div class="row" style="height: 100%; position: relative">
+  <div class="col-md-3" style="border-left: 1px solid lightgray; height: 100%">
+    <div
+      style="
+        /* height: 22%; */
+        height: fit-content;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        /* border-bottom: 1px double lightgray; */
+        font-size: 0.8rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      "
+    >
+      <div
+        style="
+          display: flex;
+          font-size: 0.7rem;
+          height: fit-content;
+          /* height: 29%; */
+          justify-content: space-around;
+          /* flex-direction: column; */
+          align-items: self-end;
+        "
+      >
+        <label
+          style="
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin: 0px;
+            padding: 0px;
+          "
+          >Sort By:
+        </label>
+        <select
+          class="form-select form-select-sm input-sm"
+          id="sortSelecter"
+          aria-label="Floating label select example"
+          style="line-height: 14px; font-size: 0.7rem; width: 60%"
+        >
+          <option value="value-high">Value High-Low</option>
+          <option value="value-low">Value Low-High</option>
+          <option selected value="alphabetical-low">
+            Alphabetical A-Z-0-9
+          </option>
+          <option value="alphabetical-high">Alphanumerical 9-0-Z-A</option>
+        </select>
+      </div>
+
+      <div
+        style="
+          display: flex;
+          font-size: 0.7rem;
+          /* height: 29%; */
+          height: fit-content;
+          justify-content: space-around;
+          /* flex-direction: column; */
+          align-items: self-end;
+        "
+      >
+        <label
+          style="
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 0px;
+            margin: 0px;
+          "
+          >Filter By:
+        </label>
+        <input
+          class="form-control form-control-sm"
+          id="filterInput"
+          placeholder="ZCTA or County"
+          style="line-height: 14px; font-size: 0.7rem; width: 60%"
+        />
+      </div>
+      <div
+        id="time-animation-control"
+        style="
+          display: flex;
+          align-items: center;
+          height: 39%;
+          padding: 0.05rem 0.35rem 0.2rem;
+          width: 100%;
+          margin-bottom: .5rem;
+        "
+      >
+        <div
+          id="time-animation-slider-frame"
+          style="
+            position: relative;
+            flex: 1;
+            min-width: 0;
+            --time-animation-left-offset: 14px;
+            --time-animation-date-gap: 5px;
+            --small-multiple-value-width: 34px;
+            padding-top: 1.2rem;
+            margin-top: 0.5rem;
+          "
+        >
+          <span
+            id="time-animation-date-range"
+            style="
+              position: absolute;
+              top: calc(1.2rem + 0.96rem);
+              left: var(--time-animation-left-offset);
+              right: calc(
+                var(--small-multiple-value-width) +
+                  var(--time-animation-date-gap)
+              );
+              display: flex;
+              justify-content: space-between;
+              color: #555;
+              font-size: 0.58rem;
+              line-height: 0.7rem;
+              white-space: nowrap;
+              pointer-events: none;
+            "
+          >
+            <span id="time-animation-start-date"
+              >{{ respiratory_panel_metadata.first_date }}</span
+            >
+            <span id="time-animation-end-date">{{ respiratory_panel_metadata.last_date }}</span>
+          </span>
+          <div
+            id="time-animation-current-date"
+            style="
+              position: absolute;
+              top: -0.08rem;
+              left: var(--time-animation-left-offset);
+              transform: translateX(-50%);
+              width: max-content;
+              display: flex;
+              flex-direction: row;
+              align-items: center;
+              justify-content: center;
+              box-sizing: border-box;
+              border: 1px solid lightgray;
+              border-radius: 0.3rem;
+              background: white;
+              color: black;
+              font-size: 0.7rem;
+              line-height: 1;
+              padding: 0.12rem 0.34rem 0.12rem 0.22rem;
+              text-align: center;
+              white-space: nowrap;
+              pointer-events: auto;
+              z-index: 5;
+              visibility: hidden;
+            "
+          >
+            <span id="time-animation-current-date-text"
+              >{{ respiratory_panel_metadata.current_date }}</span
+            >
+          </div>
+          <button
+            id="time-animation-play-button"
+            type="button"
+            aria-label="Play animation"
+            style="
+              position: absolute;
+              top: calc(1.2rem - 0.18rem);
+              right: 0.1rem;
+              width: 2rem;
+              height: 2rem;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              padding: 0;
+              border: 1px solid lightgray;
+              border-radius: 0.26rem;
+              background: #f1f1f1;
+              color: #333;
+              cursor: pointer;
+              font-size: 0.58rem;
+              line-height: 1;
+              z-index: 4;
+              visibility: hidden;
+            "
+          >
+            <sl-icon name="play-fill"></sl-icon>
+          </button>
+          <input
+            id="time-animation-slider"
+            type="range"
+            min="0"
+            max="0"
+            step="1"
+            value="0"
+            aria-label="Animation date"
+            style="
+              width: calc(
+                100% - var(--time-animation-left-offset) -
+                  var(--time-animation-date-gap) -
+                  var(--small-multiple-value-width)
+              );
+              display: block;
+              margin-left: var(--time-animation-left-offset);
+              margin-right: calc(
+                var(--small-multiple-value-width) +
+                  var(--time-animation-date-gap)
+              );
+              position: relative;
+              z-index: 2;
+            "
+          />
+          <div
+            id="time-animation-slider-ticks"
+            aria-hidden="true"
+            style="
+              position: absolute;
+              top: calc(1.2rem + 0.5rem);
+              left: var(--time-animation-left-offset);
+              right: calc(
+                var(--small-multiple-value-width) +
+                  var(--time-animation-date-gap)
+              );
+              height: 0.7rem;
+              transform: translateY(-50%);
+              pointer-events: none;
+              z-index: 3;
+            "
+          ></div>
+        </div>
+      </div>
+
+      <hr style="margin: 0px" />
+    </div>
+
+    <!-- <div
+        id="respiratory-smallMultiples-region-of-interest"
+        style="
+          height: fit-content;
+          max-height: 85%;
+          width: fit-content;
+          background-color: white;
+          /* border: 2px solid black; */
+          border-radius: 0.1rem;
+          box-shadow: 0 0.2rem 0.2rem gray;
+          overflow-y: auto;
+          z-index: 10;
+        "
+      ></div> -->
+    <div
+      id="respiratory-smallMultiples-scrollport"
+      style="
+        --small-multiple-scrollbar-gutter: 10px;
+        height: 78%;
+        width: calc(100% + var(--small-multiple-scrollbar-gutter));
+        margin-right: calc(-1 * var(--small-multiple-scrollbar-gutter));
+        overflow-y: auto;
+        overflow-x: hidden;
+        box-sizing: border-box;
+      "
+    >
+      <div
+        id="respiratory-smallMultiples-container"
+        style="
+          min-height: 100%;
+          width: calc(100% - var(--small-multiple-scrollbar-gutter));
+          padding: 0.5rem;
+          box-sizing: border-box;
+          gap: 0.25rem;
+        "
+      ></div>
+    </div>
+  </div>
+  <div
+    class="col-md-9"
+    style="border-left: 1px solid lightgray; height: 100%; position: relative"
+  >
+    <div class="fill-width fill-height" id="map-div"></div>
+    <div id="geo-tooltip"></div>
+    <div id="map-legend">
+      <svg
+        id="map-shape-legend"
+        xmlns="http://www.w3.org/2000/svg"
+        width="250"
+        height="48"
+        viewBox="0 0 250 48"
+        display="initial"
+        transform="translate(0 20)"
+      >
+        <g transform="translate(4 0) scale(0.06)">
+          <path
+            fill="#CCCCCC"
+            stroke="black"
+            d="M534.1 303.5c-10.2 2-29.3 8.1-36.6 11.7-38 19.1-63 52-72.2 94.8-2.5 11.9-2.5 38.1.1 50 4.6 21.4 11.5 36.7 24.7 55 15.6 21.6 41.3 57.5 71.7 100 16.7 23.4 31.2 43.3 32.2 44.3 1.9 2.1.3 4.1 23.5-28.3 6.5-9.1 14.6-20.3 18-25s16.3-22.5 28.5-39.5c12.3-17.1 27.4-38 33.6-46.5 16.3-22.5 23.4-37.7 28.1-60 2.5-11.8 2.5-38.2 0-50-8.5-39.5-29.5-69.3-63.3-89.6-11.2-6.7-22.4-11.2-37.9-15.1-12.7-3.1-38.5-4.1-50.4-1.8m48.1 22.3c39.8 10.6 70 39.9 81.2 78.6 15.1 51.8-10 107.9-58.8 131.6-19 9.2-36.8 12.6-57.9 10.9-16.1-1.3-26.6-4.3-41.4-11.8-29.5-14.9-50.2-40.9-58.2-73.1-2.7-10.6-3.3-15.7-3.2-27.8.2-51.5 36.3-96.7 86.6-108.5 10.9-2.6 11.1-2.6 28-2.2 12.2.2 17.8.8 23.7 2.3"
+          />
+          <path
+            fill="#CCCCCC"
+            stroke="black"
+            d="M527 382.5V405h-44v58h44v44h58v-44h44v-58h-44v-45h-58z"
+          />
+        </g>
+
+        <text x="50" y="35" font-size="14" font-family="sans-serif" fill="#000">
+          Prisma/MUSC Health System
+        </text>
+      </svg>
+      <svg id="choropleth-legend-svg"></svg>
+    </div>
+    <div id="map-title-container" style="width: 100%">
+      <p id="map-title">
+        Count of COVID-19 All Hospitalizations in South Carolina by Region
+      </p>
+      <p id="map-disclaimer"></p>
+    </div>
+    <div id="map-loading-div">
+      <p id="loading-text">Loading</p>
+      <svg id="loading-dots-svg">
+        <circle class="loading-dot animate"></circle>
+        <circle class="loading-dot animate"></circle>
+        <circle class="loading-dot animate"></circle>
+      </svg>
+    </div>
+
+    <div id="map-alert-container">
+      <sl-alert
+        id="map-mixed-forecast-this-week-alert"
+        variant="warning"
+        class="map-alert"
+        closable
+      >
+        <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+        <strong>Partial forecast submissions available for this week</strong
+        ><br />
+        Only locations with this week's forecasts are shown on the map.
+      </sl-alert>
+
+      <sl-alert
+        id="map-no-forecast-this-week-alert"
+        variant="warning"
+        class="map-alert"
+        closable
+      >
+        <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+        <strong>No forecasts submitted for this week</strong><br />
+      </sl-alert>
+
+      <sl-alert id="map-no-forecast-alert" variant="warning" class="map-alert">
+        <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+        <strong>No forecast submissions available</strong><br />
+      </sl-alert>
+    </div>
+  </div>
+
+  <!-- </div> -->
+</div>
+{% endblock %} {% block scripts %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js"
+  integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
+  crossorigin="anonymous"
+></script>
+<link
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+  rel="stylesheet"
+  integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+  crossorigin="anonymous"
+/>
+
+<!-- 3) Your initialization + controls (unchanged) -->
+<script>
+  var dataVersion = 0;
+
+  // Map controls
+  var mapResetButton = document.getElementById("map-reset-button");
+  var mapTypeSwitch = document.getElementById("map-type-switch");
+  var mapDiseaseSelector = document.getElementById("map-disease-selector");
+  var mapGeographicUnitSelector = document.getElementById(
+    "map-geographic-unit-selector",
+  );
+
+  var mapFacilityUnitSelector = document.getElementById(
+    "map-facility-option-container",
+  );
+  var mapPopulationSelector = document.getElementById(
+    "map-population-selector",
+  );
+  var mapOutcomeVariableSelector = document.getElementById(
+    "map-outcome-variable-selector",
+  );
+  var mapIncludeImputations = document.getElementById(
+    "map-include-imputations",
+  );
+
+  // Optional toggles
+  var mapOptionsGeographicLabelsToggle = document.getElementById(
+    "map-options-geographic-labels-toggle",
+  );
+  var hospitalIconsToggle = document.getElementById(
+    "map-options-hospital-icons-toggle",
+  );
+  var mobileClinicIconsToggle = document.getElementById(
+    "map-options-mobile-clinic-icons-toggle",
+  );
+  var communityPartnerIconsToggle = document.getElementById(
+    "map-options-community-partner-icons-toggle",
+  );
+
+  // State–level chart elements
+  var mapStateHospitalizationsSubtitle = document.getElementById(
+    "map-state-hospitalizations-subtitle",
+  );
+  var mapStateHospitalizationsResizer = document.getElementById(
+    "map-state-hospitalizations-resizer",
+  );
+  var mapStateHospitalizationsSvg = document.getElementById(
+    "map-state-hospitalizations-svg",
+  );
+  var mapStateHospitalizationsLarge = document.getElementById(
+    "map-state-hospitalizations-large",
+  );
+  var mapStateHospitalizationsLargeSubtitle = document.getElementById(
+    "map-state-hospitalizations-large-subtitle",
+  );
+  var mapStateHospitalizationsLargeResizer = document.getElementById(
+    "map-state-hospitalizations-large-resizer",
+  );
+  var mapStateHospitalizationsLargeSvg = document.getElementById(
+    "map-state-hospitalizations-large-svg",
+  );
+
+  // Main map, legend, title & tooltip
+  var mapDiv = document.getElementById("map-div");
+  var mapShapeLegend = document.getElementById("map-shape-legend");
+  var choroplethLegendSVG = document.getElementById("choropleth-legend-svg");
+  var mapTitle = document.getElementById("map-title");
+  var mapDisclaimer = document.getElementById("map-disclaimer");
+  var mapNoForecastAlert = document.getElementById("map-no-forecast-alert");
+  var mapNoForecastThisWeekAlert = document.getElementById(
+    "map-no-forecast-this-week-alert",
+  );
+  var mapMixedForecastThisWeekAlert = document.getElementById(
+    "map-mixed-forecast-this-week-alert",
+  );
+
+  // Options selected
+  var mapGeographicUnit = undefined;
+  var mapPopulation = undefined;
+  var mapOutcomeVariable = undefined;
+</script>
+
+<script>
+  // init the filter placeholder based on geographic unit selection
+  (function waitForSelectorAndSetPlaceholder() {
+    const setPlaceholder = () => {
+      const selector = document.getElementById("map-geographic-unit-selector");
+
+      const input = document.getElementById("filterInput");
+
+      if (selector && input) {
+        if (selector.value === "zcta") {
+          input.placeholder = "ZCTA";
+        } else {
+          const selectedGeography =
+            selector.value || selector.getAttribute("value") || "";
+          input.placeholder = selectedGeography
+            ? selectedGeography.charAt(0).toUpperCase() +
+              selectedGeography.slice(1)
+            : "Location";
+        }
+
+        return true;
+      }
+      return false;
+    };
+
+    const observeUntilFound = () => {
+      const mo = new MutationObserver((_, obs) => {
+        if (setPlaceholder()) obs.disconnect();
+      });
+      mo.observe(document.body, { childList: true, subtree: true });
+    };
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => {
+        if (!setPlaceholder()) observeUntilFound();
+      });
+    } else {
+      if (!setPlaceholder()) observeUntilFound();
+    }
+  })();
+</script>
+
+<!-- 5) Your module code—now deck, loaders & maplibregl are ready -->
+
+<script
+  src="{{ url_for('static', filename='js/llm-test/respiratory-view/map.js') }}"
+  type="module"
+></script>
+<script
+  src="{{ url_for('static', filename='js/llm-test/respiratory-view/map-interactions.js') }}"
+  type="module"
+></script>
+<script
+  src="{{ url_for('static', filename='js/llm-test/respiratory-view/smallMultiples-hospitalization.js') }}?v={{ respiratory_panel_metadata.data_version }}&timeline=terminal-reset"
+  type="module"
+></script>
+<script
+  src="{{ url_for('static', filename='js/llm-test/respiratory-view/time-animation-controls.js') }}?v={{ respiratory_panel_metadata.data_version }}&timeline=play-right"
+  type="module"
+></script>
+{% endblock %}

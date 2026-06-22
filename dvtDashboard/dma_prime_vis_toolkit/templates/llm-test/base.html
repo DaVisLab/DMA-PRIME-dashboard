@@ -1,0 +1,224 @@
+{% extends "subtemplates/base.html" %} {% block title %}DMA-PRIME{% endblock %}
+{% block style %}
+<!-- Linking stylesheets -->
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="{{ url_for('static', filename='css/style.css') }}"
+/>
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="{{ url_for('static', filename='css/llm-test/respiratory-view/respiratory-style.css') }}"
+/>
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="{{ url_for('static', filename='css/llm-test/respiratory-view/map-style.css') }}"
+/>
+
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="{{ url_for('static', filename='css/llm-test/outbreak-view/map-style.css') }}"
+/>
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="{{ url_for('static', filename='css/llm-test/ai-chat.css') }}"
+/>
+
+{% endblock %} {% block headScripts %}
+<!-- Adding datetime package timejs (allows timezone date instantiation) -->
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/isSameOrAfter.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/isSameOrBefore.js"></script>
+
+<!-- maplibre gl -->
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"
+/>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
+<!-- deck gl -->
+<script src="https://unpkg.com/deck.gl@latest/dist.min.js"></script>
+
+<script>
+  // Ensuring the timejs additional plugins are linked
+  dayjs.extend(window.dayjs_plugin_utc);
+  dayjs.extend(window.dayjs_plugin_customParseFormat);
+  dayjs.extend(window.dayjs_plugin_isSameOrAfter);
+  dayjs.extend(window.dayjs_plugin_isSameOrBefore);
+
+  // South Carolina population baseline used by state-level rate charts.
+  var scPopulation = 5118425;
+</script>
+<!-- Contains helper functions/data/constants -->
+<script>
+    function parseDate(dateString) {
+      return dayjs(dateString, "YYYY-MM-DD").toDate()
+    }
+
+
+  //   console.log(respiratory_panel_metadata);
+    var metadata = {{ respiratory_panel_metadata | tojson }}
+    var outbreak_panel_metadata = {{ outbreak_panel_metadata | safe }}
+
+    var currentDate = parseDate(metadata.current_date)
+
+    var firstDate = parseDate(metadata.first_date)
+    var allHistoricalDates = metadata.all_historical_dates.map(d => parseDate(d))
+    var expectedAllHistoricalDataPoints = allHistoricalDates.length
+
+    var startShortHistory = parseDate(metadata.start_short_history)
+    var shortHistoryDates = metadata.short_history_dates.map(d => parseDate(d))
+    var expectedShortHistoryDataPoints = shortHistoryDates.length
+
+    var lastDate = parseDate(metadata.last_date)
+    var predictionDates = metadata.prediction_dates.map(d => parseDate(d))
+
+</script>
+<script
+  src="{{ url_for('static', filename='js/llm-test/respiratory-view/script.js') }}"
+  type="module"
+></script>
+<script src="{{ url_for('static', filename='js/llm-test/outbreak-view/script.js') }}"></script>
+
+{% endblock %} {% block linkout %} {% endblock %} {% block extraBody %}
+<sl-dialog id="tooltip-large" class="dialog-width">
+  <sl-icon-button
+    name="info-circle"
+    slot="header-actions"
+    id="model-exploration-button-tooltip-large"
+  ></sl-icon-button>
+  <div>
+    <div class="tooltip-header">
+      <div class="tooltip-region-info"></div>
+      <div class="tooltip-data-info"></div>
+    </div>
+    <sl-resize-observer id="tooltip-large-resizer">
+      <svg id="tooltip-large-svg" class="tooltip-outer-svg"></svg>
+    </sl-resize-observer>
+    <div class="tooltip-footer">
+      <div class="tooltip-legend"></div>
+      <div class="tooltip-options"></div>
+    </div>
+  </div>
+</sl-dialog>
+
+<div class="llm-ai-chat-widget" id="llm-ai-chat-widget">
+  <section
+    class="llm-ai-chat-panel"
+    id="llm-ai-chat-panel"
+    role="dialog"
+    aria-labelledby="llm-ai-chat-title"
+    hidden
+  >
+    <header class="llm-ai-chat-header">
+      <div class="llm-ai-chat-brand">
+        <span class="llm-ai-chat-brand-icon" aria-hidden="true">
+          <sl-icon name="robot"></sl-icon>
+        </span>
+        <div>
+          <h2 id="llm-ai-chat-title">DMA-PRIME AI</h2>
+          <p id="llm-ai-chat-context">Respiratory View</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        class="llm-ai-chat-close"
+        id="llm-ai-chat-close"
+        aria-label="Close AI chat"
+      >
+        <sl-icon name="x-lg"></sl-icon>
+      </button>
+    </header>
+
+    <div class="llm-ai-chat-messages" id="llm-ai-chat-messages">
+      <div class="llm-ai-chat-message llm-ai-chat-message--assistant">
+        <div class="llm-ai-chat-message-avatar" aria-hidden="true">
+          <sl-icon name="stars"></sl-icon>
+        </div>
+        <div class="llm-ai-chat-message-bubble">
+          Ask about the current dashboard view, disease trends, regions, or KG
+          recommendations.
+        </div>
+      </div>
+    </div>
+
+    <div class="llm-ai-chat-prompts" aria-label="Suggested prompts">
+      <button type="button">Summarize this view</button>
+      <button type="button">Find notable regions</button>
+      <button type="button">Explain the KG result</button>
+    </div>
+
+    <form class="llm-ai-chat-composer" id="llm-ai-chat-form">
+      <label class="llm-ai-chat-sr-only" for="llm-ai-chat-input"
+        >Message</label
+      >
+      <textarea
+        id="llm-ai-chat-input"
+        rows="1"
+        placeholder="Ask DMA-PRIME AI"
+      ></textarea>
+      <button type="submit" aria-label="Send message">
+        <sl-icon name="send"></sl-icon>
+      </button>
+    </form>
+  </section>
+
+  <button
+    class="llm-ai-chat-toggle"
+    id="llm-ai-chat-toggle"
+    type="button"
+    aria-label="Open AI chat"
+    aria-controls="llm-ai-chat-panel"
+    aria-expanded="false"
+  >
+    <sl-icon name="robot"></sl-icon>
+  </button>
+</div>
+{% endblock %} {% block bodyScripts %}
+<script
+  src="{{ url_for('static', filename='js/llm-test/ai-chat.js') }}"
+  type="module"
+></script>
+
+<script>
+  var tooltipLarge = document.getElementById("tooltip-large");
+  function clearLargeTooltipContent() {
+    tooltipLarge
+      .querySelectorAll(
+        ".tooltip-region-info, .tooltip-data-info, .tooltip-legend, .tooltip-options, #tooltip-large-svg",
+      )
+      .forEach((node) => (node.innerHTML = ""));
+  }
+  tooltipLarge.addEventListener("sl-after-hide", clearLargeTooltipContent);
+  tooltipLarge.addEventListener("close", clearLargeTooltipContent);
+
+  var modelExplorationButtonTooltipLarge = document.getElementById(
+    "model-exploration-button-tooltip-large",
+  );
+
+  d3.select(modelExplorationButtonTooltipLarge).on("click", () => {
+    d3.select(".model-exploration-icon-button").dispatch("click");
+  });
+</script>
+
+<script type="module">
+  // toggle tooltip labels
+  document.addEventListener("keyup", function (e) {
+    if (e.key == "l") {
+      d3.selectAll(".tooltip-label-group").each(function (d) {
+        const display =
+          d3.select(this).attr("display") == "none" ? "initial" : "none";
+        d3.select(this).attr("display", display);
+      });
+    }
+  });
+</script>
+
+{% endblock %}

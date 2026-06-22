@@ -512,6 +512,7 @@ for disease in diseases.keys():
         ).to_list()
     )
     # create dirs if needed and save off file
+    
     out_path = f"{processed_data_dir}/respiratory/facility/{disease}.json"
     with open(get_file_descriptor(out_path), "w") as f:
         geojson.dump(all_disease_data, f)

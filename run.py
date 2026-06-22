@@ -11,10 +11,10 @@ formatter = logging.Formatter(
 
 handler = TimedRotatingFileHandler(
     os.path.join(
-        "C:/Users/Grace/Documents/CDC Project/DMA-PRIME-DASHBOARD/testing/logs",
+        "C:\\Users\\dongyuh\\OneDrive - Clemson University\\Desktop\\Research\\health-vis\\DMA-PRIME-dashboard\\testing\\logs",
         "dmaprime.log",
     ),
-    when="midnight",
+    when="midnight"
     backupCount=7,
 )
 handler.setLevel(logging.INFO)
@@ -23,6 +23,7 @@ handler.setFormatter(formatter)
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 logger.addHandler(handler)
+
 
 # Create the app instance with parameters
 app = create_app(dataDir="C:/DMA-PRIME/data")

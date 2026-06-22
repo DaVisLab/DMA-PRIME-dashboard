@@ -1,0 +1,751 @@
+{% set min_width = "350px" %} {% extends "subtemplates/panel.html" %} {% block
+options %}
+<div
+  id="map-options"
+  class="sidebar-container"
+  style="display: inline-block; height: 100%; overflow-y: hidden"
+>
+  <sl-radio-group
+    value="weekly"
+    id="surveillance-time-window-switch"
+    class="center-self"
+    size="small"
+  >
+    <sl-tooltip id="map-weekly-tooltip" content="Count for the week">
+      <sl-radio-button class="map-option" value="weekly" pill
+        >Weekly Comparison</sl-radio-button
+      >
+    </sl-tooltip>
+    <sl-tooltip id="map-monthly-tooltip" content="Count for the past 4 weeks">
+      <sl-radio-button class="map-option" value="monthly" pill
+        >Monthly Comparison</sl-radio-button
+      >
+    </sl-tooltip>
+  </sl-radio-group>
+
+  <sl-select
+    value="encounters"
+    id="map-outcome-variable-selector"
+    class="map-option"
+    size="small"
+    style="margin-bottom: 1rem"
+  >
+    <p slot="label">Risk Index (RI)</p>
+    <sl-tooltip content="Unique recorded diagnoses or positive tests">
+      <sl-option value="encounters">Encounters</sl-option>
+      <!-- <sl-option value="all_hospitalizations">Hospitalizations</sl-option> -->
+    </sl-tooltip>
+    <sl-tooltip content="Unique diagnosis">
+      <sl-option value="diagnoses">Diagnoses</sl-option>
+    </sl-tooltip>
+    <sl-option value="positive_tests">Positive Tests</sl-option>
+    <sl-option value="emergency_department_visits"
+      >Emergency Department Visits</sl-option
+    >
+    <sl-option value="inpatient_hospitalizations"
+      >Inpatient Hospitalizations</sl-option
+    >
+  </sl-select>
+
+  <!-- disease selector -->
+  <sl-details id="map-disease-selector-container" open>
+    <p slot="summary">Select diseases of interest</p>
+    <p id="disease-explanation">
+      Disease (<tspan class="disease-current-week-value">Current RI</tspan>,
+      <tspan>RI Change</tspan>)
+    </p>
+    <sl-checkbox
+      id="map-all-disease-selector"
+      class="map-option"
+      size="small"
+      checked
+      >All Diseases <span id="map-all-count"></span
+    ></sl-checkbox>
+    <hr />
+    <div>
+      <div style="display: flex; justify-content: space-between">
+        <label style="font-size: 0.75rem; font-weight: bold; padding: 0px"
+          >Sort By</label
+        >
+        <div style="display: flex; justify-content: flex-end; align-items: end">
+          <input
+            class="form-check-input"
+            type="radio"
+            name="diseaseSortInPanel"
+            id="flexRadioDefault1"
+            style="margin-right: 0.3rem"
+          />
+          <label
+            class="form-check-label"
+            for="flexRadioDefault1"
+            style="font-size: 0.75rem"
+          >
+            Risk Index
+          </label>
+        </div>
+        <div style="display: flex; justify-content: flex-end; align-items: end">
+          <input
+            class="form-check-input"
+            type="radio"
+            name="diseaseSortInPanel"
+            id="flexRadioDefault2"
+            style="margin-right: 0.3rem"
+          />
+          <label
+            class="form-check-label"
+            for="flexRadioDefault2"
+            style="font-size: 0.75rem"
+          >
+            Risk Increase
+          </label>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; align-items: end">
+        <input
+          class="form-check-input"
+          type="radio"
+          name="diseaseSortInPanel"
+          id="flexRadioDefault3"
+          style="margin-right: 0.3rem"
+          checked
+        />
+        <label
+          class="form-check-label"
+          for="flexRadioDefault3"
+          style="font-size: 0.75rem"
+        >
+          Alphabetical Order
+        </label>
+      </div>
+    </div>
+
+    <div style="overflow-y: auto; height: 50vh">
+      {% for disease in outbreak_panel_metadata['diseases'] %}
+      <sl-checkbox
+        id="map-{{ disease['disease-name'] }}-selector"
+        class="disease-checkbox map-option"
+        disease="{{ disease['disease-name'] }}"
+        size="small"
+        checked
+        >{{ disease['display-name'] }}
+        <span
+          >(<span id="riskindex-{{ disease['disease-name'] }}-curRI"></span>;
+          <span id="riskindex-{{ disease['disease-name'] }}-RIChange"></span
+          >)</span
+        >
+      </sl-checkbox>
+      {% endfor %}
+    </div>
+  </sl-details>
+
+  <sl-divider class="options-divider"></sl-divider>
+</div>
+
+{% endblock %} {% block contents %}
+
+<div class="row" style="position: relative; height: 100%; padding: 0.5rem">
+  <div
+    id="loading-spinner"
+    style="
+      height: calc(100% + 0.5rem);
+      width: 100%;
+      margin: 0px;
+      position: absolute;
+      top: -0.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 99;
+      background-color: rgba(211, 211, 211, 0.8);
+    "
+  >
+    <div
+      class="spinner-border spinner-border-lg text-primary"
+      role="status "
+      style="position: absolute; width: 60px; height: 60px"
+    >
+      <!-- <span class="sr-only" >Loading...</span> -->
+    </div>
+  </div>
+
+  <div
+    id="popupWindow"
+    style="
+      position: absolute;
+      display: none;
+      width: 80%;
+      height: 80%;
+      background: white;
+      border: 1px solid #ccc;
+      padding: 8px 10px;
+      border-radius: 8px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+      z-index: 9999;
+      left: 10%;
+      top: 10%;
+    "
+  >
+    <div
+      id="popupHeader"
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        width: 100%;
+        height: 10%;
+      "
+    >
+      <span id="popupTitle" style="font-weight: bold; font-size: 1.2rem"
+        >Popup Title</span
+      >
+      <button
+        id="popupClose"
+        style="
+          background: transparent;
+          border: 1px solid black;
+          border-radius: 25%;
+          font-size: 1.4rem;
+          cursor: pointer;
+          line-height: 1;
+          color: black;
+        "
+      >
+        &times;
+      </button>
+    </div>
+    <div id="popupContent" style="width: 100%; height: 90%; display: flex">
+      <!-- Popup content goes here -->
+      <div id="chartDivComponent" style="width: 80%; height: 100%">
+        <svg id="popupChartSVG" style="width: 100%; height: 100%"></svg>
+      </div>
+      <div id="yearDivComponent" style="width: 20%; height: 100%">
+        <div id="popupStartingMonth" style="width: 100%; height: 10%; margin-bottom: 1rem;">
+          <label for="popupMonthRange" class="form-label">
+            Starting Month:
+            <span id="popupMonthValue" class="month-value">Jan</span>
+          </label>
+
+          <input
+            type="range"
+            class="form-range month-slider custom-slider"
+            min="0"
+            max="11"
+            step="1"
+            value="0"
+            id="popupMonthRange"
+            list="monthTicks"
+          />
+          <datalist id="monthTicks">
+            <option value="0" label="Jan"></option>
+            <option value="1" label="Feb"></option>
+            <option value="2" label="Mar"></option>
+            <option value="3" label="Apr"></option>
+            <option value="4" label="May"></option>
+            <option value="5" label="Jun"></option>
+            <option value="6" label="Jul"></option>
+            <option value="7" label="Aug"></option>
+            <option value="8" label="Sep"></option>
+            <option value="9" label="Oct"></option>
+            <option value="10" label="Nov"></option>
+            <option value="11" label="Dec"></option>
+          </datalist>
+        </div>
+        <div id="yearComponent" style="width: 100%; height: 90%">2026...</div>
+      </div>
+    </div>
+
+    <!-- <div id="overviewDivComponent" style="width: 100%; height: 30%">
+      <svg id="overviewChartSVG"></svg>
+    </div> -->
+  </div>
+  <div class="col-md-3" style="border-left: 1px solid lightgray; height: 100%">
+    <div
+      style="
+        height: 30%;
+        font-size: 0.8rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 1rem 0px 0.5rem 0px;
+      "
+    >
+      <div style="height: fit-content">
+        <p slot="label" style="margin: 0; padding: 0; font-weight: bold">
+          Geographic Unit
+        </p>
+        <select
+          id="map-resolution-selector"
+          class="form-select form-select-sm"
+          aria-label="Default select example"
+        >
+          <option selected value="region">Region</option>
+          <option value="county">County</option>
+          <option value="zcta">Zip-Code Tabulation Area (ZCTA)</option>
+        </select>
+      </div>
+      <div
+        style="
+          display: flex;
+          font-size: 0.7rem;
+          height: fit-content;
+          flex-direction: column;
+        "
+      >
+        <div style="display: flex; justify-content: flex-start">
+          <label
+            style="
+              font-size: 0.75rem;
+              font-weight: bold;
+              padding: 0px;
+              margin: 0px;
+            "
+            >Filter By</label
+          >
+        </div>
+        <div style="display: flex; justify-content: flex-end">
+          <input
+            class="form-control form-control-sm"
+            id="floatingInput"
+            placeholder="ZCTA or County"
+            style="line-height: 14px; font-size: 0.7rem"
+          />
+        </div>
+      </div>
+
+      <!-- Sort By Switch -->
+      <div style="margin-top: 0.5rem; padding: 0 0; width: 100%">
+        <div style="display: flex; justify-content: space-between">
+          <label
+            style="
+              font-size: 0.75rem;
+              font-weight: bold;
+              padding: 0px;
+              /* margin: 0px 0px 0.25rem 0px; */
+            "
+            >Sort By</label
+          >
+          <div style="display: flex; justify-content: flex-end">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="flexRadioDefault"
+              id="flexRadioDefault1"
+              style="margin-right: 0.3rem"
+              checked
+            />
+            <label class="form-check-label" for="flexRadioDefault1">
+              Risk Index
+            </label>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end">
+          <input
+            class="form-check-input"
+            type="radio"
+            name="flexRadioDefault"
+            id="flexRadioDefault2"
+            style="margin-right: 0.3rem"
+          />
+          <label class="form-check-label" for="flexRadioDefault2">
+            Risk Increase
+          </label>
+        </div>
+      </div>
+
+      <div style="height: fit-content">
+        <hr style="margin: 0px; margin-bottom: 0.3rem" />
+        <hr style="margin: 0px" />
+      </div>
+    </div>
+    <div
+      style="
+        height: 70%;
+        border-bottom: 1px double lightgray;
+        font-size: 0.8rem;
+        display: flex;
+        flex-direction: column;
+        /* justify-content: space-between; */
+      "
+    >
+      <label for="monthRange" class="form-label">
+        Starting Month:
+        <span id="monthValue" class="month-value">Jan</span>
+      </label>
+
+      <input
+        type="range"
+        class="form-range month-slider custom-slider"
+        min="0"
+        max="11"
+        step="1"
+        value="0"
+        id="monthRange"
+        list="monthTicks"
+      />
+      <datalist id="monthTicks">
+        <option value="0" label="Jan"></option>
+        <option value="1" label="Feb"></option>
+        <option value="2" label="Mar"></option>
+        <option value="3" label="Apr"></option>
+        <option value="4" label="May"></option>
+        <option value="5" label="Jun"></option>
+        <option value="6" label="Jul"></option>
+        <option value="7" label="Aug"></option>
+        <option value="8" label="Sep"></option>
+        <option value="9" label="Oct"></option>
+        <option value="10" label="Nov"></option>
+        <option value="11" label="Dec"></option>
+      </datalist>
+      <div
+        id="respiratory-smallMultiples-region-of-interest"
+        style="
+          height: fit-content;
+          max-height: 82%;
+          width: fit-content;
+          background-color: white;
+          /* border: 2px solid black; */
+          border-radius: 0.1rem;
+          box-shadow: 0 0.2rem 0.2rem gray;
+          overflow-y: auto;
+          z-index: 10;
+        "
+      ></div>
+      <div
+        id="respiratory-smallMultiples-container"
+        style="height: 82%; width: 100%; overflow-y: auto; overflow-x: hidden"
+      ></div>
+    </div>
+  </div>
+  <div class="col-md-9" style="margin: 0px; padding: 0px">
+    <div
+      class="row"
+      style="width: 100%; height: 60%; padding: 0.5rem; margin: 0px"
+    >
+      <div
+        class="col-md-7"
+        style="position: relative; padding: 0px; margin: 0px"
+      >
+        <div
+          style="
+            position: absolute;
+            z-index: 10;
+            height: fit-content;
+            width: fit-content;
+            display: flex;
+            font-size: 0.7rem;
+            flex-direction: column;
+            margin: 1rem;
+            bottom: 0px;
+            right: 0px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1px solid gray;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+          "
+        >
+          <p style="margin-top: 1em; margin-bottom: 0.5em; font-weight: bold">
+            Public Health Resources
+          </p>
+          <sl-checkbox
+            id="map-options-hospital-icons-toggle"
+            class="map-icons-toggle map-option"
+            size="small"
+            disabled
+            >Hospitals</sl-checkbox
+          >
+          <sl-checkbox
+            id="map-options-mobile-clinic-icons-toggle"
+            class="map-icons-toggle map-option"
+            size="small"
+            disabled
+            >Mobile Health Clinics</sl-checkbox
+          >
+          <sl-checkbox
+            id="map-options-community-partner-icons-toggle"
+            class="map-icons-toggle map-option"
+            size="small"
+            disabled
+            >Community Partners</sl-checkbox
+          >
+        </div>
+        <div
+          class="fill-width fill-height"
+          id="focus-map-div"
+          style="
+            border-radius: 0.5rem;
+            border: 1px solid lightgray;
+            box-shadow: 0.2rem 0.2rem #888888;
+          "
+        >
+          <svg
+            id="focus-map-legend-svg"
+            style="
+              position: absolute;
+              height: 4rem;
+              width: 15rem;
+              bottom: 3%;
+              left: 3%;
+              background-color: rgb(248, 248, 248, 0.8);
+              z-index: 1;
+              border: 1px solid gray;
+              border-radius: 0.5rem;
+            "
+          ></svg>
+        </div>
+      </div>
+
+      <div
+        class="col-md-5"
+        style="
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          position: relative;
+        "
+      >
+        <ul
+          class="nav nav-tabs nav-fill mb-3"
+          id="ex1"
+          role="tablist"
+          style="height: fit-content; margin: 0rem !important"
+        >
+          <li class="nav-item" role="presentation">
+            <a
+              data-bs-toggle="tab"
+              class="nav-link active"
+              id="ex1-tab-1"
+              href="#ex1-tabs-1"
+              role="tab"
+              aria-controls="ex1-tabs-1"
+              aria-selected="true"
+              style="padding: 0.3rem 0px"
+              >Spatial Maps</a
+            >
+          </li>
+          <li class="nav-item" role="presentation">
+            <a
+              data-bs-toggle="tab"
+              class="nav-link"
+              id="ex1-tab-2"
+              href="#ex1-tabs-2"
+              role="tab"
+              aria-controls="ex1-tabs-2"
+              aria-selected="false"
+              style="padding: 0.3rem 0px"
+              >Comparative Analysis</a
+            >
+          </li>
+        </ul>
+
+        <!-- Tabs content -->
+        <div
+          class="tab-content"
+          id="ex1-content"
+          style="flex: 1; min-height: 0; width: 100%; padding: 0px; margin: 0px"
+        >
+          <div
+            class="tab-pane fade show active"
+            id="ex1-tabs-1"
+            role="tabpanel"
+            aria-labelledby="ex1-tab-1"
+            style="height: 100%; width: 100%; padding: 0px; margin: 0px"
+          >
+            <div
+              class="fill-width"
+              id="sub-map1-div"
+              style="
+                border: 1px solid lightgray;
+                box-shadow: 0.2rem 0.2rem #888888;
+                height: 49%;
+              "
+            ></div>
+            <svg
+              id="sub-map1-legend-svg"
+              style="
+                position: absolute;
+                height: 4rem;
+                width: 15rem;
+                bottom: calc(49%);
+                left: calc(6% + var(--bs-gutter-x) * 0.5);
+                background-color: rgb(248, 248, 248, 0.8);
+                z-index: 1;
+                border: 1px solid gray;
+                border-radius: 0.5rem;
+              "
+            ></svg>
+            <div style="height: 2%"></div>
+            <div
+              class="fill-width"
+              id="sub-map2-div"
+              style="
+                border: 1px solid lightgray;
+                box-shadow: 0.2rem 0.2rem #888888;
+                height: 49%;
+              "
+            ></div>
+            <svg
+              id="sub-map2-legend-svg"
+              style="
+                position: absolute;
+                height: 4rem;
+                width: 15rem;
+                bottom: 3%;
+                left: calc(6% + var(--bs-gutter-x) * 0.5);
+                background-color: rgb(248, 248, 248, 0.8);
+                z-index: 1;
+                border: 1px solid gray;
+                border-radius: 0.5rem;
+              "
+            ></svg>
+          </div>
+          <div
+            class="tab-pane fade"
+            id="ex1-tabs-2"
+            role="tabpanel"
+            aria-labelledby="ex1-tab-2"
+          >
+            heatmap visualization or sth here for comparative analysis
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="row"
+      style="width: 100%; height: 40%; padding: 0.5rem; margin: 0rem"
+    >
+      <div
+        class="col-md-12"
+        style="
+          /* border: 1px solid lightgray; */
+          /* box-shadow: 0.2rem 0.2rem #888888; */
+          border-radius: 0.5rem;
+          padding: 0px;
+          overflow-x: hidden;
+          display: flex;
+        "
+      >
+        <div
+          id="table-col-selector"
+          style="
+            width: 20%;
+            height: 100%;
+            padding: 0rem;
+            margin: 0px;
+            font-size: 0.7rem !important;
+            display: flex;
+            flex-direction: column;
+            /* justify-content: space-between; */
+            gap: 2%;
+          "
+        >
+          <!-- table column selector here -->
+          <div
+            style="
+              width: 100%;
+              flex: 0 0 49%;
+              border: 1px solid lightgray;
+              border-radius: 0.5rem;
+              display: flex;
+              flex-direction: column;
+              min-height: 0;
+            "
+          >
+            <div
+              style="
+                font-size: 0.8rem;
+                color: white;
+                background-color: gray;
+                display: flex;
+                height: fit-content;
+                justify-content: center;
+                border-radius: 0.5rem 0.5rem 0 0;
+              "
+            >
+              Disease Selector
+            </div>
+            <div
+              id="table-disease-list"
+              style="min-height: 0; overflow-y: auto; padding: 0.5rem"
+            >
+              <!-- {% for disease in metadata['diseases'] %}
+                    <sl-checkbox
+                      id="table-disease-{{ disease['disease-name'] }}-selector"
+                      class="disease-checkbox map-option"
+                      disease="{{ disease['disease-name'] }}"
+                      size="small"
+                      checked
+                      >{{ disease['display-name'] }}
+                    </sl-checkbox>
+                    {% endfor %}   -->
+            </div>
+          </div>
+          <!-- <div style="width: 100%; height: 2%"></div> -->
+          <div
+            style="
+              width: 100%;
+              flex: 0 0 49%;
+              border: 1px solid lightgray;
+              border-radius: 0.5rem;
+              display: flex;
+              flex-direction: column;
+              min-height: 0;
+            "
+          >
+            <div
+              style="
+                font-size: 0.8rem;
+                color: white;
+                background-color: gray;
+                display: flex;
+                justify-content: center;
+                border-radius: 0.5rem 0.5rem 0 0;
+              "
+            >
+              Social Variable Selector
+            </div>
+            <div id="table-variable-list">...</div>
+          </div>
+        </div>
+        <div
+          id="table-view-container"
+          class="row"
+          style="width: 80%; height: 100%; padding: 0.5rem; margin: 0rem"
+        >
+          table view here
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+
+<link
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+  rel="stylesheet"
+  integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+  crossorigin="anonymous"
+/>
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+  integrity=""
+  crossorigin="anonymous"
+></script>
+
+<link
+  href="{{ url_for('static', filename='css/llm-test/outbreak-view/controls.css') }}"
+  rel="stylesheet"
+  type="text/css"
+/>
+
+<script
+  src="{{ url_for('static', filename='js/llm-test/outbreak-view/dyhan/controls.js') }}"
+  type="module"
+></script>
+
+<script
+  src="{{ url_for('static', filename='js/llm-test/outbreak-view/dyhan/dataManager.js') }}"
+  type="module"
+></script>
+{% endblock %}

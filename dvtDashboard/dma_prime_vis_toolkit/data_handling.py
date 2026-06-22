@@ -26,30 +26,14 @@ from .utility import (
     main_dir,
     replace_date_in_file,
 )
+from .config import (
+    DATA_DASHBOARDS,
+    GEOJSON_FILES,
+    SPATIAL_UNITS,
+    UI_TO_DATA_DASHBOARD,
+)
 
 bp = Blueprint("data", __name__, url_prefix="/data")
-
-GEOJSON_FILES = {
-    "state": "sc_state_population_simplified.json",
-    "county": "tl_2024_sc_county_simplified.json",
-    "zcta": "tl_2024_sc_zcta_simplified.json",
-}
-SPATIAL_UNITS = {"state", "region", "county", "zcta", "facility"}
-DATA_DASHBOARDS = [
-    "respiratory",
-    "waste_water",
-    "other_infectious_diseases",
-    "opioid_hcv_hiv",
-    "mhc",
-]
-UI_TO_DATA_DASHBOARD = {
-    "respiratory": "respiratory",
-    "wastewater": "waste_water",
-    "outbreak-detection": "other_infectious_diseases",
-    "opioid-hcv-hiv": "opioid_hcv_hiv",
-    "mobile-health-clinics": "mhc",
-}
-
 
 def _dashboard_folder(dashboard):
     """Normalize UI dashboard names to the data directory names."""
