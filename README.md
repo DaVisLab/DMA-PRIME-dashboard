@@ -1,6 +1,7 @@
 # DMA-PRIME-dashboard
 DMA-PRIME (Disease Monitoring, Analytics, and Prediction Infrastructure for Public Health Response and Emergency Management) is an integrated public health surveillance platform designed to support infectious disease monitoring, outbreak detection, and forecasting across South Carolina.
 * Access: https://dmaprime.clemson.edu/
+  
 ** As DMA-PRIME contains HIPAA-compliant healthcare data and predictive analytics results, access is restricted to authorized users.
   
 <img width="1326" height="786" alt="dmaprime-login-page" src="https://github.com/user-attachments/assets/49d81dae-46f7-42ca-bdef-e729166c2db5" />
