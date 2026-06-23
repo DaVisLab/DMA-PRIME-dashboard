@@ -22,7 +22,7 @@ UI_TO_DATA_DASHBOARD = {
     "mobile-health-clinics": "mhc",
 }
 
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = ""
 
 WORKFLOW_AGENT_DEBUG_PREFIX = "[WorkflowAgent]"
 
