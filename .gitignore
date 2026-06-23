@@ -4,6 +4,7 @@ secrets.cfg
 **/__pycache__/
 dvtDashboard/dist*
 dvtDashboard/instance
+dvtDashboard/dma_prime_vis_toolkit/config.py
 
 testing/logs/*
 testing/processed/*
